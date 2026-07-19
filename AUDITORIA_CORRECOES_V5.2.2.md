@@ -57,20 +57,20 @@ Referência: "COPA DOS SONHOS — Auditoria de Conformidade das Fases 0 a 9".
 
 ## Ciclo 2 (mesma branch)
 
-### 4. Fase 8 � defesa em dois tempos � ? IMPLEMENTADO E COMPROVADO
-Goleiro pode espalmar e matar a bola no chao antes do ataque chegar
-(kind double_catch, apos a decisao de escanteio para nao consumir a taxa
-de escanteios). Estatistica gkDoubleCatches; teste phase8_gk_saves.
+### 4. Fase 8 — defesa em dois tempos — ✓ IMPLEMENTADO E COMPROVADO
+Goleiro pode espalmar e matar a bola no chão antes do ataque chegar
+(kind `double_catch`, após a decisão de escanteio para não consumir a taxa
+de escanteios). Estatística `gkDoubleCatches`; teste `phase8_gk_saves`.
 
-### 5. Fase 8 � distribuicao direcionada � ? IMPLEMENTADO E COMPROVADO
-Cada reposicao registra a funcao do alvo real: gkDistToFullback/
-CenterBack/Midfield/Forward. Teste com invariantes (alvos <= reposicoes).
+### 5. Fase 8 — distribuição direcionada — ✓ IMPLEMENTADO E COMPROVADO
+Cada reposição registra a função do alvo real: `gkDistToFullback`/
+`CenterBack`/`Midfield`/`Forward`. Teste com invariantes (alvos ≤ reposições).
 
-### Smoke visual v5.2.2 � ? APROVADO
-Desktop e mobile 375px renderizam a home e a preparacao completas, zero
-erros de console; botoes TATICA 5.0 e IA DO TREINADOR 5.2.2 ativos.
+### Smoke visual v5.2.2 — ✓ APROVADO
+Desktop e mobile 375px renderizam a home e a preparação completas, zero
+erros de console; botões TÁTICA 5.0 e IA DO TREINADOR 5.2.2 ativos.
 
-### Regressao do ciclo 2 � 100 partidas, dt=1/60, pilha completa
+### Regressão do ciclo 2 — 100 partidas, dt=1/60, pilha completa
 Nota 85.6/100; gols 2.78, vermelhos 0.17, empates 30% (na faixa),
-0-0 10%, bola parada 13.7%. Escanteios 4.08 (pendencia cronica,
-pre-existente a este ciclo). Relatorio: reports/phase3/cycle2-final-v522.
+0-0 10%, bola parada 13.7%. Escanteios 4.08 (pendência crônica,
+pré-existente a este ciclo). Relatório: `reports/phase3/cycle2-final-v522`.
