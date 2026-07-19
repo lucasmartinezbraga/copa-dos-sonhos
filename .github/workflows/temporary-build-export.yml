@@ -1,0 +1,24 @@
+name: Temporary build export
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout pull request
+        uses: actions/checkout@v4
+      - name: Package repository
+        run: zip -r copa-dos-sonhos-source.zip . -x '.git/*' 'copa-dos-sonhos-source.zip'
+      - name: Upload source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: copa-dos-sonhos-source
+          path: copa-dos-sonhos-source.zip
+          retention-days: 1
