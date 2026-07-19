@@ -2099,7 +2099,7 @@ function endOfPlay() {
   if (endOfPlay._done) return; endOfPlay._done = true;
   if (isKO && sim.score[0] === sim.score[1] && sim.half <= 2) {
     endOfPlay._done = false;   // prorrogação: permite novo fim depois
-    fastForwardFullTime._done = false;  // PONTO 4: rearma a compressão p/ o apito dos 120' 
+    fastForwardFullTime._done = false;  // PONTO 4: rearma a compressão p/ o apito dos 120'
     feed.unshift({ min:90, txt:'⚡ <b>PRORROGAÇÃO!</b>', imp:true });
     latestEvent = { txt:'⚡ <b>PRORROGAÇÃO!</b>', min:90 };
     updateNarr(); sim.beginExtraTime(); startLoop(); return;
@@ -3229,4 +3229,3 @@ function paintSquadTab(body) {
 
 // hook de teste (usado pelo QA automatizado)
 })();
-

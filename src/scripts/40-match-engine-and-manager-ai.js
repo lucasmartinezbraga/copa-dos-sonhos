@@ -15,7 +15,7 @@ const CAL = C.ENGINE_CALIBRATION;
    contexto, gatilhos, interações de função, fadiga tardia e leitura espacial
    às mesmas disputas de atributos usadas pelo motor original. */
 const ADV4 = Object.freeze({
-  version: '4.0.1',
+  version: '4.3.2',
   context: Object.freeze({
     pressureRadius: 5.4,
     lateMinute: 74,
@@ -39,7 +39,7 @@ const ADV4 = Object.freeze({
   crossing: Object.freeze({
     lowCrossBase: 0.24,
     lowCrossMax: 0.78,
-    aerialSetPieceBoost: 0.12,
+    aerialSetPieceBoost: 0.15,
   }),
   defending: Object.freeze({
     errorCheckEvery: 24,
@@ -713,9 +713,9 @@ class MatchSim {
     // jogada antes de servir o atacante livre, inflando chutes ruins e secando gols.
     if (best && best.intoBox && best.risk < 2.4 && dtg > 16) { this._pass(o, best); return; }
     const shotDecision = this._evaluateShotDecision(o, dtg, pressured, nd, best, T);
-    if (shotDecision.take) { 
+    if (shotDecision.take) {
       const volley = o.settle > 0 && o.settle < 0.45;
-      this._shoot(o, dtg, shotDecision.longshot, volley); return; 
+      this._shoot(o, dtg, shotDecision.longshot, volley); return;
     }
     // bola matadora na área — quase sempre tenta
     if (best && best.intoBox && best.risk < 2.4) { this._pass(o, best); return; }
@@ -874,7 +874,7 @@ class MatchSim {
         if(chance(pGoal)) this._goal(atk,false);
         else if(chance(.48+(gk?facet(gk,'gk')/300:0))){
           this.stats[o.team].onTarget++; if(gk){this.stats[1-o.team].saves++;gk.rating+=.2;}
-          this._emit('save',{gk,big:pGoal>.30}); if(chance(.34))this._setCorner(o.team);else this._turnover(gk);
+          this._emit('save',{gk,big:pGoal>.30}); if(chance(CAL.restarts.lowCrossSaveCorner))this._setCorner(o.team);else this._turnover(gk);
         } else { this._emit('miss',{by:atk}); this._goalKickOrRestart(1-o.team); }
       },atk,'through');
       return;
@@ -883,7 +883,7 @@ class MatchSim {
     const atk=bestAir;
     const deliveryFail = clamp(.34-(crossSkill-55)/210-(setPiece?.08:0),.10,.43);
     if(!atk || chance(deliveryFail)){
-      this._startTravel(o,{x:g.x,y:FW/2+R(-8,8)},'pass',()=>{if(chance(.52))this._setCorner(o.team);else this._goalKickOrRestart(1-o.team);},null,'launch');
+      this._startTravel(o,{x:g.x,y:FW/2+R(-8,8)},'pass',()=>{if(chance(CAL.restarts.failedCrossCorner))this._setCorner(o.team);else this._goalKickOrRestart(1-o.team);},null,'launch');
       return;
     }
     const def=defs.slice().sort((a,b)=>D(a.x,a.y,atk.x,atk.y)-D(b.x,b.y,atk.x,atk.y))[0];
@@ -892,15 +892,15 @@ class MatchSim {
       const pWin=duelProb(facet(atk,'head_atk')+setBoost,(def?facet(def,'head_def'):40)+5);
       if(chance(pWin)){
         this.stats[o.team].crossesOk++; this.stats[o.team].shots++; this.beat=.5;
-        const pGoal=clamp(.105*(1+(facet(atk,'head_atk')-(gk?facet(gk,'gk'):40))/100*.9)*(setPiece?1.18:1),.025,.28);
+        const pGoal=clamp(.105*(1+(facet(atk,'head_atk')-(gk?facet(gk,'gk'):40))/100*.9)*(setPiece?1.24:1),.025,.28);
         this.stats[o.team].xg+=pGoal;
         if(setPiece){this.stats[o.team].setPieceShots++;atk._setPieceShotUntil=this.t+1;}
         this._emit('header_shot',{by:atk,xg:pGoal,setPiece});
         if(chance(pGoal))this._goal(atk,false);
         else{
           const hr=R(),saveShare=.27+(gk?facet(gk,'gk')/100:.4)*.12;
-          if(hr<saveShare){this.stats[o.team].onTarget++;if(gk){gk.rating+=.2;this.stats[1-o.team].saves++;}this._emit('save',{gk,big:false});if(chance(.38))this._setCorner(o.team);else this._goalKickOrRestart(1-o.team);}
-          else if(hr<saveShare+.18){this._emit('blocked',{by:def});if(chance(.45))this._setCorner(o.team);else this._looseBall(atk.x,atk.y);}
+          if(hr<saveShare){this.stats[o.team].onTarget++;if(gk){gk.rating+=.2;this.stats[1-o.team].saves++;}this._emit('save',{gk,big:false});if(chance(CAL.restarts.aerialSaveCorner))this._setCorner(o.team);else this._goalKickOrRestart(1-o.team);}
+          else if(hr<saveShare+.18){this._emit('blocked',{by:def});if(chance(CAL.restarts.aerialBlockCorner))this._setCorner(o.team);else this._looseBall(atk.x,atk.y);}
           else{this._emit('miss',{by:atk});this._goalKickOrRestart(1-o.team);}
         }
       }else{if(def){def.rating+=.08;this._emit('header_clear',{by:def});this._turnover(def);}else this._goalKickOrRestart(1-o.team);}
@@ -1421,14 +1421,14 @@ class MatchSim {
       if(r2<saveCut){
         const saveTarget={x:g.x-tm.attackDir*1.25,y:clamp(g.y+dispersion,g.y-3.35,g.y+3.35)};
         this.stats[o.team].onTarget++;
-        this._startTravel(o,saveTarget,'shot',()=>{this.stats[1-o.team].saves++;if(gk)gk.rating+=(atk>82?.35:.18);this._emit('save',{gk,big:atk>82||oneOnOne});if(chance(.5))this._setCorner(o.team);else this._turnover(gk);},null,'shot');
+        this._startTravel(o,saveTarget,'shot',()=>{this.stats[1-o.team].saves++;if(gk)gk.rating+=(atk>82?.35:.18);this._emit('save',{gk,big:atk>82||oneOnOne});if(chance(CAL.restarts.shotSaveCorner))this._setCorner(o.team);else this._turnover(gk);},null,'shot');
       }else if(r2<blockCut){
         const defenders=this.teams[1-o.team].players.filter(p=>!p.red&&!p.isGK);let blocker=null,bestLine=99;
         for(const d of defenders){const t=clamp(this._projT(o.x,o.y,g.x,g.y,d.x,d.y),0,1);if(t<.12||t>.88)continue;const px=lerp(o.x,g.x,t),py=lerp(o.y,g.y,t),ld=D(d.x,d.y,px,py);if(ld<bestLine){bestLine=ld;blocker=d;}}
         const blockTarget=blocker&&bestLine<7?{x:blocker.x,y:blocker.y}:{x:lerp(o.x,g.x,.55),y:lerp(o.y,g.y,.55)+R(-1.5,1.5)};
-        this._startTravel(o,blockTarget,'shot',()=>{this._emit('blocked',{by:blocker});if(chance(.38))this._setCorner(o.team);else this._looseBall(blockTarget.x,blockTarget.y);},null,'shot');
+        this._startTravel(o,blockTarget,'shot',()=>{this._emit('blocked',{by:blocker});if(chance(CAL.restarts.shotBlockCorner))this._setCorner(o.team);else this._looseBall(blockTarget.x,blockTarget.y);},null,'shot');
       }else if(r2<postCut){
-        this._startTravel(o,{x:g.x,y:g.y+(chance(.5)?1:-1)*3.66},'shot',()=>{this._emit('post',{by:o});if(chance(.45))this._setCorner(o.team);else this._looseBall(g.x,g.y);},null,'shot');
+        this._startTravel(o,{x:g.x,y:g.y+(chance(.5)?1:-1)*3.66},'shot',()=>{this._emit('post',{by:o});if(chance(CAL.restarts.postCorner))this._setCorner(o.team);else this._looseBall(g.x,g.y);},null,'shot');
       }else{
         const missY=g.y+(chance(.5)?1:-1)*R(5.2,11.5);
         this._startTravel(o,{x:g.x+tm.attackDir*3,y:missY},'shot',()=>{this._emit('miss',{by:o});this._goalKickOrRestart(1-o.team);},null,'shot');o.rating-=.08;
@@ -1626,7 +1626,6 @@ class MatchSim {
     const reach=(defTm.fx.pressReach||0)*pw+trigger*ADV4.pressing.triggerRadiusBoost*work;
     const pressRadius=(distToOwnGoal<30?3:distToOwnGoal<55?2.6:2.25)+reach;
     if(nd<pressRadius && (!near._tackleCd||near._tackleCd<=0)){
-      near._tackleCd=CAL.timing.tackleCooldown*lerp(1.18,.78,work);
       const atkCtx=this._actionContext(o,nd,'carry'),defCtx=this._actionContext(near,nd,'press');
       const poor=(o._poorTouchUntil||0)>this.t?8:0;
       const p=duelProb(facet(near,'tackle')*defCtx.execution+facet(near,'press')*.12+poor,facet(o,'carry')*atkCtx.execution+6);
@@ -1635,7 +1634,10 @@ class MatchSim {
       const baseRate=distToOwnGoal<30?CAL.defending.tackleAttemptRate*1.20:distToOwnGoal<55?CAL.defending.tackleAttemptRate:CAL.defending.tackleAttemptRate*.72;
       const energy=clamp(.45+stamina*.65,.45,1.08);
       const triggerRate=1+trigger*.72;
-      if(chance(p*dt*(defBox?CAL.defending.boxAttemptRate:baseRate)*defTm.fx.tackle*defTm.mood.tackle*energy*triggerRate)){
+      const attemptRate=(defBox?CAL.defending.boxAttemptRate:baseRate)*defTm.fx.tackle*defTm.mood.tackle*energy*triggerRate;
+      const attemptP=1-Math.exp(-Math.max(0,p*attemptRate)*dt);
+      if(chance(attemptP)){
+        near._tackleCd=CAL.timing.tackleCooldown*lerp(1.18,.78,work);
         if(chance(this._foulProb(near)))this._awardFoul(near,o);
         else{this.stats[near.team].tackles++;if(trigger>.42 && this.possT<=ADV4.pressing.counterPressWindow)this.stats[near.team].pressWins++;this._turnover(near);this._emit('tackle',{by:near,on:o,pressing:trigger>.28});near.rating+=.1;}
       }
@@ -1706,7 +1708,7 @@ class MatchSim {
     this._emit('freekick', { by: taker, manual });
     this._emit('fk_scene', { by: taker, gk, result, dist: dtg, defTeam: 1 - team, manual, visual });
     if (result === 'goal') { taker._setPieceShotUntil = this.t + 1; this._goal(taker, true); }
-    else if (result === 'save') { if (gk) { gk.rating += 0.25; this.stats[1-team].saves++; } this.stats[team].onTarget++; if (chance(0.5)) this._setCorner(team); else this._goalKickOrRestart(1-team); }
+    else if (result === 'save') { if (gk) { gk.rating += 0.25; this.stats[1-team].saves++; } this.stats[team].onTarget++; if (chance(CAL.restarts.freeKickSaveCorner)) this._setCorner(team); else this._goalKickOrRestart(1-team); }
     else if (result === 'wall') this._looseBall(x + this.teams[team].attackDir * 6, y + R(-6, 6));
     else this._goalKickOrRestart(1-team);
   }
@@ -2444,10 +2446,13 @@ class MatchSim {
   /* ------------------------------ EVENTOS ----------------------------- */
   _emit(type, data) {
     const ev = Object.assign({ type, minute: Math.floor(this.minute), t: this.t }, data);
-    // O laboratório executa milhares de partidas e não precisa reter cada passe,
-    // bote e corrida. O callback continua recebendo todos os eventos necessários
-    // para a auditoria, mas o array interno só guarda marcos de jogo.
-    if (!(this.opts && this.opts.labMode) || ['goal','yellow','red','injury','halftime','extratime','sub'].includes(type)) this.events.push(ev);
+    if (this.opts && this.opts.labMode) {
+      // Em calibração estatística, todas as contagens relevantes já vivem em
+      // `stats`. Só gols precisam atravessar o callback para registrar o minuto.
+      if (type === 'goal') { try { this.onEvent(ev); } catch(e){} }
+      return;
+    }
+    this.events.push(ev);
     try { this.onEvent(ev); } catch(e){}
   }
 
@@ -2856,5 +2861,3 @@ const OUT = { MatchSim, FL, FW };
 if (typeof module !== 'undefined' && module.exports) module.exports = OUT;
 if (typeof root !== 'undefined') Object.assign(root, OUT);
 })(typeof window !== 'undefined' ? window : globalThis);
-
-

@@ -2,7 +2,7 @@
 from pathlib import Path
 import asyncio,json
 ROOT=Path(__file__).resolve().parents[1]
-HTML=ROOT/'dist/COPA DOS SONHOS - VERSAO ATUAL 4.3.2.html'
+HTML=ROOT/'dist/COPA DOS SONHOS - FASE 3 - MOTOR CALIBRADO.html'
 async def main():
  from playwright.async_api import async_playwright
  errors=[];console=[]

@@ -9,4 +9,8 @@ c=''.join((ROOT/x['file']).read_text(encoding='utf-8') for x in m['styles'])
 j=''.join((ROOT/x['file']).read_text(encoding='utf-8') for x in m['scripts'])
 out=t.replace('/*__CDS_HEAD_BOOTSTRAP__*/',h).replace('/*__CDS_STYLES__*/',c).replace('/*__CDS_MAIN_SCRIPTS__*/',j)
 p=ROOT/m['build_output'];p.parent.mkdir(parents=True,exist_ok=True);p.write_text(out,encoding='utf-8')
-print(p);print('sha256:',hashlib.sha256(p.read_bytes()).hexdigest())
+digest=hashlib.sha256(p.read_bytes()).hexdigest()
+if m.get('last_build_sha256')!=digest:
+ m['last_build_sha256']=digest
+ (ROOT/'manifests/build-manifest.json').write_text(json.dumps(m,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+print(p);print('sha256:',digest)

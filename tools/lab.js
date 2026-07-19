@@ -88,37 +88,33 @@ function generateJobs(count) {
     const squad=pick(iconic.length?iconic:middle), style=pick(styles), form=pick(forms);
     jobs.push(mirroredJob(`P${id++}`,'parity',squad,style,form,100000+id,{equal:true}));
   }
-  for(let i=0;i<mix.random;i++){
+  for(let i=0;i<mix.random;){
+    const pair=Math.floor(i/2);
     const a=pick(meta.squads), b=pick(meta.squads.filter(x=>x.index!==a.index));
     const fa=pick(forms), fb=pick(forms), sa=pick(styles), sb=pick(styles);
-    jobs.push({id:`R${id++}`,suite:'random',group:'random',seed:200000+id,dt:DT,
-      a:spec(a,sa,fa,Math.floor(rand()*(meta.variations[fa]||1))),
-      b:spec(b,sb,fb,Math.floor(rand()*(meta.variations[fb]||1))),meta:{ratingGap:a.rating-b.rating}});
+    const A=spec(a,sa,fa,Math.floor(rand()*(meta.variations[fa]||1))),B=spec(b,sb,fb,Math.floor(rand()*(meta.variations[fb]||1))),seed=200000+pair;
+    jobs.push({id:`R${id++}`,suite:'random',group:'random',seed,dt:DT,a:A,b:B,meta:{pair,ratingGap:a.rating-b.rating}});i++;
+    if(i<mix.random){jobs.push({id:`R${id++}`,suite:'random',group:'random',seed,dt:DT,a:B,b:A,meta:{pair,ratingGap:b.rating-a.rating,mirrored:true}});i++;}
   }
-  for(let i=0;i<mix.strongWeak;i++){
+  for(let i=0;i<mix.strongWeak;){
+    const pair=Math.floor(i/2);
     const strong=pick(top), weak=pick(low);
-    const strongFirst=i%2===0;
     const formA=pick(forms), formB=pick(forms), styleA=pick(styles), styleB=pick(styles);
-    const a=strongFirst?strong:weak,b=strongFirst?weak:strong;
-    jobs.push({id:`S${id++}`,suite:'strongWeak',group:'strongWeak',seed:300000+id,dt:DT,
-      a:spec(a,styleA,formA,Math.floor(rand()*(meta.variations[formA]||1))),
-      b:spec(b,styleB,formB,Math.floor(rand()*(meta.variations[formB]||1))),
-      meta:{favoriteSide:strongFirst?0:1,ratingGap:strong.rating-weak.rating}});
+    const S=spec(strong,styleA,formA,Math.floor(rand()*(meta.variations[formA]||1))),W=spec(weak,styleB,formB,Math.floor(rand()*(meta.variations[formB]||1))),seed=300000+pair;
+    jobs.push({id:`S${id++}`,suite:'strongWeak',group:'strongWeak',seed,dt:DT,a:S,b:W,meta:{pair,favoriteSide:0,ratingGap:strong.rating-weak.rating}});i++;
+    if(i<mix.strongWeak){jobs.push({id:`S${id++}`,suite:'strongWeak',group:'strongWeak',seed,dt:DT,a:W,b:S,meta:{pair,favoriteSide:1,ratingGap:strong.rating-weak.rating,mirrored:true}});i++;}
   }
-  for(let i=0;i<mix.styles;i++){
-    const style=styles[i%styles.length], squad=pick(iconic.length?iconic:middle), form=pick(['4-3-3','4-2-3-1','3-4-2-1','5-4-1']);
-    const styleFirst=i%2===0;
-    const aStyle=styleFirst?style:'balanced', bStyle=styleFirst?'balanced':style;
-    jobs.push({id:`T${id++}`,suite:'styles',group:`style:${style}`,seed:400000+id,dt:DT,
-      a:spec(squad,aStyle,form,0),b:spec(squad,bStyle,form,0),meta:{testedStyle:style,testedSide:styleFirst?0:1}});
+  for(let i=0;i<mix.styles;){
+    const pair=Math.floor(i/2),style=styles[pair%styles.length],squad=pick(iconic.length?iconic:middle),form=pick(['4-3-3','4-2-3-1','3-4-2-1','5-4-1']),seed=400000+pair;
+    const T=spec(squad,style,form,0),B=spec(squad,'balanced',form,0);
+    jobs.push({id:`T${id++}`,suite:'styles',group:`style:${style}`,seed,dt:DT,a:T,b:B,meta:{pair,testedStyle:style,testedSide:0}});i++;
+    if(i<mix.styles){jobs.push({id:`T${id++}`,suite:'styles',group:`style:${style}`,seed,dt:DT,a:B,b:T,meta:{pair,testedStyle:style,testedSide:1,mirrored:true}});i++;}
   }
-  for(let i=0;i<mix.formations;i++){
-    const form=forms[i%forms.length], squad=pick(iconic.length?iconic:middle), style=pick(['balanced','tiki','counter','press']);
-    const testedFirst=i%2===0;
-    const aForm=testedFirst?form:'4-3-3', bForm=testedFirst?'4-3-3':form;
-    jobs.push({id:`F${id++}`,suite:'formations',group:`formation:${form}`,seed:500000+id,dt:DT,
-      a:spec(squad,style,aForm,Math.floor(rand()*(meta.variations[aForm]||1))),
-      b:spec(squad,style,bForm,Math.floor(rand()*(meta.variations[bForm]||1))),meta:{testedFormation:form,testedSide:testedFirst?0:1}});
+  for(let i=0;i<mix.formations;){
+    const pair=Math.floor(i/2),form=forms[pair%forms.length],squad=pick(iconic.length?iconic:middle),style=pick(['balanced','tiki','counter','press']),seed=500000+pair;
+    const T=spec(squad,style,form,Math.floor(rand()*(meta.variations[form]||1))),B=spec(squad,style,'4-3-3',Math.floor(rand()*(meta.variations['4-3-3']||1)));
+    jobs.push({id:`F${id++}`,suite:'formations',group:`formation:${form}`,seed,dt:DT,a:T,b:B,meta:{pair,testedFormation:form,testedSide:0}});i++;
+    if(i<mix.formations){jobs.push({id:`F${id++}`,suite:'formations',group:`formation:${form}`,seed,dt:DT,a:B,b:T,meta:{pair,testedFormation:form,testedSide:1,mirrored:true}});i++;}
   }
   return jobs;
 }
@@ -159,12 +155,24 @@ function featureAggregates(rows) {
   if(sw.length) out.strongWeak.favoriteWinRate=mean(sw,r=>r.score[r.meta.favoriteSide]>r.score[1-r.meta.favoriteSide]?1:0);
   const groups={};
   for(const group of [...new Set(rows.map(r=>r.group))]) groups[group]=aggregate(rows.filter(r=>r.group===group),group);
+  const decisive=rows.filter(r=>r.score[0]!==r.score[1]);
+  const sideBias={
+    decisiveGames:decisive.length,
+    sideAWinShare:decisive.length?mean(decisive,r=>r.score[0]>r.score[1]?1:0):.5,
+    averagePossessionA:mean(rows,r=>r.possession[0]),
+    averageGoalDeltaA:mean(rows,r=>r.score[0]-r.score[1]),
+    averageXgDeltaA:mean(rows,r=>r.teamStats[0].xg-r.teamStats[1].xg)
+  };
   const stylesOut={};
   for(const style of meta.styles){
     const sr=rows.filter(r=>r.suite==='styles'&&r.meta.testedStyle===style);
     if(!sr.length)continue;
     const tested=(r)=>r.teamStats[r.meta.testedSide], base=(r)=>r.teamStats[1-r.meta.testedSide];
-    stylesOut[style]={games:sr.length,goalDelta:mean(sr,r=>tested(r).goals-base(r).goals),
+    stylesOut[style]={games:sr.length,
+      winRate:mean(sr,r=>tested(r).goals>base(r).goals?1:0),
+      drawRate:mean(sr,r=>tested(r).goals===base(r).goals?1:0),
+      goalDelta:mean(sr,r=>tested(r).goals-base(r).goals),
+      xgDelta:mean(sr,r=>tested(r).xg-base(r).xg),
       possessionDelta:mean(sr,r=>tested(r).poss-base(r).poss),
       passCompletionDelta:mean(sr,r=>(tested(r).passOk/Math.max(1,tested(r).passes))-(base(r).passOk/Math.max(1,base(r).passes))),
       crossDelta:mean(sr,r=>tested(r).crosses-base(r).crosses),
@@ -174,7 +182,22 @@ function featureAggregates(rows) {
       shotsForDelta:mean(sr,r=>tested(r).shots-base(r).shots),
       shotsAllowedDelta:mean(sr,r=>base(r).shots-tested(r).shots)};
   }
-  return {suites:out,groups,styles:stylesOut};
+  const formations={};
+  for(const form of meta.forms){
+    const fr=rows.filter(r=>r.suite==='formations'&&r.meta.testedFormation===form);
+    if(!fr.length)continue;
+    const tested=r=>r.teamStats[r.meta.testedSide],base=r=>r.teamStats[1-r.meta.testedSide];
+    formations[form]={games:fr.length,
+      winRate:mean(fr,r=>tested(r).goals>base(r).goals?1:0),
+      drawRate:mean(fr,r=>tested(r).goals===base(r).goals?1:0),
+      goalDelta:mean(fr,r=>tested(r).goals-base(r).goals),
+      xgDelta:mean(fr,r=>tested(r).xg-base(r).xg),
+      shotDelta:mean(fr,r=>tested(r).shots-base(r).shots),
+      possessionDelta:mean(fr,r=>tested(r).poss-base(r).poss),
+      passCompletionDelta:mean(fr,r=>(tested(r).passOk/Math.max(1,tested(r).passes))-(base(r).passOk/Math.max(1,base(r).passes))),
+      staminaDelta:mean(fr,r=>tested(r).stamina-base(r).stamina)};
+  }
+  return {suites:out,groups,styles:stylesOut,formations,sideBias};
 }
 
 function metricPenalty(value, spec){
@@ -182,7 +205,9 @@ function metricPenalty(value, spec){
   const edge=value<spec.min?spec.min:spec.max; const span=Math.max(spec.max-spec.min,1e-9); return .25+Math.abs(value-edge)/span;
 }
 function scoreReport(overall, features){
-  const values=Object.assign({},overall,{favoriteWinRate:features.suites.strongWeak&&features.suites.strongWeak.favoriteWinRate,paritySideAWinShare:features.suites.parity&&features.suites.parity.paritySideAWinShare});
+  // A chave histórica do alvo é mantida por compatibilidade, mas o valor vem
+  // de toda a matriz simétrica (amostra muito mais robusta que só 30 paridades).
+  const values=Object.assign({},overall,{favoriteWinRate:features.suites.strongWeak&&features.suites.strongWeak.favoriteWinRate,paritySideAWinShare:features.sideBias&&features.sideBias.sideAWinShare});
   let weighted=0,totalW=0;const checks={};
   for(const [key,spec] of Object.entries(TARGETS.metrics)){
     const value=values[key]; if(!Number.isFinite(value))continue;
@@ -191,6 +216,48 @@ function scoreReport(overall, features){
     weighted+=score*spec.weight; totalW+=spec.weight;
   }
   return {score:totalW?weighted/totalW:0,checks};
+}
+
+function meanCI(values){
+  const n=values.length,value=mean(values);
+  if(n<2)return {value,low:value,high:value,n};
+  const variance=sum(values,x=>(x-value)*(x-value))/(n-1),margin=1.96*Math.sqrt(variance/n);
+  return {value,low:value-margin,high:value+margin,n};
+}
+function wilson(successes,n){
+  if(!n)return {value:0,low:0,high:1,n:0};
+  const z=1.96,p=successes/n,den=1+z*z/n,center=(p+z*z/(2*n))/den;
+  const margin=z*Math.sqrt((p*(1-p)+z*z/(4*n))/n)/den;
+  return {value:p,low:Math.max(0,center-margin),high:Math.min(1,center+margin),n};
+}
+function uncertaintyReport(rows,features){
+  const means={
+    goalsPerMatch:meanCI(rows.map(r=>r.goals)),shotsPerMatch:meanCI(rows.map(r=>r.shots)),xgPerMatch:meanCI(rows.map(r=>r.xg)),
+    foulsPerMatch:meanCI(rows.map(r=>r.fouls)),yellowsPerMatch:meanCI(rows.map(r=>r.yellow)),redsPerMatch:meanCI(rows.map(r=>r.red)),
+    cornersPerMatch:meanCI(rows.map(r=>r.corners)),averageEndingStamina:meanCI(rows.map(r=>(r.stamina[0]+r.stamina[1])/2))
+  };
+  const sw=rows.filter(r=>r.suite==='strongWeak'),decisive=rows.filter(r=>r.score[0]!==r.score[1]);
+  const rates={
+    drawRate:wilson(rows.filter(r=>r.score[0]===r.score[1]).length,rows.length),
+    zeroZeroRate:wilson(rows.filter(r=>r.goals===0).length,rows.length),
+    blowoutRate:wilson(rows.filter(r=>Math.abs(r.score[0]-r.score[1])>=4).length,rows.length),
+    favoriteWinRate:wilson(sw.filter(r=>r.score[r.meta.favoriteSide]>r.score[1-r.meta.favoriteSide]).length,sw.length),
+    paritySideAWinShare:wilson(decisive.filter(r=>r.score[0]>r.score[1]).length,decisive.length)
+  };
+  return {confidence:.95,means,rates};
+}
+function styleExpectationReport(features){
+  const checks={};
+  for(const [style,spec] of Object.entries(TARGETS.styleExpectations||{})){
+    const values=features.styles[style]||{},details={};let ok=true;
+    for(const [rule,threshold] of Object.entries(spec)){
+      const isMin=rule.endsWith('Min'),metric=rule.replace(/(Min|Max)$/,''),value=values[metric];
+      const pass=Number.isFinite(value)&&(isMin?value>=threshold:value<=threshold);
+      details[rule]={metric,value:Number.isFinite(value)?value:null,threshold,pass};ok=ok&&pass;
+    }
+    checks[style]={status:ok?'ok':'fail',games:values.games||0,details};
+  }
+  return checks;
 }
 
 async function runProcesses(jobs){
@@ -286,7 +353,8 @@ function markdown(report){
   const elapsed=performance.now()-started;
   if(run.errors.length){console.error(run.errors.slice(0,5));throw new Error(`${run.errors.length} partidas falharam`);}
   const overall=aggregate(run.results,'overall');const features=featureAggregates(run.results);const calibration=scoreReport(overall,features);
-  const report={schema:'cds-lab-v1',label:LABEL,mode:MODE,createdAt:new Date().toISOString(),engineVersion:meta.calibrationVersion,targetsVersion:TARGETS.version,matches:run.results.length,executionMode:args.mergeDir?'merge':(args.inProcess==='true'?'in-process':(args.workerMode==='true'?'workers':'process-pool')),workers:args.mergeDir?0:(args.inProcess==='true'?1:WORKERS),batchSize:args.mergeDir?0:(args.inProcess==='true'?jobs.length:BATCH_SIZE),dt:DT,elapsedMs:elapsed,workerMs:run.timings,overall,features,calibration,raw:args.raw==='true'?run.results:undefined};
+  const uncertainty=uncertaintyReport(run.results,features),styleExpectationChecks=styleExpectationReport(features);
+  const report={schema:'cds-lab-v1',label:LABEL,mode:MODE,createdAt:new Date().toISOString(),engineVersion:meta.calibrationVersion,targetsVersion:TARGETS.version,matches:run.results.length,executionMode:args.mergeDir?'merge':(args.inProcess==='true'?'in-process':(args.workerMode==='true'?'workers':'process-pool')),workers:args.mergeDir?0:(args.inProcess==='true'?1:WORKERS),batchSize:args.mergeDir?0:(args.inProcess==='true'?jobs.length:BATCH_SIZE),dt:DT,elapsedMs:elapsed,workerMs:run.timings,overall,features,calibration,uncertainty,styleExpectationChecks,raw:args.raw==='true'?run.results:undefined};
   fs.writeFileSync(OUTPUT,JSON.stringify(report,null,2));
   fs.writeFileSync(OUTPUT.replace(/\.json$/i,'.md'),markdown(report));
   console.log(JSON.stringify({output:OUTPUT,matches:report.matches,seconds:+(elapsed/1000).toFixed(1),score:+calibration.score.toFixed(2),overall,critical:Object.fromEntries(Object.entries(calibration.checks).filter(([,v])=>v.status!=='ok'))},null,2));

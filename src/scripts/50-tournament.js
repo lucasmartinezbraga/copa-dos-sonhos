@@ -182,10 +182,10 @@ function shootout(simOrTeams) {
     }
   }
   let i = 5;
-  while (score[0] === score[1] && i < 100) { 
-    take(0, i); 
+  while (score[0] === score[1] && i < 100) {
+    take(0, i);
     if (take(1, i)) {} // toma a segunda do par
-    i++; 
+    i++;
   }
   return { score, log };
 }
@@ -366,5 +366,4 @@ const API = {
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.CUP = API;
 })();
-
 

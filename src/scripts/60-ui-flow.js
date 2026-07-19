@@ -29,7 +29,7 @@ const rnd = a => a[Math.floor(Math.random() * a.length)];
 window.flagSvg = function(f, size) {
   var s = size || 24;
   if (f === '⭐') return '<svg viewBox="0 0 24 24" width="' + s + '" height="' + s + '" fill="#ffcb45" style="vertical-align:middle;display:inline-block"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
-  
+
   var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   if (isMobile) {
     return '<span style="font-size:' + s + 'px; line-height: 1; vertical-align:middle; display:inline-block; font-family: apple color emoji, segoe ui emoji, noto color emoji, android emoji, emojisymbols, emojione mozilla, twemoji mozilla, segoe ui symbol;">' + f + '</span>';
@@ -909,5 +909,4 @@ if (document.readyState === 'loading') {
    redisparar DOMContentLoaded. pageshow cobre exatamente esse caso. */
 window.addEventListener('pageshow', function () { if (!_bootStarted) bootGame(); });
 })();
-
 

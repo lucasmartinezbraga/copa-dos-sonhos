@@ -24,8 +24,23 @@ subprocess.run([NODE,'--check',jp],check=True,stdout=subprocess.DEVNULL)
 # Auditoria estrutural e motor
 subprocess.run([NODE,str(ROOT/'tools/phase2_audit.js')],check=True)
 subprocess.run([NODE,str(ROOT/'tests/phase2_engine_smoke.js')],check=True)
+if m.get('phase',0)>=3:
+ report=ROOT/m['calibration_report']
+ mass=ROOT/m['mass_regression_report']
+ if not report.exists(): raise SystemExit(f'ERRO: relatório oficial ausente: {report}')
+ if not mass.exists(): raise SystemExit(f'ERRO: regressão massiva ausente: {mass}')
+ subprocess.run([NODE,str(ROOT/'tests/phase3_determinism.js')],check=True)
+ subprocess.run([NODE,str(ROOT/'tests/phase3_fixed_step.js')],check=True)
+ subprocess.run([NODE,str(ROOT/'tests/phase3_job_matrix.js')],check=True)
+ subprocess.run([NODE,str(ROOT/'tests/phase3_regression_thresholds.js'),str(report)],check=True)
+ subprocess.run([NODE,str(ROOT/'tests/phase3_mass_regression.js'),str(mass)],check=True)
+ q=ROOT/m['qa_file']
+ if not q.exists(): raise SystemExit(f'ERRO: QA da Fase 3 ausente: {q}')
+ qa=json.loads(q.read_text(encoding='utf-8'))
+ if not qa.get('complete'): raise SystemExit('ERRO: QA da Fase 3 não está concluído')
 print('OK: manifesto e módulos íntegros')
 print('OK: build autocontido e JavaScript válido')
 print('OK: banco V3 e 13.284 escalações validados')
 print('OK: integração com o motor validada')
+if m.get('phase',0)>=3: print('OK: Fase 3, matriz oficial e regressão massiva validadas')
 print('build_sha256:',sha(out))
