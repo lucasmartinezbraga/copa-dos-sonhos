@@ -1,7 +1,7 @@
 {
-  "phase": 1,
-  "name": "Arquitetura modular sem alteração de comportamento",
-  "baseline_file": "COPA DOS SONHOS - BASELINE 4.0 CONGELADA.html",
+  "phase": 2,
+  "name": "Banco V3: posições, atributos, goleiros, traits e validação",
+  "baseline_file": "COPA DOS SONHOS - FASE 1 - ARQUITETURA MODULAR.html",
   "baseline_sha256": "7878fa516eea86d97dbc376977f5e2786d5a2b573780067b5e81b47682b2a76e",
   "head_script": {
     "file": "src/scripts/00-head-bootstrap.js",
@@ -102,6 +102,11 @@
       "sha256": "4eb7d9e54bb7afa51eefcac40dd680078acd60f4e606005297de63a19e804477"
     },
     {
+      "file": "src/scripts/25-data-integrity-v3.js",
+      "bytes": 36680,
+      "sha256": "f9d6b545c05c109562f103d7b53f53418b286ab071cac4b27b667a598796cd57"
+    },
+    {
       "file": "src/scripts/30-tactics.js",
       "bytes": 5920,
       "sha256": "25d62d15ceb0e8ef5a7f6f661069d3b5b55960da98e321f7d4c4ae7235e9d375"
@@ -127,13 +132,19 @@
       "sha256": "4a7a0f771354401523bf401714814e1ab092011c7d417453cb3b1ee8c52fdcc6"
     }
   ],
-  "build_output": "dist/COPA DOS SONHOS - FASE 1 - ARQUITETURA MODULAR.html",
+  "build_output": "dist/COPA DOS SONHOS - FASE 2 - BANCO V3 VALIDADO.html",
   "module_order_is_contract": true,
   "notes": [
     "HTML final continua autocontido.",
-    "Módulos concatenados na ordem original.",
-    "IA do treinador ainda coabita o módulo MatchSim devido a estado privado.",
-    "Nenhuma regra ou tela foi alterada.",
-    "O bloco histórico de fontes antes do style ativo está preservado no template exatamente como no baseline."
-  ]
+    "Banco bruto preservado; camada V3 aplicada após o decode legado.",
+    "Posições possuem primária, secundárias e emergenciais explícitas.",
+    "Goleiros possuem ficha granular completa, inclusive registros sem A8.",
+    "Pé e altura não curados são parâmetros de simulação marcados como estimados.",
+    "Validador fica disponível em window.CDS_DATA_AUDIT."
+  ],
+  "parent_phase": 1,
+  "parent_build_sha256": "7878fa516eea86d97dbc376977f5e2786d5a2b573780067b5e81b47682b2a76e",
+  "last_build_sha256": "0d495bf089a79654748405ff19bd7dc0e0f4bda06831663f6bca12fe48afa614",
+  "audit_file": "reports/phase2-audit.json",
+  "qa_file": "manifests/phase2-qa.json"
 }

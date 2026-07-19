@@ -1,26 +1,32 @@
-# Copa dos Sonhos — Fase 1
+# Copa dos Sonhos — Fase 2
 
-Projeto modular de desenvolvimento com entrega final em um único HTML autocontido.
+Camada canônica **Banco V3** aplicada sobre o banco legado, preservando a entrega final em um único HTML autocontido.
 
-O build de produção é byte a byte idêntico ao Baseline 4.0: nenhuma regra, tela ou dado mudou nesta fase.
+## O que mudou
+- posição primária, posições secundárias e posições emergenciais explícitas;
+- 45 atributos granulares persistentes usados pelo motor;
+- ficha própria de goleiro;
+- pé dominante, pé fraco e altura de simulação com proveniência;
+- traits legados ampliados e traits comportamentais;
+- funções naturais por jogador;
+- validação automática do banco e de todas as formações;
+- escalação automática que nunca mistura goleiro e jogador de linha.
+
+## Proveniência
+Dados não historicamente curados são marcados como estimativas de simulação. Nenhuma altura ou pé estimado deve ser apresentado ao usuário como fato biográfico.
 
 ## Estrutura
-- `src/scripts/`: dados, núcleo, tática, motor, Copa e interface.
-- `src/styles/`: 15 módulos CSS na ordem original da cascata.
-- `src/index.template.html`: template de produção.
-- `src/index.dev.html`: versão com arquivos externos para desenvolvimento.
-- `tools/build.py`: gera o HTML final.
-- `tools/verify.py`: verifica hash e sintaxe.
-- `tests/browser_smoke.py`: smoke do HTML final.
-- `tests/dev_server_smoke.py`: smoke do projeto modular via servidor local.
-- `reference/`: baseline imutável.
+- `src/scripts/25-data-integrity-v3.js`: camada V3 e validador.
+- `tools/phase2_audit.js`: auditoria completa do banco e das escalações.
+- `tests/phase2_engine_smoke.js`: integração dos perfis V3 com o motor.
+- `tests/browser_smoke.py`: abertura real no Chromium.
+- `reports/phase2-audit.json`: resultado completo da auditoria.
 
 ## Uso
 ```bash
 python3 tools/build.py
 python3 tools/verify.py
 python3 tests/browser_smoke.py
-python3 tests/dev_graph_check.py
 ```
 
-Edite somente `src/`; nunca edite `dist/` diretamente.
+Edite apenas `src/`; o diretório `dist/` é gerado pelo build.

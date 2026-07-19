@@ -1,0 +1,7650 @@
+{
+  "schemaVersion": 3,
+  "squads": 369,
+  "players": 7739,
+  "errors": [],
+  "warnings": [],
+  "counts": {
+    "positions": {
+      "GK": 777,
+      "RB": 114,
+      "CB": 2617,
+      "CAM": 161,
+      "CM": 1922,
+      "ST": 1689,
+      "LW": 90,
+      "RW": 101,
+      "LB": 110,
+      "CDM": 101,
+      "CF": 42,
+      "RM": 7,
+      "LM": 8
+    },
+    "traits": {
+      "SWEEPER_KEEPER": 520,
+      "LEADER": 2847,
+      "BALL_WINNER": 2198,
+      "PLAYMAKER": 1685,
+      "SET_PIECE_SPECIALIST": 178,
+      "DRIBBLER": 232,
+      "FINISHER": 1650,
+      "AERIAL_THREAT": 633,
+      "SPEEDSTER": 317,
+      "CLUTCH_PLAYER": 450
+    },
+    "behaviorTraits": {
+      "DOMINA_AREA": 402,
+      "GOLEIRO_LIBERO": 402,
+      "DISTRIBUIDOR_CURTO": 391,
+      "MARCADOR_POSICIONAL": 2375,
+      "APOIO_E_CONEXAO": 1629,
+      "ATACA_PROFUNDIDADE": 1519,
+      "GOLEIRO_DE_LINHA": 367,
+      "FINALIZADOR_FRIO": 267,
+      "AMEACA_AEREA": 168,
+      "CHUTA_DE_LONGE": 283,
+      "LANCADOR": 278,
+      "PRESSIONADOR": 158,
+      "PASSE_VERTICAL": 275,
+      "CRUZA_CEDO": 228,
+      "JOGA_ENTRELINHAS": 93,
+      "CONDUZ_E_DRIBLA": 170
+    },
+    "positionSources": {
+      "source": 4795,
+      "squad-curated": 78,
+      "cross-edition-consensus": 2581,
+      "curated": 255,
+      "legacy-curated": 30
+    }
+  },
+  "lineups": {
+    "tested": 13284,
+    "exact": 89217,
+    "secondary": 24660,
+    "emergency": 22984,
+    "sameLine": 7660,
+    "bridgeLine": 1603,
+    "crossLine": 0,
+    "invalidGoalkeepers": 0,
+    "missing": 0,
+    "samples": []
+  },
+  "traitCoveragePct": 138.39,
+  "ok": true,
+  "enrichment": {
+    "schemaVersion": 3,
+    "players": 7739,
+    "goalkeepers": 777,
+    "traitPlayers": 6449,
+    "behaviorTraitPlayers": 6660,
+    "positionCorrections": [
+      {
+        "sid": 1,
+        "team": "Argélia",
+        "year": 1982,
+        "id": "s1p3",
+        "name": "Merzekane",
+        "from": "CB",
+        "to": "RB",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 1,
+        "team": "Argélia",
+        "year": 1982,
+        "id": "s1p11",
+        "name": "Dahleb",
+        "from": "CB",
+        "to": "LW",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 1,
+        "team": "Argélia",
+        "year": 1982,
+        "id": "s1p14",
+        "name": "Bencheikh",
+        "from": "CB",
+        "to": "LW",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 1,
+        "team": "Argélia",
+        "year": 1982,
+        "id": "s1p9",
+        "name": "Assad",
+        "from": "ST",
+        "to": "LW",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 3,
+        "team": "Argélia",
+        "year": 2010,
+        "id": "s3p4",
+        "name": "Raïs M'Bolhi",
+        "from": "ST",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 4,
+        "team": "Argélia",
+        "year": 2014,
+        "id": "s4p3",
+        "name": "Sofiane Feghouli",
+        "from": "ST",
+        "to": "CM",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 4,
+        "team": "Argélia",
+        "year": 2014,
+        "id": "s4p17",
+        "name": "Raïs M'Bolhi",
+        "from": "ST",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 18,
+        "team": "Argentina",
+        "year": 2018,
+        "id": "s18p9",
+        "name": "Marcos Rojo",
+        "from": "GK",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 21,
+        "team": "Austrália",
+        "year": 1974,
+        "id": "s21p5",
+        "name": "Wilson",
+        "from": "CB",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 22,
+        "team": "Austrália",
+        "year": 2006,
+        "id": "s22p4",
+        "name": "Mark Milligan",
+        "from": "CB",
+        "to": "CM",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 25,
+        "team": "Austrália",
+        "year": 2018,
+        "id": "s25p2",
+        "name": "Andrew Nabbout",
+        "from": "CM",
+        "to": "ST",
+        "source": "curated"
+      },
+      {
+        "sid": 25,
+        "team": "Austrália",
+        "year": 2018,
+        "id": "s25p6",
+        "name": "Aziz Behich",
+        "from": "CM",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 35,
+        "team": "Bélgica",
+        "year": 1990,
+        "id": "s35p17",
+        "name": "Franky van der Elst",
+        "from": "CM",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 36,
+        "team": "Bélgica",
+        "year": 1994,
+        "id": "s36p19",
+        "name": "Danny Boffin",
+        "from": "CM",
+        "to": "ST",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 38,
+        "team": "Bélgica",
+        "year": 2002,
+        "id": "s38p1",
+        "name": "Eric van Meir",
+        "from": "ST",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 40,
+        "team": "Bélgica",
+        "year": 2018,
+        "id": "s40p13",
+        "name": "Youri Tielemans",
+        "from": "CB",
+        "to": "CM",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 68,
+        "team": "Camarões",
+        "year": 1994,
+        "id": "s68p9",
+        "name": "Raymond Kalla",
+        "from": "CM",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 71,
+        "team": "Camarões",
+        "year": 2010,
+        "id": "s71p2",
+        "name": "Joël Matip",
+        "from": "CM",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 78,
+        "team": "Chile",
+        "year": 2010,
+        "id": "s78p0",
+        "name": "Alexis Sánchez",
+        "from": "ST",
+        "to": "LW",
+        "source": "curated"
+      },
+      {
+        "sid": 78,
+        "team": "Chile",
+        "year": 2010,
+        "id": "s78p15",
+        "name": "Gonzalo Jara",
+        "from": "ST",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 79,
+        "team": "Chile",
+        "year": 2014,
+        "id": "s79p0",
+        "name": "Alexis Sánchez",
+        "from": "ST",
+        "to": "LW",
+        "source": "curated"
+      },
+      {
+        "sid": 79,
+        "team": "Chile",
+        "year": 2014,
+        "id": "s79p8",
+        "name": "Gonzalo Jara",
+        "from": "ST",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 83,
+        "team": "Colômbia",
+        "year": 2014,
+        "id": "s83p9",
+        "name": "Santiago Arias",
+        "from": "CM",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 83,
+        "team": "Colômbia",
+        "year": 2014,
+        "id": "s83p3",
+        "name": "David Ospina",
+        "from": "ST",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 83,
+        "team": "Colômbia",
+        "year": 2014,
+        "id": "s83p11",
+        "name": "Carlos Sánchez",
+        "from": "ST",
+        "to": "RM",
+        "source": "curated"
+      },
+      {
+        "sid": 84,
+        "team": "Colômbia",
+        "year": 2018,
+        "id": "s84p8",
+        "name": "Carlos Sánchez",
+        "from": "CDM",
+        "to": "RM",
+        "source": "curated"
+      },
+      {
+        "sid": 85,
+        "team": "Colômbia",
+        "year": 2022,
+        "id": "s85p1",
+        "name": "Santiago Arias",
+        "from": "CM",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 86,
+        "team": "Colômbia",
+        "year": 2026,
+        "id": "s86p7",
+        "name": "Jefferson Lerma",
+        "from": "CB",
+        "to": "CDM",
+        "source": "curated"
+      },
+      {
+        "sid": 90,
+        "team": "Costa Rica",
+        "year": 2014,
+        "id": "s90p6",
+        "name": "Randall Brenes",
+        "from": "GK",
+        "to": "ST",
+        "source": "curated"
+      },
+      {
+        "sid": 90,
+        "team": "Costa Rica",
+        "year": 2014,
+        "id": "s90p1",
+        "name": "Bryan Ruiz",
+        "from": "CB",
+        "to": "CAM",
+        "source": "curated"
+      },
+      {
+        "sid": 90,
+        "team": "Costa Rica",
+        "year": 2014,
+        "id": "s90p7",
+        "name": "Cristian Gamboa",
+        "from": "CB",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 90,
+        "team": "Costa Rica",
+        "year": 2014,
+        "id": "s90p8",
+        "name": "Giancarlo González",
+        "from": "CM",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 90,
+        "team": "Costa Rica",
+        "year": 2014,
+        "id": "s90p9",
+        "name": "Joel Campbell",
+        "from": "CM",
+        "to": "RW",
+        "source": "curated"
+      },
+      {
+        "sid": 90,
+        "team": "Costa Rica",
+        "year": 2014,
+        "id": "s90p2",
+        "name": "Roy Miller",
+        "from": "ST",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 90,
+        "team": "Costa Rica",
+        "year": 2014,
+        "id": "s90p5",
+        "name": "Óscar Duarte",
+        "from": "ST",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 90,
+        "team": "Costa Rica",
+        "year": 2014,
+        "id": "s90p10",
+        "name": "Yeltsin Tejeda",
+        "from": "ST",
+        "to": "CDM",
+        "source": "curated"
+      },
+      {
+        "sid": 90,
+        "team": "Costa Rica",
+        "year": 2014,
+        "id": "s90p13",
+        "name": "Johnny Acosta",
+        "from": "ST",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 91,
+        "team": "Costa Rica",
+        "year": 2018,
+        "id": "s91p5",
+        "name": "Cristian Gamboa",
+        "from": "CB",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 91,
+        "team": "Costa Rica",
+        "year": 2018,
+        "id": "s91p4",
+        "name": "Bryan Ruiz",
+        "from": "CB",
+        "to": "CAM",
+        "source": "curated"
+      },
+      {
+        "sid": 91,
+        "team": "Costa Rica",
+        "year": 2018,
+        "id": "s91p6",
+        "name": "Giancarlo González",
+        "from": "CM",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 91,
+        "team": "Costa Rica",
+        "year": 2018,
+        "id": "s91p1",
+        "name": "Joel Campbell",
+        "from": "ST",
+        "to": "RW",
+        "source": "curated"
+      },
+      {
+        "sid": 91,
+        "team": "Costa Rica",
+        "year": 2018,
+        "id": "s91p7",
+        "name": "Óscar Duarte",
+        "from": "ST",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 91,
+        "team": "Costa Rica",
+        "year": 2018,
+        "id": "s91p14",
+        "name": "Johnny Acosta",
+        "from": "ST",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 92,
+        "team": "Costa Rica",
+        "year": 2022,
+        "id": "s92p8",
+        "name": "Bryan Ruiz",
+        "from": "CB",
+        "to": "CAM",
+        "source": "curated"
+      },
+      {
+        "sid": 92,
+        "team": "Costa Rica",
+        "year": 2022,
+        "id": "s92p2",
+        "name": "Yeltsin Tejeda",
+        "from": "ST",
+        "to": "CDM",
+        "source": "curated"
+      },
+      {
+        "sid": 92,
+        "team": "Costa Rica",
+        "year": 2022,
+        "id": "s92p13",
+        "name": "Óscar Duarte",
+        "from": "ST",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 92,
+        "team": "Costa Rica",
+        "year": 2022,
+        "id": "s92p0",
+        "name": "Joel Campbell",
+        "from": "ST",
+        "to": "RW",
+        "source": "curated"
+      },
+      {
+        "sid": 93,
+        "team": "Croácia",
+        "year": 1998,
+        "id": "s93p19",
+        "name": "Anthony Serić",
+        "from": "GK",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 94,
+        "team": "Croácia",
+        "year": 2002,
+        "id": "s94p16",
+        "name": "Anthony Serić",
+        "from": "GK",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 94,
+        "team": "Croácia",
+        "year": 2002,
+        "id": "s94p22",
+        "name": "Ivica Olić",
+        "from": "CM",
+        "to": "ST",
+        "source": "curated"
+      },
+      {
+        "sid": 95,
+        "team": "Croácia",
+        "year": 2006,
+        "id": "s95p20",
+        "name": "Anthony Serić",
+        "from": "CB",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 95,
+        "team": "Croácia",
+        "year": 2006,
+        "id": "s95p16",
+        "name": "Ivica Olić",
+        "from": "CM",
+        "to": "ST",
+        "source": "curated"
+      },
+      {
+        "sid": 96,
+        "team": "Croácia",
+        "year": 2014,
+        "id": "s96p7",
+        "name": "Dejan Lovren",
+        "from": "CM",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 96,
+        "team": "Croácia",
+        "year": 2014,
+        "id": "s96p11",
+        "name": "Ivica Olić",
+        "from": "CM",
+        "to": "ST",
+        "source": "curated"
+      },
+      {
+        "sid": 97,
+        "team": "Croácia",
+        "year": 2018,
+        "id": "s97p9",
+        "name": "Dejan Lovren",
+        "from": "CM",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 97,
+        "team": "Croácia",
+        "year": 2018,
+        "id": "s97p15",
+        "name": "Andrej Kramarić",
+        "from": "CM",
+        "to": "ST",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 98,
+        "team": "Croácia",
+        "year": 2022,
+        "id": "s98p8",
+        "name": "Dejan Lovren",
+        "from": "CM",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 101,
+        "team": "Tchecoslováquia",
+        "year": 1954,
+        "id": "s101p9",
+        "name": "Pluskal",
+        "from": "CM",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 110,
+        "team": "Dinamarca",
+        "year": 2018,
+        "id": "s110p3",
+        "name": "Martin Braithwaite",
+        "from": "CM",
+        "to": "ST",
+        "source": "curated"
+      },
+      {
+        "sid": 110,
+        "team": "Dinamarca",
+        "year": 2018,
+        "id": "s110p9",
+        "name": "Andreas Christensen",
+        "from": "CM",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 115,
+        "team": "Inglaterra",
+        "year": 1962,
+        "id": "s115p1",
+        "name": "Armfield",
+        "from": "CB",
+        "to": "RB",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 115,
+        "team": "Inglaterra",
+        "year": 1962,
+        "id": "s115p8",
+        "name": "Haynes",
+        "from": "CB",
+        "to": "CAM",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 115,
+        "team": "Inglaterra",
+        "year": 1962,
+        "id": "s115p5",
+        "name": "Wilson",
+        "from": "CB",
+        "to": "LB",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 115,
+        "team": "Inglaterra",
+        "year": 1962,
+        "id": "s115p13",
+        "name": "Connely",
+        "from": "CB",
+        "to": "RW",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 115,
+        "team": "Inglaterra",
+        "year": 1962,
+        "id": "s115p14",
+        "name": "Eastham",
+        "from": "CB",
+        "to": "CM",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 115,
+        "team": "Inglaterra",
+        "year": 1962,
+        "id": "s115p15",
+        "name": "Hodgkinson",
+        "from": "CB",
+        "to": "GK",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 115,
+        "team": "Inglaterra",
+        "year": 1962,
+        "id": "s115p17",
+        "name": "Hunt",
+        "from": "CB",
+        "to": "ST",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 115,
+        "team": "Inglaterra",
+        "year": 1962,
+        "id": "s115p16",
+        "name": "Howe",
+        "from": "CB",
+        "to": "RB",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 115,
+        "team": "Inglaterra",
+        "year": 1962,
+        "id": "s115p18",
+        "name": "Kevan",
+        "from": "CB",
+        "to": "ST",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 115,
+        "team": "Inglaterra",
+        "year": 1962,
+        "id": "s115p19",
+        "name": "Robson",
+        "from": "CB",
+        "to": "CM",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 115,
+        "team": "Inglaterra",
+        "year": 1962,
+        "id": "s115p6",
+        "name": "Douglas",
+        "from": "CM",
+        "to": "RW",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 115,
+        "team": "Inglaterra",
+        "year": 1962,
+        "id": "s115p10",
+        "name": "Peacock",
+        "from": "ST",
+        "to": "LW",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 116,
+        "team": "Inglaterra",
+        "year": 1966,
+        "id": "s116p6",
+        "name": "Wilson",
+        "from": "CB",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 116,
+        "team": "Inglaterra",
+        "year": 1966,
+        "id": "s116p12",
+        "name": "Armfield",
+        "from": "CB",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 124,
+        "team": "Inglaterra",
+        "year": 2014,
+        "id": "s124p4",
+        "name": "Ben Foster",
+        "from": "CM",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 124,
+        "team": "Inglaterra",
+        "year": 2014,
+        "id": "s124p13",
+        "name": "Luke Shaw",
+        "from": "ST",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 126,
+        "team": "Inglaterra",
+        "year": 2022,
+        "id": "s126p10",
+        "name": "Luke Shaw",
+        "from": "ST",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 132,
+        "team": "França",
+        "year": 1986,
+        "id": "s132p20",
+        "name": "Wilson",
+        "from": "CB",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 150,
+        "team": "Alemanha",
+        "year": 1990,
+        "id": "s150p10",
+        "name": "Thomas Häßler",
+        "from": "CM",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 150,
+        "team": "Alemanha",
+        "year": 1990,
+        "id": "s150p17",
+        "name": "Andreas Möller",
+        "from": "CM",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 174,
+        "team": "Irã",
+        "year": 2014,
+        "id": "s174p1",
+        "name": "Khosro Heydari",
+        "from": "CM",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 174,
+        "team": "Irã",
+        "year": 2014,
+        "id": "s174p10",
+        "name": "Ehsan Hajsafi",
+        "from": "CM",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 174,
+        "team": "Irã",
+        "year": 2014,
+        "id": "s174p11",
+        "name": "Masoud Shojaei",
+        "from": "CM",
+        "to": "CAM",
+        "source": "curated"
+      },
+      {
+        "sid": 175,
+        "team": "Irã",
+        "year": 2018,
+        "id": "s175p4",
+        "name": "Vahid Amiri",
+        "from": "GK",
+        "to": "LM",
+        "source": "curated"
+      },
+      {
+        "sid": 175,
+        "team": "Irã",
+        "year": 2018,
+        "id": "s175p7",
+        "name": "Mehdi Taremi",
+        "from": "CB",
+        "to": "ST",
+        "source": "curated"
+      },
+      {
+        "sid": 175,
+        "team": "Irã",
+        "year": 2018,
+        "id": "s175p10",
+        "name": "Sardar Azmoun",
+        "from": "CB",
+        "to": "ST",
+        "source": "curated"
+      },
+      {
+        "sid": 175,
+        "team": "Irã",
+        "year": 2018,
+        "id": "s175p2",
+        "name": "Alireza Jahanbakhsh",
+        "from": "CM",
+        "to": "RW",
+        "source": "curated"
+      },
+      {
+        "sid": 175,
+        "team": "Irã",
+        "year": 2018,
+        "id": "s175p0",
+        "name": "Masoud Shojaei",
+        "from": "CM",
+        "to": "CAM",
+        "source": "curated"
+      },
+      {
+        "sid": 175,
+        "team": "Irã",
+        "year": 2018,
+        "id": "s175p6",
+        "name": "Saeid Ezzatollahi",
+        "from": "CM",
+        "to": "CDM",
+        "source": "curated"
+      },
+      {
+        "sid": 175,
+        "team": "Irã",
+        "year": 2018,
+        "id": "s175p8",
+        "name": "Alireza Biranvand",
+        "from": "CM",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 175,
+        "team": "Irã",
+        "year": 2018,
+        "id": "s175p11",
+        "name": "Ramin Rezaeian",
+        "from": "CM",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 175,
+        "team": "Irã",
+        "year": 2018,
+        "id": "s175p13",
+        "name": "Ehsan Hajsafi",
+        "from": "CM",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 175,
+        "team": "Irã",
+        "year": 2018,
+        "id": "s175p9",
+        "name": "Rouzbeh Cheshmi",
+        "from": "ST",
+        "to": "CDM",
+        "source": "curated"
+      },
+      {
+        "sid": 175,
+        "team": "Irã",
+        "year": 2018,
+        "id": "s175p12",
+        "name": "Omid Ebrahimi",
+        "from": "ST",
+        "to": "CDM",
+        "source": "curated"
+      },
+      {
+        "sid": 176,
+        "team": "Irã",
+        "year": 2022,
+        "id": "s176p17",
+        "name": "Ramin Rezaeian",
+        "from": "CB",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 176,
+        "team": "Irã",
+        "year": 2022,
+        "id": "s176p9",
+        "name": "Vahid Amiri",
+        "from": "CB",
+        "to": "LM",
+        "source": "curated"
+      },
+      {
+        "sid": 176,
+        "team": "Irã",
+        "year": 2022,
+        "id": "s176p10",
+        "name": "Ehsan Hajsafi",
+        "from": "CM",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 176,
+        "team": "Irã",
+        "year": 2022,
+        "id": "s176p12",
+        "name": "Alireza Jahanbakhsh",
+        "from": "ST",
+        "to": "RW",
+        "source": "curated"
+      },
+      {
+        "sid": 177,
+        "team": "Irã",
+        "year": 2026,
+        "id": "s177p17",
+        "name": "Ramin Rezaeian",
+        "from": "CB",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 177,
+        "team": "Irã",
+        "year": 2026,
+        "id": "s177p11",
+        "name": "Vahid Amiri",
+        "from": "CB",
+        "to": "LM",
+        "source": "curated"
+      },
+      {
+        "sid": 177,
+        "team": "Irã",
+        "year": 2026,
+        "id": "s177p10",
+        "name": "Ehsan Hajsafi",
+        "from": "CM",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 177,
+        "team": "Irã",
+        "year": 2026,
+        "id": "s177p8",
+        "name": "Alireza Jahanbakhsh",
+        "from": "ST",
+        "to": "RW",
+        "source": "curated"
+      },
+      {
+        "sid": 192,
+        "team": "Japão",
+        "year": 1998,
+        "id": "s192p4",
+        "name": "Yoshikatsu Kawaguchi",
+        "from": "ST",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 196,
+        "team": "Japão",
+        "year": 2014,
+        "id": "s196p13",
+        "name": "Maya Yoshida",
+        "from": "CM",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 197,
+        "team": "Japão",
+        "year": 2018,
+        "id": "s197p10",
+        "name": "Maya Yoshida",
+        "from": "CM",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 197,
+        "team": "Japão",
+        "year": 2018,
+        "id": "s197p16",
+        "name": "Gaku Shibasaki",
+        "from": "ST",
+        "to": "CM",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 205,
+        "team": "México",
+        "year": 1998,
+        "id": "s205p12",
+        "name": "Oscar Pérez",
+        "from": "ST",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 206,
+        "team": "México",
+        "year": 2002,
+        "id": "s206p5",
+        "name": "Oscar Pérez",
+        "from": "ST",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 208,
+        "team": "México",
+        "year": 2010,
+        "id": "s208p3",
+        "name": "Francisco Javier Rodríguez",
+        "from": "CM",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 209,
+        "team": "México",
+        "year": 2014,
+        "id": "s209p8",
+        "name": "Héctor Herrera",
+        "from": "CB",
+        "to": "CM",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 209,
+        "team": "México",
+        "year": 2014,
+        "id": "s209p10",
+        "name": "Francisco Javier Rodríguez",
+        "from": "CM",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 210,
+        "team": "México",
+        "year": 2018,
+        "id": "s210p12",
+        "name": "Jesús Gallardo",
+        "from": "CM",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 217,
+        "team": "Marrocos",
+        "year": 2018,
+        "id": "s217p10",
+        "name": "Amine Harit",
+        "from": "CB",
+        "to": "CM",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 217,
+        "team": "Marrocos",
+        "year": 2018,
+        "id": "s217p2",
+        "name": "Romain Saïss",
+        "from": "CM",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 222,
+        "team": "Holanda",
+        "year": 1990,
+        "id": "s222p20",
+        "name": "Aron Winter",
+        "from": "CM",
+        "to": "ST",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 225,
+        "team": "Holanda",
+        "year": 2006,
+        "id": "s225p6",
+        "name": "Dirk Kuyt",
+        "from": "ST",
+        "to": "RW",
+        "source": "curated"
+      },
+      {
+        "sid": 226,
+        "team": "Holanda",
+        "year": 2010,
+        "id": "s226p4",
+        "name": "Nigel de Jong",
+        "from": "CB",
+        "to": "CDM",
+        "source": "curated"
+      },
+      {
+        "sid": 227,
+        "team": "Holanda",
+        "year": 2014,
+        "id": "s227p6",
+        "name": "Daryl Janmaat",
+        "from": "GK",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 227,
+        "team": "Holanda",
+        "year": 2014,
+        "id": "s227p9",
+        "name": "Nigel de Jong",
+        "from": "CB",
+        "to": "CDM",
+        "source": "curated"
+      },
+      {
+        "sid": 227,
+        "team": "Holanda",
+        "year": 2014,
+        "id": "s227p5",
+        "name": "Jeremain Lens",
+        "from": "CM",
+        "to": "RW",
+        "source": "curated"
+      },
+      {
+        "sid": 227,
+        "team": "Holanda",
+        "year": 2014,
+        "id": "s227p8",
+        "name": "Paul Verhaegh",
+        "from": "CM",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 227,
+        "team": "Holanda",
+        "year": 2014,
+        "id": "s227p12",
+        "name": "Daley Blind",
+        "from": "CM",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 227,
+        "team": "Holanda",
+        "year": 2014,
+        "id": "s227p3",
+        "name": "Jordy Clasie",
+        "from": "ST",
+        "to": "CM",
+        "source": "curated"
+      },
+      {
+        "sid": 227,
+        "team": "Holanda",
+        "year": 2014,
+        "id": "s227p11",
+        "name": "Jasper Cillessen",
+        "from": "ST",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 227,
+        "team": "Holanda",
+        "year": 2014,
+        "id": "s227p10",
+        "name": "Memphis Depay",
+        "from": "ST",
+        "to": "LW",
+        "source": "curated"
+      },
+      {
+        "sid": 227,
+        "team": "Holanda",
+        "year": 2014,
+        "id": "s227p13",
+        "name": "Jonathan de Guzmán",
+        "from": "ST",
+        "to": "CM",
+        "source": "curated"
+      },
+      {
+        "sid": 227,
+        "team": "Holanda",
+        "year": 2014,
+        "id": "s227p15",
+        "name": "Stefan de Vrĳ",
+        "from": "ST",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 227,
+        "team": "Holanda",
+        "year": 2014,
+        "id": "s227p16",
+        "name": "Ron Vlaar",
+        "from": "ST",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 228,
+        "team": "Holanda",
+        "year": 2022,
+        "id": "s228p7",
+        "name": "Daley Blind",
+        "from": "CM",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 228,
+        "team": "Holanda",
+        "year": 2022,
+        "id": "s228p3",
+        "name": "Memphis Depay",
+        "from": "ST",
+        "to": "LW",
+        "source": "curated"
+      },
+      {
+        "sid": 229,
+        "team": "Holanda",
+        "year": 2026,
+        "id": "s229p7",
+        "name": "Memphis Depay",
+        "from": "ST",
+        "to": "LW",
+        "source": "curated"
+      },
+      {
+        "sid": 230,
+        "team": "Nigéria",
+        "year": 1994,
+        "id": "s230p12",
+        "name": "Mutiu Adepoju",
+        "from": "ST",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 232,
+        "team": "Nigéria",
+        "year": 2002,
+        "id": "s232p16",
+        "name": "Joseph Yobo",
+        "from": "GK",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 232,
+        "team": "Nigéria",
+        "year": 2002,
+        "id": "s232p13",
+        "name": "Vincent Enyeama",
+        "from": "ST",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 233,
+        "team": "Nigéria",
+        "year": 2010,
+        "id": "s233p8",
+        "name": "Joseph Yobo",
+        "from": "GK",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 233,
+        "team": "Nigéria",
+        "year": 2010,
+        "id": "s233p3",
+        "name": "Yakubu Aiyegbeni",
+        "from": "CM",
+        "to": "ST",
+        "source": "curated"
+      },
+      {
+        "sid": 233,
+        "team": "Nigéria",
+        "year": 2010,
+        "id": "s233p11",
+        "name": "Vincent Enyeama",
+        "from": "ST",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 234,
+        "team": "Nigéria",
+        "year": 2014,
+        "id": "s234p11",
+        "name": "Joseph Yobo",
+        "from": "GK",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 234,
+        "team": "Nigéria",
+        "year": 2014,
+        "id": "s234p1",
+        "name": "Vincent Enyeama",
+        "from": "ST",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 238,
+        "team": "Paraguai",
+        "year": 1998,
+        "id": "s238p16",
+        "name": "José Cardozo",
+        "from": "CB",
+        "to": "ST",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 239,
+        "team": "Paraguai",
+        "year": 2002,
+        "id": "s239p17",
+        "name": "Roque Santa Cruz",
+        "from": "CB",
+        "to": "ST",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 239,
+        "team": "Paraguai",
+        "year": 2002,
+        "id": "s239p22",
+        "name": "Julio César Cáceres",
+        "from": "CM",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 258,
+        "team": "Portugal",
+        "year": 2006,
+        "id": "s258p20",
+        "name": "Ricardo Costa",
+        "from": "CB",
+        "to": "ST",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 259,
+        "team": "Portugal",
+        "year": 2010,
+        "id": "s259p6",
+        "name": "Bruno Alves",
+        "from": "CM",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 260,
+        "team": "Portugal",
+        "year": 2014,
+        "id": "s260p7",
+        "name": "William Carvalho",
+        "from": "CM",
+        "to": "CDM",
+        "source": "curated"
+      },
+      {
+        "sid": 260,
+        "team": "Portugal",
+        "year": 2014,
+        "id": "s260p0",
+        "name": "Bruno Alves",
+        "from": "CM",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 261,
+        "team": "Portugal",
+        "year": 2018,
+        "id": "s261p1",
+        "name": "William Carvalho",
+        "from": "CM",
+        "to": "CDM",
+        "source": "curated"
+      },
+      {
+        "sid": 261,
+        "team": "Portugal",
+        "year": 2018,
+        "id": "s261p2",
+        "name": "Raphaël Guerreiro",
+        "from": "CM",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 262,
+        "team": "Portugal",
+        "year": 2022,
+        "id": "s262p10",
+        "name": "Raphaël Guerreiro",
+        "from": "CM",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 262,
+        "team": "Portugal",
+        "year": 2022,
+        "id": "s262p18",
+        "name": "William Carvalho",
+        "from": "CM",
+        "to": "CDM",
+        "source": "curated"
+      },
+      {
+        "sid": 271,
+        "team": "Rússia",
+        "year": 2014,
+        "id": "s271p10",
+        "name": "Aleksandr Samedov",
+        "from": "CB",
+        "to": "RM",
+        "source": "curated"
+      },
+      {
+        "sid": 271,
+        "team": "Rússia",
+        "year": 2014,
+        "id": "s271p2",
+        "name": "Yuriy Zhirkov",
+        "from": "CM",
+        "to": "LM",
+        "source": "curated"
+      },
+      {
+        "sid": 271,
+        "team": "Rússia",
+        "year": 2014,
+        "id": "s271p6",
+        "name": "Sergey Ignashevich",
+        "from": "CM",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 271,
+        "team": "Rússia",
+        "year": 2014,
+        "id": "s271p3",
+        "name": "Igor Akinfeyev",
+        "from": "ST",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 272,
+        "team": "Rússia",
+        "year": 2018,
+        "id": "s272p1",
+        "name": "Aleksandr Golovin",
+        "from": "GK",
+        "to": "CAM",
+        "source": "curated"
+      },
+      {
+        "sid": 272,
+        "team": "Rússia",
+        "year": 2018,
+        "id": "s272p7",
+        "name": "Aleksandr Samedov",
+        "from": "CB",
+        "to": "RM",
+        "source": "curated"
+      },
+      {
+        "sid": 272,
+        "team": "Rússia",
+        "year": 2018,
+        "id": "s272p10",
+        "name": "Alan Dzagoyev",
+        "from": "CB",
+        "to": "CAM",
+        "source": "curated"
+      },
+      {
+        "sid": 272,
+        "team": "Rússia",
+        "year": 2018,
+        "id": "s272p2",
+        "name": "Yuriy Zhirkov",
+        "from": "CM",
+        "to": "LM",
+        "source": "curated"
+      },
+      {
+        "sid": 272,
+        "team": "Rússia",
+        "year": 2018,
+        "id": "s272p3",
+        "name": "Sergey Ignashevich",
+        "from": "CM",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 272,
+        "team": "Rússia",
+        "year": 2018,
+        "id": "s272p8",
+        "name": "Igor Smolnikov",
+        "from": "CM",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 272,
+        "team": "Rússia",
+        "year": 2018,
+        "id": "s272p5",
+        "name": "Denis Cheryshev",
+        "from": "CM",
+        "to": "LW",
+        "source": "curated"
+      },
+      {
+        "sid": 272,
+        "team": "Rússia",
+        "year": 2018,
+        "id": "s272p9",
+        "name": "Fyodor Kudryashov",
+        "from": "CM",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 272,
+        "team": "Rússia",
+        "year": 2018,
+        "id": "s272p11",
+        "name": "Aleksey Miranchuk",
+        "from": "CM",
+        "to": "CAM",
+        "source": "curated"
+      },
+      {
+        "sid": 272,
+        "team": "Rússia",
+        "year": 2018,
+        "id": "s272p0",
+        "name": "Mário Fernandes",
+        "from": "ST",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 272,
+        "team": "Rússia",
+        "year": 2018,
+        "id": "s272p6",
+        "name": "Roman Zobnin",
+        "from": "ST",
+        "to": "CM",
+        "source": "curated"
+      },
+      {
+        "sid": 272,
+        "team": "Rússia",
+        "year": 2018,
+        "id": "s272p12",
+        "name": "Igor Akinfeyev",
+        "from": "ST",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 272,
+        "team": "Rússia",
+        "year": 2018,
+        "id": "s272p14",
+        "name": "Yuriy Gazinskiy",
+        "from": "ST",
+        "to": "CDM",
+        "source": "curated"
+      },
+      {
+        "sid": 272,
+        "team": "Rússia",
+        "year": 2018,
+        "id": "s272p15",
+        "name": "Ilya Kutepov",
+        "from": "ST",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 277,
+        "team": "Arábia Saudita",
+        "year": 2018,
+        "id": "s277p4",
+        "name": "Osama Hawsawi",
+        "from": "GK",
+        "to": "CB",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 277,
+        "team": "Arábia Saudita",
+        "year": 2018,
+        "id": "s277p5",
+        "name": "Yasser Al-Musailim",
+        "from": "CB",
+        "to": "GK",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 277,
+        "team": "Arábia Saudita",
+        "year": 2018,
+        "id": "s277p1",
+        "name": "Yasser Ash-Shahrani",
+        "from": "CB",
+        "to": "LB",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 277,
+        "team": "Arábia Saudita",
+        "year": 2018,
+        "id": "s277p7",
+        "name": "Hussain Al-Moqahwi",
+        "from": "CB",
+        "to": "CM",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 277,
+        "team": "Arábia Saudita",
+        "year": 2018,
+        "id": "s277p10",
+        "name": "Abdullah Otaif",
+        "from": "CB",
+        "to": "CDM",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 277,
+        "team": "Arábia Saudita",
+        "year": 2018,
+        "id": "s277p2",
+        "name": "Salem Ad-Dawsari",
+        "from": "CM",
+        "to": "LW",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 277,
+        "team": "Arábia Saudita",
+        "year": 2018,
+        "id": "s277p6",
+        "name": "Mohammed Al-Owais",
+        "from": "CM",
+        "to": "GK",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 277,
+        "team": "Arábia Saudita",
+        "year": 2018,
+        "id": "s277p8",
+        "name": "Omar Hawsawi",
+        "from": "CM",
+        "to": "CB",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 277,
+        "team": "Arábia Saudita",
+        "year": 2018,
+        "id": "s277p11",
+        "name": "Mohammed As-Sahlawi",
+        "from": "CM",
+        "to": "ST",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 277,
+        "team": "Arábia Saudita",
+        "year": 2018,
+        "id": "s277p13",
+        "name": "Ali Al-Buleihi",
+        "from": "CM",
+        "to": "CB",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 277,
+        "team": "Arábia Saudita",
+        "year": 2018,
+        "id": "s277p0",
+        "name": "Salman Al-Faraj",
+        "from": "ST",
+        "to": "CM",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 277,
+        "team": "Arábia Saudita",
+        "year": 2018,
+        "id": "s277p3",
+        "name": "Hatan Bahbri",
+        "from": "ST",
+        "to": "RW",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 277,
+        "team": "Arábia Saudita",
+        "year": 2018,
+        "id": "s277p9",
+        "name": "Taisir Al-Jassem",
+        "from": "ST",
+        "to": "CM",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 277,
+        "team": "Arábia Saudita",
+        "year": 2018,
+        "id": "s277p12",
+        "name": "Moataz Hawsawi",
+        "from": "ST",
+        "to": "CB",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 277,
+        "team": "Arábia Saudita",
+        "year": 2018,
+        "id": "s277p14",
+        "name": "Fahad Al-Muwaled",
+        "from": "ST",
+        "to": "RW",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 277,
+        "team": "Arábia Saudita",
+        "year": 2018,
+        "id": "s277p15",
+        "name": "Mohammed Al-Bureik",
+        "from": "ST",
+        "to": "RB",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 277,
+        "team": "Arábia Saudita",
+        "year": 2018,
+        "id": "s277p16",
+        "name": "Abdullah Al-Mayouf",
+        "from": "ST",
+        "to": "GK",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 277,
+        "team": "Arábia Saudita",
+        "year": 2018,
+        "id": "s277p17",
+        "name": "Yahya Ash-Shehri",
+        "from": "ST",
+        "to": "CAM",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 280,
+        "team": "Escócia",
+        "year": 1954,
+        "id": "s280p18",
+        "name": "Wilson",
+        "from": "CB",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 282,
+        "team": "Escócia",
+        "year": 1978,
+        "id": "s282p1",
+        "name": "Souness",
+        "from": "ST",
+        "to": "CM",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 289,
+        "team": "Coreia do Sul",
+        "year": 1986,
+        "id": "s289p0",
+        "name": "Park Kyung-hoon",
+        "from": "CB",
+        "to": "RB",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 289,
+        "team": "Coreia do Sul",
+        "year": 1986,
+        "id": "s289p7",
+        "name": "Kim Yong-se",
+        "from": "CB",
+        "to": "ST",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 289,
+        "team": "Coreia do Sul",
+        "year": 1986,
+        "id": "s289p8",
+        "name": "Cho Kwang-rae",
+        "from": "CB",
+        "to": "CM",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 289,
+        "team": "Coreia do Sul",
+        "year": 1986,
+        "id": "s289p10",
+        "name": "Park Chang-sun",
+        "from": "CB",
+        "to": "CAM",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 289,
+        "team": "Coreia do Sul",
+        "year": 1986,
+        "id": "s289p13",
+        "name": "Noh Soo-jin",
+        "from": "CB",
+        "to": "ST",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 289,
+        "team": "Coreia do Sul",
+        "year": 1986,
+        "id": "s289p16",
+        "name": "Byun Byung-joo",
+        "from": "CB",
+        "to": "RW",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 289,
+        "team": "Coreia do Sul",
+        "year": 1986,
+        "id": "s289p20",
+        "name": "Tae Lee-ho",
+        "from": "CB",
+        "to": "CM",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 289,
+        "team": "Coreia do Sul",
+        "year": 1986,
+        "id": "s289p17",
+        "name": "Cho Byung-duk",
+        "from": "CB",
+        "to": "GK",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 289,
+        "team": "Coreia do Sul",
+        "year": 1986,
+        "id": "s289p18",
+        "name": "Kang Deuk-soo",
+        "from": "CB",
+        "to": "LM",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 289,
+        "team": "Coreia do Sul",
+        "year": 1986,
+        "id": "s289p21",
+        "name": "Yoo Byung-ok",
+        "from": "CB",
+        "to": "RB",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 289,
+        "team": "Coreia do Sul",
+        "year": 1986,
+        "id": "s289p12",
+        "name": "Jung-moo",
+        "from": "CB",
+        "to": "CM",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 289,
+        "team": "Coreia do Sul",
+        "year": 1986,
+        "id": "s289p14",
+        "name": "Kim Jung-nam",
+        "from": "CB",
+        "to": "CM",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 289,
+        "team": "Coreia do Sul",
+        "year": 1986,
+        "id": "s289p11",
+        "name": "Huh",
+        "from": "CB",
+        "to": "CM",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 289,
+        "team": "Coreia do Sul",
+        "year": 1986,
+        "id": "s289p1",
+        "name": "Kim Joo-sung",
+        "from": "CM",
+        "to": "LW",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 289,
+        "team": "Coreia do Sul",
+        "year": 1986,
+        "id": "s289p4",
+        "name": "Cha Bum-keun",
+        "from": "CM",
+        "to": "ST",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 289,
+        "team": "Coreia do Sul",
+        "year": 1986,
+        "id": "s289p6",
+        "name": "Choi Soon-ho",
+        "from": "CM",
+        "to": "CF",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 290,
+        "team": "Coreia do Sul",
+        "year": 1990,
+        "id": "s290p11",
+        "name": "Kim Joo-sung",
+        "from": "CM",
+        "to": "LW",
+        "source": "curated"
+      },
+      {
+        "sid": 291,
+        "team": "Coreia do Sul",
+        "year": 1994,
+        "id": "s291p16",
+        "name": "Kim Joo-sung",
+        "from": "CM",
+        "to": "LW",
+        "source": "curated"
+      },
+      {
+        "sid": 291,
+        "team": "Coreia do Sul",
+        "year": 1994,
+        "id": "s291p12",
+        "name": "Lee Woon-Jae",
+        "from": "ST",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 294,
+        "team": "Coreia do Sul",
+        "year": 2010,
+        "id": "s294p2",
+        "name": "Oh Beom-Seok",
+        "from": "CM",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 302,
+        "team": "União Soviética",
+        "year": 1986,
+        "id": "s302p23",
+        "name": "Wilson",
+        "from": "CB",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 314,
+        "team": "Espanha",
+        "year": 2014,
+        "id": "s314p8",
+        "name": "Pepe Reina",
+        "from": "ST",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 326,
+        "team": "Suécia",
+        "year": 2018,
+        "id": "s326p2",
+        "name": "Ola Toivonen",
+        "from": "CM",
+        "to": "CF",
+        "source": "curated"
+      },
+      {
+        "sid": 334,
+        "team": "Suíça",
+        "year": 2014,
+        "id": "s334p10",
+        "name": "Fabian Schär",
+        "from": "ST",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 338,
+        "team": "Tunísia",
+        "year": 1998,
+        "id": "s338p12",
+        "name": "Ali Boumnijel",
+        "from": "ST",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 341,
+        "team": "Tunísia",
+        "year": 2018,
+        "id": "s341p5",
+        "name": "Yassine Meriah",
+        "from": "GK",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 341,
+        "team": "Tunísia",
+        "year": 2018,
+        "id": "s341p7",
+        "name": "Ferjani Sassi",
+        "from": "CB",
+        "to": "CM",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 341,
+        "team": "Tunísia",
+        "year": 2018,
+        "id": "s341p2",
+        "name": "Hamdi Nagguez",
+        "from": "CM",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 341,
+        "team": "Tunísia",
+        "year": 2018,
+        "id": "s341p15",
+        "name": "Dylan Bronn",
+        "from": "CM",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 341,
+        "team": "Tunísia",
+        "year": 2018,
+        "id": "s341p4",
+        "name": "Wahbi Khazri",
+        "from": "ST",
+        "to": "CM",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 341,
+        "team": "Tunísia",
+        "year": 2018,
+        "id": "s341p14",
+        "name": "Naïm Sliti",
+        "from": "ST",
+        "to": "CM",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 341,
+        "team": "Tunísia",
+        "year": 2018,
+        "id": "s341p16",
+        "name": "Mouez Hassen",
+        "from": "ST",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 341,
+        "team": "Tunísia",
+        "year": 2018,
+        "id": "s341p17",
+        "name": "Ellyes Skhiri",
+        "from": "ST",
+        "to": "CM",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 346,
+        "team": "Uruguai",
+        "year": 1966,
+        "id": "s346p15",
+        "name": "Espárrago",
+        "from": "CB",
+        "to": "CM",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 350,
+        "team": "Uruguai",
+        "year": 2002,
+        "id": "s350p8",
+        "name": "Diego Forlán",
+        "from": "ST",
+        "to": "CF",
+        "source": "curated"
+      },
+      {
+        "sid": 351,
+        "team": "Uruguai",
+        "year": 2010,
+        "id": "s351p12",
+        "name": "Martín Cáceres",
+        "from": "CM",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 351,
+        "team": "Uruguai",
+        "year": 2010,
+        "id": "s351p14",
+        "name": "Jorge Fucile",
+        "from": "CM",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 351,
+        "team": "Uruguai",
+        "year": 2010,
+        "id": "s351p0",
+        "name": "Diego Forlán",
+        "from": "ST",
+        "to": "CF",
+        "source": "curated"
+      },
+      {
+        "sid": 351,
+        "team": "Uruguai",
+        "year": 2010,
+        "id": "s351p6",
+        "name": "Fernando Muslera",
+        "from": "ST",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 354,
+        "team": "Uruguai",
+        "year": 2022,
+        "id": "s354p2",
+        "name": "Guillermo Varela",
+        "from": "CB",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 354,
+        "team": "Uruguai",
+        "year": 2022,
+        "id": "s354p8",
+        "name": "Lucas Torreira",
+        "from": "CM",
+        "to": "CDM",
+        "source": "curated"
+      },
+      {
+        "sid": 354,
+        "team": "Uruguai",
+        "year": 2022,
+        "id": "s354p18",
+        "name": "Giorgian De Arrascaeta",
+        "from": "CM",
+        "to": "CAM",
+        "source": "curated"
+      },
+      {
+        "sid": 354,
+        "team": "Uruguai",
+        "year": 2022,
+        "id": "s354p15",
+        "name": "Fernando Muslera",
+        "from": "ST",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 355,
+        "team": "Uruguai",
+        "year": 2026,
+        "id": "s355p5",
+        "name": "Guillermo Varela",
+        "from": "CB",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 355,
+        "team": "Uruguai",
+        "year": 2026,
+        "id": "s355p9",
+        "name": "Lucas Torreira",
+        "from": "CM",
+        "to": "CDM",
+        "source": "curated"
+      },
+      {
+        "sid": 355,
+        "team": "Uruguai",
+        "year": 2026,
+        "id": "s355p18",
+        "name": "Giorgian De Arrascaeta",
+        "from": "CM",
+        "to": "CAM",
+        "source": "curated"
+      },
+      {
+        "sid": 355,
+        "team": "Uruguai",
+        "year": 2026,
+        "id": "s355p16",
+        "name": "Fernando Muslera",
+        "from": "ST",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 360,
+        "team": "EUA",
+        "year": 2006,
+        "id": "s360p8",
+        "name": "Clint Dempsey",
+        "from": "CM",
+        "to": "CF",
+        "source": "curated"
+      },
+      {
+        "sid": 361,
+        "team": "EUA",
+        "year": 2010,
+        "id": "s361p8",
+        "name": "Jozy Altidore",
+        "from": "GK",
+        "to": "ST",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 361,
+        "team": "EUA",
+        "year": 2010,
+        "id": "s361p2",
+        "name": "Jonathan Bornstein",
+        "from": "CB",
+        "to": "LB",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 361,
+        "team": "EUA",
+        "year": 2010,
+        "id": "s361p9",
+        "name": "Ricardo Clark",
+        "from": "CB",
+        "to": "CDM",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 361,
+        "team": "EUA",
+        "year": 2010,
+        "id": "s361p3",
+        "name": "Clint Dempsey",
+        "from": "CM",
+        "to": "CF",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 361,
+        "team": "EUA",
+        "year": 2010,
+        "id": "s361p10",
+        "name": "Steve Cherundolo",
+        "from": "CM",
+        "to": "RB",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 361,
+        "team": "EUA",
+        "year": 2010,
+        "id": "s361p5",
+        "name": "Robbie Findley",
+        "from": "CM",
+        "to": "ST",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 361,
+        "team": "EUA",
+        "year": 2010,
+        "id": "s361p4",
+        "name": "Maurice Edu",
+        "from": "ST",
+        "to": "CDM",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 361,
+        "team": "EUA",
+        "year": 2010,
+        "id": "s361p7",
+        "name": "Michael Bradley",
+        "from": "ST",
+        "to": "CM",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 361,
+        "team": "EUA",
+        "year": 2010,
+        "id": "s361p12",
+        "name": "Jay DeMerit",
+        "from": "ST",
+        "to": "CB",
+        "source": "squad-curated"
+      }
+    ],
+    "traitCoveragePct": 83.33,
+    "behaviorTraitCoveragePct": 86.06
+  },
+  "samples": {
+    "corrected": [
+      {
+        "sid": 1,
+        "team": "Argélia",
+        "year": 1982,
+        "id": "s1p3",
+        "name": "Merzekane",
+        "from": "CB",
+        "to": "RB",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 1,
+        "team": "Argélia",
+        "year": 1982,
+        "id": "s1p11",
+        "name": "Dahleb",
+        "from": "CB",
+        "to": "LW",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 1,
+        "team": "Argélia",
+        "year": 1982,
+        "id": "s1p14",
+        "name": "Bencheikh",
+        "from": "CB",
+        "to": "LW",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 1,
+        "team": "Argélia",
+        "year": 1982,
+        "id": "s1p9",
+        "name": "Assad",
+        "from": "ST",
+        "to": "LW",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 3,
+        "team": "Argélia",
+        "year": 2010,
+        "id": "s3p4",
+        "name": "Raïs M'Bolhi",
+        "from": "ST",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 4,
+        "team": "Argélia",
+        "year": 2014,
+        "id": "s4p3",
+        "name": "Sofiane Feghouli",
+        "from": "ST",
+        "to": "CM",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 4,
+        "team": "Argélia",
+        "year": 2014,
+        "id": "s4p17",
+        "name": "Raïs M'Bolhi",
+        "from": "ST",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 18,
+        "team": "Argentina",
+        "year": 2018,
+        "id": "s18p9",
+        "name": "Marcos Rojo",
+        "from": "GK",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 21,
+        "team": "Austrália",
+        "year": 1974,
+        "id": "s21p5",
+        "name": "Wilson",
+        "from": "CB",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 22,
+        "team": "Austrália",
+        "year": 2006,
+        "id": "s22p4",
+        "name": "Mark Milligan",
+        "from": "CB",
+        "to": "CM",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 25,
+        "team": "Austrália",
+        "year": 2018,
+        "id": "s25p2",
+        "name": "Andrew Nabbout",
+        "from": "CM",
+        "to": "ST",
+        "source": "curated"
+      },
+      {
+        "sid": 25,
+        "team": "Austrália",
+        "year": 2018,
+        "id": "s25p6",
+        "name": "Aziz Behich",
+        "from": "CM",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 35,
+        "team": "Bélgica",
+        "year": 1990,
+        "id": "s35p17",
+        "name": "Franky van der Elst",
+        "from": "CM",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 36,
+        "team": "Bélgica",
+        "year": 1994,
+        "id": "s36p19",
+        "name": "Danny Boffin",
+        "from": "CM",
+        "to": "ST",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 38,
+        "team": "Bélgica",
+        "year": 2002,
+        "id": "s38p1",
+        "name": "Eric van Meir",
+        "from": "ST",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 40,
+        "team": "Bélgica",
+        "year": 2018,
+        "id": "s40p13",
+        "name": "Youri Tielemans",
+        "from": "CB",
+        "to": "CM",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 68,
+        "team": "Camarões",
+        "year": 1994,
+        "id": "s68p9",
+        "name": "Raymond Kalla",
+        "from": "CM",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 71,
+        "team": "Camarões",
+        "year": 2010,
+        "id": "s71p2",
+        "name": "Joël Matip",
+        "from": "CM",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 78,
+        "team": "Chile",
+        "year": 2010,
+        "id": "s78p0",
+        "name": "Alexis Sánchez",
+        "from": "ST",
+        "to": "LW",
+        "source": "curated"
+      },
+      {
+        "sid": 78,
+        "team": "Chile",
+        "year": 2010,
+        "id": "s78p15",
+        "name": "Gonzalo Jara",
+        "from": "ST",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 79,
+        "team": "Chile",
+        "year": 2014,
+        "id": "s79p0",
+        "name": "Alexis Sánchez",
+        "from": "ST",
+        "to": "LW",
+        "source": "curated"
+      },
+      {
+        "sid": 79,
+        "team": "Chile",
+        "year": 2014,
+        "id": "s79p8",
+        "name": "Gonzalo Jara",
+        "from": "ST",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 83,
+        "team": "Colômbia",
+        "year": 2014,
+        "id": "s83p9",
+        "name": "Santiago Arias",
+        "from": "CM",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 83,
+        "team": "Colômbia",
+        "year": 2014,
+        "id": "s83p3",
+        "name": "David Ospina",
+        "from": "ST",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 83,
+        "team": "Colômbia",
+        "year": 2014,
+        "id": "s83p11",
+        "name": "Carlos Sánchez",
+        "from": "ST",
+        "to": "RM",
+        "source": "curated"
+      },
+      {
+        "sid": 84,
+        "team": "Colômbia",
+        "year": 2018,
+        "id": "s84p8",
+        "name": "Carlos Sánchez",
+        "from": "CDM",
+        "to": "RM",
+        "source": "curated"
+      },
+      {
+        "sid": 85,
+        "team": "Colômbia",
+        "year": 2022,
+        "id": "s85p1",
+        "name": "Santiago Arias",
+        "from": "CM",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 86,
+        "team": "Colômbia",
+        "year": 2026,
+        "id": "s86p7",
+        "name": "Jefferson Lerma",
+        "from": "CB",
+        "to": "CDM",
+        "source": "curated"
+      },
+      {
+        "sid": 90,
+        "team": "Costa Rica",
+        "year": 2014,
+        "id": "s90p6",
+        "name": "Randall Brenes",
+        "from": "GK",
+        "to": "ST",
+        "source": "curated"
+      },
+      {
+        "sid": 90,
+        "team": "Costa Rica",
+        "year": 2014,
+        "id": "s90p1",
+        "name": "Bryan Ruiz",
+        "from": "CB",
+        "to": "CAM",
+        "source": "curated"
+      },
+      {
+        "sid": 90,
+        "team": "Costa Rica",
+        "year": 2014,
+        "id": "s90p7",
+        "name": "Cristian Gamboa",
+        "from": "CB",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 90,
+        "team": "Costa Rica",
+        "year": 2014,
+        "id": "s90p8",
+        "name": "Giancarlo González",
+        "from": "CM",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 90,
+        "team": "Costa Rica",
+        "year": 2014,
+        "id": "s90p9",
+        "name": "Joel Campbell",
+        "from": "CM",
+        "to": "RW",
+        "source": "curated"
+      },
+      {
+        "sid": 90,
+        "team": "Costa Rica",
+        "year": 2014,
+        "id": "s90p2",
+        "name": "Roy Miller",
+        "from": "ST",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 90,
+        "team": "Costa Rica",
+        "year": 2014,
+        "id": "s90p5",
+        "name": "Óscar Duarte",
+        "from": "ST",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 90,
+        "team": "Costa Rica",
+        "year": 2014,
+        "id": "s90p10",
+        "name": "Yeltsin Tejeda",
+        "from": "ST",
+        "to": "CDM",
+        "source": "curated"
+      },
+      {
+        "sid": 90,
+        "team": "Costa Rica",
+        "year": 2014,
+        "id": "s90p13",
+        "name": "Johnny Acosta",
+        "from": "ST",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 91,
+        "team": "Costa Rica",
+        "year": 2018,
+        "id": "s91p5",
+        "name": "Cristian Gamboa",
+        "from": "CB",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 91,
+        "team": "Costa Rica",
+        "year": 2018,
+        "id": "s91p4",
+        "name": "Bryan Ruiz",
+        "from": "CB",
+        "to": "CAM",
+        "source": "curated"
+      },
+      {
+        "sid": 91,
+        "team": "Costa Rica",
+        "year": 2018,
+        "id": "s91p6",
+        "name": "Giancarlo González",
+        "from": "CM",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 91,
+        "team": "Costa Rica",
+        "year": 2018,
+        "id": "s91p1",
+        "name": "Joel Campbell",
+        "from": "ST",
+        "to": "RW",
+        "source": "curated"
+      },
+      {
+        "sid": 91,
+        "team": "Costa Rica",
+        "year": 2018,
+        "id": "s91p7",
+        "name": "Óscar Duarte",
+        "from": "ST",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 91,
+        "team": "Costa Rica",
+        "year": 2018,
+        "id": "s91p14",
+        "name": "Johnny Acosta",
+        "from": "ST",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 92,
+        "team": "Costa Rica",
+        "year": 2022,
+        "id": "s92p8",
+        "name": "Bryan Ruiz",
+        "from": "CB",
+        "to": "CAM",
+        "source": "curated"
+      },
+      {
+        "sid": 92,
+        "team": "Costa Rica",
+        "year": 2022,
+        "id": "s92p2",
+        "name": "Yeltsin Tejeda",
+        "from": "ST",
+        "to": "CDM",
+        "source": "curated"
+      },
+      {
+        "sid": 92,
+        "team": "Costa Rica",
+        "year": 2022,
+        "id": "s92p13",
+        "name": "Óscar Duarte",
+        "from": "ST",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 92,
+        "team": "Costa Rica",
+        "year": 2022,
+        "id": "s92p0",
+        "name": "Joel Campbell",
+        "from": "ST",
+        "to": "RW",
+        "source": "curated"
+      },
+      {
+        "sid": 93,
+        "team": "Croácia",
+        "year": 1998,
+        "id": "s93p19",
+        "name": "Anthony Serić",
+        "from": "GK",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 94,
+        "team": "Croácia",
+        "year": 2002,
+        "id": "s94p16",
+        "name": "Anthony Serić",
+        "from": "GK",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 94,
+        "team": "Croácia",
+        "year": 2002,
+        "id": "s94p22",
+        "name": "Ivica Olić",
+        "from": "CM",
+        "to": "ST",
+        "source": "curated"
+      },
+      {
+        "sid": 95,
+        "team": "Croácia",
+        "year": 2006,
+        "id": "s95p20",
+        "name": "Anthony Serić",
+        "from": "CB",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 95,
+        "team": "Croácia",
+        "year": 2006,
+        "id": "s95p16",
+        "name": "Ivica Olić",
+        "from": "CM",
+        "to": "ST",
+        "source": "curated"
+      },
+      {
+        "sid": 96,
+        "team": "Croácia",
+        "year": 2014,
+        "id": "s96p7",
+        "name": "Dejan Lovren",
+        "from": "CM",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 96,
+        "team": "Croácia",
+        "year": 2014,
+        "id": "s96p11",
+        "name": "Ivica Olić",
+        "from": "CM",
+        "to": "ST",
+        "source": "curated"
+      },
+      {
+        "sid": 97,
+        "team": "Croácia",
+        "year": 2018,
+        "id": "s97p9",
+        "name": "Dejan Lovren",
+        "from": "CM",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 97,
+        "team": "Croácia",
+        "year": 2018,
+        "id": "s97p15",
+        "name": "Andrej Kramarić",
+        "from": "CM",
+        "to": "ST",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 98,
+        "team": "Croácia",
+        "year": 2022,
+        "id": "s98p8",
+        "name": "Dejan Lovren",
+        "from": "CM",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 101,
+        "team": "Tchecoslováquia",
+        "year": 1954,
+        "id": "s101p9",
+        "name": "Pluskal",
+        "from": "CM",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 110,
+        "team": "Dinamarca",
+        "year": 2018,
+        "id": "s110p3",
+        "name": "Martin Braithwaite",
+        "from": "CM",
+        "to": "ST",
+        "source": "curated"
+      },
+      {
+        "sid": 110,
+        "team": "Dinamarca",
+        "year": 2018,
+        "id": "s110p9",
+        "name": "Andreas Christensen",
+        "from": "CM",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 115,
+        "team": "Inglaterra",
+        "year": 1962,
+        "id": "s115p1",
+        "name": "Armfield",
+        "from": "CB",
+        "to": "RB",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 115,
+        "team": "Inglaterra",
+        "year": 1962,
+        "id": "s115p8",
+        "name": "Haynes",
+        "from": "CB",
+        "to": "CAM",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 115,
+        "team": "Inglaterra",
+        "year": 1962,
+        "id": "s115p5",
+        "name": "Wilson",
+        "from": "CB",
+        "to": "LB",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 115,
+        "team": "Inglaterra",
+        "year": 1962,
+        "id": "s115p13",
+        "name": "Connely",
+        "from": "CB",
+        "to": "RW",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 115,
+        "team": "Inglaterra",
+        "year": 1962,
+        "id": "s115p14",
+        "name": "Eastham",
+        "from": "CB",
+        "to": "CM",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 115,
+        "team": "Inglaterra",
+        "year": 1962,
+        "id": "s115p15",
+        "name": "Hodgkinson",
+        "from": "CB",
+        "to": "GK",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 115,
+        "team": "Inglaterra",
+        "year": 1962,
+        "id": "s115p17",
+        "name": "Hunt",
+        "from": "CB",
+        "to": "ST",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 115,
+        "team": "Inglaterra",
+        "year": 1962,
+        "id": "s115p16",
+        "name": "Howe",
+        "from": "CB",
+        "to": "RB",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 115,
+        "team": "Inglaterra",
+        "year": 1962,
+        "id": "s115p18",
+        "name": "Kevan",
+        "from": "CB",
+        "to": "ST",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 115,
+        "team": "Inglaterra",
+        "year": 1962,
+        "id": "s115p19",
+        "name": "Robson",
+        "from": "CB",
+        "to": "CM",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 115,
+        "team": "Inglaterra",
+        "year": 1962,
+        "id": "s115p6",
+        "name": "Douglas",
+        "from": "CM",
+        "to": "RW",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 115,
+        "team": "Inglaterra",
+        "year": 1962,
+        "id": "s115p10",
+        "name": "Peacock",
+        "from": "ST",
+        "to": "LW",
+        "source": "squad-curated"
+      },
+      {
+        "sid": 116,
+        "team": "Inglaterra",
+        "year": 1966,
+        "id": "s116p6",
+        "name": "Wilson",
+        "from": "CB",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 116,
+        "team": "Inglaterra",
+        "year": 1966,
+        "id": "s116p12",
+        "name": "Armfield",
+        "from": "CB",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 124,
+        "team": "Inglaterra",
+        "year": 2014,
+        "id": "s124p4",
+        "name": "Ben Foster",
+        "from": "CM",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 124,
+        "team": "Inglaterra",
+        "year": 2014,
+        "id": "s124p13",
+        "name": "Luke Shaw",
+        "from": "ST",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 126,
+        "team": "Inglaterra",
+        "year": 2022,
+        "id": "s126p10",
+        "name": "Luke Shaw",
+        "from": "ST",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 132,
+        "team": "França",
+        "year": 1986,
+        "id": "s132p20",
+        "name": "Wilson",
+        "from": "CB",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 150,
+        "team": "Alemanha",
+        "year": 1990,
+        "id": "s150p10",
+        "name": "Thomas Häßler",
+        "from": "CM",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 150,
+        "team": "Alemanha",
+        "year": 1990,
+        "id": "s150p17",
+        "name": "Andreas Möller",
+        "from": "CM",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 174,
+        "team": "Irã",
+        "year": 2014,
+        "id": "s174p1",
+        "name": "Khosro Heydari",
+        "from": "CM",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 174,
+        "team": "Irã",
+        "year": 2014,
+        "id": "s174p10",
+        "name": "Ehsan Hajsafi",
+        "from": "CM",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 174,
+        "team": "Irã",
+        "year": 2014,
+        "id": "s174p11",
+        "name": "Masoud Shojaei",
+        "from": "CM",
+        "to": "CAM",
+        "source": "curated"
+      },
+      {
+        "sid": 175,
+        "team": "Irã",
+        "year": 2018,
+        "id": "s175p4",
+        "name": "Vahid Amiri",
+        "from": "GK",
+        "to": "LM",
+        "source": "curated"
+      },
+      {
+        "sid": 175,
+        "team": "Irã",
+        "year": 2018,
+        "id": "s175p7",
+        "name": "Mehdi Taremi",
+        "from": "CB",
+        "to": "ST",
+        "source": "curated"
+      },
+      {
+        "sid": 175,
+        "team": "Irã",
+        "year": 2018,
+        "id": "s175p10",
+        "name": "Sardar Azmoun",
+        "from": "CB",
+        "to": "ST",
+        "source": "curated"
+      },
+      {
+        "sid": 175,
+        "team": "Irã",
+        "year": 2018,
+        "id": "s175p2",
+        "name": "Alireza Jahanbakhsh",
+        "from": "CM",
+        "to": "RW",
+        "source": "curated"
+      },
+      {
+        "sid": 175,
+        "team": "Irã",
+        "year": 2018,
+        "id": "s175p0",
+        "name": "Masoud Shojaei",
+        "from": "CM",
+        "to": "CAM",
+        "source": "curated"
+      },
+      {
+        "sid": 175,
+        "team": "Irã",
+        "year": 2018,
+        "id": "s175p6",
+        "name": "Saeid Ezzatollahi",
+        "from": "CM",
+        "to": "CDM",
+        "source": "curated"
+      },
+      {
+        "sid": 175,
+        "team": "Irã",
+        "year": 2018,
+        "id": "s175p8",
+        "name": "Alireza Biranvand",
+        "from": "CM",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 175,
+        "team": "Irã",
+        "year": 2018,
+        "id": "s175p11",
+        "name": "Ramin Rezaeian",
+        "from": "CM",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 175,
+        "team": "Irã",
+        "year": 2018,
+        "id": "s175p13",
+        "name": "Ehsan Hajsafi",
+        "from": "CM",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 175,
+        "team": "Irã",
+        "year": 2018,
+        "id": "s175p9",
+        "name": "Rouzbeh Cheshmi",
+        "from": "ST",
+        "to": "CDM",
+        "source": "curated"
+      },
+      {
+        "sid": 175,
+        "team": "Irã",
+        "year": 2018,
+        "id": "s175p12",
+        "name": "Omid Ebrahimi",
+        "from": "ST",
+        "to": "CDM",
+        "source": "curated"
+      },
+      {
+        "sid": 176,
+        "team": "Irã",
+        "year": 2022,
+        "id": "s176p17",
+        "name": "Ramin Rezaeian",
+        "from": "CB",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 176,
+        "team": "Irã",
+        "year": 2022,
+        "id": "s176p9",
+        "name": "Vahid Amiri",
+        "from": "CB",
+        "to": "LM",
+        "source": "curated"
+      },
+      {
+        "sid": 176,
+        "team": "Irã",
+        "year": 2022,
+        "id": "s176p10",
+        "name": "Ehsan Hajsafi",
+        "from": "CM",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 176,
+        "team": "Irã",
+        "year": 2022,
+        "id": "s176p12",
+        "name": "Alireza Jahanbakhsh",
+        "from": "ST",
+        "to": "RW",
+        "source": "curated"
+      },
+      {
+        "sid": 177,
+        "team": "Irã",
+        "year": 2026,
+        "id": "s177p17",
+        "name": "Ramin Rezaeian",
+        "from": "CB",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 177,
+        "team": "Irã",
+        "year": 2026,
+        "id": "s177p11",
+        "name": "Vahid Amiri",
+        "from": "CB",
+        "to": "LM",
+        "source": "curated"
+      },
+      {
+        "sid": 177,
+        "team": "Irã",
+        "year": 2026,
+        "id": "s177p10",
+        "name": "Ehsan Hajsafi",
+        "from": "CM",
+        "to": "LB",
+        "source": "curated"
+      },
+      {
+        "sid": 177,
+        "team": "Irã",
+        "year": 2026,
+        "id": "s177p8",
+        "name": "Alireza Jahanbakhsh",
+        "from": "ST",
+        "to": "RW",
+        "source": "curated"
+      },
+      {
+        "sid": 192,
+        "team": "Japão",
+        "year": 1998,
+        "id": "s192p4",
+        "name": "Yoshikatsu Kawaguchi",
+        "from": "ST",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 196,
+        "team": "Japão",
+        "year": 2014,
+        "id": "s196p13",
+        "name": "Maya Yoshida",
+        "from": "CM",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 197,
+        "team": "Japão",
+        "year": 2018,
+        "id": "s197p10",
+        "name": "Maya Yoshida",
+        "from": "CM",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 197,
+        "team": "Japão",
+        "year": 2018,
+        "id": "s197p16",
+        "name": "Gaku Shibasaki",
+        "from": "ST",
+        "to": "CM",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 205,
+        "team": "México",
+        "year": 1998,
+        "id": "s205p12",
+        "name": "Oscar Pérez",
+        "from": "ST",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 206,
+        "team": "México",
+        "year": 2002,
+        "id": "s206p5",
+        "name": "Oscar Pérez",
+        "from": "ST",
+        "to": "GK",
+        "source": "curated"
+      },
+      {
+        "sid": 208,
+        "team": "México",
+        "year": 2010,
+        "id": "s208p3",
+        "name": "Francisco Javier Rodríguez",
+        "from": "CM",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 209,
+        "team": "México",
+        "year": 2014,
+        "id": "s209p8",
+        "name": "Héctor Herrera",
+        "from": "CB",
+        "to": "CM",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 209,
+        "team": "México",
+        "year": 2014,
+        "id": "s209p10",
+        "name": "Francisco Javier Rodríguez",
+        "from": "CM",
+        "to": "CB",
+        "source": "curated"
+      },
+      {
+        "sid": 210,
+        "team": "México",
+        "year": 2018,
+        "id": "s210p12",
+        "name": "Jesús Gallardo",
+        "from": "CM",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 217,
+        "team": "Marrocos",
+        "year": 2018,
+        "id": "s217p10",
+        "name": "Amine Harit",
+        "from": "CB",
+        "to": "CM",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 217,
+        "team": "Marrocos",
+        "year": 2018,
+        "id": "s217p2",
+        "name": "Romain Saïss",
+        "from": "CM",
+        "to": "CB",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 222,
+        "team": "Holanda",
+        "year": 1990,
+        "id": "s222p20",
+        "name": "Aron Winter",
+        "from": "CM",
+        "to": "ST",
+        "source": "cross-edition-consensus"
+      },
+      {
+        "sid": 225,
+        "team": "Holanda",
+        "year": 2006,
+        "id": "s225p6",
+        "name": "Dirk Kuyt",
+        "from": "ST",
+        "to": "RW",
+        "source": "curated"
+      },
+      {
+        "sid": 226,
+        "team": "Holanda",
+        "year": 2010,
+        "id": "s226p4",
+        "name": "Nigel de Jong",
+        "from": "CB",
+        "to": "CDM",
+        "source": "curated"
+      },
+      {
+        "sid": 227,
+        "team": "Holanda",
+        "year": 2014,
+        "id": "s227p6",
+        "name": "Daryl Janmaat",
+        "from": "GK",
+        "to": "RB",
+        "source": "curated"
+      },
+      {
+        "sid": 227,
+        "team": "Holanda",
+        "year": 2014,
+        "id": "s227p9",
+        "name": "Nigel de Jong",
+        "from": "CB",
+        "to": "CDM",
+        "source": "curated"
+      },
+      {
+        "sid": 227,
+        "team": "Holanda",
+        "year": 2014,
+        "id": "s227p5",
+        "name": "Jeremain Lens",
+        "from": "CM",
+        "to": "RW",
+        "source": "curated"
+      }
+    ],
+    "goalkeepers": [
+      {
+        "team": "Argélia",
+        "year": 1982,
+        "name": "Cerbah",
+        "r": 80,
+        "attributes": {
+          "finalizacao": 20,
+          "passe": 78,
+          "cruzamento": 79,
+          "drible": 28,
+          "conducao": 83,
+          "cabeceio": 21,
+          "desarme": 25,
+          "marcacao": 25,
+          "chute_longe": 78,
+          "bola_parada": 80,
+          "visao": 80,
+          "posicionamento": 82,
+          "decisao": 81,
+          "compostura": 81,
+          "antecipacao": 79,
+          "determinacao": 77,
+          "trabalho_equipe": 77,
+          "ritmo": 62,
+          "aceleracao": 80,
+          "forca": 80,
+          "resistencia": 81,
+          "agilidade": 85,
+          "impulsao": 81,
+          "reflexos": 83,
+          "defesa": 82,
+          "saida_gol": 86,
+          "dominio_area": 82,
+          "reposicao": 80,
+          "primeiro_toque": 73,
+          "penaltis": 64,
+          "concentracao": 78,
+          "movimentacao": 80,
+          "agressividade": 76,
+          "coragem": 81,
+          "lideranca": 76,
+          "consistencia": 95,
+          "jogos_grandes": 97,
+          "equilibrio": 81,
+          "condicionamento": 81,
+          "um_contra_um": 80,
+          "seguranca": 82,
+          "jogo_aereo": 80,
+          "chute_longo": 77,
+          "passe_curto": 78,
+          "passe_longo": 77
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 2,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 188,
+          "heightSource": "simulation-estimate",
+          "bodyType": "equilibrado",
+          "primaryPosition": "GK"
+        },
+        "traits": [
+          "SWEEPER_KEEPER",
+          "LEADER"
+        ],
+        "behaviorTraits": [
+          "DOMINA_AREA",
+          "GOLEIRO_LIBERO",
+          "DISTRIBUIDOR_CURTO"
+        ]
+      },
+      {
+        "team": "Argélia",
+        "year": 1986,
+        "name": "Larbi",
+        "r": 80,
+        "attributes": {
+          "finalizacao": 16,
+          "passe": 76,
+          "cruzamento": 78,
+          "drible": 27,
+          "conducao": 80,
+          "cabeceio": 24,
+          "desarme": 30,
+          "marcacao": 27,
+          "chute_longe": 79,
+          "bola_parada": 78,
+          "visao": 76,
+          "posicionamento": 81,
+          "decisao": 79,
+          "compostura": 80,
+          "antecipacao": 82,
+          "determinacao": 79,
+          "trabalho_equipe": 83,
+          "ritmo": 67,
+          "aceleracao": 79,
+          "forca": 81,
+          "resistencia": 80,
+          "agilidade": 85,
+          "impulsao": 79,
+          "reflexos": 82,
+          "defesa": 86,
+          "saida_gol": 85,
+          "dominio_area": 77,
+          "reposicao": 82,
+          "primeiro_toque": 73,
+          "penaltis": 68,
+          "concentracao": 78,
+          "movimentacao": 80,
+          "agressividade": 70,
+          "coragem": 79,
+          "lideranca": 77,
+          "consistencia": 95,
+          "jogos_grandes": 95,
+          "equilibrio": 83,
+          "condicionamento": 79,
+          "um_contra_um": 80,
+          "seguranca": 82,
+          "jogo_aereo": 79,
+          "chute_longo": 79,
+          "passe_curto": 77,
+          "passe_longo": 75
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 2,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 190,
+          "heightSource": "simulation-estimate",
+          "bodyType": "equilibrado",
+          "primaryPosition": "GK"
+        },
+        "traits": [
+          "SWEEPER_KEEPER",
+          "LEADER"
+        ],
+        "behaviorTraits": [
+          "GOLEIRO_LIBERO",
+          "DOMINA_AREA",
+          "DISTRIBUIDOR_CURTO"
+        ]
+      },
+      {
+        "team": "Argélia",
+        "year": 2010,
+        "name": "Karim Ziani",
+        "r": 80,
+        "attributes": {
+          "finalizacao": 19,
+          "passe": 78,
+          "cruzamento": 81,
+          "drible": 21,
+          "conducao": 82,
+          "cabeceio": 23,
+          "desarme": 24,
+          "marcacao": 22,
+          "chute_longe": 82,
+          "bola_parada": 79,
+          "visao": 82,
+          "posicionamento": 79,
+          "decisao": 77,
+          "compostura": 78,
+          "antecipacao": 80,
+          "determinacao": 80,
+          "trabalho_equipe": 81,
+          "ritmo": 64,
+          "aceleracao": 77,
+          "forca": 84,
+          "resistencia": 79,
+          "agilidade": 84,
+          "impulsao": 77,
+          "reflexos": 84,
+          "defesa": 81,
+          "saida_gol": 83,
+          "dominio_area": 80,
+          "reposicao": 82,
+          "primeiro_toque": 72,
+          "penaltis": 68,
+          "concentracao": 80,
+          "movimentacao": 77,
+          "agressividade": 75,
+          "coragem": 81,
+          "lideranca": 82,
+          "consistencia": 91,
+          "jogos_grandes": 87,
+          "equilibrio": 81,
+          "condicionamento": 82,
+          "um_contra_um": 81,
+          "seguranca": 80,
+          "jogo_aereo": 79,
+          "chute_longo": 80,
+          "passe_curto": 77,
+          "passe_longo": 80
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 2,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 191,
+          "heightSource": "simulation-estimate",
+          "bodyType": "equilibrado",
+          "primaryPosition": "GK"
+        },
+        "traits": [
+          "LEADER",
+          "SWEEPER_KEEPER"
+        ],
+        "behaviorTraits": [
+          "LANCADOR",
+          "DOMINA_AREA",
+          "GOLEIRO_LIBERO",
+          "DISTRIBUIDOR_CURTO"
+        ]
+      },
+      {
+        "team": "Argélia",
+        "year": 2014,
+        "name": "Abdelmoumene Djabou",
+        "r": 80,
+        "attributes": {
+          "finalizacao": 12,
+          "passe": 79,
+          "cruzamento": 79,
+          "drible": 22,
+          "conducao": 80,
+          "cabeceio": 20,
+          "desarme": 27,
+          "marcacao": 28,
+          "chute_longe": 79,
+          "bola_parada": 77,
+          "visao": 81,
+          "posicionamento": 81,
+          "decisao": 80,
+          "compostura": 83,
+          "antecipacao": 80,
+          "determinacao": 80,
+          "trabalho_equipe": 77,
+          "ritmo": 65,
+          "aceleracao": 83,
+          "forca": 84,
+          "resistencia": 81,
+          "agilidade": 85,
+          "impulsao": 82,
+          "reflexos": 86,
+          "defesa": 82,
+          "saida_gol": 82,
+          "dominio_area": 82,
+          "reposicao": 83,
+          "primeiro_toque": 73,
+          "penaltis": 65,
+          "concentracao": 81,
+          "movimentacao": 80,
+          "agressividade": 73,
+          "coragem": 76,
+          "lideranca": 78,
+          "consistencia": 96,
+          "jogos_grandes": 98,
+          "equilibrio": 81,
+          "condicionamento": 80,
+          "um_contra_um": 81,
+          "seguranca": 81,
+          "jogo_aereo": 84,
+          "chute_longo": 79,
+          "passe_curto": 79,
+          "passe_longo": 78
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 2,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 192,
+          "heightSource": "simulation-estimate",
+          "bodyType": "equilibrado",
+          "primaryPosition": "GK"
+        },
+        "traits": [
+          "LEADER",
+          "SWEEPER_KEEPER"
+        ],
+        "behaviorTraits": [
+          "DOMINA_AREA",
+          "DISTRIBUIDOR_CURTO",
+          "GOLEIRO_LIBERO",
+          "LANCADOR"
+        ]
+      },
+      {
+        "team": "Argélia",
+        "year": 2022,
+        "name": "Raïs Mbolhi",
+        "r": 80,
+        "attributes": {
+          "finalizacao": 17,
+          "passe": 77,
+          "cruzamento": 79,
+          "drible": 22,
+          "conducao": 83,
+          "cabeceio": 27,
+          "desarme": 27,
+          "marcacao": 26,
+          "chute_longe": 81,
+          "bola_parada": 79,
+          "visao": 80,
+          "posicionamento": 79,
+          "decisao": 79,
+          "compostura": 77,
+          "antecipacao": 82,
+          "determinacao": 77,
+          "trabalho_equipe": 83,
+          "ritmo": 62,
+          "aceleracao": 82,
+          "forca": 81,
+          "resistencia": 81,
+          "agilidade": 80,
+          "impulsao": 79,
+          "reflexos": 82,
+          "defesa": 80,
+          "saida_gol": 85,
+          "dominio_area": 82,
+          "reposicao": 83,
+          "primeiro_toque": 72,
+          "penaltis": 67,
+          "concentracao": 79,
+          "movimentacao": 80,
+          "agressividade": 69,
+          "coragem": 82,
+          "lideranca": 76,
+          "consistencia": 96,
+          "jogos_grandes": 87,
+          "equilibrio": 80,
+          "condicionamento": 78,
+          "um_contra_um": 82,
+          "seguranca": 82,
+          "jogo_aereo": 79,
+          "chute_longo": 77,
+          "passe_curto": 75,
+          "passe_longo": 79
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 2,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 185,
+          "heightSource": "simulation-estimate",
+          "bodyType": "equilibrado",
+          "primaryPosition": "GK"
+        },
+        "traits": [
+          "SWEEPER_KEEPER",
+          "LEADER"
+        ],
+        "behaviorTraits": [
+          "GOLEIRO_LIBERO",
+          "DOMINA_AREA",
+          "LANCADOR",
+          "DISTRIBUIDOR_CURTO"
+        ]
+      },
+      {
+        "team": "Argélia",
+        "year": 2026,
+        "name": "Raïs Mbolhi",
+        "r": 80,
+        "attributes": {
+          "finalizacao": 17,
+          "passe": 78,
+          "cruzamento": 80,
+          "drible": 25,
+          "conducao": 83,
+          "cabeceio": 24,
+          "desarme": 28,
+          "marcacao": 21,
+          "chute_longe": 81,
+          "bola_parada": 80,
+          "visao": 79,
+          "posicionamento": 80,
+          "decisao": 78,
+          "compostura": 81,
+          "antecipacao": 82,
+          "determinacao": 77,
+          "trabalho_equipe": 82,
+          "ritmo": 62,
+          "aceleracao": 82,
+          "forca": 85,
+          "resistencia": 82,
+          "agilidade": 84,
+          "impulsao": 79,
+          "reflexos": 84,
+          "defesa": 82,
+          "saida_gol": 89,
+          "dominio_area": 82,
+          "reposicao": 85,
+          "primeiro_toque": 76,
+          "penaltis": 64,
+          "concentracao": 79,
+          "movimentacao": 78,
+          "agressividade": 77,
+          "coragem": 81,
+          "lideranca": 82,
+          "consistencia": 88,
+          "jogos_grandes": 92,
+          "equilibrio": 81,
+          "condicionamento": 81,
+          "um_contra_um": 85,
+          "seguranca": 80,
+          "jogo_aereo": 83,
+          "chute_longo": 82,
+          "passe_curto": 77,
+          "passe_longo": 80
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 2,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 191,
+          "heightSource": "simulation-estimate",
+          "bodyType": "equilibrado",
+          "primaryPosition": "GK"
+        },
+        "traits": [
+          "SWEEPER_KEEPER",
+          "LEADER"
+        ],
+        "behaviorTraits": [
+          "GOLEIRO_LIBERO",
+          "DOMINA_AREA",
+          "LANCADOR",
+          "DISTRIBUIDOR_CURTO"
+        ]
+      },
+      {
+        "team": "Argentina",
+        "year": 1974,
+        "name": "Carnevali",
+        "r": 80,
+        "attributes": {
+          "finalizacao": 18,
+          "passe": 77,
+          "cruzamento": 81,
+          "drible": 24,
+          "conducao": 81,
+          "cabeceio": 26,
+          "desarme": 29,
+          "marcacao": 27,
+          "chute_longe": 80,
+          "bola_parada": 77,
+          "visao": 78,
+          "posicionamento": 81,
+          "decisao": 81,
+          "compostura": 80,
+          "antecipacao": 81,
+          "determinacao": 79,
+          "trabalho_equipe": 82,
+          "ritmo": 66,
+          "aceleracao": 78,
+          "forca": 82,
+          "resistencia": 80,
+          "agilidade": 83,
+          "impulsao": 78,
+          "reflexos": 81,
+          "defesa": 80,
+          "saida_gol": 87,
+          "dominio_area": 84,
+          "reposicao": 81,
+          "primeiro_toque": 73,
+          "penaltis": 67,
+          "concentracao": 81,
+          "movimentacao": 77,
+          "agressividade": 78,
+          "coragem": 78,
+          "lideranca": 83,
+          "consistencia": 89,
+          "jogos_grandes": 91,
+          "equilibrio": 80,
+          "condicionamento": 79,
+          "um_contra_um": 81,
+          "seguranca": 81,
+          "jogo_aereo": 81,
+          "chute_longo": 77,
+          "passe_curto": 77,
+          "passe_longo": 77
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 2,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 186,
+          "heightSource": "simulation-estimate",
+          "bodyType": "equilibrado",
+          "primaryPosition": "GK"
+        },
+        "traits": [
+          "LEADER",
+          "SWEEPER_KEEPER"
+        ],
+        "behaviorTraits": [
+          "GOLEIRO_LIBERO",
+          "DOMINA_AREA",
+          "DISTRIBUIDOR_CURTO"
+        ]
+      },
+      {
+        "team": "Argentina",
+        "year": 1978,
+        "name": "Fillol",
+        "r": 89,
+        "attributes": {
+          "finalizacao": 20,
+          "passe": 87,
+          "cruzamento": 92,
+          "drible": 27,
+          "conducao": 92,
+          "cabeceio": 27,
+          "desarme": 30,
+          "marcacao": 23,
+          "chute_longe": 87,
+          "bola_parada": 90,
+          "visao": 88,
+          "posicionamento": 92,
+          "decisao": 91,
+          "compostura": 90,
+          "antecipacao": 89,
+          "determinacao": 92,
+          "trabalho_equipe": 91,
+          "ritmo": 75,
+          "aceleracao": 90,
+          "forca": 89,
+          "resistencia": 89,
+          "agilidade": 92,
+          "impulsao": 90,
+          "reflexos": 92,
+          "defesa": 94,
+          "saida_gol": 90,
+          "dominio_area": 90,
+          "reposicao": 88,
+          "primeiro_toque": 83,
+          "penaltis": 76,
+          "concentracao": 89,
+          "movimentacao": 91,
+          "agressividade": 84,
+          "coragem": 92,
+          "lideranca": 93,
+          "consistencia": 96,
+          "jogos_grandes": 98,
+          "equilibrio": 90,
+          "condicionamento": 87,
+          "um_contra_um": 93,
+          "seguranca": 94,
+          "jogo_aereo": 90,
+          "chute_longo": 88,
+          "passe_curto": 87,
+          "passe_longo": 86
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 2,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 190,
+          "heightSource": "simulation-estimate",
+          "bodyType": "equilibrado",
+          "primaryPosition": "GK"
+        },
+        "traits": [
+          "CLUTCH_PLAYER",
+          "LEADER"
+        ],
+        "behaviorTraits": [
+          "DOMINA_AREA",
+          "DISTRIBUIDOR_CURTO",
+          "GOLEIRO_LIBERO",
+          "LANCADOR"
+        ]
+      },
+      {
+        "team": "Argentina",
+        "year": 1982,
+        "name": "Fillol",
+        "r": 80,
+        "attributes": {
+          "finalizacao": 12,
+          "passe": 78,
+          "cruzamento": 83,
+          "drible": 28,
+          "conducao": 83,
+          "cabeceio": 24,
+          "desarme": 25,
+          "marcacao": 22,
+          "chute_longe": 80,
+          "bola_parada": 77,
+          "visao": 80,
+          "posicionamento": 81,
+          "decisao": 82,
+          "compostura": 80,
+          "antecipacao": 81,
+          "determinacao": 81,
+          "trabalho_equipe": 82,
+          "ritmo": 66,
+          "aceleracao": 81,
+          "forca": 84,
+          "resistencia": 78,
+          "agilidade": 86,
+          "impulsao": 80,
+          "reflexos": 80,
+          "defesa": 81,
+          "saida_gol": 86,
+          "dominio_area": 82,
+          "reposicao": 81,
+          "primeiro_toque": 72,
+          "penaltis": 63,
+          "concentracao": 82,
+          "movimentacao": 78,
+          "agressividade": 74,
+          "coragem": 79,
+          "lideranca": 77,
+          "consistencia": 91,
+          "jogos_grandes": 93,
+          "equilibrio": 82,
+          "condicionamento": 83,
+          "um_contra_um": 83,
+          "seguranca": 81,
+          "jogo_aereo": 81,
+          "chute_longo": 80,
+          "passe_curto": 78,
+          "passe_longo": 79
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 2,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 192,
+          "heightSource": "simulation-estimate",
+          "bodyType": "equilibrado",
+          "primaryPosition": "GK"
+        },
+        "traits": [
+          "SWEEPER_KEEPER",
+          "LEADER"
+        ],
+        "behaviorTraits": [
+          "GOLEIRO_LIBERO",
+          "DOMINA_AREA",
+          "DISTRIBUIDOR_CURTO",
+          "LANCADOR"
+        ]
+      },
+      {
+        "team": "Argentina",
+        "year": 1986,
+        "name": "Pumpido",
+        "r": 80,
+        "attributes": {
+          "finalizacao": 20,
+          "passe": 80,
+          "cruzamento": 79,
+          "drible": 27,
+          "conducao": 76,
+          "cabeceio": 26,
+          "desarme": 30,
+          "marcacao": 27,
+          "chute_longe": 80,
+          "bola_parada": 80,
+          "visao": 83,
+          "posicionamento": 83,
+          "decisao": 81,
+          "compostura": 80,
+          "antecipacao": 83,
+          "determinacao": 81,
+          "trabalho_equipe": 80,
+          "ritmo": 65,
+          "aceleracao": 82,
+          "forca": 82,
+          "resistencia": 77,
+          "agilidade": 83,
+          "impulsao": 80,
+          "reflexos": 86,
+          "defesa": 79,
+          "saida_gol": 85,
+          "dominio_area": 79,
+          "reposicao": 86,
+          "primeiro_toque": 69,
+          "penaltis": 63,
+          "concentracao": 84,
+          "movimentacao": 79,
+          "agressividade": 77,
+          "coragem": 77,
+          "lideranca": 77,
+          "consistencia": 91,
+          "jogos_grandes": 96,
+          "equilibrio": 81,
+          "condicionamento": 77,
+          "um_contra_um": 85,
+          "seguranca": 79,
+          "jogo_aereo": 79,
+          "chute_longo": 82,
+          "passe_curto": 80,
+          "passe_longo": 80
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 3,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 190,
+          "heightSource": "simulation-estimate",
+          "bodyType": "alto_e_forte",
+          "primaryPosition": "GK"
+        },
+        "traits": [
+          "SWEEPER_KEEPER",
+          "LEADER"
+        ],
+        "behaviorTraits": [
+          "GOLEIRO_LIBERO",
+          "LANCADOR",
+          "DISTRIBUIDOR_CURTO",
+          "DOMINA_AREA"
+        ]
+      },
+      {
+        "team": "Argentina",
+        "year": 1990,
+        "name": "Sergio Goycochea",
+        "r": 89,
+        "attributes": {
+          "finalizacao": 19,
+          "passe": 88,
+          "cruzamento": 88,
+          "drible": 23,
+          "conducao": 88,
+          "cabeceio": 18,
+          "desarme": 26,
+          "marcacao": 25,
+          "chute_longe": 87,
+          "bola_parada": 92,
+          "visao": 88,
+          "posicionamento": 86,
+          "decisao": 91,
+          "compostura": 90,
+          "antecipacao": 90,
+          "determinacao": 86,
+          "trabalho_equipe": 87,
+          "ritmo": 71,
+          "aceleracao": 88,
+          "forca": 91,
+          "resistencia": 85,
+          "agilidade": 94,
+          "impulsao": 89,
+          "reflexos": 95,
+          "defesa": 92,
+          "saida_gol": 99,
+          "dominio_area": 96,
+          "reposicao": 96,
+          "primeiro_toque": 79,
+          "penaltis": 76,
+          "concentracao": 87,
+          "movimentacao": 86,
+          "agressividade": 81,
+          "coragem": 90,
+          "lideranca": 91,
+          "consistencia": 96,
+          "jogos_grandes": 98,
+          "equilibrio": 90,
+          "condicionamento": 83,
+          "um_contra_um": 93,
+          "seguranca": 93,
+          "jogo_aereo": 92,
+          "chute_longo": 90,
+          "passe_curto": 86,
+          "passe_longo": 90
+        },
+        "profile": {
+          "dominantFoot": "L",
+          "weakFoot": 4,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 199,
+          "heightSource": "simulation-estimate",
+          "bodyType": "alto_e_forte",
+          "primaryPosition": "GK"
+        },
+        "traits": [
+          "SWEEPER_KEEPER",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "GOLEIRO_LIBERO",
+          "DOMINA_AREA",
+          "LANCADOR",
+          "DISTRIBUIDOR_CURTO"
+        ]
+      },
+      {
+        "team": "Argentina",
+        "year": 1994,
+        "name": "Sergio Goycochea",
+        "r": 80,
+        "attributes": {
+          "finalizacao": 16,
+          "passe": 80,
+          "cruzamento": 80,
+          "drible": 21,
+          "conducao": 79,
+          "cabeceio": 26,
+          "desarme": 24,
+          "marcacao": 20,
+          "chute_longe": 78,
+          "bola_parada": 80,
+          "visao": 81,
+          "posicionamento": 79,
+          "decisao": 83,
+          "compostura": 82,
+          "antecipacao": 79,
+          "determinacao": 80,
+          "trabalho_equipe": 79,
+          "ritmo": 65,
+          "aceleracao": 81,
+          "forca": 79,
+          "resistencia": 76,
+          "agilidade": 85,
+          "impulsao": 81,
+          "reflexos": 84,
+          "defesa": 83,
+          "saida_gol": 85,
+          "dominio_area": 80,
+          "reposicao": 82,
+          "primeiro_toque": 72,
+          "penaltis": 66,
+          "concentracao": 80,
+          "movimentacao": 79,
+          "agressividade": 76,
+          "coragem": 82,
+          "lideranca": 77,
+          "consistencia": 96,
+          "jogos_grandes": 94,
+          "equilibrio": 80,
+          "condicionamento": 80,
+          "um_contra_um": 81,
+          "seguranca": 80,
+          "jogo_aereo": 81,
+          "chute_longo": 77,
+          "passe_curto": 80,
+          "passe_longo": 80
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 2,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 191,
+          "heightSource": "simulation-estimate",
+          "bodyType": "equilibrado",
+          "primaryPosition": "GK"
+        },
+        "traits": [
+          "SWEEPER_KEEPER",
+          "LEADER"
+        ],
+        "behaviorTraits": [
+          "DISTRIBUIDOR_CURTO",
+          "DOMINA_AREA",
+          "GOLEIRO_LIBERO",
+          "LANCADOR"
+        ]
+      },
+      {
+        "team": "Argentina",
+        "year": 1998,
+        "name": "Carlos Roa",
+        "r": 80,
+        "attributes": {
+          "finalizacao": 12,
+          "passe": 76,
+          "cruzamento": 80,
+          "drible": 23,
+          "conducao": 78,
+          "cabeceio": 25,
+          "desarme": 26,
+          "marcacao": 21,
+          "chute_longe": 79,
+          "bola_parada": 77,
+          "visao": 81,
+          "posicionamento": 80,
+          "decisao": 78,
+          "compostura": 79,
+          "antecipacao": 79,
+          "determinacao": 77,
+          "trabalho_equipe": 80,
+          "ritmo": 63,
+          "aceleracao": 82,
+          "forca": 84,
+          "resistencia": 80,
+          "agilidade": 85,
+          "impulsao": 83,
+          "reflexos": 84,
+          "defesa": 81,
+          "saida_gol": 85,
+          "dominio_area": 83,
+          "reposicao": 80,
+          "primeiro_toque": 69,
+          "penaltis": 66,
+          "concentracao": 77,
+          "movimentacao": 76,
+          "agressividade": 76,
+          "coragem": 82,
+          "lideranca": 75,
+          "consistencia": 96,
+          "jogos_grandes": 92,
+          "equilibrio": 81,
+          "condicionamento": 78,
+          "um_contra_um": 80,
+          "seguranca": 80,
+          "jogo_aereo": 83,
+          "chute_longo": 76,
+          "passe_curto": 76,
+          "passe_longo": 76
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 2,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 193,
+          "heightSource": "simulation-estimate",
+          "bodyType": "equilibrado",
+          "primaryPosition": "GK"
+        },
+        "traits": [
+          "SWEEPER_KEEPER",
+          "LEADER"
+        ],
+        "behaviorTraits": [
+          "DOMINA_AREA",
+          "GOLEIRO_LIBERO",
+          "DISTRIBUIDOR_CURTO"
+        ]
+      },
+      {
+        "team": "Argentina",
+        "year": 2002,
+        "name": "Juan Pablo Sorín",
+        "r": 81,
+        "attributes": {
+          "finalizacao": 13,
+          "passe": 77,
+          "cruzamento": 81,
+          "drible": 22,
+          "conducao": 80,
+          "cabeceio": 21,
+          "desarme": 24,
+          "marcacao": 26,
+          "chute_longe": 79,
+          "bola_parada": 80,
+          "visao": 79,
+          "posicionamento": 81,
+          "decisao": 81,
+          "compostura": 80,
+          "antecipacao": 80,
+          "determinacao": 79,
+          "trabalho_equipe": 83,
+          "ritmo": 66,
+          "aceleracao": 82,
+          "forca": 82,
+          "resistencia": 83,
+          "agilidade": 83,
+          "impulsao": 79,
+          "reflexos": 87,
+          "defesa": 81,
+          "saida_gol": 85,
+          "dominio_area": 82,
+          "reposicao": 81,
+          "primeiro_toque": 71,
+          "penaltis": 65,
+          "concentracao": 82,
+          "movimentacao": 79,
+          "agressividade": 71,
+          "coragem": 79,
+          "lideranca": 77,
+          "consistencia": 90,
+          "jogos_grandes": 89,
+          "equilibrio": 80,
+          "condicionamento": 78,
+          "um_contra_um": 83,
+          "seguranca": 81,
+          "jogo_aereo": 79,
+          "chute_longo": 80,
+          "passe_curto": 77,
+          "passe_longo": 78
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 2,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 187,
+          "heightSource": "simulation-estimate",
+          "bodyType": "equilibrado",
+          "primaryPosition": "GK"
+        },
+        "traits": [
+          "SWEEPER_KEEPER",
+          "LEADER"
+        ],
+        "behaviorTraits": [
+          "GOLEIRO_LIBERO",
+          "DOMINA_AREA",
+          "LANCADOR",
+          "DISTRIBUIDOR_CURTO"
+        ]
+      },
+      {
+        "team": "Argentina",
+        "year": 2006,
+        "name": "Juan Pablo Sorín",
+        "r": 82,
+        "attributes": {
+          "finalizacao": 20,
+          "passe": 79,
+          "cruzamento": 81,
+          "drible": 22,
+          "conducao": 79,
+          "cabeceio": 23,
+          "desarme": 24,
+          "marcacao": 25,
+          "chute_longe": 81,
+          "bola_parada": 79,
+          "visao": 81,
+          "posicionamento": 82,
+          "decisao": 82,
+          "compostura": 81,
+          "antecipacao": 82,
+          "determinacao": 79,
+          "trabalho_equipe": 82,
+          "ritmo": 67,
+          "aceleracao": 79,
+          "forca": 85,
+          "resistencia": 81,
+          "agilidade": 84,
+          "impulsao": 79,
+          "reflexos": 86,
+          "defesa": 82,
+          "saida_gol": 87,
+          "dominio_area": 85,
+          "reposicao": 83,
+          "primeiro_toque": 71,
+          "penaltis": 68,
+          "concentracao": 82,
+          "movimentacao": 82,
+          "agressividade": 72,
+          "coragem": 79,
+          "lideranca": 80,
+          "consistencia": 96,
+          "jogos_grandes": 91,
+          "equilibrio": 80,
+          "condicionamento": 79,
+          "um_contra_um": 84,
+          "seguranca": 82,
+          "jogo_aereo": 82,
+          "chute_longo": 80,
+          "passe_curto": 79,
+          "passe_longo": 78
+        },
+        "profile": {
+          "dominantFoot": "L",
+          "weakFoot": 2,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 194,
+          "heightSource": "simulation-estimate",
+          "bodyType": "equilibrado",
+          "primaryPosition": "GK"
+        },
+        "traits": [
+          "SWEEPER_KEEPER",
+          "LEADER"
+        ],
+        "behaviorTraits": [
+          "GOLEIRO_LIBERO",
+          "DOMINA_AREA",
+          "DISTRIBUIDOR_CURTO",
+          "LANCADOR"
+        ]
+      },
+      {
+        "team": "Argentina",
+        "year": 2010,
+        "name": "Maxi Rodríguez",
+        "r": 80,
+        "attributes": {
+          "finalizacao": 16,
+          "passe": 79,
+          "cruzamento": 79,
+          "drible": 26,
+          "conducao": 81,
+          "cabeceio": 22,
+          "desarme": 23,
+          "marcacao": 27,
+          "chute_longe": 78,
+          "bola_parada": 82,
+          "visao": 78,
+          "posicionamento": 80,
+          "decisao": 81,
+          "compostura": 80,
+          "antecipacao": 78,
+          "determinacao": 80,
+          "trabalho_equipe": 83,
+          "ritmo": 61,
+          "aceleracao": 78,
+          "forca": 79,
+          "resistencia": 79,
+          "agilidade": 81,
+          "impulsao": 79,
+          "reflexos": 83,
+          "defesa": 82,
+          "saida_gol": 86,
+          "dominio_area": 80,
+          "reposicao": 82,
+          "primeiro_toque": 74,
+          "penaltis": 68,
+          "concentracao": 82,
+          "movimentacao": 76,
+          "agressividade": 72,
+          "coragem": 80,
+          "lideranca": 83,
+          "consistencia": 91,
+          "jogos_grandes": 98,
+          "equilibrio": 77,
+          "condicionamento": 83,
+          "um_contra_um": 81,
+          "seguranca": 81,
+          "jogo_aereo": 80,
+          "chute_longo": 77,
+          "passe_curto": 79,
+          "passe_longo": 80
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 2,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 190,
+          "heightSource": "simulation-estimate",
+          "bodyType": "equilibrado",
+          "primaryPosition": "GK"
+        },
+        "traits": [
+          "LEADER",
+          "SWEEPER_KEEPER"
+        ],
+        "behaviorTraits": [
+          "GOLEIRO_LIBERO",
+          "DISTRIBUIDOR_CURTO",
+          "DOMINA_AREA",
+          "LANCADOR"
+        ]
+      },
+      {
+        "team": "Argentina",
+        "year": 2014,
+        "name": "Sergio Romero",
+        "r": 84,
+        "attributes": {
+          "finalizacao": 16,
+          "passe": 80,
+          "cruzamento": 84,
+          "drible": 23,
+          "conducao": 83,
+          "cabeceio": 27,
+          "desarme": 28,
+          "marcacao": 20,
+          "chute_longe": 84,
+          "bola_parada": 85,
+          "visao": 84,
+          "posicionamento": 87,
+          "decisao": 84,
+          "compostura": 84,
+          "antecipacao": 81,
+          "determinacao": 87,
+          "trabalho_equipe": 85,
+          "ritmo": 69,
+          "aceleracao": 82,
+          "forca": 85,
+          "resistencia": 85,
+          "agilidade": 84,
+          "impulsao": 87,
+          "reflexos": 86,
+          "defesa": 83,
+          "saida_gol": 87,
+          "dominio_area": 85,
+          "reposicao": 83,
+          "primeiro_toque": 78,
+          "penaltis": 74,
+          "concentracao": 87,
+          "movimentacao": 81,
+          "agressividade": 78,
+          "coragem": 84,
+          "lideranca": 89,
+          "consistencia": 94,
+          "jogos_grandes": 98,
+          "equilibrio": 86,
+          "condicionamento": 85,
+          "um_contra_um": 85,
+          "seguranca": 86,
+          "jogo_aereo": 84,
+          "chute_longo": 84,
+          "passe_curto": 80,
+          "passe_longo": 81
+        },
+        "profile": {
+          "dominantFoot": "L",
+          "weakFoot": 4,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 190,
+          "heightSource": "simulation-estimate",
+          "bodyType": "alto_e_forte",
+          "primaryPosition": "GK"
+        },
+        "traits": [
+          "FINISHER",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "DOMINA_AREA",
+          "GOLEIRO_LIBERO",
+          "DISTRIBUIDOR_CURTO",
+          "LANCADOR"
+        ]
+      },
+      {
+        "team": "Argentina",
+        "year": 2018,
+        "name": "Franco Armani",
+        "r": 80,
+        "attributes": {
+          "finalizacao": 19,
+          "passe": 77,
+          "cruzamento": 78,
+          "drible": 24,
+          "conducao": 79,
+          "cabeceio": 25,
+          "desarme": 29,
+          "marcacao": 23,
+          "chute_longe": 80,
+          "bola_parada": 79,
+          "visao": 83,
+          "posicionamento": 82,
+          "decisao": 81,
+          "compostura": 81,
+          "antecipacao": 78,
+          "determinacao": 79,
+          "trabalho_equipe": 82,
+          "ritmo": 67,
+          "aceleracao": 79,
+          "forca": 83,
+          "resistencia": 79,
+          "agilidade": 84,
+          "impulsao": 77,
+          "reflexos": 81,
+          "defesa": 84,
+          "saida_gol": 88,
+          "dominio_area": 79,
+          "reposicao": 83,
+          "primeiro_toque": 70,
+          "penaltis": 65,
+          "concentracao": 82,
+          "movimentacao": 81,
+          "agressividade": 70,
+          "coragem": 75,
+          "lideranca": 77,
+          "consistencia": 93,
+          "jogos_grandes": 92,
+          "equilibrio": 81,
+          "condicionamento": 79,
+          "um_contra_um": 84,
+          "seguranca": 81,
+          "jogo_aereo": 77,
+          "chute_longo": 79,
+          "passe_curto": 76,
+          "passe_longo": 78
+        },
+        "profile": {
+          "dominantFoot": "L",
+          "weakFoot": 2,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 185,
+          "heightSource": "simulation-estimate",
+          "bodyType": "equilibrado",
+          "primaryPosition": "GK"
+        },
+        "traits": [
+          "SWEEPER_KEEPER",
+          "LEADER"
+        ],
+        "behaviorTraits": [
+          "GOLEIRO_LIBERO",
+          "LANCADOR",
+          "DISTRIBUIDOR_CURTO",
+          "DOMINA_AREA"
+        ]
+      },
+      {
+        "team": "Argentina",
+        "year": 2022,
+        "name": "Emiliano Martínez",
+        "r": 90,
+        "attributes": {
+          "finalizacao": 14,
+          "passe": 88,
+          "cruzamento": 91,
+          "drible": 27,
+          "conducao": 91,
+          "cabeceio": 28,
+          "desarme": 31,
+          "marcacao": 27,
+          "chute_longe": 92,
+          "bola_parada": 93,
+          "visao": 93,
+          "posicionamento": 93,
+          "decisao": 94,
+          "compostura": 94,
+          "antecipacao": 91,
+          "determinacao": 94,
+          "trabalho_equipe": 91,
+          "ritmo": 76,
+          "aceleracao": 91,
+          "forca": 94,
+          "resistencia": 88,
+          "agilidade": 92,
+          "impulsao": 89,
+          "reflexos": 94,
+          "defesa": 93,
+          "saida_gol": 93,
+          "dominio_area": 91,
+          "reposicao": 92,
+          "primeiro_toque": 85,
+          "penaltis": 75,
+          "concentracao": 93,
+          "movimentacao": 90,
+          "agressividade": 85,
+          "coragem": 90,
+          "lideranca": 88,
+          "consistencia": 96,
+          "jogos_grandes": 98,
+          "equilibrio": 91,
+          "condicionamento": 87,
+          "um_contra_um": 93,
+          "seguranca": 93,
+          "jogo_aereo": 92,
+          "chute_longo": 90,
+          "passe_curto": 88,
+          "passe_longo": 87
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 3,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 187,
+          "heightSource": "simulation-estimate",
+          "bodyType": "equilibrado",
+          "primaryPosition": "GK"
+        },
+        "traits": [
+          "CLUTCH_PLAYER",
+          "SWEEPER_KEEPER",
+          "LEADER"
+        ],
+        "behaviorTraits": [
+          "DOMINA_AREA",
+          "DISTRIBUIDOR_CURTO",
+          "GOLEIRO_LIBERO",
+          "LANCADOR"
+        ]
+      },
+      {
+        "team": "Argentina",
+        "year": 2026,
+        "name": "Emiliano Martínez",
+        "r": 88,
+        "attributes": {
+          "finalizacao": 19,
+          "passe": 86,
+          "cruzamento": 87,
+          "drible": 25,
+          "conducao": 88,
+          "cabeceio": 27,
+          "desarme": 28,
+          "marcacao": 22,
+          "chute_longe": 90,
+          "bola_parada": 90,
+          "visao": 87,
+          "posicionamento": 88,
+          "decisao": 91,
+          "compostura": 89,
+          "antecipacao": 85,
+          "determinacao": 92,
+          "trabalho_equipe": 88,
+          "ritmo": 75,
+          "aceleracao": 89,
+          "forca": 89,
+          "resistencia": 89,
+          "agilidade": 91,
+          "impulsao": 87,
+          "reflexos": 92,
+          "defesa": 93,
+          "saida_gol": 96,
+          "dominio_area": 93,
+          "reposicao": 93,
+          "primeiro_toque": 80,
+          "penaltis": 76,
+          "concentracao": 90,
+          "movimentacao": 84,
+          "agressividade": 82,
+          "coragem": 88,
+          "lideranca": 93,
+          "consistencia": 95,
+          "jogos_grandes": 98,
+          "equilibrio": 87,
+          "condicionamento": 85,
+          "um_contra_um": 92,
+          "seguranca": 93,
+          "jogo_aereo": 88,
+          "chute_longo": 88,
+          "passe_curto": 85,
+          "passe_longo": 88
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 2,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 194,
+          "heightSource": "simulation-estimate",
+          "bodyType": "equilibrado",
+          "primaryPosition": "GK"
+        },
+        "traits": [
+          "SWEEPER_KEEPER",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "GOLEIRO_LIBERO",
+          "DOMINA_AREA",
+          "LANCADOR",
+          "DISTRIBUIDOR_CURTO"
+        ]
+      }
+    ],
+    "stars": [
+      {
+        "team": "Argentina",
+        "year": 1978,
+        "name": "Kempes",
+        "r": 95,
+        "pos": "ST",
+        "positions": {
+          "primary": "ST",
+          "secondary": [
+            "CF"
+          ],
+          "emergency": [
+            "LW",
+            "RW"
+          ],
+          "fit": {
+            "ST": 93,
+            "CF": 89.3,
+            "LW": 88.7,
+            "RW": 88.7,
+            "CAM": 85.3,
+            "LM": 83.8,
+            "RM": 83.8,
+            "LWB": 80.7
+          }
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 4,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 189,
+          "heightSource": "simulation-estimate",
+          "bodyType": "forte",
+          "primaryPosition": "ST"
+        },
+        "traits": [
+          "FINISHER",
+          "SPEEDSTER",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "FINALIZADOR_FRIO",
+          "AMEACA_AEREA",
+          "CHUTA_DE_LONGE",
+          "ATACA_PROFUNDIDADE"
+        ],
+        "naturalRoles": [
+          {
+            "id": "fc_alvo",
+            "score": 92
+          },
+          {
+            "id": "fc_artilheiro",
+            "score": 91
+          },
+          {
+            "id": "fc_completo",
+            "score": 82
+          }
+        ]
+      },
+      {
+        "team": "Argentina",
+        "year": 1986,
+        "name": "Maradona",
+        "r": 99,
+        "pos": "CAM",
+        "positions": {
+          "primary": "CAM",
+          "secondary": [
+            "CM",
+            "CF"
+          ],
+          "emergency": [
+            "LW",
+            "RW"
+          ],
+          "fit": {
+            "CAM": 100.9,
+            "LW": 97.5,
+            "RW": 97.5,
+            "CF": 97.1,
+            "LM": 96.6,
+            "RM": 96.6,
+            "ST": 96.6,
+            "CM": 94.5
+          }
+        },
+        "profile": {
+          "dominantFoot": "L",
+          "weakFoot": 4,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 182,
+          "heightSource": "simulation-estimate",
+          "bodyType": "forte",
+          "primaryPosition": "CAM"
+        },
+        "traits": [
+          "PLAYMAKER",
+          "CLUTCH_PLAYER",
+          "DRIBBLER",
+          "LEADER"
+        ],
+        "behaviorTraits": [
+          "FINALIZADOR_FRIO",
+          "PASSE_VERTICAL",
+          "CONDUZ_E_DRIBLA",
+          "CHUTA_DE_LONGE"
+        ],
+        "naturalRoles": [
+          {
+            "id": "am_armador",
+            "score": 99
+          },
+          {
+            "id": "am_espaco",
+            "score": 99
+          },
+          {
+            "id": "am_sombra",
+            "score": 95
+          }
+        ]
+      },
+      {
+        "team": "Argentina",
+        "year": 1990,
+        "name": "Diego Maradona",
+        "r": 93,
+        "pos": "CAM",
+        "positions": {
+          "primary": "CAM",
+          "secondary": [
+            "CF"
+          ],
+          "emergency": [
+            "LW",
+            "RW"
+          ],
+          "fit": {
+            "CAM": 92.2,
+            "LW": 88,
+            "RW": 88,
+            "CF": 87.2,
+            "LM": 86.8,
+            "RM": 86.8,
+            "ST": 85.7,
+            "CM": 84.4
+          }
+        },
+        "profile": {
+          "dominantFoot": "L",
+          "weakFoot": 4,
+          "footSource": "curated",
+          "heightCmSim": 177,
+          "heightSource": "simulation-estimate",
+          "bodyType": "equilibrado",
+          "primaryPosition": "CAM"
+        },
+        "traits": [
+          "CLUTCH_PLAYER",
+          "DRIBBLER",
+          "LEADER"
+        ],
+        "behaviorTraits": [
+          "CONDUZ_E_DRIBLA",
+          "PASSE_VERTICAL",
+          "CRUZA_CEDO",
+          "CHUTA_DE_LONGE"
+        ],
+        "naturalRoles": [
+          {
+            "id": "am_espaco",
+            "score": 95
+          },
+          {
+            "id": "am_armador",
+            "score": 93
+          },
+          {
+            "id": "am_sombra",
+            "score": 85
+          }
+        ]
+      },
+      {
+        "team": "Argentina",
+        "year": 1998,
+        "name": "Gabriel Batistuta",
+        "r": 92,
+        "pos": "ST",
+        "positions": {
+          "primary": "ST",
+          "secondary": [
+            "CF"
+          ],
+          "emergency": [
+            "LW",
+            "RW"
+          ],
+          "fit": {
+            "ST": 89.6,
+            "CF": 85.8,
+            "LW": 84.5,
+            "RW": 84.5,
+            "CAM": 81.5,
+            "LM": 79.5,
+            "RM": 79.5,
+            "CM": 76.4
+          }
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 3,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 190,
+          "heightSource": "simulation-estimate",
+          "bodyType": "alto_e_forte",
+          "primaryPosition": "ST"
+        },
+        "traits": [
+          "FINISHER",
+          "CLUTCH_PLAYER",
+          "AERIAL_THREAT"
+        ],
+        "behaviorTraits": [
+          "FINALIZADOR_FRIO",
+          "AMEACA_AEREA",
+          "CHUTA_DE_LONGE",
+          "CONDUZ_E_DRIBLA"
+        ],
+        "naturalRoles": [
+          {
+            "id": "fc_alvo",
+            "score": 94
+          },
+          {
+            "id": "fc_artilheiro",
+            "score": 87
+          },
+          {
+            "id": "fc_completo",
+            "score": 80
+          }
+        ]
+      },
+      {
+        "team": "Argentina",
+        "year": 2014,
+        "name": "Lionel Messi",
+        "r": 94,
+        "pos": "RW",
+        "positions": {
+          "primary": "RW",
+          "secondary": [
+            "RM",
+            "LW",
+            "CAM"
+          ],
+          "emergency": [
+            "CF",
+            "ST"
+          ],
+          "fit": {
+            "RW": 92.1,
+            "LW": 89.6,
+            "CF": 87.7,
+            "ST": 87.1,
+            "CAM": 86.2,
+            "LM": 84.8,
+            "RM": 84.8,
+            "LWB": 80.9
+          }
+        },
+        "profile": {
+          "dominantFoot": "L",
+          "weakFoot": 4,
+          "footSource": "curated",
+          "heightCmSim": 175,
+          "heightSource": "simulation-estimate",
+          "bodyType": "veloz",
+          "primaryPosition": "RW"
+        },
+        "traits": [
+          "FINISHER",
+          "PLAYMAKER",
+          "DRIBBLER",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "CONDUZ_E_DRIBLA",
+          "CHUTA_DE_LONGE",
+          "FINALIZADOR_FRIO",
+          "ATACA_PROFUNDIDADE"
+        ],
+        "naturalRoles": [
+          {
+            "id": "wg_atacante",
+            "score": 88
+          },
+          {
+            "id": "wg_aberta",
+            "score": 77
+          },
+          {
+            "id": "wg_invertida",
+            "score": 77
+          }
+        ]
+      },
+      {
+        "team": "Argentina",
+        "year": 2022,
+        "name": "Lionel Messi",
+        "r": 97,
+        "pos": "RW",
+        "positions": {
+          "primary": "RW",
+          "secondary": [
+            "RM",
+            "LW",
+            "CAM"
+          ],
+          "emergency": [
+            "CF",
+            "ST"
+          ],
+          "fit": {
+            "RW": 95.5,
+            "LW": 93,
+            "CF": 91.5,
+            "ST": 91,
+            "CAM": 89.8,
+            "LM": 88,
+            "RM": 88,
+            "LWB": 83.8
+          }
+        },
+        "profile": {
+          "dominantFoot": "L",
+          "weakFoot": 5,
+          "footSource": "curated",
+          "heightCmSim": 171,
+          "heightSource": "simulation-estimate",
+          "bodyType": "baixo_e_explosivo",
+          "primaryPosition": "RW"
+        },
+        "traits": [
+          "PLAYMAKER",
+          "CLUTCH_PLAYER",
+          "DRIBBLER",
+          "LEADER"
+        ],
+        "behaviorTraits": [
+          "CONDUZ_E_DRIBLA",
+          "CHUTA_DE_LONGE",
+          "CRUZA_CEDO",
+          "PASSE_VERTICAL"
+        ],
+        "naturalRoles": [
+          {
+            "id": "wg_atacante",
+            "score": 90
+          },
+          {
+            "id": "wg_aberta",
+            "score": 84
+          },
+          {
+            "id": "wg_invertida",
+            "score": 84
+          }
+        ]
+      },
+      {
+        "team": "Argentina",
+        "year": 2026,
+        "name": "Lionel Messi",
+        "r": 96,
+        "pos": "RW",
+        "positions": {
+          "primary": "RW",
+          "secondary": [
+            "RM",
+            "LW",
+            "CAM"
+          ],
+          "emergency": [
+            "CF",
+            "ST"
+          ],
+          "fit": {
+            "RW": 95.6,
+            "LW": 93.1,
+            "CF": 92.1,
+            "CAM": 91.5,
+            "ST": 90.9,
+            "LM": 88.3,
+            "RM": 88.3,
+            "CM": 84.5
+          }
+        },
+        "profile": {
+          "dominantFoot": "L",
+          "weakFoot": 5,
+          "footSource": "curated",
+          "heightCmSim": 174,
+          "heightSource": "simulation-estimate",
+          "bodyType": "baixo_e_explosivo",
+          "primaryPosition": "RW"
+        },
+        "traits": [
+          "FINISHER",
+          "PLAYMAKER",
+          "CLUTCH_PLAYER",
+          "LEADER"
+        ],
+        "behaviorTraits": [
+          "CHUTA_DE_LONGE",
+          "FINALIZADOR_FRIO",
+          "PASSE_VERTICAL",
+          "CONDUZ_E_DRIBLA"
+        ],
+        "naturalRoles": [
+          {
+            "id": "wg_atacante",
+            "score": 92
+          },
+          {
+            "id": "wg_aberta",
+            "score": 87
+          },
+          {
+            "id": "wg_invertida",
+            "score": 87
+          }
+        ]
+      },
+      {
+        "team": "Bélgica",
+        "year": 2018,
+        "name": "Eden Hazard",
+        "r": 92,
+        "pos": "LW",
+        "positions": {
+          "primary": "LW",
+          "secondary": [
+            "LM",
+            "RW",
+            "CAM"
+          ],
+          "emergency": [
+            "CF",
+            "ST"
+          ],
+          "fit": {
+            "LW": 88.6,
+            "RW": 86.1,
+            "CF": 84.2,
+            "ST": 83.8,
+            "CAM": 82.4,
+            "LM": 81.3,
+            "RM": 81.3,
+            "LWB": 77.6
+          }
+        },
+        "profile": {
+          "dominantFoot": "L",
+          "weakFoot": 4,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 177,
+          "heightSource": "simulation-estimate",
+          "bodyType": "veloz",
+          "primaryPosition": "LW"
+        },
+        "traits": [
+          "FINISHER",
+          "PLAYMAKER",
+          "DRIBBLER"
+        ],
+        "behaviorTraits": [
+          "CONDUZ_E_DRIBLA",
+          "CHUTA_DE_LONGE",
+          "ATACA_PROFUNDIDADE",
+          "FINALIZADOR_FRIO"
+        ],
+        "naturalRoles": [
+          {
+            "id": "wg_atacante",
+            "score": 84
+          },
+          {
+            "id": "wg_aberta",
+            "score": 73
+          },
+          {
+            "id": "wg_invertida",
+            "score": 73
+          }
+        ]
+      },
+      {
+        "team": "Brasil",
+        "year": 1958,
+        "name": "Didi",
+        "r": 93,
+        "pos": "CM",
+        "positions": {
+          "primary": "CM",
+          "secondary": [
+            "CDM",
+            "CAM"
+          ],
+          "emergency": [
+            "LM",
+            "RM"
+          ],
+          "fit": {
+            "CM": 86.6,
+            "CAM": 84.2,
+            "LM": 83.4,
+            "RM": 83.4,
+            "CDM": 83.3,
+            "LWB": 81.5,
+            "RWB": 81.5,
+            "LB": 81.1
+          }
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 4,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 179,
+          "heightSource": "simulation-estimate",
+          "bodyType": "equilibrado",
+          "primaryPosition": "CM"
+        },
+        "traits": [
+          "PLAYMAKER",
+          "SET_PIECE_SPECIALIST",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "PASSE_VERTICAL",
+          "CRUZA_CEDO",
+          "JOGA_ENTRELINHAS",
+          "PRESSIONADOR"
+        ],
+        "naturalRoles": [
+          {
+            "id": "cm_armador",
+            "score": 94
+          },
+          {
+            "id": "cm_b2b",
+            "score": 87
+          },
+          {
+            "id": "cm_contencao",
+            "score": 77
+          }
+        ]
+      },
+      {
+        "team": "Brasil",
+        "year": 1958,
+        "name": "Pelé",
+        "r": 95,
+        "pos": "CF",
+        "positions": {
+          "primary": "CF",
+          "secondary": [
+            "ST",
+            "CAM"
+          ],
+          "emergency": [
+            "LW",
+            "RW"
+          ],
+          "fit": {
+            "CF": 95.1,
+            "LW": 92.8,
+            "RW": 92.8,
+            "ST": 92.3,
+            "CAM": 90.7,
+            "LM": 88,
+            "RM": 88,
+            "CM": 84.6
+          }
+        },
+        "profile": {
+          "dominantFoot": "B",
+          "weakFoot": 5,
+          "footSource": "curated",
+          "heightCmSim": 183,
+          "heightSource": "simulation-estimate",
+          "bodyType": "veloz",
+          "primaryPosition": "CF"
+        },
+        "traits": [
+          "FINISHER",
+          "DRIBBLER",
+          "LEADER",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "FINALIZADOR_FRIO",
+          "CHUTA_DE_LONGE",
+          "CONDUZ_E_DRIBLA",
+          "JOGA_ENTRELINHAS"
+        ],
+        "naturalRoles": [
+          {
+            "id": "fc_falso",
+            "score": 94
+          },
+          {
+            "id": "fc_artilheiro",
+            "score": 93
+          },
+          {
+            "id": "fc_completo",
+            "score": 87
+          }
+        ]
+      },
+      {
+        "team": "Brasil",
+        "year": 1958,
+        "name": "Garrincha",
+        "r": 93,
+        "pos": "RW",
+        "positions": {
+          "primary": "RW",
+          "secondary": [
+            "LW",
+            "CAM"
+          ],
+          "emergency": [
+            "CF",
+            "ST"
+          ],
+          "fit": {
+            "RW": 89.8,
+            "LW": 87.3,
+            "CF": 85,
+            "ST": 84.5,
+            "CAM": 83,
+            "LM": 82.2,
+            "RM": 82.2,
+            "LWB": 78.8
+          }
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 4,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 177,
+          "heightSource": "simulation-estimate",
+          "bodyType": "veloz",
+          "primaryPosition": "RW"
+        },
+        "traits": [
+          "SPEEDSTER",
+          "DRIBBLER",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "CONDUZ_E_DRIBLA",
+          "ATACA_PROFUNDIDADE",
+          "CHUTA_DE_LONGE"
+        ],
+        "naturalRoles": [
+          {
+            "id": "wg_atacante",
+            "score": 84
+          },
+          {
+            "id": "wg_aberta",
+            "score": 72
+          },
+          {
+            "id": "wg_invertida",
+            "score": 72
+          }
+        ]
+      },
+      {
+        "team": "Brasil",
+        "year": 1962,
+        "name": "Garrincha",
+        "r": 97,
+        "pos": "RW",
+        "positions": {
+          "primary": "RW",
+          "secondary": [
+            "LW",
+            "CAM"
+          ],
+          "emergency": [
+            "CF",
+            "ST"
+          ],
+          "fit": {
+            "RW": 95.5,
+            "LW": 93,
+            "CF": 91.7,
+            "ST": 91.3,
+            "CAM": 89.7,
+            "LM": 88,
+            "RM": 88,
+            "LWB": 83.8
+          }
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 4,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 178,
+          "heightSource": "simulation-estimate",
+          "bodyType": "veloz",
+          "primaryPosition": "RW"
+        },
+        "traits": [
+          "SPEEDSTER",
+          "DRIBBLER",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "CONDUZ_E_DRIBLA",
+          "CHUTA_DE_LONGE",
+          "FINALIZADOR_FRIO",
+          "ATACA_PROFUNDIDADE"
+        ],
+        "naturalRoles": [
+          {
+            "id": "wg_atacante",
+            "score": 90
+          },
+          {
+            "id": "wg_aberta",
+            "score": 81
+          },
+          {
+            "id": "wg_invertida",
+            "score": 81
+          }
+        ]
+      },
+      {
+        "team": "Brasil",
+        "year": 1966,
+        "name": "Pelé",
+        "r": 92,
+        "pos": "CF",
+        "positions": {
+          "primary": "CF",
+          "secondary": [
+            "ST",
+            "CAM"
+          ],
+          "emergency": [
+            "LW",
+            "RW"
+          ],
+          "fit": {
+            "CF": 91.6,
+            "ST": 88.9,
+            "LW": 88.8,
+            "RW": 88.8,
+            "CAM": 87.1,
+            "LM": 84,
+            "RM": 84,
+            "CM": 80.7
+          }
+        },
+        "profile": {
+          "dominantFoot": "B",
+          "weakFoot": 5,
+          "footSource": "curated",
+          "heightCmSim": 178,
+          "heightSource": "simulation-estimate",
+          "bodyType": "veloz",
+          "primaryPosition": "CF"
+        },
+        "traits": [
+          "FINISHER",
+          "PLAYMAKER",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "FINALIZADOR_FRIO",
+          "CHUTA_DE_LONGE",
+          "PASSE_VERTICAL",
+          "CONDUZ_E_DRIBLA"
+        ],
+        "naturalRoles": [
+          {
+            "id": "fc_falso",
+            "score": 90
+          },
+          {
+            "id": "fc_artilheiro",
+            "score": 87
+          },
+          {
+            "id": "fc_completo",
+            "score": 82
+          }
+        ]
+      },
+      {
+        "team": "Brasil",
+        "year": 1970,
+        "name": "Pelé",
+        "r": 98,
+        "pos": "CF",
+        "positions": {
+          "primary": "CF",
+          "secondary": [
+            "ST",
+            "CAM"
+          ],
+          "emergency": [
+            "LW",
+            "RW"
+          ],
+          "fit": {
+            "CF": 99.3,
+            "LW": 97.1,
+            "RW": 97.1,
+            "ST": 96.5,
+            "CAM": 95.2,
+            "LM": 92.7,
+            "RM": 92.7,
+            "CM": 89.6
+          }
+        },
+        "profile": {
+          "dominantFoot": "B",
+          "weakFoot": 5,
+          "footSource": "curated",
+          "heightCmSim": 189,
+          "heightSource": "simulation-estimate",
+          "bodyType": "forte",
+          "primaryPosition": "CF"
+        },
+        "traits": [
+          "FINISHER",
+          "CLUTCH_PLAYER",
+          "DRIBBLER",
+          "LEADER"
+        ],
+        "behaviorTraits": [
+          "FINALIZADOR_FRIO",
+          "CHUTA_DE_LONGE",
+          "CONDUZ_E_DRIBLA",
+          "CRUZA_CEDO"
+        ],
+        "naturalRoles": [
+          {
+            "id": "fc_falso",
+            "score": 97
+          },
+          {
+            "id": "fc_artilheiro",
+            "score": 96
+          },
+          {
+            "id": "fc_completo",
+            "score": 93
+          }
+        ]
+      },
+      {
+        "team": "Brasil",
+        "year": 1970,
+        "name": "Jairzinho",
+        "r": 94,
+        "pos": "RW",
+        "positions": {
+          "primary": "RW",
+          "secondary": [
+            "RM",
+            "LW",
+            "CAM"
+          ],
+          "emergency": [
+            "CF",
+            "ST"
+          ],
+          "fit": {
+            "RW": 91.3,
+            "LW": 88.8,
+            "CF": 86.7,
+            "ST": 86.2,
+            "CAM": 84.8,
+            "LM": 83.8,
+            "RM": 83.8,
+            "LWB": 80.2
+          }
+        },
+        "profile": {
+          "dominantFoot": "L",
+          "weakFoot": 4,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 177,
+          "heightSource": "simulation-estimate",
+          "bodyType": "veloz",
+          "primaryPosition": "RW"
+        },
+        "traits": [
+          "FINISHER",
+          "SPEEDSTER",
+          "DRIBBLER",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "CONDUZ_E_DRIBLA",
+          "ATACA_PROFUNDIDADE",
+          "CHUTA_DE_LONGE",
+          "FINALIZADOR_FRIO"
+        ],
+        "naturalRoles": [
+          {
+            "id": "wg_atacante",
+            "score": 88
+          },
+          {
+            "id": "wg_aberta",
+            "score": 75
+          },
+          {
+            "id": "wg_invertida",
+            "score": 75
+          }
+        ]
+      },
+      {
+        "team": "Brasil",
+        "year": 1970,
+        "name": "Rivelino",
+        "r": 93,
+        "pos": "LW",
+        "positions": {
+          "primary": "LW",
+          "secondary": [
+            "LM",
+            "RW",
+            "CAM"
+          ],
+          "emergency": [
+            "CF",
+            "ST"
+          ],
+          "fit": {
+            "LW": 90,
+            "RW": 87.5,
+            "CF": 85.4,
+            "ST": 84.7,
+            "CAM": 83.8,
+            "LM": 82.7,
+            "RM": 82.7,
+            "LWB": 78.9
+          }
+        },
+        "profile": {
+          "dominantFoot": "L",
+          "weakFoot": 4,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 176,
+          "heightSource": "simulation-estimate",
+          "bodyType": "veloz",
+          "primaryPosition": "LW"
+        },
+        "traits": [
+          "PLAYMAKER",
+          "SET_PIECE_SPECIALIST",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "CONDUZ_E_DRIBLA",
+          "CHUTA_DE_LONGE",
+          "ATACA_PROFUNDIDADE",
+          "CRUZA_CEDO"
+        ],
+        "naturalRoles": [
+          {
+            "id": "wg_atacante",
+            "score": 84
+          },
+          {
+            "id": "wg_aberta",
+            "score": 73
+          },
+          {
+            "id": "wg_invertida",
+            "score": 73
+          }
+        ]
+      },
+      {
+        "team": "Brasil",
+        "year": 1982,
+        "name": "Zico",
+        "r": 93,
+        "pos": "CAM",
+        "positions": {
+          "primary": "CAM",
+          "secondary": [
+            "CM",
+            "CF"
+          ],
+          "emergency": [
+            "LW",
+            "RW"
+          ],
+          "fit": {
+            "CAM": 93.5,
+            "LW": 89.5,
+            "RW": 89.5,
+            "LM": 89.1,
+            "RM": 89.1,
+            "CF": 88.6,
+            "ST": 87.5,
+            "CM": 87.2
+          }
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 4,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 172,
+          "heightSource": "simulation-estimate",
+          "bodyType": "baixo_e_explosivo",
+          "primaryPosition": "CAM"
+        },
+        "traits": [
+          "FINISHER",
+          "PLAYMAKER",
+          "SET_PIECE_SPECIALIST",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "CRUZA_CEDO",
+          "PASSE_VERTICAL",
+          "CHUTA_DE_LONGE",
+          "JOGA_ENTRELINHAS"
+        ],
+        "naturalRoles": [
+          {
+            "id": "am_armador",
+            "score": 96
+          },
+          {
+            "id": "am_espaco",
+            "score": 95
+          },
+          {
+            "id": "am_sombra",
+            "score": 89
+          }
+        ]
+      },
+      {
+        "team": "Brasil",
+        "year": 1982,
+        "name": "Falção",
+        "r": 92,
+        "pos": "CM",
+        "positions": {
+          "primary": "CM",
+          "secondary": [
+            "CDM",
+            "CAM"
+          ],
+          "emergency": [
+            "LM",
+            "RM"
+          ],
+          "fit": {
+            "CM": 89.1,
+            "CDM": 86.4,
+            "CAM": 86.4,
+            "LM": 86.1,
+            "RM": 86.1,
+            "LWB": 84.6,
+            "RWB": 84.6,
+            "LB": 84.4
+          }
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 4,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 182,
+          "heightSource": "simulation-estimate",
+          "bodyType": "forte",
+          "primaryPosition": "CM"
+        },
+        "traits": [
+          "PLAYMAKER",
+          "BALL_WINNER",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "PASSE_VERTICAL",
+          "CRUZA_CEDO",
+          "JOGA_ENTRELINHAS",
+          "PRESSIONADOR"
+        ],
+        "naturalRoles": [
+          {
+            "id": "cm_armador",
+            "score": 92
+          },
+          {
+            "id": "cm_b2b",
+            "score": 90
+          },
+          {
+            "id": "cm_contencao",
+            "score": 86
+          }
+        ]
+      },
+      {
+        "team": "Brasil",
+        "year": 1994,
+        "name": "Romário",
+        "r": 95,
+        "pos": "ST",
+        "positions": {
+          "primary": "ST",
+          "secondary": [
+            "CF"
+          ],
+          "emergency": [
+            "LW",
+            "RW"
+          ],
+          "fit": {
+            "ST": 93.8,
+            "CF": 90.4,
+            "LW": 89.6,
+            "RW": 89.6,
+            "CAM": 86.5,
+            "LM": 84.7,
+            "RM": 84.7,
+            "CM": 81.2
+          }
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 4,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 196,
+          "heightSource": "simulation-estimate",
+          "bodyType": "alto_e_forte",
+          "primaryPosition": "ST"
+        },
+        "traits": [
+          "FINISHER",
+          "DRIBBLER",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "FINALIZADOR_FRIO",
+          "CHUTA_DE_LONGE",
+          "CONDUZ_E_DRIBLA",
+          "AMEACA_AEREA"
+        ],
+        "naturalRoles": [
+          {
+            "id": "fc_alvo",
+            "score": 94
+          },
+          {
+            "id": "fc_artilheiro",
+            "score": 91
+          },
+          {
+            "id": "fc_falso",
+            "score": 87
+          }
+        ]
+      },
+      {
+        "team": "Brasil",
+        "year": 1998,
+        "name": "Ronaldo",
+        "r": 93,
+        "pos": "ST",
+        "positions": {
+          "primary": "ST",
+          "secondary": [
+            "CF"
+          ],
+          "emergency": [
+            "LW",
+            "RW"
+          ],
+          "fit": {
+            "ST": 90.5,
+            "CF": 86.6,
+            "LW": 85.6,
+            "RW": 85.6,
+            "CAM": 82.1,
+            "LM": 80.5,
+            "RM": 80.5,
+            "LWB": 77.3
+          }
+        },
+        "profile": {
+          "dominantFoot": "B",
+          "weakFoot": 5,
+          "footSource": "curated",
+          "heightCmSim": 187,
+          "heightSource": "simulation-estimate",
+          "bodyType": "forte",
+          "primaryPosition": "ST"
+        },
+        "traits": [
+          "FINISHER",
+          "SPEEDSTER",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "FINALIZADOR_FRIO",
+          "CHUTA_DE_LONGE",
+          "AMEACA_AEREA",
+          "ATACA_PROFUNDIDADE"
+        ],
+        "naturalRoles": [
+          {
+            "id": "fc_artilheiro",
+            "score": 90
+          },
+          {
+            "id": "fc_alvo",
+            "score": 90
+          },
+          {
+            "id": "fc_completo",
+            "score": 79
+          }
+        ]
+      },
+      {
+        "team": "Brasil",
+        "year": 2002,
+        "name": "Rivaldo",
+        "r": 93,
+        "pos": "CAM",
+        "positions": {
+          "primary": "CAM",
+          "secondary": [
+            "CF"
+          ],
+          "emergency": [
+            "LW",
+            "RW"
+          ],
+          "fit": {
+            "CAM": 92,
+            "LW": 87.8,
+            "RW": 87.8,
+            "CF": 87,
+            "LM": 86.5,
+            "RM": 86.5,
+            "ST": 85.6,
+            "CM": 83.9
+          }
+        },
+        "profile": {
+          "dominantFoot": "L",
+          "weakFoot": 4,
+          "footSource": "curated",
+          "heightCmSim": 171,
+          "heightSource": "simulation-estimate",
+          "bodyType": "baixo_e_explosivo",
+          "primaryPosition": "CAM"
+        },
+        "traits": [
+          "FINISHER",
+          "PLAYMAKER",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "PASSE_VERTICAL",
+          "CRUZA_CEDO",
+          "FINALIZADOR_FRIO",
+          "CHUTA_DE_LONGE"
+        ],
+        "naturalRoles": [
+          {
+            "id": "am_armador",
+            "score": 96
+          },
+          {
+            "id": "am_espaco",
+            "score": 96
+          },
+          {
+            "id": "am_sombra",
+            "score": 85
+          }
+        ]
+      },
+      {
+        "team": "Brasil",
+        "year": 2002,
+        "name": "Ronaldo",
+        "r": 97,
+        "pos": "ST",
+        "positions": {
+          "primary": "ST",
+          "secondary": [
+            "CF"
+          ],
+          "emergency": [
+            "LW",
+            "RW"
+          ],
+          "fit": {
+            "ST": 95.5,
+            "CF": 92,
+            "LW": 91.6,
+            "RW": 91.6,
+            "CAM": 88.4,
+            "LM": 86.9,
+            "RM": 86.9,
+            "LWB": 83.8
+          }
+        },
+        "profile": {
+          "dominantFoot": "B",
+          "weakFoot": 5,
+          "footSource": "curated",
+          "heightCmSim": 192,
+          "heightSource": "simulation-estimate",
+          "bodyType": "alto_e_forte",
+          "primaryPosition": "ST"
+        },
+        "traits": [
+          "FINISHER",
+          "CLUTCH_PLAYER",
+          "SPEEDSTER"
+        ],
+        "behaviorTraits": [
+          "FINALIZADOR_FRIO",
+          "CHUTA_DE_LONGE",
+          "AMEACA_AEREA",
+          "ATACA_PROFUNDIDADE"
+        ],
+        "naturalRoles": [
+          {
+            "id": "fc_alvo",
+            "score": 94
+          },
+          {
+            "id": "fc_artilheiro",
+            "score": 93
+          },
+          {
+            "id": "fc_falso",
+            "score": 88
+          }
+        ]
+      },
+      {
+        "team": "Brasil",
+        "year": 2006,
+        "name": "Ronaldinho Gaúcho",
+        "r": 92,
+        "pos": "CAM",
+        "positions": {
+          "primary": "CAM",
+          "secondary": [
+            "CF"
+          ],
+          "emergency": [
+            "LW",
+            "RW"
+          ],
+          "fit": {
+            "CAM": 90.1,
+            "LW": 85.8,
+            "RW": 85.8,
+            "LM": 84.8,
+            "RM": 84.8,
+            "CF": 84.5,
+            "ST": 82.7,
+            "CM": 82.2
+          }
+        },
+        "profile": {
+          "dominantFoot": "B",
+          "weakFoot": 5,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 173,
+          "heightSource": "simulation-estimate",
+          "bodyType": "equilibrado",
+          "primaryPosition": "CAM"
+        },
+        "traits": [
+          "PLAYMAKER",
+          "DRIBBLER",
+          "SET_PIECE_SPECIALIST"
+        ],
+        "behaviorTraits": [
+          "CONDUZ_E_DRIBLA",
+          "PASSE_VERTICAL",
+          "CRUZA_CEDO",
+          "CHUTA_DE_LONGE"
+        ],
+        "naturalRoles": [
+          {
+            "id": "am_espaco",
+            "score": 95
+          },
+          {
+            "id": "am_armador",
+            "score": 93
+          },
+          {
+            "id": "am_sombra",
+            "score": 82
+          }
+        ]
+      },
+      {
+        "team": "Brasil",
+        "year": 2026,
+        "name": "Vinícius Jr",
+        "r": 94,
+        "pos": "LW",
+        "positions": {
+          "primary": "LW",
+          "secondary": [
+            "RW",
+            "CAM"
+          ],
+          "emergency": [
+            "CF",
+            "ST"
+          ],
+          "fit": {
+            "LW": 91.6,
+            "RW": 89.1,
+            "CF": 87.2,
+            "ST": 86.8,
+            "CAM": 85,
+            "LM": 83.9,
+            "RM": 83.9,
+            "LWB": 80.1
+          }
+        },
+        "profile": {
+          "dominantFoot": "B",
+          "weakFoot": 5,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 170,
+          "heightSource": "simulation-estimate",
+          "bodyType": "baixo_e_explosivo",
+          "primaryPosition": "LW"
+        },
+        "traits": [
+          "DRIBBLER",
+          "CLUTCH_PLAYER",
+          "SPEEDSTER"
+        ],
+        "behaviorTraits": [
+          "CONDUZ_E_DRIBLA",
+          "ATACA_PROFUNDIDADE",
+          "CHUTA_DE_LONGE",
+          "FINALIZADOR_FRIO"
+        ],
+        "naturalRoles": [
+          {
+            "id": "wg_atacante",
+            "score": 87
+          },
+          {
+            "id": "wg_aberta",
+            "score": 74
+          },
+          {
+            "id": "wg_invertida",
+            "score": 74
+          }
+        ]
+      },
+      {
+        "team": "Bulgária",
+        "year": 1994,
+        "name": "Hristo Stoichkov",
+        "r": 93,
+        "pos": "ST",
+        "positions": {
+          "primary": "ST",
+          "secondary": [
+            "CF"
+          ],
+          "emergency": [
+            "LW",
+            "RW"
+          ],
+          "fit": {
+            "ST": 91.1,
+            "CF": 87.4,
+            "LW": 86.4,
+            "RW": 86.4,
+            "CAM": 83.1,
+            "LM": 81.3,
+            "RM": 81.3,
+            "LWB": 77.9
+          }
+        },
+        "profile": {
+          "dominantFoot": "L",
+          "weakFoot": 4,
+          "footSource": "curated",
+          "heightCmSim": 189,
+          "heightSource": "simulation-estimate",
+          "bodyType": "forte",
+          "primaryPosition": "ST"
+        },
+        "traits": [
+          "FINISHER",
+          "DRIBBLER",
+          "SET_PIECE_SPECIALIST",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "FINALIZADOR_FRIO",
+          "CHUTA_DE_LONGE",
+          "CONDUZ_E_DRIBLA",
+          "AMEACA_AEREA"
+        ],
+        "naturalRoles": [
+          {
+            "id": "fc_artilheiro",
+            "score": 89
+          },
+          {
+            "id": "fc_alvo",
+            "score": 89
+          },
+          {
+            "id": "fc_falso",
+            "score": 82
+          }
+        ]
+      },
+      {
+        "team": "Colômbia",
+        "year": 2014,
+        "name": "James Rodríguez",
+        "r": 92,
+        "pos": "CAM",
+        "positions": {
+          "primary": "CAM",
+          "secondary": [
+            "CF"
+          ],
+          "emergency": [
+            "LW",
+            "RW"
+          ],
+          "fit": {
+            "CAM": 90.9,
+            "LW": 86.7,
+            "RW": 86.7,
+            "CF": 85.8,
+            "LM": 85.6,
+            "RM": 85.6,
+            "ST": 84.4,
+            "CM": 83
+          }
+        },
+        "profile": {
+          "dominantFoot": "L",
+          "weakFoot": 4,
+          "footSource": "curated",
+          "heightCmSim": 169,
+          "heightSource": "simulation-estimate",
+          "bodyType": "baixo_e_explosivo",
+          "primaryPosition": "CAM"
+        },
+        "traits": [
+          "FINISHER",
+          "PLAYMAKER",
+          "SET_PIECE_SPECIALIST"
+        ],
+        "behaviorTraits": [
+          "PASSE_VERTICAL",
+          "CRUZA_CEDO",
+          "CHUTA_DE_LONGE",
+          "CONDUZ_E_DRIBLA"
+        ],
+        "naturalRoles": [
+          {
+            "id": "am_armador",
+            "score": 94
+          },
+          {
+            "id": "am_espaco",
+            "score": 93
+          },
+          {
+            "id": "am_sombra",
+            "score": 84
+          }
+        ]
+      },
+      {
+        "team": "Croácia",
+        "year": 1998,
+        "name": "Davor Šuker",
+        "r": 92,
+        "pos": "ST",
+        "positions": {
+          "primary": "ST",
+          "secondary": [
+            "CF"
+          ],
+          "emergency": [
+            "LW",
+            "RW"
+          ],
+          "fit": {
+            "ST": 90.2,
+            "CF": 86.5,
+            "LW": 85.5,
+            "RW": 85.5,
+            "CAM": 82.3,
+            "LM": 80.4,
+            "RM": 80.4,
+            "CM": 77.1
+          }
+        },
+        "profile": {
+          "dominantFoot": "L",
+          "weakFoot": 4,
+          "footSource": "curated",
+          "heightCmSim": 194,
+          "heightSource": "simulation-estimate",
+          "bodyType": "alto_e_forte",
+          "primaryPosition": "ST"
+        },
+        "traits": [
+          "FINISHER",
+          "DRIBBLER",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "FINALIZADOR_FRIO",
+          "AMEACA_AEREA",
+          "CHUTA_DE_LONGE",
+          "CONDUZ_E_DRIBLA"
+        ],
+        "naturalRoles": [
+          {
+            "id": "fc_alvo",
+            "score": 90
+          },
+          {
+            "id": "fc_artilheiro",
+            "score": 87
+          },
+          {
+            "id": "fc_falso",
+            "score": 80
+          }
+        ]
+      },
+      {
+        "team": "Croácia",
+        "year": 2018,
+        "name": "Luka Modric",
+        "r": 94,
+        "pos": "CM",
+        "positions": {
+          "primary": "CM",
+          "secondary": [
+            "CDM",
+            "CAM"
+          ],
+          "emergency": [
+            "LM",
+            "RM"
+          ],
+          "fit": {
+            "CM": 89.3,
+            "CAM": 87.1,
+            "LM": 86.2,
+            "RM": 86.2,
+            "CDM": 85.6,
+            "LW": 84,
+            "RW": 84,
+            "LWB": 83.8
+          }
+        },
+        "profile": {
+          "dominantFoot": "B",
+          "weakFoot": 5,
+          "footSource": "curated",
+          "heightCmSim": 178,
+          "heightSource": "simulation-estimate",
+          "bodyType": "equilibrado",
+          "primaryPosition": "CM"
+        },
+        "traits": [
+          "PLAYMAKER",
+          "DRIBBLER",
+          "LEADER",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "PASSE_VERTICAL",
+          "CRUZA_CEDO",
+          "JOGA_ENTRELINHAS",
+          "CONDUZ_E_DRIBLA"
+        ],
+        "naturalRoles": [
+          {
+            "id": "cm_armador",
+            "score": 97
+          },
+          {
+            "id": "cm_b2b",
+            "score": 92
+          },
+          {
+            "id": "cm_contencao",
+            "score": 80
+          }
+        ]
+      },
+      {
+        "team": "Inglaterra",
+        "year": 1966,
+        "name": "Moore",
+        "r": 93,
+        "pos": "CB",
+        "positions": {
+          "primary": "CB",
+          "secondary": [],
+          "emergency": [
+            "LB",
+            "RB"
+          ],
+          "fit": {
+            "CB": 89.1,
+            "CDM": 81.5,
+            "LB": 79.2,
+            "RB": 79.2,
+            "LWB": 76,
+            "RWB": 76,
+            "CM": 75.2,
+            "LM": 71
+          }
+        },
+        "profile": {
+          "dominantFoot": "L",
+          "weakFoot": 3,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 196,
+          "heightSource": "simulation-estimate",
+          "bodyType": "alto_e_forte",
+          "primaryPosition": "CB"
+        },
+        "traits": [
+          "BALL_WINNER",
+          "LEADER",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "MARCADOR_POSICIONAL",
+          "PRESSIONADOR",
+          "PASSE_VERTICAL"
+        ],
+        "naturalRoles": [
+          {
+            "id": "cb_defensor",
+            "score": 97
+          },
+          {
+            "id": "cb_libero",
+            "score": 84
+          },
+          {
+            "id": "cb_saida",
+            "score": 81
+          }
+        ]
+      },
+      {
+        "team": "Inglaterra",
+        "year": 2006,
+        "name": "David Beckham",
+        "r": 92,
+        "pos": "RM",
+        "positions": {
+          "primary": "RM",
+          "secondary": [
+            "RW",
+            "CM"
+          ],
+          "emergency": [
+            "LM"
+          ],
+          "fit": {
+            "CAM": 87.7,
+            "RM": 87.6,
+            "LW": 85.6,
+            "RW": 85.6,
+            "CF": 85.4,
+            "LM": 85.1,
+            "ST": 84.3,
+            "CM": 83.3
+          }
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 4,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 171,
+          "heightSource": "simulation-estimate",
+          "bodyType": "equilibrado",
+          "primaryPosition": "RM"
+        },
+        "traits": [
+          "PLAYMAKER",
+          "SET_PIECE_SPECIALIST",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "PASSE_VERTICAL",
+          "CRUZA_CEDO",
+          "CHUTA_DE_LONGE",
+          "FINALIZADOR_FRIO"
+        ],
+        "naturalRoles": [
+          {
+            "id": "wm_invertido",
+            "score": 91
+          },
+          {
+            "id": "wm_equilibrado",
+            "score": 85
+          },
+          {
+            "id": "wm_ofensivo",
+            "score": 82
+          }
+        ]
+      },
+      {
+        "team": "França",
+        "year": 1958,
+        "name": "Fontaine",
+        "r": 94,
+        "pos": "ST",
+        "positions": {
+          "primary": "ST",
+          "secondary": [
+            "CF"
+          ],
+          "emergency": [
+            "LW",
+            "RW"
+          ],
+          "fit": {
+            "ST": 92.1,
+            "CF": 88.4,
+            "LW": 87.4,
+            "RW": 87.4,
+            "CAM": 84.4,
+            "LM": 82.6,
+            "RM": 82.6,
+            "LWB": 79.4
+          }
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 4,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 191,
+          "heightSource": "simulation-estimate",
+          "bodyType": "alto_e_forte",
+          "primaryPosition": "ST"
+        },
+        "traits": [
+          "FINISHER",
+          "CLUTCH_PLAYER",
+          "AERIAL_THREAT"
+        ],
+        "behaviorTraits": [
+          "FINALIZADOR_FRIO",
+          "AMEACA_AEREA",
+          "CHUTA_DE_LONGE",
+          "ATACA_PROFUNDIDADE"
+        ],
+        "naturalRoles": [
+          {
+            "id": "fc_alvo",
+            "score": 93
+          },
+          {
+            "id": "fc_artilheiro",
+            "score": 87
+          },
+          {
+            "id": "fc_completo",
+            "score": 82
+          }
+        ]
+      },
+      {
+        "team": "França",
+        "year": 1958,
+        "name": "Kopa",
+        "r": 92,
+        "pos": "CF",
+        "positions": {
+          "primary": "CF",
+          "secondary": [
+            "ST",
+            "CAM"
+          ],
+          "emergency": [
+            "LW",
+            "RW"
+          ],
+          "fit": {
+            "CF": 91.5,
+            "LW": 89.3,
+            "RW": 89.3,
+            "ST": 88.5,
+            "CAM": 87.3,
+            "LM": 84.4,
+            "RM": 84.4,
+            "CM": 80.7
+          }
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 4,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 179,
+          "heightSource": "simulation-estimate",
+          "bodyType": "veloz",
+          "primaryPosition": "CF"
+        },
+        "traits": [
+          "PLAYMAKER",
+          "DRIBBLER",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "CONDUZ_E_DRIBLA",
+          "CHUTA_DE_LONGE",
+          "FINALIZADOR_FRIO",
+          "PASSE_VERTICAL"
+        ],
+        "naturalRoles": [
+          {
+            "id": "fc_falso",
+            "score": 92
+          },
+          {
+            "id": "fc_artilheiro",
+            "score": 86
+          },
+          {
+            "id": "fc_completo",
+            "score": 81
+          }
+        ]
+      },
+      {
+        "team": "França",
+        "year": 1998,
+        "name": "Zinedine Zidane",
+        "r": 96,
+        "pos": "CAM",
+        "positions": {
+          "primary": "CAM",
+          "secondary": [
+            "CF"
+          ],
+          "emergency": [
+            "LW",
+            "RW"
+          ],
+          "fit": {
+            "CAM": 94.9,
+            "LW": 90.6,
+            "RW": 90.6,
+            "CF": 89.6,
+            "LM": 89.4,
+            "RM": 89.4,
+            "ST": 88,
+            "CM": 86.9
+          }
+        },
+        "profile": {
+          "dominantFoot": "B",
+          "weakFoot": 5,
+          "footSource": "curated",
+          "heightCmSim": 169,
+          "heightSource": "simulation-estimate",
+          "bodyType": "baixo_e_explosivo",
+          "primaryPosition": "CAM"
+        },
+        "traits": [
+          "PLAYMAKER",
+          "DRIBBLER",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "PASSE_VERTICAL",
+          "CONDUZ_E_DRIBLA",
+          "CRUZA_CEDO",
+          "CHUTA_DE_LONGE"
+        ],
+        "naturalRoles": [
+          {
+            "id": "am_espaco",
+            "score": 98
+          },
+          {
+            "id": "am_armador",
+            "score": 97
+          },
+          {
+            "id": "am_sombra",
+            "score": 88
+          }
+        ]
+      },
+      {
+        "team": "França",
+        "year": 2006,
+        "name": "Zinedine Zidane",
+        "r": 95,
+        "pos": "CAM",
+        "positions": {
+          "primary": "CAM",
+          "secondary": [
+            "CF"
+          ],
+          "emergency": [
+            "LW",
+            "RW"
+          ],
+          "fit": {
+            "CAM": 92.9,
+            "LW": 88.6,
+            "RW": 88.6,
+            "LM": 87.5,
+            "RM": 87.5,
+            "CF": 87.1,
+            "ST": 85.3,
+            "CM": 84.8
+          }
+        },
+        "profile": {
+          "dominantFoot": "B",
+          "weakFoot": 5,
+          "footSource": "curated",
+          "heightCmSim": 170,
+          "heightSource": "simulation-estimate",
+          "bodyType": "baixo_e_explosivo",
+          "primaryPosition": "CAM"
+        },
+        "traits": [
+          "PLAYMAKER",
+          "CLUTCH_PLAYER",
+          "DRIBBLER"
+        ],
+        "behaviorTraits": [
+          "PASSE_VERTICAL",
+          "CONDUZ_E_DRIBLA",
+          "CRUZA_CEDO",
+          "JOGA_ENTRELINHAS"
+        ],
+        "naturalRoles": [
+          {
+            "id": "am_espaco",
+            "score": 97
+          },
+          {
+            "id": "am_armador",
+            "score": 96
+          },
+          {
+            "id": "am_sombra",
+            "score": 86
+          }
+        ]
+      },
+      {
+        "team": "França",
+        "year": 2018,
+        "name": "Antoine Griezmann",
+        "r": 92,
+        "pos": "CF",
+        "positions": {
+          "primary": "CF",
+          "secondary": [
+            "ST",
+            "CAM"
+          ],
+          "emergency": [
+            "LW",
+            "RW"
+          ],
+          "fit": {
+            "CF": 91.9,
+            "ST": 89.3,
+            "LW": 88.9,
+            "RW": 88.9,
+            "CAM": 87.1,
+            "LM": 84.2,
+            "RM": 84.2,
+            "CM": 81.1
+          }
+        },
+        "profile": {
+          "dominantFoot": "L",
+          "weakFoot": 4,
+          "footSource": "curated",
+          "heightCmSim": 186,
+          "heightSource": "simulation-estimate",
+          "bodyType": "veloz",
+          "primaryPosition": "CF"
+        },
+        "traits": [
+          "FINISHER",
+          "CLUTCH_PLAYER",
+          "SET_PIECE_SPECIALIST"
+        ],
+        "behaviorTraits": [
+          "FINALIZADOR_FRIO",
+          "CHUTA_DE_LONGE",
+          "CONDUZ_E_DRIBLA",
+          "CRUZA_CEDO"
+        ],
+        "naturalRoles": [
+          {
+            "id": "fc_falso",
+            "score": 89
+          },
+          {
+            "id": "fc_artilheiro",
+            "score": 88
+          },
+          {
+            "id": "fc_completo",
+            "score": 83
+          }
+        ]
+      },
+      {
+        "team": "França",
+        "year": 2018,
+        "name": "Kylian Mbappé",
+        "r": 92,
+        "pos": "ST",
+        "positions": {
+          "primary": "ST",
+          "secondary": [
+            "CF"
+          ],
+          "emergency": [
+            "LW",
+            "RW"
+          ],
+          "fit": {
+            "ST": 89.7,
+            "CF": 85.8,
+            "LW": 84.9,
+            "RW": 84.9,
+            "CAM": 81.4,
+            "LM": 79.8,
+            "RM": 79.8,
+            "LWB": 76.8
+          }
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 3,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 189,
+          "heightSource": "simulation-estimate",
+          "bodyType": "forte",
+          "primaryPosition": "ST"
+        },
+        "traits": [
+          "FINISHER",
+          "SPEEDSTER",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "FINALIZADOR_FRIO",
+          "CHUTA_DE_LONGE",
+          "ATACA_PROFUNDIDADE",
+          "AMEACA_AEREA"
+        ],
+        "naturalRoles": [
+          {
+            "id": "fc_artilheiro",
+            "score": 89
+          },
+          {
+            "id": "fc_alvo",
+            "score": 88
+          },
+          {
+            "id": "fc_falso",
+            "score": 78
+          }
+        ]
+      },
+      {
+        "team": "França",
+        "year": 2022,
+        "name": "Kylian Mbappé",
+        "r": 95,
+        "pos": "ST",
+        "positions": {
+          "primary": "ST",
+          "secondary": [
+            "CF"
+          ],
+          "emergency": [
+            "LW",
+            "RW"
+          ],
+          "fit": {
+            "ST": 92.9,
+            "CF": 89.1,
+            "LW": 88.3,
+            "RW": 88.3,
+            "CAM": 84.9,
+            "LM": 83.4,
+            "RM": 83.4,
+            "LWB": 80.5
+          }
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 4,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 192,
+          "heightSource": "simulation-estimate",
+          "bodyType": "alto_e_forte",
+          "primaryPosition": "ST"
+        },
+        "traits": [
+          "FINISHER",
+          "CLUTCH_PLAYER",
+          "SPEEDSTER"
+        ],
+        "behaviorTraits": [
+          "FINALIZADOR_FRIO",
+          "AMEACA_AEREA",
+          "CHUTA_DE_LONGE",
+          "ATACA_PROFUNDIDADE"
+        ],
+        "naturalRoles": [
+          {
+            "id": "fc_alvo",
+            "score": 93
+          },
+          {
+            "id": "fc_artilheiro",
+            "score": 91
+          },
+          {
+            "id": "fc_completo",
+            "score": 83
+          }
+        ]
+      },
+      {
+        "team": "França",
+        "year": 2026,
+        "name": "Kylian Mbappé",
+        "r": 95,
+        "pos": "ST",
+        "positions": {
+          "primary": "ST",
+          "secondary": [
+            "CF"
+          ],
+          "emergency": [
+            "LW",
+            "RW"
+          ],
+          "fit": {
+            "ST": 92.7,
+            "CF": 88.8,
+            "LW": 88.3,
+            "RW": 88.3,
+            "CAM": 84.5,
+            "LM": 83,
+            "RM": 83,
+            "LWB": 79.9
+          }
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 4,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 193,
+          "heightSource": "simulation-estimate",
+          "bodyType": "alto_e_forte",
+          "primaryPosition": "ST"
+        },
+        "traits": [
+          "FINISHER",
+          "CLUTCH_PLAYER",
+          "SPEEDSTER",
+          "DRIBBLER"
+        ],
+        "behaviorTraits": [
+          "FINALIZADOR_FRIO",
+          "CHUTA_DE_LONGE",
+          "AMEACA_AEREA",
+          "CONDUZ_E_DRIBLA"
+        ],
+        "naturalRoles": [
+          {
+            "id": "fc_artilheiro",
+            "score": 92
+          },
+          {
+            "id": "fc_alvo",
+            "score": 92
+          },
+          {
+            "id": "fc_falso",
+            "score": 83
+          }
+        ]
+      },
+      {
+        "team": "Alemanha",
+        "year": 1970,
+        "name": "Beckenbauer",
+        "r": 93,
+        "pos": "CB",
+        "positions": {
+          "primary": "CB",
+          "secondary": [],
+          "emergency": [
+            "LB",
+            "RB"
+          ],
+          "fit": {
+            "CB": 88.8,
+            "CDM": 81.3,
+            "LB": 78.7,
+            "RB": 78.7,
+            "LWB": 75.3,
+            "RWB": 75.3,
+            "CM": 74.8,
+            "LM": 70.3
+          }
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 3,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 195,
+          "heightSource": "simulation-estimate",
+          "bodyType": "alto_e_forte",
+          "primaryPosition": "CB"
+        },
+        "traits": [
+          "PLAYMAKER",
+          "LEADER",
+          "CLUTCH_PLAYER"
+        ],
+        "behaviorTraits": [
+          "MARCADOR_POSICIONAL",
+          "PRESSIONADOR",
+          "PASSE_VERTICAL"
+        ],
+        "naturalRoles": [
+          {
+            "id": "cb_defensor",
+            "score": 96
+          },
+          {
+            "id": "cb_saida",
+            "score": 86
+          },
+          {
+            "id": "cb_libero",
+            "score": 86
+          }
+        ]
+      },
+      {
+        "team": "Alemanha",
+        "year": 1970,
+        "name": "Müller",
+        "r": 95,
+        "pos": "ST",
+        "positions": {
+          "primary": "ST",
+          "secondary": [
+            "CF"
+          ],
+          "emergency": [
+            "LW",
+            "RW"
+          ],
+          "fit": {
+            "ST": 93.8,
+            "CF": 90.2,
+            "LW": 89.1,
+            "RW": 89.1,
+            "CAM": 86.3,
+            "LM": 84.8,
+            "RM": 84.8,
+            "CM": 82
+          }
+        },
+        "profile": {
+          "dominantFoot": "R",
+          "weakFoot": 4,
+          "footSource": "simulation-estimate",
+          "heightCmSim": 194,
+          "heightSource": "simulation-estimate",
+          "bodyType": "alto_e_forte",
+          "primaryPosition": "ST"
+        },
+        "traits": [
+          "FINISHER",
+          "CLUTCH_PLAYER",
+          "AERIAL_THREAT"
+        ],
+        "behaviorTraits": [
+          "FINALIZADOR_FRIO",
+          "AMEACA_AEREA",
+          "CHUTA_DE_LONGE",
+          "CONDUZ_E_DRIBLA"
+        ],
+        "naturalRoles": [
+          {
+            "id": "fc_alvo",
+            "score": 96
+          },
+          {
+            "id": "fc_artilheiro",
+            "score": 90
+          },
+          {
+            "id": "fc_completo",
+            "score": 86
+          }
+        ]
+      }
+    ]
+  }
+}
