@@ -7,7 +7,7 @@ template=(ROOT/'src/index.template.html').read_text(encoding='utf-8')
 head=(ROOT/manifest['head_script']['file']).read_text(encoding='utf-8')
 styles=''.join((ROOT/x['file']).read_text(encoding='utf-8') for x in manifest['styles'])
 scripts=''.join((ROOT/x['file']).read_text(encoding='utf-8') for x in manifest['scripts'])
-modules=[ROOT/'src/scripts/45-phases-4-to-7.js',ROOT/'src/scripts/46-phase8-goalkeepers-setpieces.js',ROOT/'src/scripts/47-phase9-manager-ai.js']
+modules=[ROOT/'src/scripts/45-phases-4-to-7.js',ROOT/'src/scripts/46-phase8-goalkeepers-setpieces.js',ROOT/'src/scripts/47-phase9-manager-ai.js',ROOT/'src/scripts/48-save-contract.js']
 needle=(ROOT/'src/scripts/50-tournament.js').read_text(encoding='utf-8')
 insert_at=scripts.find(needle)
 if insert_at<0:raise SystemExit('Ponto de integração antes do torneio não encontrado.')

@@ -7259,7 +7259,7 @@ function norm(x,style){let o=mg(P[MAP[style]||'balanced'],typeof x==='string'?(P
 function conflicts(i){const z=[],a=(code,severity,message)=>z.push({code,severity,message}),b=i.inPossession.buildup,p=i.inPossession.progression,f=i.inPossession.finalThird,t=i.transition,o=i.outOfPossession;if(b.method==='short'&&t.afterRecovery==='counter'&&p.verticality>77)a('SHORT_COUNTER',2,'Saída curta e contra-ataque extremamente direto competem pela primeira decisão.');if(o.block==='low'&&o.offsideTrap&&o.defensiveLine<42)a('LOW_OFFSIDE',3,'Bloco baixo e linha de impedimento agressiva são contraditórios.');if(t.afterRecovery==='retain'&&f.earlyShots)a('RETAIN_SHOOT',2,'Manter a posse e finalizar cedo pedem ritmos opostos.');if(t.afterLoss==='regroup'&&o.pressing>81)a('REGROUP_PRESS',2,'Recomposição imediata limita a pressão extrema após a perda.');if(o.preventCross&&o.orientation==='outside')a('CROSS_OUTSIDE',2,'Forçar por fora aumenta os cruzamentos que a equipe quer impedir.');if(f.overlap&&f.underlap)a('DUAL_RUN',1,'Overlap e underlap simultâneos exigem cobertura adicional.');return z;}
 function coherence(i){const c=conflicts(i),pen=c.reduce((s,x)=>s+(x.severity===3?18:x.severity===2?10:5),0);return{score:C(100-pen,0,100),conflicts:c};}
 function apply(tm){const i=tm.instructions,b=i.inPossession.buildup,p=i.inPossession.progression,f=i.inPossession.finalThird,t=i.transition,o=i.outOfPossession,base=tm.baseFx||tm.fx||{},fx=Object.assign({},base);let direct=(p.passLength+p.verticality)/200+(b.method==='direct'?.14:b.method==='short'?-.12:0)+(t.afterRecovery==='counter'?.13:t.afterRecovery==='retain'?-.11:0);const press=C((o.pressing*.72+o.engagementLine*.28)/100+(t.afterLoss==='counterpress'?.12:t.afterLoss==='regroup'?-.08:0),0,1);fx.direct=C(direct,.08,.95);fx.width=C(p.width/100+(b.focus==='wide'?.08:b.focus==='inside'?-.07:0),.12,.94);fx.line=L(-.1,.055,C(o.defensiveLine/100+(o.block==='high'?.08:o.block==='low'?-.1:0),0,1));fx.tackle=L(.8,1.42,press);fx.pressReach=L(-.5,1.4,press);fx.drain=(base.drain||1)*L(.9,1.18,press);fx.ritmo=(base.ritmo||1)*L(.88,1.12,p.tempo/100);fx.drible=(base.drible||1)*(p.carryMore?1.1:p.passMore?.92:1);fx.shoot=(base.shoot||1)*(f.earlyShots?1.04:f.workBall?.96:1);fx.cross=(base.cross||1)*(f.crossType==='high'?1.05:f.crossType==='cutback'?1.02:1);fx.far=(base.far||1)*(f.longShots==='more'?1.06:1);tm.baseFx=Object.assign({},fx);tm.fx=Object.assign({},fx);tm.coherence=coherence(i);}
-function stats(s){s.decisions=s.decisions||{};s.decisionQuality=s.decisionQuality||{count:0,score:0,agreement:0};s.corridorOccupancy=s.corridorOccupancy||[0,0,0,0,0];s.spatialSamples=s.spatialSamples||0;s.clumpCorrections=s.clumpCorrections||0;s.overlaps=s.overlaps||0;s.underlaps=s.underlaps||0;s.thirdManRuns=s.thirdManRuns||0;return s;}
+function stats(s){s.decisions=s.decisions||{};s.decisionQuality=s.decisionQuality||{count:0,score:0,agreement:0};s.decisionNonBest=s.decisionNonBest||0;s.corridorOccupancy=s.corridorOccupancy||[0,0,0,0,0];s.spatialSamples=s.spatialSamples||0;s.clumpCorrections=s.clumpCorrections||0;s.overlaps=s.overlaps||0;s.underlaps=s.underlaps||0;s.thirdManRuns=s.thirdManRuns||0;return s;}
 function role(sl,p){const ip=sl.inPossession||sl.ip||{},op=sl.outOfPossession||sl.oop||{};return{inPossession:{position:ip.position||sl.ipPos||p.slotPos,role:ip.role||sl.ipRole||p.role,duty:ip.duty||sl.ipDuty||'support'},outOfPossession:{position:op.position||sl.oopPos||p.slotPos,role:op.role||sl.oopRole||p.oopRole,duty:op.duty||sl.oopDuty||'defend'}};}
 function homes(p,tm){if(!p._p47h)p._p47h={a:[p.ahx,p.ahy],d:[p.dhx,p.dhy]};const R=String(p.ipRole||''),O=String(p.oopRole||''),wide=y=>L(y,y<FW/2?2.5:FW-2.5,.22),inside=y=>L(y,FW/2,.3);p.ahx=C(p._p47h.a[0]+tm.attackDir*((/wingback|ala|inside_forward|shadow/.test(R)?4:0)+(p.ipDuty==='attack'?2.5:0)),2,FL-2);p.ahy=/invert|inside|armador|playmaker/.test(R)?inside(p._p47h.a[1]):/winger|wingback|ala/.test(R)?wide(p._p47h.a[1]):p._p47h.a[1];p.dhx=C(p._p47h.d[0]-tm.attackDir*((/defensive|anchor|screen|conten/.test(O)?3:0)+(p.oopDuty==='defend'?1.5:0)),2,FL-2);p.dhy=p._p47h.d[1];p.hx=p.dhx;p.hy=p.dhy;}
 const Q=M.prototype;Q.__P47__=true;
@@ -7269,7 +7269,11 @@ Q.setTeamInstructions=function(team,x){const tm=this.teams[team];if(!tm)return f
 Q.getTacticalCoherence=function(team){const tm=this.teams[team];return tm&&cp(tm.coherence);};
 Q.setPlayerPhaseRole=function(team,id,x){const tm=this.teams[team],p=typeof id==='number'?tm.players[id]:tm.players.find(q=>q.ref&&(q.ref.id===id||q.ref.n===id));if(!p)return false;const r=mg(p.phaseRole,x||{});p.phaseRole=r;p.ipPos=r.inPossession.position||p.slotPos;p.ipRole=r.inPossession.role||p.role;p.ipDuty=r.inPossession.duty||'support';p.oopPos=r.outOfPossession.position||p.slotPos;p.oopRole=r.outOfPossession.role||p.oopRole;p.oopDuty=r.outOfPossession.duty||'defend';homes(p,tm);return cp(r);};
 function context(sim,p){const tm=sim.teams[p.team],opp=sim.teams[1-p.team];let nd=99;opp.players.forEach(d=>{if(!d.red)nd=Math.min(nd,D(p.x,p.y,d.x,d.y));});const pressure=C((6.2-nd)/6.2,0,1),fatigue=C((100-p.stamina)/68,0,1),prog=tm.attackDir>0?p.x/FL:(FL-p.x)/FL,phase=(sim.possT||0)<2.2?'transition':prog<.36?'buildup':prog<.7?'progression':'finalThird',ins=tm.instructions,pass=(A(p,'passe')*.6+A(p,'visao')*.2+A(p,'decisao')*.2)/100,drib=(A(p,'drible')*.6+A(p,'agilidade')*.2+A(p,'decisao')*.2)/100,shot=(A(p,'finalizacao')*.6+A(p,'compostura')*.2+A(p,'decisao')*.2)/100,c=[];const add=(action,ability,fit,space,risk)=>c.push({action,score:fit+ability+space-pressure-fatigue-risk});add('pass_short',pass,phase==='buildup'?.8:.45,.2,.18);add('pass_vertical',pass,ins.inPossession.progression.verticality/100,.3,.32);if(phase!=='buildup')add('pass_through',pass,.65,.42,.54);add('carry',drib,ins.inPossession.progression.carryMore?.72:.4,nd>5?.4:.1,.35);add('dribble',drib,.45,phase==='finalThird'?.45:.2,.5);if(prog>.6)add('cross',A(p,'cruzamento')/100,.55,Math.abs(p.y-FW/2)>13?.4:.1,.38);if(prog>.68)add('shoot',shot,ins.inPossession.finalThird.earlyShots?.72:.5,1-C(D(p.x,p.y,tm.oppGoal.x,tm.oppGoal.y)/38,0,1),.48);return{phase,pressure,fatigue,candidates:c};}
-const od=Q._decide;Q._decide=function(p){const q=context(this,p),best=q.candidates.slice().sort((a,b)=>b.score-a.score)[0],tm=this.teams[p.team],st=stats(this.stats[p.team]);p._p47Decision=best;tm.phase47.lastDecision=best;if(best){st.decisionQuality.count++;st.decisionQuality.score+=best.score;const save={direct:tm.fx.direct,drible:tm.fx.drible,shoot:tm.fx.shoot,cross:tm.fx.cross};if(/^pass_/.test(best.action))tm.fx.direct=C(tm.fx.direct+(best.action==='pass_short'?-.06:.07),.05,.98);if(best.action==='dribble'||best.action==='carry')tm.fx.drible*=1.06;if(best.action==='shoot')tm.fx.shoot*=1.04;if(best.action==='cross')tm.fx.cross*=1.04;try{return od.call(this,p);}finally{Object.assign(tm.fx,save);}}return od.call(this,p);};
+/* AUDITORIA · Fase 4 (bloqueador): a maior pontuação AUMENTA a probabilidade
+   mas não vence sempre — softmax (T=0.30) amostrado com o chance() SEEDADO do
+   motor: determinístico por seed e sem Math.random. decisionNonBest mede a
+   fração de escolhas fora do topo (evidência auditável da distribuição). */
+const od=Q._decide;Q._decide=function(p){const q=context(this,p),tm=this.teams[p.team],st=stats(this.stats[p.team]);const pool=q.candidates.slice().sort((a,b)=>b.score-a.score);let best=null;if(pool.length){const mx=pool[0].score,T=.06,w=pool.map(c=>Math.exp((c.score-mx)/T));let rem=w.reduce((s,x)=>s+x,0);const CH=B.chance||root.chance;for(let i=0;i<pool.length&&!best;i++){if(i===pool.length-1||CH(Math.min(1,w[i]/Math.max(rem,1e-9))))best=pool[i];rem-=w[i];}if(best!==pool[0])st.decisionNonBest=(st.decisionNonBest||0)+1;}p._p47Decision=best;tm.phase47.lastDecision=best;if(best){st.decisionQuality.count++;st.decisionQuality.score+=best.score;const save={direct:tm.fx.direct,drible:tm.fx.drible,shoot:tm.fx.shoot,cross:tm.fx.cross};if(/^pass_/.test(best.action))tm.fx.direct=C(tm.fx.direct+(best.action==='pass_short'?-.06:.07),.05,.98);if(best.action==='dribble'||best.action==='carry')tm.fx.drible*=1.06;if(best.action==='shoot')tm.fx.shoot*=1.04;if(best.action==='cross')tm.fx.cross*=1.04;try{return od.call(this,p);}finally{Object.assign(tm.fx,save);}}return od.call(this,p);};
 function rec(sim,p,a){if(!p||p.team==null)return;const s=stats(sim.stats[p.team]);s.decisions[a]=(s.decisions[a]||0)+1;if(p._p47Decision&&(p._p47Decision.action===a||(a==='pass'&&/^pass_/.test(p._p47Decision.action))))s.decisionQuality.agreement++;}
 [['_pass','pass'],['_carry','carry'],['_dribble','dribble'],['_cross','cross'],['_shoot','shoot'],['_clearBall','clear']].forEach(([k,a])=>{const f=Q[k];if(f)Q[k]=function(){rec(this,arguments[0],a);return f.apply(this,arguments);};});
 const om=Q._movePlayers;if(om)Q._movePlayers=function(dt){const out=om.apply(this,arguments);this.teams.forEach(tm=>{tm.phase47.clock+=dt;if(tm.phase47.clock<.25)return;tm.phase47.clock=0;const ps=tm.players.filter(p=>!p.red&&!p.isGK),s=stats(this.stats[tm.side]);ps.forEach(p=>s.corridorOccupancy[C(Math.floor(p.y/FW*5),0,4)]++);s.spatialSamples++;for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++){const a=ps[i],b=ps[j],d=D(a.x,a.y,b.x,b.y);if(d<2.05){const nx=d>.01?(a.x-b.x)/d:1,ny=d>.01?(a.y-b.y)/d:0,k=Math.min((2.05-d)*.16,.16);if(this.ball.owner!==a){a.x=C(a.x+nx*k,1,FL-1);a.y=C(a.y+ny*k,1,FW-1);}if(this.ball.owner!==b){b.x=C(b.x-nx*k,1,FL-1);b.y=C(b.y-ny*k,1,FW-1);}s.clumpCorrections++;}}const f=tm.instructions.inPossession.finalThird;if(this.ball.owner&&this.ball.owner.team===tm.side&&(f.overlap||f.underlap)){const fb=ps.find(p=>['LB','RB','LWB','RWB'].includes(p.slotPos));if(fb){fb._overlapping=!!f.overlap;fb._underlapping=!!f.underlap;f.overlap?s.overlaps++:s.underlaps++;}}});return out;};
@@ -7582,6 +7586,63 @@ if(!NODE&&typeof document!=='undefined'){
 }
 const API={VERSION,PROFILES:PROFILE_TEMPLATES,deriveProfile,metricSnapshot,diagnose,actionFor,applyAction,preMatchPlan,getManagerData:(sim,team)=>sim.getManagerData(team),installed:true};root.CDS_PHASE9=API;if(NODE)module.exports=API;
 })(typeof window!=='undefined'?window:globalThis);
+
+/* Copa dos Sonhos — Contrato de save versionado (Auditoria Fases 0-9).
+   Saída da UI: o contrato vive fora do 60-ui-flow para ser testável em Node
+   e reutilizável pelo motor/copa. Regras:
+   - todo save carrega `v` (schema) e `engineVersion` (motor que o gravou);
+   - saves antigos passam por migrações encadeadas (v1→v2→...);
+   - versão futura/desconhecida ou estrutura inválida → null (o jogo segue
+     sem crash e oferece Copa nova);
+   - nenhuma migração inventa progresso: campos novos entram com defaults
+     neutros e explícitos. */
+(function (root) {
+'use strict';
+const SAVE_VERSION = 2;
+
+/* Cada migração leva de v para v+1. Encadeadas até SAVE_VERSION. */
+const MIGRATIONS = {
+  1: function (s) {
+    return Object.assign({}, s, {
+      v: 2,
+      engineVersion: s.engineVersion || 'legacy-4.x',
+      savedAt: s.savedAt || null,
+      instructions: s.instructions || null,
+      instructionPreset: s.instructionPreset || null,
+      phaseRoles: s.phaseRoles || null,
+      manager: s.manager || null,
+    });
+  },
+};
+
+function migrateSave(s) {
+  if (!s || typeof s.v !== 'number') return null;
+  let guard = 0;
+  while (s.v < SAVE_VERSION && guard++ < 16) {
+    const up = MIGRATIONS[s.v];
+    if (!up) return null;
+    s = up(s);
+  }
+  return s.v === SAVE_VERSION ? s : null;
+}
+
+function validateSave(s) {
+  return !!(s && s.v === SAVE_VERSION && s.cup && typeof s.cup === 'object'
+    && Array.isArray(s.picks) && s.picks.length >= 11);
+}
+
+/* JSON bruto → save migrado e validado, ou null. Nunca lança. */
+function decodeSave(json) {
+  let s;
+  try { s = JSON.parse(json); } catch (_) { return null; }
+  s = migrateSave(s);
+  return validateSave(s) ? s : null;
+}
+
+const API = { SAVE_VERSION, migrateSave, validateSave, decodeSave };
+root.CDS_SAVE_CONTRACT = API;
+if (typeof module !== 'undefined' && module.exports) module.exports = API;
+})(typeof window !== 'undefined' ? window : globalThis);
 
 /* ═══════════ tournament.js ═══════════ */
 /* =========================================================================
@@ -7960,6 +8021,13 @@ if (typeof window !== 'undefined') window.CUP = API;
    ========================================================================= */
 (function () {
 'use strict';
+/* AUDITORIA (Fases 0-9) - RNG visual deterministico: efeitos, confete,
+   narracao e audio nunca usam Math.random nem tocam o RNG seedado da
+   partida (nao consomem rolagens do motor). Sequencia propria e
+   reprodutivel entre execucoes. */
+let _vseed = 0x9E3779B9 >>> 0;
+function vrand(){ _vseed=(_vseed+0x6D2B79F5)>>>0; let t=_vseed; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return ((t^t>>>14)>>>0)/4294967296; }
+
 
 /* ------------------------------- ESTADO --------------------------------- */
 const G = window.G = {
@@ -7978,7 +8046,7 @@ const G = window.G = {
 
 const $ = sel => document.querySelector(sel);
 const app = () => $('#app');
-const rnd = a => a[Math.floor(Math.random() * a.length)];
+const rnd = a => a[Math.floor(vrand() * a.length)];
 
 window.flagSvg = function(f, size) {
   var s = size || 24;
@@ -8605,8 +8673,14 @@ function saveGame() {
   try {
     if (!G.cup || !G.draft) return;
     const d = G.draft;
+    const SC = window.CDS_SAVE_CONTRACT;
     const save = {
-      v: 1, modo: G.modo, style: G.style, axes: G.axes, formKey: G.formKey, varIdx: G.varIdx,
+      v: SC ? SC.SAVE_VERSION : 2,
+      engineVersion: (typeof ENGINE_CALIBRATION !== 'undefined' && ENGINE_CALIBRATION.version) || 'unknown',
+      savedAt: { phase: G.cup.phase, round: G.cup.round },
+      instructions: G.instructions || null, instructionPreset: G.instructionPreset || null,
+      phaseRoles: G.phaseRoles || null, manager: G.manager || null,
+      modo: G.modo, style: G.style, axes: G.axes, formKey: G.formKey, varIdx: G.varIdx,
       picks: d.slots.map(sl => ({ p: sl.p, from: sl.from, x: sl.x, y: sl.y, pos: sl.pos })),
       benchPicks: d.benchPicks,
       cup: G.cup,
@@ -8618,10 +8692,20 @@ window._saveCopa = saveGame;                       // pra o game.js chamar após
 function hasSave() { try { return !!localStorage.getItem(SAVE_KEY); } catch (_) { return false; } }
 function loadGame() {
   let save;
-  try { save = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch (_) { return false; }
-  if (!save || save.v !== 1 || !save.cup || !Array.isArray(save.picks) || save.picks.length < 11) return false;
+  try {
+    const SC = window.CDS_SAVE_CONTRACT;
+    const raw = localStorage.getItem(SAVE_KEY);
+    // contrato versionado: migra saves antigos (v1→v2), rejeita corrompidos
+    // e versões futuras com segurança — sem crash, sem progresso inventado.
+    save = SC ? SC.decodeSave(raw) : JSON.parse(raw);
+  } catch (_) { return false; }
+  if (!save || !save.cup || !Array.isArray(save.picks) || save.picks.length < 11) return false;
   try {
     G.modo = save.modo; G.style = save.style; G.axes = save.axes; G.formKey = save.formKey; G.varIdx = save.varIdx;
+    if (save.instructions) G.instructions = save.instructions;
+    if (save.instructionPreset) G.instructionPreset = save.instructionPreset;
+    if (save.phaseRoles) G.phaseRoles = save.phaseRoles;
+    if (save.manager) G.manager = save.manager;
     const me = CUP.registerPlayerTeam(G.db, save.picks.map(pk => ({ p: pk.p, from: pk.from })), save.benchPicks || []);
     G.lineup = save.picks.map((pk, i) => ({ p: me.pl[i], x: pk.x, y: pk.y, pos: pk.pos, from: pk.from }));
     G.bench = me.pl.slice(11);
@@ -8872,6 +8956,13 @@ window.addEventListener('pageshow', function () { if (!_bootStarted) bootGame();
    ========================================================================= */
 (function () {
 'use strict';
+/* AUDITORIA (Fases 0-9) - RNG visual deterministico: efeitos, confete,
+   narracao e audio nunca usam Math.random nem tocam o RNG seedado da
+   partida (nao consomem rolagens do motor). Sequencia propria e
+   reprodutivel entre execucoes. */
+let _vseed = 0x9E3779B9 >>> 0;
+function vrand(){ _vseed=(_vseed+0x6D2B79F5)>>>0; let t=_vseed; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return ((t^t>>>14)>>>0)/4294967296; }
+
 const $ = s => document.querySelector(s);
 
 /* ─── VELOCIDADES ────────────────────────────────────────────────────── */
@@ -8953,7 +9044,7 @@ function playUXSound(type) {
       const len = Math.max(1, Math.floor(_audioCtx.sampleRate * dur));
       const buf = _audioCtx.createBuffer(1, len, _audioCtx.sampleRate);
       const data = buf.getChannelData(0);
-      for (let i=0;i<len;i++) data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+      for (let i=0;i<len;i++) data[i] = (vrand() * 2 - 1) * (1 - i / len);
       const src = _audioCtx.createBufferSource();
       const hp = _audioCtx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 420;
       const gain = _audioCtx.createGain();
@@ -9096,14 +9187,14 @@ const PASS_NARR = [
 ];
 
 /* ─── HELPERS ─────────────────────────────────────────────────────────── */
-function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+function pick(a) { return a[Math.floor(vrand() * a.length)]; }
 function makeConfetti(leftSide) {
   const cols = ['#ffcb45','#2e9bff','#2bbf63','#ff4d6d','#ffffff'];
   return Array.from({length: 34}, () => ({
-    x: (leftSide ? 0.15 : 0.85) + (Math.random()-0.5)*0.5,
-    y: 0.1 + Math.random()*0.2, vx: (Math.random()-0.5)*0.006,
-    vy: 0.004 + Math.random()*0.006, c: pick(cols),
-    r: 2 + Math.random()*3, spin: Math.random()*6,
+    x: (leftSide ? 0.15 : 0.85) + (vrand()-0.5)*0.5,
+    y: 0.1 + vrand()*0.2, vx: (vrand()-0.5)*0.006,
+    vy: 0.004 + vrand()*0.006, c: pick(cols),
+    r: 2 + vrand()*3, spin: vrand()*6,
   }));
 }
 function a8Html(p, isLegend) {
@@ -10081,8 +10172,8 @@ function openSetPieceMinigame(req){
        Pênaltis e shootout ficam com wind=null: distância curta demais para o
        vento importar, e o duelo 1x1 deve continuar puramente psicológico. */
     wind:req.kind==='freekick'?(function(){
-      const dir=Math.random()<.5?-1:1;
-      const force=Math.random()*.9;
+      const dir=vrand()<.5?-1:1;
+      const force=vrand()*.9;
       return { dir, force, kmh: Math.round(4+force*24) };
     })():null,
     tension:0
@@ -10133,7 +10224,7 @@ function onEvent(e) {
   }
   // narração de construção (throttled) + efeitos visuais por lance
   if (e.type === 'pass') {
-    if (passNarrCd <= 0 && Math.random() < 0.6) {
+    if (passNarrCd <= 0 && vrand() < 0.6) {
       passNarrCd = 6.5;
       const a = esc(lastWord(e.by.ref.n, 12)), b = esc(lastWord(e.to.ref.n, 12));
       latestEvent = { txt: pick(PASS_NARR)(a, b, zoneOf(e.to)), min: Math.floor(sim.minute) };
@@ -10223,7 +10314,7 @@ function onEvent(e) {
   if (e.type === 'fk_scene' && e.by) {
     const wallN = e.dist < 20 ? 5 : e.dist < 25 ? 4 : 3;
     const vis=e.visual||{};
-    const curve = vis.curve!=null?vis.curve:(Math.random()<.5?-.55:.55);
+    const curve = vis.curve!=null?vis.curve:(vrand()<.5?-.55:.55);
     const actualX=vis.actualX!=null?vis.actualX:(curve<0?.25:.75);
     const shotDir=actualX<.5?-1:1;
     const gkDir = e.result === 'save' ? shotDir : -shotDir;
