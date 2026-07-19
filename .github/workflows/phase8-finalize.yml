@@ -1,11 +1,10 @@
 name: Finalizar Fase 8
 
 on:
-  push:
+  pull_request:
     branches:
-      - agent/fase-8-goleiros-bolas-paradas
-    paths:
-      - '.github/workflows/phase8-finalize.yml'
+      - agent/fases-4-7-final
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
 
 permissions:
