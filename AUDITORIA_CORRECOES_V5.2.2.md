@@ -54,3 +54,23 @@ ReferÃªncia: "COPA DOS SONHOS â€” Auditoria de Conformidade das Fases 0 a 9".
    a tratar junto com as rotinas da Fase 8.
 6. **RegressÃµes retomÃ¡veis** â€” checkpoints existem (`run_matrix_chunks.py`);
    falta retomada por ID documentada de ponta a ponta no fluxo oficial.
+
+## Ciclo 2 (mesma branch)
+
+### 4. Fase 8 — defesa em dois tempos — ? IMPLEMENTADO E COMPROVADO
+Goleiro pode espalmar e matar a bola no chao antes do ataque chegar
+(kind double_catch, apos a decisao de escanteio para nao consumir a taxa
+de escanteios). Estatistica gkDoubleCatches; teste phase8_gk_saves.
+
+### 5. Fase 8 — distribuicao direcionada — ? IMPLEMENTADO E COMPROVADO
+Cada reposicao registra a funcao do alvo real: gkDistToFullback/
+CenterBack/Midfield/Forward. Teste com invariantes (alvos <= reposicoes).
+
+### Smoke visual v5.2.2 — ? APROVADO
+Desktop e mobile 375px renderizam a home e a preparacao completas, zero
+erros de console; botoes TATICA 5.0 e IA DO TREINADOR 5.2.2 ativos.
+
+### Regressao do ciclo 2 — 100 partidas, dt=1/60, pilha completa
+Nota 85.6/100; gols 2.78, vermelhos 0.17, empates 30% (na faixa),
+0-0 10%, bola parada 13.7%. Escanteios 4.08 (pendencia cronica,
+pre-existente a este ciclo). Relatorio: reports/phase3/cycle2-final-v522.
