@@ -1,11 +1,11 @@
 # Build outputs
-# dist/ is included in GitHub Pages
+# dist/ and docs/ are included for GitHub Pages
 *.html
 !src/index.dev.html
 !src/index.template.html
-!reference/
-!dist/
-!docs/
+!reference/**
+!dist/**
+!docs/**
 
 # Python
 __pycache__/
@@ -15,7 +15,6 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/
