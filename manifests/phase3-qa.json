@@ -1,0 +1,47 @@
+{
+  "phase": 3,
+  "complete": true,
+  "engineVersion": "4.3.2",
+  "fixedStep": 0.016666666666666666,
+  "officialMatrix": {
+    "report": "reports/phase3/validation214-v43.json",
+    "matches": 214,
+    "score": 93.13537897084893,
+    "metricFailures": {},
+    "styleFailures": {},
+    "sideBias": {
+      "decisiveGames": 158,
+      "sideAWinShare": 0.5,
+      "averagePossessionA": 0.49803290520987664,
+      "averageGoalDeltaA": 0.02336448598130841,
+      "averageXgDeltaA": -0.06175564508021895
+    }
+  },
+  "massRegression": {
+    "report": "reports/phase3/regression3200-v432-3200.json",
+    "matches": 3200,
+    "score": 93.15864412595496,
+    "dt": 0.016666666666666666,
+    "metricFailures": {},
+    "styleFailures": {},
+    "sideBias": {
+      "decisiveGames": 2222,
+      "sideAWinShare": 0.5054005400540054,
+      "averagePossessionA": 0.500516667998766,
+      "averageGoalDeltaA": -0.0134375,
+      "averageXgDeltaA": -0.02315988904967063
+    }
+  },
+  "database": {
+    "players": 7739,
+    "lineupsValidated": 13284
+  },
+  "requiredTests": [
+    "phase3_determinism",
+    "phase3_fixed_step",
+    "phase3_job_matrix",
+    "phase3_regression_thresholds",
+    "phase3_mass_regression",
+    "phase2_engine_smoke"
+  ]
+}

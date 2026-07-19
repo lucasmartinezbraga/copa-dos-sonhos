@@ -1,0 +1,16 @@
+'use strict';
+const assert=require('assert'),fs=require('fs');
+const p=process.argv[2];if(!p)throw new Error('Informe o relatório massivo JSON');
+const r=JSON.parse(fs.readFileSync(p,'utf8'));
+assert.strictEqual(r.engineVersion,'4.3.2');
+assert(Math.abs(r.dt-1/60)<1e-12,`dt massivo inválido: ${r.dt}`);
+assert(r.matches>=3000,`amostra massiva insuficiente: ${r.matches}`);
+assert(r.calibration.score>=90,`nota massiva insuficiente: ${r.calibration.score}`);
+const metricFailures=Object.entries(r.calibration.checks).filter(([,v])=>v.status!=='ok');
+assert.deepStrictEqual(metricFailures,[],`métricas massivas fora da faixa: ${JSON.stringify(metricFailures)}`);
+const styleFailures=Object.entries(r.styleExpectationChecks||{}).filter(([,v])=>v.status!=='ok');
+assert.deepStrictEqual(styleFailures,[],`estilos massivos fora da identidade: ${JSON.stringify(styleFailures)}`);
+const sb=r.features&&r.features.sideBias;
+assert(sb&&sb.decisiveGames>=1500,'amostra massiva de viés insuficiente');
+assert(sb.sideAWinShare>=.46&&sb.sideAWinShare<=.54,`viés massivo de lado: ${sb.sideAWinShare}`);
+console.log(JSON.stringify({ok:true,matches:r.matches,score:r.calibration.score,sideBias:sb,styles:Object.keys(r.styleExpectationChecks||{}).length},null,2));

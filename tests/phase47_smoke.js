@@ -1,0 +1,10 @@
+'use strict';
+const assert=require('assert'),fs=require('fs'),path=require('path'),vm=require('vm'),{performance}=require('perf_hooks');
+const ROOT=path.resolve(__dirname,'..');global.window=global;global.performance=performance;global.CanvasRenderingContext2D=undefined;
+window.__cdsDebugWarn=()=>{};window.__cdsDebugLog=()=>{};
+for(const rel of ['src/scripts/00-polyfills.js','src/scripts/10-data.js','src/scripts/20-core.js','src/scripts/25-data-integrity-v3.js','src/scripts/30-tactics.js','src/scripts/40-match-engine-and-manager-ai.js','src/scripts/45-phases-4-to-7.js']) vm.runInThisContext(fs.readFileSync(path.join(ROOT,rel),'utf8'),{filename:rel});
+assert.strictEqual(CDS_PHASES_4_7.installed,true);assert.strictEqual(CDS_PHASES_4_7.VERSION,'5.0.0');
+assert.strictEqual(typeof MatchSim.prototype.setTeamInstructions,'function');assert.strictEqual(typeof MatchSim.prototype.setPlayerPhaseRole,'function');
+const bad=CDS_PHASES_4_7.normalizeInstructions({inPossession:{buildup:{method:'short'},progression:{verticality:90},finalThird:{}},transition:{afterRecovery:'counter'},outOfPossession:{}},'balanced');
+assert(CDS_PHASES_4_7.detectConflicts(bad).some(x=>x.code==='SHORT_COUNTER'));
+console.log('phase47_smoke: OK');

@@ -1,0 +1,4189 @@
+{
+  "schema": "cds-lab-v1",
+  "label": "retry-worker20",
+  "mode": "quick",
+  "createdAt": "2026-07-19T02:06:54.042Z",
+  "engineVersion": "4.1.0",
+  "targetsVersion": "1.0.0",
+  "matches": 20,
+  "executionMode": "workers",
+  "workers": 2,
+  "batchSize": 10,
+  "dt": 0.08,
+  "elapsedMs": 13162.309738000002,
+  "workerMs": [
+    9704.443049000001,
+    9998.226779
+  ],
+  "overall": {
+    "name": "overall",
+    "games": 20,
+    "goalsPerMatch": 2.55,
+    "shotsPerMatch": 22.6,
+    "xgPerMatch": 2.6396379441099542,
+    "onTargetRate": 0.3584070796460177,
+    "passCompletion": 0.8158253751705321,
+    "foulsPerMatch": 22.65,
+    "yellowsPerMatch": 3.45,
+    "redsPerMatch": 0.25,
+    "cornersPerMatch": 5,
+    "tacklesPerMatch": 46.8,
+    "interceptionsPerMatch": 17.75,
+    "drawRate": 0.45,
+    "zeroZeroRate": 0.1,
+    "blowoutRate": 0,
+    "lateGoalShare": 0.058823529411764705,
+    "setPieceGoalShare": 0.11764705882352941,
+    "averageEndingStamina": 70.99137318608656,
+    "averagePossessionA": 0.5080599556112556,
+    "goalP50": 2,
+    "goalP90": 4.100000000000001,
+    "shotP90": 28.300000000000004,
+    "maxGoals": 8,
+    "scoreFrequency": {
+      "1-1": 5,
+      "0-0": 2,
+      "1-0": 2,
+      "0-2": 2,
+      "2-1": 2,
+      "4-4": 1,
+      "1-2": 1,
+      "2-0": 1,
+      "3-0": 1,
+      "2-3": 1,
+      "2-2": 1,
+      "1-3": 1
+    }
+  },
+  "features": {
+    "suites": {
+      "parity": {
+        "name": "parity",
+        "games": 3,
+        "goalsPerMatch": 3.3333333333333335,
+        "shotsPerMatch": 30.333333333333332,
+        "xgPerMatch": 3.7454515670312865,
+        "onTargetRate": 0.32967032967032966,
+        "passCompletion": 0.8135048231511254,
+        "foulsPerMatch": 27.666666666666668,
+        "yellowsPerMatch": 4.333333333333333,
+        "redsPerMatch": 0.3333333333333333,
+        "cornersPerMatch": 7.333333333333333,
+        "tacklesPerMatch": 64,
+        "interceptionsPerMatch": 17,
+        "drawRate": 1,
+        "zeroZeroRate": 0.3333333333333333,
+        "blowoutRate": 0,
+        "lateGoalShare": 0,
+        "setPieceGoalShare": 0.2,
+        "averageEndingStamina": 68.30956249637609,
+        "averagePossessionA": 0.5105005254882927,
+        "goalP50": 2,
+        "goalP90": 6.800000000000001,
+        "shotP90": 39.6,
+        "maxGoals": 8,
+        "scoreFrequency": {
+          "1-1": 1,
+          "0-0": 1,
+          "4-4": 1
+        },
+        "paritySideAWinShare": 0.5
+      },
+      "random": {
+        "name": "random",
+        "games": 6,
+        "goalsPerMatch": 1.6666666666666667,
+        "shotsPerMatch": 24,
+        "xgPerMatch": 2.3660418892040083,
+        "onTargetRate": 0.2986111111111111,
+        "passCompletion": 0.818997756170531,
+        "foulsPerMatch": 22.833333333333332,
+        "yellowsPerMatch": 3.8333333333333335,
+        "redsPerMatch": 0.16666666666666666,
+        "cornersPerMatch": 4.5,
+        "tacklesPerMatch": 36.5,
+        "interceptionsPerMatch": 16,
+        "drawRate": 0.5,
+        "zeroZeroRate": 0.16666666666666666,
+        "blowoutRate": 0,
+        "lateGoalShare": 0.1,
+        "setPieceGoalShare": 0,
+        "averageEndingStamina": 72.20974440793297,
+        "averagePossessionA": 0.5126302754001296,
+        "goalP50": 2,
+        "goalP90": 2.5,
+        "shotP90": 29.5,
+        "maxGoals": 3,
+        "scoreFrequency": {
+          "1-1": 2,
+          "1-2": 1,
+          "0-0": 1,
+          "2-0": 1,
+          "1-0": 1
+        }
+      },
+      "strongWeak": {
+        "name": "strongWeak",
+        "games": 3,
+        "goalsPerMatch": 2.6666666666666665,
+        "shotsPerMatch": 18.666666666666668,
+        "xgPerMatch": 2.0776131758699568,
+        "onTargetRate": 0.42857142857142855,
+        "passCompletion": 0.8270676691729323,
+        "foulsPerMatch": 29,
+        "yellowsPerMatch": 3.6666666666666665,
+        "redsPerMatch": 0,
+        "cornersPerMatch": 5,
+        "tacklesPerMatch": 46.666666666666664,
+        "interceptionsPerMatch": 18.333333333333332,
+        "drawRate": 0,
+        "zeroZeroRate": 0,
+        "blowoutRate": 0,
+        "lateGoalShare": 0,
+        "setPieceGoalShare": 0.25,
+        "averageEndingStamina": 71.52567535490114,
+        "averagePossessionA": 0.4625044979357535,
+        "goalP50": 3,
+        "goalP90": 3,
+        "shotP90": 21.8,
+        "maxGoals": 3,
+        "scoreFrequency": {
+          "3-0": 1,
+          "0-2": 1,
+          "2-1": 1
+        },
+        "favoriteWinRate": 1
+      },
+      "styles": {
+        "name": "styles",
+        "games": 3,
+        "goalsPerMatch": 3.6666666666666665,
+        "shotsPerMatch": 23.333333333333332,
+        "xgPerMatch": 3.169994959059214,
+        "onTargetRate": 0.44285714285714284,
+        "passCompletion": 0.8285280728376327,
+        "foulsPerMatch": 17,
+        "yellowsPerMatch": 3,
+        "redsPerMatch": 0.3333333333333333,
+        "cornersPerMatch": 6.333333333333333,
+        "tacklesPerMatch": 44,
+        "interceptionsPerMatch": 13.666666666666666,
+        "drawRate": 0.3333333333333333,
+        "zeroZeroRate": 0,
+        "blowoutRate": 0,
+        "lateGoalShare": 0,
+        "setPieceGoalShare": 0.09090909090909091,
+        "averageEndingStamina": 70.95107581648286,
+        "averagePossessionA": 0.521533404162768,
+        "goalP50": 4,
+        "goalP90": 4.8,
+        "shotP90": 24.6,
+        "maxGoals": 5,
+        "scoreFrequency": {
+          "2-3": 1,
+          "0-2": 1,
+          "2-2": 1
+        }
+      },
+      "formations": {
+        "name": "formations",
+        "games": 5,
+        "goalsPerMatch": 2.4,
+        "shotsPerMatch": 18.2,
+        "xgPerMatch": 2.3234656882187337,
+        "onTargetRate": 0.37362637362637363,
+        "passCompletion": 0.7991031390134529,
+        "foulsPerMatch": 19,
+        "yellowsPerMatch": 2.6,
+        "redsPerMatch": 0.4,
+        "cornersPerMatch": 3.4,
+        "tacklesPerMatch": 50.6,
+        "interceptionsPerMatch": 22.4,
+        "drawRate": 0.4,
+        "zeroZeroRate": 0,
+        "blowoutRate": 0,
+        "lateGoalShare": 0.16666666666666666,
+        "setPieceGoalShare": 0.08333333333333333,
+        "averageEndingStamina": 70.84201125417061,
+        "averagePossessionA": 0.5203604354127789,
+        "goalP50": 2,
+        "goalP90": 3.6,
+        "shotP90": 25.4,
+        "maxGoals": 4,
+        "scoreFrequency": {
+          "1-1": 2,
+          "1-3": 1,
+          "1-0": 1,
+          "2-1": 1
+        }
+      }
+    },
+    "groups": {
+      "parity:tiki:3-5-2": {
+        "name": "parity:tiki:3-5-2",
+        "games": 1,
+        "goalsPerMatch": 2,
+        "shotsPerMatch": 26,
+        "xgPerMatch": 2.5379921220830317,
+        "onTargetRate": 0.2692307692307692,
+        "passCompletion": 0.7914691943127962,
+        "foulsPerMatch": 22,
+        "yellowsPerMatch": 3,
+        "redsPerMatch": 0,
+        "cornersPerMatch": 6,
+        "tacklesPerMatch": 66,
+        "interceptionsPerMatch": 27,
+        "drawRate": 1,
+        "zeroZeroRate": 0,
+        "blowoutRate": 0,
+        "lateGoalShare": 0,
+        "setPieceGoalShare": 0.5,
+        "averageEndingStamina": 71.43813587362342,
+        "averagePossessionA": 0.5474189675870346,
+        "goalP50": 2,
+        "goalP90": 2,
+        "shotP90": 26,
+        "maxGoals": 2,
+        "scoreFrequency": {
+          "1-1": 1
+        }
+      },
+      "parity:counter:4-2-3-1": {
+        "name": "parity:counter:4-2-3-1",
+        "games": 1,
+        "goalsPerMatch": 0,
+        "shotsPerMatch": 22,
+        "xgPerMatch": 1.8551372829519017,
+        "onTargetRate": 0.3181818181818182,
+        "passCompletion": 0.8377192982456141,
+        "foulsPerMatch": 18,
+        "yellowsPerMatch": 5,
+        "redsPerMatch": 0,
+        "cornersPerMatch": 9,
+        "tacklesPerMatch": 30,
+        "interceptionsPerMatch": 8,
+        "drawRate": 1,
+        "zeroZeroRate": 1,
+        "blowoutRate": 0,
+        "lateGoalShare": 0,
+        "setPieceGoalShare": 0,
+        "averageEndingStamina": 71.86083108817567,
+        "averagePossessionA": 0.512959614225437,
+        "goalP50": 0,
+        "goalP90": 0,
+        "shotP90": 22,
+        "maxGoals": 0,
+        "scoreFrequency": {
+          "0-0": 1
+        }
+      },
+      "parity:press:4-2-4": {
+        "name": "parity:press:4-2-4",
+        "games": 1,
+        "goalsPerMatch": 8,
+        "shotsPerMatch": 43,
+        "xgPerMatch": 6.843225296058925,
+        "onTargetRate": 0.37209302325581395,
+        "passCompletion": 0.8087431693989071,
+        "foulsPerMatch": 43,
+        "yellowsPerMatch": 5,
+        "redsPerMatch": 1,
+        "cornersPerMatch": 7,
+        "tacklesPerMatch": 96,
+        "interceptionsPerMatch": 16,
+        "drawRate": 1,
+        "zeroZeroRate": 0,
+        "blowoutRate": 0,
+        "lateGoalShare": 0,
+        "setPieceGoalShare": 0.125,
+        "averageEndingStamina": 61.629720527329184,
+        "averagePossessionA": 0.47112299465240653,
+        "goalP50": 8,
+        "goalP90": 8,
+        "shotP90": 43,
+        "maxGoals": 8,
+        "scoreFrequency": {
+          "4-4": 1
+        }
+      },
+      "random": {
+        "name": "random",
+        "games": 6,
+        "goalsPerMatch": 1.6666666666666667,
+        "shotsPerMatch": 24,
+        "xgPerMatch": 2.3660418892040083,
+        "onTargetRate": 0.2986111111111111,
+        "passCompletion": 0.818997756170531,
+        "foulsPerMatch": 22.833333333333332,
+        "yellowsPerMatch": 3.8333333333333335,
+        "redsPerMatch": 0.16666666666666666,
+        "cornersPerMatch": 4.5,
+        "tacklesPerMatch": 36.5,
+        "interceptionsPerMatch": 16,
+        "drawRate": 0.5,
+        "zeroZeroRate": 0.16666666666666666,
+        "blowoutRate": 0,
+        "lateGoalShare": 0.1,
+        "setPieceGoalShare": 0,
+        "averageEndingStamina": 72.20974440793297,
+        "averagePossessionA": 0.5126302754001296,
+        "goalP50": 2,
+        "goalP90": 2.5,
+        "shotP90": 29.5,
+        "maxGoals": 3,
+        "scoreFrequency": {
+          "1-1": 2,
+          "1-2": 1,
+          "0-0": 1,
+          "2-0": 1,
+          "1-0": 1
+        }
+      },
+      "strongWeak": {
+        "name": "strongWeak",
+        "games": 3,
+        "goalsPerMatch": 2.6666666666666665,
+        "shotsPerMatch": 18.666666666666668,
+        "xgPerMatch": 2.0776131758699568,
+        "onTargetRate": 0.42857142857142855,
+        "passCompletion": 0.8270676691729323,
+        "foulsPerMatch": 29,
+        "yellowsPerMatch": 3.6666666666666665,
+        "redsPerMatch": 0,
+        "cornersPerMatch": 5,
+        "tacklesPerMatch": 46.666666666666664,
+        "interceptionsPerMatch": 18.333333333333332,
+        "drawRate": 0,
+        "zeroZeroRate": 0,
+        "blowoutRate": 0,
+        "lateGoalShare": 0,
+        "setPieceGoalShare": 0.25,
+        "averageEndingStamina": 71.52567535490114,
+        "averagePossessionA": 0.4625044979357535,
+        "goalP50": 3,
+        "goalP90": 3,
+        "shotP90": 21.8,
+        "maxGoals": 3,
+        "scoreFrequency": {
+          "3-0": 1,
+          "0-2": 1,
+          "2-1": 1
+        }
+      },
+      "style:tiki": {
+        "name": "style:tiki",
+        "games": 1,
+        "goalsPerMatch": 5,
+        "shotsPerMatch": 23,
+        "xgPerMatch": 3.8836693522445715,
+        "onTargetRate": 0.43478260869565216,
+        "passCompletion": 0.8421052631578947,
+        "foulsPerMatch": 11,
+        "yellowsPerMatch": 3,
+        "redsPerMatch": 0,
+        "cornersPerMatch": 8,
+        "tacklesPerMatch": 33,
+        "interceptionsPerMatch": 10,
+        "drawRate": 0,
+        "zeroZeroRate": 0,
+        "blowoutRate": 0,
+        "lateGoalShare": 0,
+        "setPieceGoalShare": 0,
+        "averageEndingStamina": 71.24972912796254,
+        "averagePossessionA": 0.4831056793673617,
+        "goalP50": 5,
+        "goalP90": 5,
+        "shotP90": 23,
+        "maxGoals": 5,
+        "scoreFrequency": {
+          "2-3": 1
+        }
+      },
+      "style:counter": {
+        "name": "style:counter",
+        "games": 1,
+        "goalsPerMatch": 2,
+        "shotsPerMatch": 22,
+        "xgPerMatch": 2.2584023654611176,
+        "onTargetRate": 0.4090909090909091,
+        "passCompletion": 0.826271186440678,
+        "foulsPerMatch": 23,
+        "yellowsPerMatch": 2,
+        "redsPerMatch": 0,
+        "cornersPerMatch": 5,
+        "tacklesPerMatch": 53,
+        "interceptionsPerMatch": 17,
+        "drawRate": 0,
+        "zeroZeroRate": 0,
+        "blowoutRate": 0,
+        "lateGoalShare": 0,
+        "setPieceGoalShare": 0.5,
+        "averageEndingStamina": 70.69097446780569,
+        "averagePossessionA": 0.4632489190858557,
+        "goalP50": 2,
+        "goalP90": 2,
+        "shotP90": 22,
+        "maxGoals": 2,
+        "scoreFrequency": {
+          "0-2": 1
+        }
+      },
+      "style:press": {
+        "name": "style:press",
+        "games": 1,
+        "goalsPerMatch": 4,
+        "shotsPerMatch": 25,
+        "xgPerMatch": 3.367913159471953,
+        "onTargetRate": 0.48,
+        "passCompletion": 0.8177570093457944,
+        "foulsPerMatch": 17,
+        "yellowsPerMatch": 4,
+        "redsPerMatch": 1,
+        "cornersPerMatch": 6,
+        "tacklesPerMatch": 46,
+        "interceptionsPerMatch": 14,
+        "drawRate": 1,
+        "zeroZeroRate": 0,
+        "blowoutRate": 0,
+        "lateGoalShare": 0,
+        "setPieceGoalShare": 0,
+        "averageEndingStamina": 70.91252385368036,
+        "averagePossessionA": 0.6182456140350869,
+        "goalP50": 4,
+        "goalP90": 4,
+        "shotP90": 25,
+        "maxGoals": 4,
+        "scoreFrequency": {
+          "2-2": 1
+        }
+      },
+      "formation:4-3-3": {
+        "name": "formation:4-3-3",
+        "games": 1,
+        "goalsPerMatch": 4,
+        "shotsPerMatch": 23,
+        "xgPerMatch": 3.9348395812722634,
+        "onTargetRate": 0.391304347826087,
+        "passCompletion": 0.7457627118644068,
+        "foulsPerMatch": 5,
+        "yellowsPerMatch": 2,
+        "redsPerMatch": 0,
+        "cornersPerMatch": 1,
+        "tacklesPerMatch": 23,
+        "interceptionsPerMatch": 36,
+        "drawRate": 0,
+        "zeroZeroRate": 0,
+        "blowoutRate": 0,
+        "lateGoalShare": 0.25,
+        "setPieceGoalShare": 0,
+        "averageEndingStamina": 70.978972343511,
+        "averagePossessionA": 0.5481635481635478,
+        "goalP50": 4,
+        "goalP90": 4,
+        "shotP90": 23,
+        "maxGoals": 4,
+        "scoreFrequency": {
+          "1-3": 1
+        }
+      },
+      "formation:4-4-2": {
+        "name": "formation:4-4-2",
+        "games": 1,
+        "goalsPerMatch": 2,
+        "shotsPerMatch": 17,
+        "xgPerMatch": 1.6826981111072614,
+        "onTargetRate": 0.5294117647058824,
+        "passCompletion": 0.8325581395348837,
+        "foulsPerMatch": 19,
+        "yellowsPerMatch": 3,
+        "redsPerMatch": 1,
+        "cornersPerMatch": 5,
+        "tacklesPerMatch": 50,
+        "interceptionsPerMatch": 11,
+        "drawRate": 1,
+        "zeroZeroRate": 0,
+        "blowoutRate": 0,
+        "lateGoalShare": 0,
+        "setPieceGoalShare": 0,
+        "averageEndingStamina": 74.2151249564119,
+        "averagePossessionA": 0.4085365853658542,
+        "goalP50": 2,
+        "goalP90": 2,
+        "shotP90": 17,
+        "maxGoals": 2,
+        "scoreFrequency": {
+          "1-1": 1
+        }
+      },
+      "formation:4-2-3-1": {
+        "name": "formation:4-2-3-1",
+        "games": 1,
+        "goalsPerMatch": 1,
+        "shotsPerMatch": 16,
+        "xgPerMatch": 2.0539445039280415,
+        "onTargetRate": 0.3125,
+        "passCompletion": 0.7547169811320755,
+        "foulsPerMatch": 44,
+        "yellowsPerMatch": 7,
+        "redsPerMatch": 1,
+        "cornersPerMatch": 3,
+        "tacklesPerMatch": 105,
+        "interceptionsPerMatch": 25,
+        "drawRate": 0,
+        "zeroZeroRate": 0,
+        "blowoutRate": 0,
+        "lateGoalShare": 0,
+        "setPieceGoalShare": 1,
+        "averageEndingStamina": 64.21678505144776,
+        "averagePossessionA": 0.5376653248993674,
+        "goalP50": 1,
+        "goalP90": 1,
+        "shotP90": 16,
+        "maxGoals": 1,
+        "scoreFrequency": {
+          "1-0": 1
+        }
+      },
+      "formation:3-5-2": {
+        "name": "formation:3-5-2",
+        "games": 1,
+        "goalsPerMatch": 3,
+        "shotsPerMatch": 8,
+        "xgPerMatch": 0.8226725532294553,
+        "onTargetRate": 0.375,
+        "passCompletion": 0.8626609442060086,
+        "foulsPerMatch": 19,
+        "yellowsPerMatch": 1,
+        "redsPerMatch": 0,
+        "cornersPerMatch": 0,
+        "tacklesPerMatch": 41,
+        "interceptionsPerMatch": 17,
+        "drawRate": 0,
+        "zeroZeroRate": 0,
+        "blowoutRate": 0,
+        "lateGoalShare": 0.3333333333333333,
+        "setPieceGoalShare": 0,
+        "averageEndingStamina": 71.93894204015909,
+        "averagePossessionA": 0.5558328134747347,
+        "goalP50": 3,
+        "goalP90": 3,
+        "shotP90": 8,
+        "maxGoals": 3,
+        "scoreFrequency": {
+          "2-1": 1
+        }
+      },
+      "formation:5-3-2": {
+        "name": "formation:5-3-2",
+        "games": 1,
+        "goalsPerMatch": 2,
+        "shotsPerMatch": 27,
+        "xgPerMatch": 3.123173691556647,
+        "onTargetRate": 0.2962962962962963,
+        "passCompletion": 0.7990867579908676,
+        "foulsPerMatch": 8,
+        "yellowsPerMatch": 0,
+        "redsPerMatch": 0,
+        "cornersPerMatch": 8,
+        "tacklesPerMatch": 34,
+        "interceptionsPerMatch": 23,
+        "drawRate": 1,
+        "zeroZeroRate": 0,
+        "blowoutRate": 0,
+        "lateGoalShare": 0,
+        "setPieceGoalShare": 0,
+        "averageEndingStamina": 72.8602318793233,
+        "averagePossessionA": 0.5516039051603902,
+        "goalP50": 2,
+        "goalP90": 2,
+        "shotP90": 27,
+        "maxGoals": 2,
+        "scoreFrequency": {
+          "1-1": 1
+        }
+      }
+    },
+    "styles": {
+      "tiki": {
+        "games": 1,
+        "goalDelta": -1,
+        "possessionDelta": -0.03378864126527659,
+        "passCompletionDelta": -0.09079696394686909,
+        "crossDelta": -9,
+        "throughBallDelta": 8,
+        "pressWinsDelta": 9,
+        "staminaDelta": -3.3920294021327777,
+        "shotsForDelta": -3,
+        "shotsAllowedDelta": 3
+      },
+      "counter": {
+        "games": 1,
+        "goalDelta": 2,
+        "possessionDelta": 0.07350216182828867,
+        "passCompletionDelta": -0.07561683599419455,
+        "crossDelta": 1,
+        "throughBallDelta": 16,
+        "pressWinsDelta": -6,
+        "staminaDelta": 6.407183424229672,
+        "shotsForDelta": -6,
+        "shotsAllowedDelta": 6
+      },
+      "press": {
+        "games": 1,
+        "goalDelta": 0,
+        "possessionDelta": 0.23649122807017392,
+        "passCompletionDelta": -0.00679117147707986,
+        "crossDelta": 0,
+        "throughBallDelta": -6,
+        "pressWinsDelta": 8,
+        "staminaDelta": -3.9473045055564455,
+        "shotsForDelta": -3,
+        "shotsAllowedDelta": 3
+      }
+    }
+  },
+  "calibration": {
+    "score": 72.7472542850864,
+    "checks": {
+      "goalsPerMatch": {
+        "value": 2.55,
+        "min": 2.4,
+        "target": 2.8,
+        "max": 3.2,
+        "score": 84.37500000000001,
+        "status": "ok"
+      },
+      "shotsPerMatch": {
+        "value": 22.6,
+        "min": 20,
+        "target": 25,
+        "max": 30,
+        "score": 88,
+        "status": "ok"
+      },
+      "xgPerMatch": {
+        "value": 2.6396379441099542,
+        "min": 2.3,
+        "target": 2.9,
+        "max": 3.5,
+        "score": 89.15158100458143,
+        "status": "ok"
+      },
+      "onTargetRate": {
+        "value": 0.3584070796460177,
+        "min": 0.34,
+        "target": 0.4,
+        "max": 0.47,
+        "score": 85.14538558786344,
+        "status": "ok"
+      },
+      "passCompletion": {
+        "value": 0.8158253751705321,
+        "min": 0.75,
+        "target": 0.82,
+        "max": 0.89,
+        "score": 98.50906256090434,
+        "status": "ok"
+      },
+      "foulsPerMatch": {
+        "value": 22.65,
+        "min": 16,
+        "target": 21,
+        "max": 28,
+        "score": 94.10714285714286,
+        "status": "ok"
+      },
+      "yellowsPerMatch": {
+        "value": 3.45,
+        "min": 2.4,
+        "target": 3.8,
+        "max": 5.6,
+        "score": 95.1388888888889,
+        "status": "ok"
+      },
+      "redsPerMatch": {
+        "value": 0.25,
+        "min": 0.06,
+        "target": 0.16,
+        "max": 0.3,
+        "score": 83.92857142857143,
+        "status": "ok"
+      },
+      "cornersPerMatch": {
+        "value": 5,
+        "min": 5,
+        "target": 8,
+        "max": 11.5,
+        "score": 78.57142857142857,
+        "status": "ok"
+      },
+      "drawRate": {
+        "value": 0.45,
+        "min": 0.2,
+        "target": 0.26,
+        "max": 0.33,
+        "score": 0,
+        "status": "high"
+      },
+      "zeroZeroRate": {
+        "value": 0.1,
+        "min": 0.045,
+        "target": 0.075,
+        "max": 0.12,
+        "score": 86.1111111111111,
+        "status": "ok"
+      },
+      "blowoutRate": {
+        "value": 0,
+        "min": 0.025,
+        "target": 0.065,
+        "max": 0.13,
+        "score": 51.19047619047619,
+        "status": "low"
+      },
+      "lateGoalShare": {
+        "value": 0.058823529411764705,
+        "min": 0.17,
+        "target": 0.24,
+        "max": 0.34,
+        "score": 9.602076124567475,
+        "status": "low"
+      },
+      "setPieceGoalShare": {
+        "value": 0.11764705882352941,
+        "min": 0.1,
+        "target": 0.17,
+        "max": 0.27,
+        "score": 86.91176470588235,
+        "status": "ok"
+      },
+      "favoriteWinRate": {
+        "value": 1,
+        "min": 0.6,
+        "target": 0.69,
+        "max": 0.79,
+        "score": 0,
+        "status": "high"
+      },
+      "paritySideAWinShare": {
+        "value": 0.5,
+        "min": 0.46,
+        "target": 0.5,
+        "max": 0.54,
+        "score": 100,
+        "status": "ok"
+      },
+      "averageEndingStamina": {
+        "value": 70.99137318608656,
+        "min": 64,
+        "target": 73,
+        "max": 83,
+        "score": 94.9784329652164,
+        "status": "ok"
+      }
+    }
+  },
+  "raw": [
+    {
+      "id": "P0",
+      "suite": "parity",
+      "group": "parity:tiki:3-5-2",
+      "seed": 100001,
+      "meta": {
+        "equal": true
+      },
+      "teams": [
+        {
+          "squadIndex": 52,
+          "name": "Brasil",
+          "rating": 84,
+          "style": "tiki",
+          "form": "3-5-2",
+          "variation": 0
+        },
+        {
+          "squadIndex": 52,
+          "name": "Brasil",
+          "rating": 84,
+          "style": "tiki",
+          "form": "3-5-2",
+          "variation": 0
+        }
+      ],
+      "score": [
+        1,
+        1
+      ],
+      "goals": 2,
+      "shots": 26,
+      "onTarget": 7,
+      "xg": 2.5379921220830317,
+      "passes": 211,
+      "passOk": 167,
+      "possession": [
+        0.5474189675870346,
+        0.45258103241296543
+      ],
+      "fouls": 22,
+      "yellow": 3,
+      "red": 0,
+      "corners": 6,
+      "tackles": 66,
+      "interceptions": 27,
+      "crosses": [
+        2,
+        4
+      ],
+      "lowCrosses": [
+        0,
+        0
+      ],
+      "throughBalls": [
+        7,
+        9
+      ],
+      "pressWins": [
+        16,
+        11
+      ],
+      "defErrors": [
+        0,
+        0
+      ],
+      "oneOnOnes": [
+        0,
+        1
+      ],
+      "setPieceShots": 3,
+      "setPieceGoals": 1,
+      "goalMinutes": [
+        2,
+        29
+      ],
+      "stamina": [
+        71.08336623868352,
+        71.79290550856332
+      ],
+      "teamStats": [
+        {
+          "goals": 1,
+          "shots": 8,
+          "onTarget": 1,
+          "xg": 0.7059034483119235,
+          "passes": 131,
+          "passOk": 106,
+          "fouls": 9,
+          "yellow": 1,
+          "red": 0,
+          "corners": 2,
+          "tackles": 33,
+          "interceptions": 9,
+          "crosses": 2,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 7,
+          "throughOk": 3,
+          "pressWins": 16,
+          "defErrors": 0,
+          "oneOnOnes": 0,
+          "setPieceShots": 0,
+          "setPieceGoals": 0,
+          "poss": 0.5474189675870346,
+          "stamina": 71.08336623868352
+        },
+        {
+          "goals": 1,
+          "shots": 18,
+          "onTarget": 6,
+          "xg": 1.8320886737711084,
+          "passes": 80,
+          "passOk": 61,
+          "fouls": 13,
+          "yellow": 2,
+          "red": 0,
+          "corners": 4,
+          "tackles": 33,
+          "interceptions": 18,
+          "crosses": 4,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 9,
+          "throughOk": 4,
+          "pressWins": 11,
+          "defErrors": 0,
+          "oneOnOnes": 1,
+          "setPieceShots": 3,
+          "setPieceGoals": 1,
+          "poss": 0.45258103241296543,
+          "stamina": 71.79290550856332
+        }
+      ],
+      "eventCounts": {
+        "kickoff": 1,
+        "pass": 167,
+        "looseControl": 18,
+        "intercept": 27,
+        "shot_taken": 23,
+        "post": 1,
+        "corner": 6,
+        "cross": 6,
+        "header_shot": 3,
+        "goal": 2,
+        "tackle": 66,
+        "run_burst": 9,
+        "through": 7,
+        "blocked": 3,
+        "gk_claim": 1,
+        "tactical_shift": 6,
+        "bad_pass": 17,
+        "dribble": 13,
+        "miss": 15,
+        "foul": 22,
+        "header_clear": 8,
+        "yellow": 3,
+        "run_break": 4,
+        "gk_bad_distribution": 7,
+        "save": 5,
+        "halftime": 1,
+        "legend": 1
+      },
+      "steps": 5083,
+      "dt": 0.08
+    },
+    {
+      "id": "P1",
+      "suite": "parity",
+      "group": "parity:counter:4-2-3-1",
+      "seed": 100002,
+      "meta": {
+        "equal": true
+      },
+      "teams": [
+        {
+          "squadIndex": 221,
+          "name": "Holanda",
+          "rating": 84,
+          "style": "counter",
+          "form": "4-2-3-1",
+          "variation": 1
+        },
+        {
+          "squadIndex": 221,
+          "name": "Holanda",
+          "rating": 84,
+          "style": "counter",
+          "form": "4-2-3-1",
+          "variation": 1
+        }
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "goals": 0,
+      "shots": 22,
+      "onTarget": 7,
+      "xg": 1.8551372829519017,
+      "passes": 228,
+      "passOk": 191,
+      "possession": [
+        0.512959614225437,
+        0.4870403857745631
+      ],
+      "fouls": 18,
+      "yellow": 5,
+      "red": 0,
+      "corners": 9,
+      "tackles": 30,
+      "interceptions": 8,
+      "crosses": [
+        9,
+        3
+      ],
+      "lowCrosses": [
+        1,
+        0
+      ],
+      "throughBalls": [
+        19,
+        15
+      ],
+      "pressWins": [
+        5,
+        2
+      ],
+      "defErrors": [
+        0,
+        2
+      ],
+      "oneOnOnes": [
+        0,
+        0
+      ],
+      "setPieceShots": 6,
+      "setPieceGoals": 0,
+      "goalMinutes": [],
+      "stamina": [
+        71.21828045019089,
+        72.50338172616047
+      ],
+      "teamStats": [
+        {
+          "goals": 0,
+          "shots": 13,
+          "onTarget": 6,
+          "xg": 1.3142952008359308,
+          "passes": 116,
+          "passOk": 94,
+          "fouls": 8,
+          "yellow": 2,
+          "red": 0,
+          "corners": 7,
+          "tackles": 14,
+          "interceptions": 4,
+          "crosses": 9,
+          "lowCrosses": 1,
+          "lowCrossesOk": 1,
+          "throughBalls": 19,
+          "throughOk": 11,
+          "pressWins": 5,
+          "defErrors": 0,
+          "oneOnOnes": 0,
+          "setPieceShots": 5,
+          "setPieceGoals": 0,
+          "poss": 0.512959614225437,
+          "stamina": 71.21828045019089
+        },
+        {
+          "goals": 0,
+          "shots": 9,
+          "onTarget": 1,
+          "xg": 0.540842082115971,
+          "passes": 112,
+          "passOk": 97,
+          "fouls": 10,
+          "yellow": 3,
+          "red": 0,
+          "corners": 2,
+          "tackles": 16,
+          "interceptions": 4,
+          "crosses": 3,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 15,
+          "throughOk": 7,
+          "pressWins": 2,
+          "defErrors": 2,
+          "oneOnOnes": 0,
+          "setPieceShots": 1,
+          "setPieceGoals": 0,
+          "poss": 0.4870403857745631,
+          "stamina": 72.50338172616047
+        }
+      ],
+      "eventCounts": {
+        "kickoff": 1,
+        "pass": 191,
+        "through": 33,
+        "dribble": 33,
+        "tackle": 30,
+        "bad_pass": 28,
+        "shot_taken": 15,
+        "save": 7,
+        "run_burst": 19,
+        "looseControl": 18,
+        "run_break": 45,
+        "blocked": 4,
+        "corner": 9,
+        "cross": 12,
+        "header_shot": 6,
+        "gk_claim_miss": 3,
+        "miss": 11,
+        "intercept": 8,
+        "foul": 18,
+        "yellow": 5,
+        "tactical_shift": 4,
+        "low_cross_shot": 1,
+        "gk_sweep": 1,
+        "gk_claim": 2,
+        "header_clear": 6,
+        "defensive_error": 2,
+        "halftime": 1
+      },
+      "steps": 5025,
+      "dt": 0.08
+    },
+    {
+      "id": "P2",
+      "suite": "parity",
+      "group": "parity:press:4-2-4",
+      "seed": 100003,
+      "meta": {
+        "equal": true
+      },
+      "teams": [
+        {
+          "squadIndex": 12,
+          "name": "Argentina",
+          "rating": 85,
+          "style": "press",
+          "form": "4-2-4",
+          "variation": 1
+        },
+        {
+          "squadIndex": 12,
+          "name": "Argentina",
+          "rating": 85,
+          "style": "press",
+          "form": "4-2-4",
+          "variation": 1
+        }
+      ],
+      "score": [
+        4,
+        4
+      ],
+      "goals": 8,
+      "shots": 43,
+      "onTarget": 16,
+      "xg": 6.843225296058925,
+      "passes": 183,
+      "passOk": 148,
+      "possession": [
+        0.47112299465240653,
+        0.5288770053475934
+      ],
+      "fouls": 43,
+      "yellow": 5,
+      "red": 1,
+      "corners": 7,
+      "tackles": 96,
+      "interceptions": 16,
+      "crosses": [
+        4,
+        3
+      ],
+      "lowCrosses": [
+        0,
+        0
+      ],
+      "throughBalls": [
+        13,
+        18
+      ],
+      "pressWins": [
+        49,
+        41
+      ],
+      "defErrors": [
+        1,
+        0
+      ],
+      "oneOnOnes": [
+        1,
+        3
+      ],
+      "setPieceShots": 9,
+      "setPieceGoals": 1,
+      "goalMinutes": [
+        8,
+        13,
+        18,
+        28,
+        39,
+        43,
+        56,
+        60
+      ],
+      "stamina": [
+        62.22806314022703,
+        61.031377914431346
+      ],
+      "teamStats": [
+        {
+          "goals": 4,
+          "shots": 20,
+          "onTarget": 8,
+          "xg": 3.339939048628102,
+          "passes": 87,
+          "passOk": 67,
+          "fouls": 24,
+          "yellow": 2,
+          "red": 0,
+          "corners": 4,
+          "tackles": 52,
+          "interceptions": 5,
+          "crosses": 4,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 13,
+          "throughOk": 5,
+          "pressWins": 49,
+          "defErrors": 1,
+          "oneOnOnes": 1,
+          "setPieceShots": 4,
+          "setPieceGoals": 1,
+          "poss": 0.47112299465240653,
+          "stamina": 62.22806314022703
+        },
+        {
+          "goals": 4,
+          "shots": 23,
+          "onTarget": 8,
+          "xg": 3.5032862474308235,
+          "passes": 96,
+          "passOk": 81,
+          "fouls": 19,
+          "yellow": 3,
+          "red": 1,
+          "corners": 3,
+          "tackles": 44,
+          "interceptions": 11,
+          "crosses": 3,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 18,
+          "throughOk": 10,
+          "pressWins": 41,
+          "defErrors": 0,
+          "oneOnOnes": 3,
+          "setPieceShots": 5,
+          "setPieceGoals": 0,
+          "poss": 0.5288770053475934,
+          "stamina": 61.031377914431346
+        }
+      ],
+      "eventCounts": {
+        "kickoff": 1,
+        "pass": 148,
+        "looseControl": 12,
+        "intercept": 15,
+        "shot_taken": 33,
+        "post": 2,
+        "through": 18,
+        "foul": 43,
+        "freekick": 6,
+        "fk_scene": 6,
+        "tackle": 96,
+        "dribble": 20,
+        "miss": 20,
+        "run_break": 46,
+        "run_burst": 16,
+        "bad_pass": 13,
+        "goal": 8,
+        "tactical_shift": 14,
+        "gk_bad_distribution": 10,
+        "penalty": 1,
+        "corner": 7,
+        "cross": 7,
+        "header_shot": 3,
+        "header_clear": 5,
+        "yellow": 4,
+        "gk_sweep": 2,
+        "save": 4,
+        "gk_claim": 2,
+        "gk_claim_miss": 2,
+        "offside": 4,
+        "defensive_error": 1,
+        "halftime": 1,
+        "blocked": 4,
+        "red": 1,
+        "legend": 1
+      },
+      "steps": 5368,
+      "dt": 0.08
+    },
+    {
+      "id": "R3",
+      "suite": "random",
+      "group": "random",
+      "seed": 200004,
+      "meta": {
+        "ratingGap": -2
+      },
+      "teams": [
+        {
+          "squadIndex": 22,
+          "name": "Austrália",
+          "rating": 74,
+          "style": "counter",
+          "form": "5-3-2",
+          "variation": 0
+        },
+        {
+          "squadIndex": 317,
+          "name": "Suécia",
+          "rating": 76,
+          "style": "counter",
+          "form": "5-4-1",
+          "variation": 1
+        }
+      ],
+      "score": [
+        1,
+        2
+      ],
+      "goals": 3,
+      "shots": 31,
+      "onTarget": 6,
+      "xg": 2.1209607844358205,
+      "passes": 215,
+      "passOk": 182,
+      "possession": [
+        0.48476297968397297,
+        0.515237020316027
+      ],
+      "fouls": 24,
+      "yellow": 1,
+      "red": 0,
+      "corners": 8,
+      "tackles": 33,
+      "interceptions": 11,
+      "crosses": [
+        7,
+        1
+      ],
+      "lowCrosses": [
+        0,
+        0
+      ],
+      "throughBalls": [
+        25,
+        20
+      ],
+      "pressWins": [
+        7,
+        5
+      ],
+      "defErrors": [
+        0,
+        0
+      ],
+      "oneOnOnes": [
+        0,
+        0
+      ],
+      "setPieceShots": 2,
+      "setPieceGoals": 0,
+      "goalMinutes": [
+        24,
+        46,
+        84
+      ],
+      "stamina": [
+        70.70180669730077,
+        74.3043320464143
+      ],
+      "teamStats": [
+        {
+          "goals": 1,
+          "shots": 17,
+          "onTarget": 3,
+          "xg": 1.181188789730931,
+          "passes": 78,
+          "passOk": 65,
+          "fouls": 11,
+          "yellow": 0,
+          "red": 0,
+          "corners": 7,
+          "tackles": 13,
+          "interceptions": 5,
+          "crosses": 7,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 25,
+          "throughOk": 17,
+          "pressWins": 7,
+          "defErrors": 0,
+          "oneOnOnes": 0,
+          "setPieceShots": 2,
+          "setPieceGoals": 0,
+          "poss": 0.48476297968397297,
+          "stamina": 70.70180669730077
+        },
+        {
+          "goals": 2,
+          "shots": 14,
+          "onTarget": 3,
+          "xg": 0.9397719947048896,
+          "passes": 137,
+          "passOk": 117,
+          "fouls": 13,
+          "yellow": 1,
+          "red": 0,
+          "corners": 1,
+          "tackles": 20,
+          "interceptions": 6,
+          "crosses": 1,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 20,
+          "throughOk": 12,
+          "pressWins": 5,
+          "defErrors": 0,
+          "oneOnOnes": 0,
+          "setPieceShots": 0,
+          "setPieceGoals": 0,
+          "poss": 0.515237020316027,
+          "stamina": 74.3043320464143
+        }
+      ],
+      "eventCounts": {
+        "kickoff": 1,
+        "pass": 182,
+        "intercept": 11,
+        "dribble": 49,
+        "looseControl": 19,
+        "bad_pass": 20,
+        "through": 31,
+        "gk_bad_distribution": 3,
+        "shot_taken": 29,
+        "miss": 18,
+        "blocked": 7,
+        "run_break": 7,
+        "tackle": 33,
+        "foul": 24,
+        "corner": 8,
+        "cross": 8,
+        "header_shot": 1,
+        "gk_sweep": 1,
+        "gk_claim": 1,
+        "goal": 3,
+        "tactical_shift": 7,
+        "save": 2,
+        "header_clear": 7,
+        "run_burst": 3,
+        "halftime": 1,
+        "freekick": 1,
+        "fk_scene": 1,
+        "yellow": 1
+      },
+      "steps": 5137,
+      "dt": 0.08
+    },
+    {
+      "id": "R4",
+      "suite": "random",
+      "group": "random",
+      "seed": 200005,
+      "meta": {
+        "ratingGap": -12
+      },
+      "teams": [
+        {
+          "squadIndex": 292,
+          "name": "Coreia do Sul",
+          "rating": 73,
+          "style": "tiki",
+          "form": "5-3-2",
+          "variation": 0
+        },
+        {
+          "squadIndex": 51,
+          "name": "Brasil",
+          "rating": 89,
+          "style": "counter",
+          "form": "4-4-2",
+          "variation": 0
+        }
+      ],
+      "score": [
+        1,
+        1
+      ],
+      "goals": 2,
+      "shots": 21,
+      "onTarget": 7,
+      "xg": 2.1200917460360365,
+      "passes": 235,
+      "passOk": 197,
+      "possession": [
+        0.511340206185567,
+        0.4886597938144331
+      ],
+      "fouls": 17,
+      "yellow": 1,
+      "red": 0,
+      "corners": 4,
+      "tackles": 27,
+      "interceptions": 16,
+      "crosses": [
+        0,
+        4
+      ],
+      "lowCrosses": [
+        0,
+        0
+      ],
+      "throughBalls": [
+        6,
+        24
+      ],
+      "pressWins": [
+        5,
+        10
+      ],
+      "defErrors": [
+        1,
+        0
+      ],
+      "oneOnOnes": [
+        0,
+        0
+      ],
+      "setPieceShots": 7,
+      "setPieceGoals": 0,
+      "goalMinutes": [
+        34,
+        74
+      ],
+      "stamina": [
+        71.61154736691596,
+        72.85128236190866
+      ],
+      "teamStats": [
+        {
+          "goals": 1,
+          "shots": 6,
+          "onTarget": 3,
+          "xg": 0.41503176942605136,
+          "passes": 128,
+          "passOk": 109,
+          "fouls": 4,
+          "yellow": 0,
+          "red": 0,
+          "corners": 0,
+          "tackles": 11,
+          "interceptions": 6,
+          "crosses": 0,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 6,
+          "throughOk": 1,
+          "pressWins": 5,
+          "defErrors": 1,
+          "oneOnOnes": 0,
+          "setPieceShots": 5,
+          "setPieceGoals": 0,
+          "poss": 0.511340206185567,
+          "stamina": 71.61154736691596
+        },
+        {
+          "goals": 1,
+          "shots": 15,
+          "onTarget": 4,
+          "xg": 1.7050599766099852,
+          "passes": 107,
+          "passOk": 88,
+          "fouls": 13,
+          "yellow": 1,
+          "red": 0,
+          "corners": 4,
+          "tackles": 16,
+          "interceptions": 10,
+          "crosses": 4,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 24,
+          "throughOk": 15,
+          "pressWins": 10,
+          "defErrors": 0,
+          "oneOnOnes": 0,
+          "setPieceShots": 2,
+          "setPieceGoals": 0,
+          "poss": 0.4886597938144331,
+          "stamina": 72.85128236190866
+        }
+      ],
+      "eventCounts": {
+        "kickoff": 1,
+        "pass": 197,
+        "through": 32,
+        "looseControl": 22,
+        "foul": 17,
+        "run_break": 12,
+        "intercept": 16,
+        "tackle": 27,
+        "header_clear": 7,
+        "dribble": 14,
+        "freekick": 5,
+        "fk_scene": 5,
+        "bad_pass": 22,
+        "shot_taken": 15,
+        "miss": 6,
+        "post": 3,
+        "yellow": 1,
+        "run_burst": 10,
+        "save": 3,
+        "corner": 4,
+        "cross": 4,
+        "gk_sweep": 1,
+        "gk_claim": 1,
+        "header_shot": 1,
+        "goal": 2,
+        "tactical_shift": 7,
+        "halftime": 1,
+        "blocked": 2,
+        "gk_bad_distribution": 2,
+        "defensive_error": 1,
+        "legend": 1
+      },
+      "steps": 4957,
+      "dt": 0.08
+    },
+    {
+      "id": "R5",
+      "suite": "random",
+      "group": "random",
+      "seed": 200006,
+      "meta": {
+        "ratingGap": -8
+      },
+      "teams": [
+        {
+          "squadIndex": 286,
+          "name": "Senegal",
+          "rating": 75,
+          "style": "park",
+          "form": "4-3-2-1",
+          "variation": 0
+        },
+        {
+          "squadIndex": 223,
+          "name": "Holanda",
+          "rating": 83,
+          "style": "park",
+          "form": "3-4-2-1",
+          "variation": 0
+        }
+      ],
+      "score": [
+        1,
+        1
+      ],
+      "goals": 2,
+      "shots": 28,
+      "onTarget": 9,
+      "xg": 2.1321030117725392,
+      "passes": 229,
+      "passOk": 194,
+      "possession": [
+        0.4957888826501965,
+        0.5042111173498034
+      ],
+      "fouls": 19,
+      "yellow": 3,
+      "red": 0,
+      "corners": 2,
+      "tackles": 27,
+      "interceptions": 12,
+      "crosses": [
+        0,
+        2
+      ],
+      "lowCrosses": [
+        0,
+        0
+      ],
+      "throughBalls": [
+        19,
+        8
+      ],
+      "pressWins": [
+        0,
+        4
+      ],
+      "defErrors": [
+        0,
+        2
+      ],
+      "oneOnOnes": [
+        0,
+        0
+      ],
+      "setPieceShots": 5,
+      "setPieceGoals": 0,
+      "goalMinutes": [
+        34,
+        40
+      ],
+      "stamina": [
+        74.2164656387843,
+        72.81888386011742
+      ],
+      "teamStats": [
+        {
+          "goals": 1,
+          "shots": 5,
+          "onTarget": 3,
+          "xg": 0.4357263991736473,
+          "passes": 138,
+          "passOk": 114,
+          "fouls": 11,
+          "yellow": 2,
+          "red": 0,
+          "corners": 0,
+          "tackles": 11,
+          "interceptions": 2,
+          "crosses": 0,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 19,
+          "throughOk": 8,
+          "pressWins": 0,
+          "defErrors": 0,
+          "oneOnOnes": 0,
+          "setPieceShots": 1,
+          "setPieceGoals": 0,
+          "poss": 0.4957888826501965,
+          "stamina": 74.2164656387843
+        },
+        {
+          "goals": 1,
+          "shots": 23,
+          "onTarget": 6,
+          "xg": 1.696376612598892,
+          "passes": 91,
+          "passOk": 80,
+          "fouls": 8,
+          "yellow": 1,
+          "red": 0,
+          "corners": 2,
+          "tackles": 16,
+          "interceptions": 10,
+          "crosses": 2,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 8,
+          "throughOk": 4,
+          "pressWins": 4,
+          "defErrors": 2,
+          "oneOnOnes": 0,
+          "setPieceShots": 4,
+          "setPieceGoals": 0,
+          "poss": 0.5042111173498034,
+          "stamina": 72.81888386011742
+        }
+      ],
+      "eventCounts": {
+        "kickoff": 1,
+        "pass": 194,
+        "through": 38,
+        "looseControl": 23,
+        "dribble": 93,
+        "foul": 19,
+        "run_break": 20,
+        "shot_taken": 24,
+        "blocked": 4,
+        "intercept": 12,
+        "save": 4,
+        "gk_bad_distribution": 2,
+        "tackle": 27,
+        "bad_pass": 23,
+        "run_burst": 9,
+        "miss": 13,
+        "corner": 2,
+        "cross": 2,
+        "freekick": 3,
+        "fk_scene": 3,
+        "yellow": 3,
+        "defensive_error": 2,
+        "goal": 2,
+        "tactical_shift": 6,
+        "halftime": 1,
+        "header_clear": 2,
+        "gk_claim_miss": 1,
+        "header_shot": 1,
+        "post": 1
+      },
+      "steps": 4988,
+      "dt": 0.08
+    },
+    {
+      "id": "R6",
+      "suite": "random",
+      "group": "random",
+      "seed": 200007,
+      "meta": {
+        "ratingGap": 19
+      },
+      "teams": [
+        {
+          "squadIndex": 313,
+          "name": "Espanha",
+          "rating": 92,
+          "style": "press",
+          "form": "4-3-3",
+          "variation": 0
+        },
+        {
+          "squadIndex": 289,
+          "name": "Coreia do Sul",
+          "rating": 73,
+          "style": "park",
+          "form": "4-3-3",
+          "variation": 2
+        }
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "goals": 0,
+      "shots": 23,
+      "onTarget": 9,
+      "xg": 2.9289081583493246,
+      "passes": 224,
+      "passOk": 176,
+      "possession": [
+        0.4683038263849231,
+        0.531696173615077
+      ],
+      "fouls": 22,
+      "yellow": 6,
+      "red": 0,
+      "corners": 5,
+      "tackles": 42,
+      "interceptions": 24,
+      "crosses": [
+        9,
+        0
+      ],
+      "lowCrosses": [
+        2,
+        0
+      ],
+      "throughBalls": [
+        16,
+        23
+      ],
+      "pressWins": [
+        18,
+        5
+      ],
+      "defErrors": [
+        1,
+        0
+      ],
+      "oneOnOnes": [
+        0,
+        0
+      ],
+      "setPieceShots": 7,
+      "setPieceGoals": 0,
+      "goalMinutes": [],
+      "stamina": [
+        61.793717371583625,
+        74.37541354908494
+      ],
+      "teamStats": [
+        {
+          "goals": 0,
+          "shots": 22,
+          "onTarget": 9,
+          "xg": 2.8349076139731424,
+          "passes": 88,
+          "passOk": 72,
+          "fouls": 11,
+          "yellow": 2,
+          "red": 0,
+          "corners": 5,
+          "tackles": 25,
+          "interceptions": 18,
+          "crosses": 9,
+          "lowCrosses": 2,
+          "lowCrossesOk": 1,
+          "throughBalls": 16,
+          "throughOk": 8,
+          "pressWins": 18,
+          "defErrors": 1,
+          "oneOnOnes": 0,
+          "setPieceShots": 7,
+          "setPieceGoals": 0,
+          "poss": 0.4683038263849231,
+          "stamina": 61.793717371583625
+        },
+        {
+          "goals": 0,
+          "shots": 1,
+          "onTarget": 0,
+          "xg": 0.09400054437618226,
+          "passes": 136,
+          "passOk": 104,
+          "fouls": 11,
+          "yellow": 4,
+          "red": 0,
+          "corners": 0,
+          "tackles": 17,
+          "interceptions": 6,
+          "crosses": 0,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 23,
+          "throughOk": 7,
+          "pressWins": 5,
+          "defErrors": 0,
+          "oneOnOnes": 0,
+          "setPieceShots": 0,
+          "setPieceGoals": 0,
+          "poss": 0.531696173615077,
+          "stamina": 74.37541354908494
+        }
+      ],
+      "eventCounts": {
+        "defensive_error": 1,
+        "kickoff": 1,
+        "pass": 176,
+        "through": 27,
+        "tackle": 42,
+        "cross": 9,
+        "gk_sweep": 4,
+        "gk_claim": 4,
+        "intercept": 24,
+        "run_burst": 11,
+        "looseControl": 19,
+        "foul": 22,
+        "freekick": 4,
+        "fk_scene": 4,
+        "gk_bad_distribution": 3,
+        "dribble": 21,
+        "bad_pass": 21,
+        "yellow": 6,
+        "run_break": 24,
+        "shot_taken": 15,
+        "save": 6,
+        "corner": 5,
+        "header_shot": 2,
+        "miss": 8,
+        "tactical_shift": 11,
+        "header_clear": 7,
+        "blocked": 3,
+        "halftime": 1,
+        "post": 1,
+        "penalty": 1,
+        "pen_miss": 1,
+        "low_cross_shot": 1
+      },
+      "steps": 4984,
+      "dt": 0.08
+    },
+    {
+      "id": "R7",
+      "suite": "random",
+      "group": "random",
+      "seed": 200008,
+      "meta": {
+        "ratingGap": 3
+      },
+      "teams": [
+        {
+          "squadIndex": 314,
+          "name": "Espanha",
+          "rating": 75,
+          "style": "counter",
+          "form": "4-5-1",
+          "variation": 0
+        },
+        {
+          "squadIndex": 296,
+          "name": "União Soviética",
+          "rating": 72,
+          "style": "park",
+          "form": "4-1-2-1-2",
+          "variation": 0
+        }
+      ],
+      "score": [
+        2,
+        0
+      ],
+      "goals": 2,
+      "shots": 16,
+      "onTarget": 4,
+      "xg": 1.3536756098588152,
+      "passes": 235,
+      "passOk": 196,
+      "possession": [
+        0.5634349030470911,
+        0.43656509695290885
+      ],
+      "fouls": 30,
+      "yellow": 6,
+      "red": 1,
+      "corners": 4,
+      "tackles": 51,
+      "interceptions": 16,
+      "crosses": [
+        4,
+        0
+      ],
+      "lowCrosses": [
+        0,
+        0
+      ],
+      "throughBalls": [
+        9,
+        19
+      ],
+      "pressWins": [
+        4,
+        3
+      ],
+      "defErrors": [
+        0,
+        0
+      ],
+      "oneOnOnes": [
+        0,
+        0
+      ],
+      "setPieceShots": 3,
+      "setPieceGoals": 0,
+      "goalMinutes": [
+        24,
+        56
+      ],
+      "stamina": [
+        76.53765084976695,
+        74.8281965442014
+      ],
+      "teamStats": [
+        {
+          "goals": 2,
+          "shots": 10,
+          "onTarget": 4,
+          "xg": 0.8352933790701115,
+          "passes": 137,
+          "passOk": 117,
+          "fouls": 16,
+          "yellow": 1,
+          "red": 0,
+          "corners": 4,
+          "tackles": 24,
+          "interceptions": 10,
+          "crosses": 4,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 9,
+          "throughOk": 3,
+          "pressWins": 4,
+          "defErrors": 0,
+          "oneOnOnes": 0,
+          "setPieceShots": 2,
+          "setPieceGoals": 0,
+          "poss": 0.5634349030470911,
+          "stamina": 76.53765084976695
+        },
+        {
+          "goals": 0,
+          "shots": 6,
+          "onTarget": 0,
+          "xg": 0.5183822307887037,
+          "passes": 98,
+          "passOk": 79,
+          "fouls": 14,
+          "yellow": 5,
+          "red": 1,
+          "corners": 0,
+          "tackles": 27,
+          "interceptions": 6,
+          "crosses": 0,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 19,
+          "throughOk": 10,
+          "pressWins": 3,
+          "defErrors": 0,
+          "oneOnOnes": 0,
+          "setPieceShots": 1,
+          "setPieceGoals": 0,
+          "poss": 0.43656509695290885,
+          "stamina": 74.8281965442014
+        }
+      ],
+      "eventCounts": {
+        "kickoff": 1,
+        "bad_pass": 22,
+        "pass": 196,
+        "through": 38,
+        "run_break": 4,
+        "run_burst": 5,
+        "dribble": 36,
+        "foul": 30,
+        "freekick": 2,
+        "fk_scene": 2,
+        "intercept": 16,
+        "tackle": 51,
+        "looseControl": 17,
+        "yellow": 5,
+        "header_clear": 2,
+        "gk_bad_distribution": 3,
+        "shot_taken": 13,
+        "post": 1,
+        "blocked": 3,
+        "miss": 7,
+        "goal": 2,
+        "tactical_shift": 6,
+        "injury": 2,
+        "sub": 2,
+        "corner": 4,
+        "cross": 4,
+        "gk_claim": 2,
+        "halftime": 1,
+        "red": 1,
+        "save": 1,
+        "gk_sweep": 1,
+        "gk_claim_miss": 1,
+        "header_shot": 1
+      },
+      "steps": 5110,
+      "dt": 0.08
+    },
+    {
+      "id": "R8",
+      "suite": "random",
+      "group": "random",
+      "seed": 200009,
+      "meta": {
+        "ratingGap": -4
+      },
+      "teams": [
+        {
+          "squadIndex": 47,
+          "name": "Brasil",
+          "rating": 73,
+          "style": "balanced",
+          "form": "5-3-2",
+          "variation": 1
+        },
+        {
+          "squadIndex": 354,
+          "name": "Uruguai",
+          "rating": 78,
+          "style": "direct",
+          "form": "4-3-2-1",
+          "variation": 0
+        }
+      ],
+      "score": [
+        1,
+        0
+      ],
+      "goals": 1,
+      "shots": 25,
+      "onTarget": 8,
+      "xg": 3.5405120247715147,
+      "passes": 199,
+      "passOk": 150,
+      "possession": [
+        0.5521508544490273,
+        0.44784914555097255
+      ],
+      "fouls": 25,
+      "yellow": 6,
+      "red": 0,
+      "corners": 4,
+      "tackles": 39,
+      "interceptions": 17,
+      "crosses": [
+        2,
+        2
+      ],
+      "lowCrosses": [
+        0,
+        0
+      ],
+      "throughBalls": [
+        10,
+        14
+      ],
+      "pressWins": [
+        5,
+        8
+      ],
+      "defErrors": [
+        0,
+        1
+      ],
+      "oneOnOnes": [
+        1,
+        2
+      ],
+      "setPieceShots": 3,
+      "setPieceGoals": 0,
+      "goalMinutes": [
+        24
+      ],
+      "stamina": [
+        74.36133977027569,
+        68.11629683884173
+      ],
+      "teamStats": [
+        {
+          "goals": 1,
+          "shots": 7,
+          "onTarget": 3,
+          "xg": 1.3873883024953915,
+          "passes": 145,
+          "passOk": 113,
+          "fouls": 11,
+          "yellow": 2,
+          "red": 0,
+          "corners": 2,
+          "tackles": 21,
+          "interceptions": 8,
+          "crosses": 2,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 10,
+          "throughOk": 1,
+          "pressWins": 5,
+          "defErrors": 0,
+          "oneOnOnes": 1,
+          "setPieceShots": 1,
+          "setPieceGoals": 0,
+          "poss": 0.5521508544490273,
+          "stamina": 74.36133977027569
+        },
+        {
+          "goals": 0,
+          "shots": 18,
+          "onTarget": 5,
+          "xg": 2.1531237222761233,
+          "passes": 54,
+          "passOk": 37,
+          "fouls": 14,
+          "yellow": 4,
+          "red": 0,
+          "corners": 2,
+          "tackles": 18,
+          "interceptions": 9,
+          "crosses": 2,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 14,
+          "throughOk": 6,
+          "pressWins": 8,
+          "defErrors": 1,
+          "oneOnOnes": 2,
+          "setPieceShots": 2,
+          "setPieceGoals": 0,
+          "poss": 0.44784914555097255,
+          "stamina": 68.11629683884173
+        }
+      ],
+      "eventCounts": {
+        "kickoff": 1,
+        "pass": 150,
+        "looseControl": 18,
+        "foul": 25,
+        "bad_pass": 30,
+        "tackle": 39,
+        "through": 13,
+        "shot_taken": 22,
+        "save": 6,
+        "corner": 4,
+        "cross": 4,
+        "gk_sweep": 2,
+        "gk_claim": 2,
+        "intercept": 17,
+        "header_clear": 10,
+        "miss": 14,
+        "dribble": 37,
+        "freekick": 2,
+        "fk_scene": 2,
+        "yellow": 6,
+        "run_burst": 4,
+        "gk_bad_distribution": 6,
+        "goal": 1,
+        "tactical_shift": 13,
+        "run_break": 4,
+        "halftime": 1,
+        "header_shot": 1,
+        "defensive_error": 1,
+        "blocked": 1,
+        "post": 1
+      },
+      "steps": 5066,
+      "dt": 0.08
+    },
+    {
+      "id": "S9",
+      "suite": "strongWeak",
+      "group": "strongWeak",
+      "seed": 300010,
+      "meta": {
+        "favoriteSide": 0,
+        "ratingGap": 17
+      },
+      "teams": [
+        {
+          "squadIndex": 18,
+          "name": "Argentina",
+          "rating": 89,
+          "style": "direct",
+          "form": "4-1-2-1-2",
+          "variation": 1
+        },
+        {
+          "squadIndex": 214,
+          "name": "Marrocos",
+          "rating": 71,
+          "style": "counter",
+          "form": "4-2-3-1",
+          "variation": 0
+        }
+      ],
+      "score": [
+        3,
+        0
+      ],
+      "goals": 3,
+      "shots": 23,
+      "onTarget": 13,
+      "xg": 2.292940307552169,
+      "passes": 223,
+      "passOk": 187,
+      "possession": [
+        0.5235223160434257,
+        0.4764776839565743
+      ],
+      "fouls": 40,
+      "yellow": 3,
+      "red": 0,
+      "corners": 7,
+      "tackles": 61,
+      "interceptions": 18,
+      "crosses": [
+        4,
+        3
+      ],
+      "lowCrosses": [
+        0,
+        0
+      ],
+      "throughBalls": [
+        18,
+        14
+      ],
+      "pressWins": [
+        12,
+        9
+      ],
+      "defErrors": [
+        0,
+        1
+      ],
+      "oneOnOnes": [
+        0,
+        0
+      ],
+      "setPieceShots": 11,
+      "setPieceGoals": 1,
+      "goalMinutes": [
+        34,
+        35,
+        74
+      ],
+      "stamina": [
+        71.37707506686401,
+        72.49477545642789
+      ],
+      "teamStats": [
+        {
+          "goals": 3,
+          "shots": 18,
+          "onTarget": 9,
+          "xg": 2.0086965549765483,
+          "passes": 103,
+          "passOk": 88,
+          "fouls": 19,
+          "yellow": 1,
+          "red": 0,
+          "corners": 4,
+          "tackles": 35,
+          "interceptions": 10,
+          "crosses": 4,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 18,
+          "throughOk": 11,
+          "pressWins": 12,
+          "defErrors": 0,
+          "oneOnOnes": 0,
+          "setPieceShots": 6,
+          "setPieceGoals": 1,
+          "poss": 0.5235223160434257,
+          "stamina": 71.37707506686401
+        },
+        {
+          "goals": 0,
+          "shots": 5,
+          "onTarget": 4,
+          "xg": 0.2842437525756207,
+          "passes": 120,
+          "passOk": 99,
+          "fouls": 21,
+          "yellow": 2,
+          "red": 0,
+          "corners": 3,
+          "tackles": 26,
+          "interceptions": 8,
+          "crosses": 3,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 14,
+          "throughOk": 7,
+          "pressWins": 9,
+          "defErrors": 1,
+          "oneOnOnes": 0,
+          "setPieceShots": 5,
+          "setPieceGoals": 0,
+          "poss": 0.4764776839565743,
+          "stamina": 72.49477545642789
+        }
+      ],
+      "eventCounts": {
+        "kickoff": 1,
+        "pass": 187,
+        "tackle": 61,
+        "intercept": 18,
+        "looseControl": 17,
+        "bad_pass": 17,
+        "through": 34,
+        "foul": 40,
+        "header_clear": 11,
+        "run_break": 13,
+        "shot_taken": 12,
+        "miss": 8,
+        "dribble": 28,
+        "run_burst": 6,
+        "yellow": 3,
+        "freekick": 7,
+        "fk_scene": 7,
+        "corner": 7,
+        "cross": 7,
+        "save": 5,
+        "header_shot": 4,
+        "blocked": 1,
+        "tactical_shift": 7,
+        "goal": 3,
+        "gk_claim": 2,
+        "halftime": 1,
+        "defensive_error": 1,
+        "gk_sweep": 1
+      },
+      "steps": 5215,
+      "dt": 0.08
+    },
+    {
+      "id": "S10",
+      "suite": "strongWeak",
+      "group": "strongWeak",
+      "seed": 300011,
+      "meta": {
+        "favoriteSide": 1,
+        "ratingGap": 18
+      },
+      "teams": [
+        {
+          "squadIndex": 252,
+          "name": "Polônia",
+          "rating": 71,
+          "style": "wings",
+          "form": "3-5-2",
+          "variation": 1
+        },
+        {
+          "squadIndex": 19,
+          "name": "Argentina",
+          "rating": 89,
+          "style": "tiki",
+          "form": "4-2-2-2",
+          "variation": 1
+        }
+      ],
+      "score": [
+        0,
+        2
+      ],
+      "goals": 2,
+      "shots": 16,
+      "onTarget": 4,
+      "xg": 1.6714035120841666,
+      "passes": 224,
+      "passOk": 187,
+      "possession": [
+        0.34015525758645127,
+        0.6598447424135487
+      ],
+      "fouls": 20,
+      "yellow": 4,
+      "red": 0,
+      "corners": 3,
+      "tackles": 39,
+      "interceptions": 20,
+      "crosses": [
+        0,
+        3
+      ],
+      "lowCrosses": [
+        0,
+        0
+      ],
+      "throughBalls": [
+        12,
+        11
+      ],
+      "pressWins": [
+        1,
+        12
+      ],
+      "defErrors": [
+        2,
+        0
+      ],
+      "oneOnOnes": [
+        0,
+        0
+      ],
+      "setPieceShots": 2,
+      "setPieceGoals": 0,
+      "goalMinutes": [
+        21,
+        23
+      ],
+      "stamina": [
+        69.5651679958119,
+        73.74884450061408
+      ],
+      "teamStats": [
+        {
+          "goals": 0,
+          "shots": 1,
+          "onTarget": 0,
+          "xg": 0.07617120558855373,
+          "passes": 87,
+          "passOk": 70,
+          "fouls": 10,
+          "yellow": 2,
+          "red": 0,
+          "corners": 0,
+          "tackles": 20,
+          "interceptions": 7,
+          "crosses": 0,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 12,
+          "throughOk": 5,
+          "pressWins": 1,
+          "defErrors": 2,
+          "oneOnOnes": 0,
+          "setPieceShots": 0,
+          "setPieceGoals": 0,
+          "poss": 0.34015525758645127,
+          "stamina": 69.5651679958119
+        },
+        {
+          "goals": 2,
+          "shots": 15,
+          "onTarget": 4,
+          "xg": 1.5952323064956129,
+          "passes": 137,
+          "passOk": 117,
+          "fouls": 10,
+          "yellow": 2,
+          "red": 0,
+          "corners": 3,
+          "tackles": 19,
+          "interceptions": 13,
+          "crosses": 3,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 11,
+          "throughOk": 4,
+          "pressWins": 12,
+          "defErrors": 0,
+          "oneOnOnes": 0,
+          "setPieceShots": 2,
+          "setPieceGoals": 0,
+          "poss": 0.6598447424135487,
+          "stamina": 73.74884450061408
+        }
+      ],
+      "eventCounts": {
+        "defensive_error": 2,
+        "kickoff": 1,
+        "pass": 187,
+        "intercept": 19,
+        "tackle": 39,
+        "foul": 20,
+        "header_clear": 9,
+        "through": 12,
+        "shot_taken": 14,
+        "save": 2,
+        "corner": 3,
+        "cross": 3,
+        "gk_sweep": 2,
+        "gk_claim": 2,
+        "miss": 9,
+        "looseControl": 16,
+        "bad_pass": 17,
+        "run_break": 5,
+        "dribble": 10,
+        "run_burst": 14,
+        "gk_bad_distribution": 4,
+        "blocked": 2,
+        "goal": 2,
+        "tactical_shift": 7,
+        "yellow": 4,
+        "halftime": 1,
+        "freekick": 1,
+        "fk_scene": 1,
+        "header_shot": 1
+      },
+      "steps": 5011,
+      "dt": 0.08
+    },
+    {
+      "id": "S11",
+      "suite": "strongWeak",
+      "group": "strongWeak",
+      "seed": 300012,
+      "meta": {
+        "favoriteSide": 0,
+        "ratingGap": 16
+      },
+      "teams": [
+        {
+          "squadIndex": 316,
+          "name": "Espanha",
+          "rating": 87,
+          "style": "direct",
+          "form": "4-2-3-1",
+          "variation": 1
+        },
+        {
+          "squadIndex": 24,
+          "name": "Austrália",
+          "rating": 71,
+          "style": "balanced",
+          "form": "4-1-2-1-2",
+          "variation": 1
+        }
+      ],
+      "score": [
+        2,
+        1
+      ],
+      "goals": 3,
+      "shots": 17,
+      "onTarget": 7,
+      "xg": 2.2684957079735346,
+      "passes": 218,
+      "passOk": 176,
+      "possession": [
+        0.5238359201773835,
+        0.47616407982261655
+      ],
+      "fouls": 27,
+      "yellow": 4,
+      "red": 0,
+      "corners": 5,
+      "tackles": 40,
+      "interceptions": 17,
+      "crosses": [
+        6,
+        2
+      ],
+      "lowCrosses": [
+        2,
+        0
+      ],
+      "throughBalls": [
+        28,
+        14
+      ],
+      "pressWins": [
+        10,
+        4
+      ],
+      "defErrors": [
+        0,
+        0
+      ],
+      "oneOnOnes": [
+        1,
+        1
+      ],
+      "setPieceShots": 3,
+      "setPieceGoals": 1,
+      "goalMinutes": [
+        8,
+        35,
+        66
+      ],
+      "stamina": [
+        72.11309437265842,
+        69.85509473703053
+      ],
+      "teamStats": [
+        {
+          "goals": 2,
+          "shots": 12,
+          "onTarget": 6,
+          "xg": 1.410256129801413,
+          "passes": 93,
+          "passOk": 76,
+          "fouls": 13,
+          "yellow": 2,
+          "red": 0,
+          "corners": 3,
+          "tackles": 20,
+          "interceptions": 8,
+          "crosses": 6,
+          "lowCrosses": 2,
+          "lowCrossesOk": 2,
+          "throughBalls": 28,
+          "throughOk": 18,
+          "pressWins": 10,
+          "defErrors": 0,
+          "oneOnOnes": 1,
+          "setPieceShots": 2,
+          "setPieceGoals": 0,
+          "poss": 0.5238359201773835,
+          "stamina": 72.11309437265842
+        },
+        {
+          "goals": 1,
+          "shots": 5,
+          "onTarget": 1,
+          "xg": 0.8582395781721219,
+          "passes": 125,
+          "passOk": 100,
+          "fouls": 14,
+          "yellow": 2,
+          "red": 0,
+          "corners": 2,
+          "tackles": 20,
+          "interceptions": 9,
+          "crosses": 2,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 14,
+          "throughOk": 6,
+          "pressWins": 4,
+          "defErrors": 0,
+          "oneOnOnes": 1,
+          "setPieceShots": 1,
+          "setPieceGoals": 1,
+          "poss": 0.47616407982261655,
+          "stamina": 69.85509473703053
+        }
+      ],
+      "eventCounts": {
+        "kickoff": 1,
+        "pass": 176,
+        "looseControl": 24,
+        "run_break": 27,
+        "through": 32,
+        "tackle": 40,
+        "foul": 27,
+        "injury": 1,
+        "sub": 1,
+        "header_clear": 8,
+        "bad_pass": 23,
+        "shot_taken": 12,
+        "blocked": 3,
+        "intercept": 16,
+        "dribble": 40,
+        "run_burst": 4,
+        "cross": 8,
+        "low_cross_shot": 2,
+        "goal": 3,
+        "tactical_shift": 6,
+        "corner": 5,
+        "yellow": 4,
+        "gk_sweep": 3,
+        "gk_claim": 3,
+        "miss": 6,
+        "gk_bad_distribution": 1,
+        "freekick": 2,
+        "fk_scene": 2,
+        "halftime": 1,
+        "save": 2,
+        "post": 1,
+        "header_shot": 1
+      },
+      "steps": 5099,
+      "dt": 0.08
+    },
+    {
+      "id": "T12",
+      "suite": "styles",
+      "group": "style:tiki",
+      "seed": 400013,
+      "meta": {
+        "testedStyle": "tiki",
+        "testedSide": 0
+      },
+      "teams": [
+        {
+          "squadIndex": 16,
+          "name": "Argentina",
+          "rating": 85,
+          "style": "tiki",
+          "form": "4-3-3",
+          "variation": 0
+        },
+        {
+          "squadIndex": 16,
+          "name": "Argentina",
+          "rating": 85,
+          "style": "balanced",
+          "form": "4-3-3",
+          "variation": 0
+        }
+      ],
+      "score": [
+        2,
+        3
+      ],
+      "goals": 5,
+      "shots": 23,
+      "onTarget": 10,
+      "xg": 3.8836693522445715,
+      "passes": 209,
+      "passOk": 176,
+      "possession": [
+        0.4831056793673617,
+        0.5168943206326383
+      ],
+      "fouls": 11,
+      "yellow": 3,
+      "red": 0,
+      "corners": 8,
+      "tackles": 33,
+      "interceptions": 10,
+      "crosses": [
+        3,
+        12
+      ],
+      "lowCrosses": [
+        0,
+        5
+      ],
+      "throughBalls": [
+        14,
+        6
+      ],
+      "pressWins": [
+        10,
+        1
+      ],
+      "defErrors": [
+        1,
+        1
+      ],
+      "oneOnOnes": [
+        0,
+        2
+      ],
+      "setPieceShots": 2,
+      "setPieceGoals": 0,
+      "goalMinutes": [
+        5,
+        12,
+        18,
+        39,
+        73
+      ],
+      "stamina": [
+        69.55371442689615,
+        72.94574382902893
+      ],
+      "teamStats": [
+        {
+          "goals": 2,
+          "shots": 10,
+          "onTarget": 4,
+          "xg": 1.3435783247108635,
+          "passes": 85,
+          "passOk": 67,
+          "fouls": 5,
+          "yellow": 2,
+          "red": 0,
+          "corners": 2,
+          "tackles": 15,
+          "interceptions": 4,
+          "crosses": 3,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 14,
+          "throughOk": 9,
+          "pressWins": 10,
+          "defErrors": 1,
+          "oneOnOnes": 0,
+          "setPieceShots": 0,
+          "setPieceGoals": 0,
+          "poss": 0.4831056793673617,
+          "stamina": 69.55371442689615
+        },
+        {
+          "goals": 3,
+          "shots": 13,
+          "onTarget": 6,
+          "xg": 2.540091027533708,
+          "passes": 124,
+          "passOk": 109,
+          "fouls": 6,
+          "yellow": 1,
+          "red": 0,
+          "corners": 6,
+          "tackles": 18,
+          "interceptions": 6,
+          "crosses": 12,
+          "lowCrosses": 5,
+          "lowCrossesOk": 2,
+          "throughBalls": 6,
+          "throughOk": 5,
+          "pressWins": 1,
+          "defErrors": 1,
+          "oneOnOnes": 2,
+          "setPieceShots": 2,
+          "setPieceGoals": 0,
+          "poss": 0.5168943206326383,
+          "stamina": 72.94574382902893
+        }
+      ],
+      "eventCounts": {
+        "kickoff": 1,
+        "pass": 176,
+        "looseControl": 13,
+        "bad_pass": 21,
+        "through": 28,
+        "intercept": 10,
+        "shot_taken": 19,
+        "save": 5,
+        "corner": 8,
+        "cross": 15,
+        "gk_sweep": 3,
+        "gk_claim": 7,
+        "run_break": 28,
+        "dribble": 18,
+        "tackle": 33,
+        "goal": 5,
+        "defensive_error": 2,
+        "run_burst": 10,
+        "tactical_shift": 11,
+        "foul": 11,
+        "miss": 11,
+        "low_cross_shot": 2,
+        "gk_bad_distribution": 4,
+        "header_clear": 6,
+        "blocked": 3,
+        "halftime": 1,
+        "gk_claim_miss": 2,
+        "header_shot": 2,
+        "yellow": 3,
+        "offside": 1,
+        "post": 1,
+        "legend": 1
+      },
+      "steps": 5011,
+      "dt": 0.08
+    },
+    {
+      "id": "T13",
+      "suite": "styles",
+      "group": "style:counter",
+      "seed": 400014,
+      "meta": {
+        "testedStyle": "counter",
+        "testedSide": 1
+      },
+      "teams": [
+        {
+          "squadIndex": 154,
+          "name": "Alemanha",
+          "rating": 87,
+          "style": "balanced",
+          "form": "4-2-3-1",
+          "variation": 0
+        },
+        {
+          "squadIndex": 154,
+          "name": "Alemanha",
+          "rating": 87,
+          "style": "counter",
+          "form": "4-2-3-1",
+          "variation": 0
+        }
+      ],
+      "score": [
+        0,
+        2
+      ],
+      "goals": 2,
+      "shots": 22,
+      "onTarget": 9,
+      "xg": 2.2584023654611176,
+      "passes": 236,
+      "passOk": 195,
+      "possession": [
+        0.4632489190858557,
+        0.5367510809141444
+      ],
+      "fouls": 23,
+      "yellow": 2,
+      "red": 0,
+      "corners": 5,
+      "tackles": 53,
+      "interceptions": 17,
+      "crosses": [
+        2,
+        3
+      ],
+      "lowCrosses": [
+        0,
+        0
+      ],
+      "throughBalls": [
+        10,
+        26
+      ],
+      "pressWins": [
+        12,
+        6
+      ],
+      "defErrors": [
+        0,
+        3
+      ],
+      "oneOnOnes": [
+        0,
+        1
+      ],
+      "setPieceShots": 6,
+      "setPieceGoals": 1,
+      "goalMinutes": [
+        14,
+        42
+      ],
+      "stamina": [
+        67.48738275569085,
+        73.89456617992052
+      ],
+      "teamStats": [
+        {
+          "goals": 0,
+          "shots": 14,
+          "onTarget": 3,
+          "xg": 1.1255146210586442,
+          "passes": 106,
+          "passOk": 92,
+          "fouls": 12,
+          "yellow": 0,
+          "red": 0,
+          "corners": 2,
+          "tackles": 25,
+          "interceptions": 12,
+          "crosses": 2,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 10,
+          "throughOk": 5,
+          "pressWins": 12,
+          "defErrors": 0,
+          "oneOnOnes": 0,
+          "setPieceShots": 3,
+          "setPieceGoals": 0,
+          "poss": 0.4632489190858557,
+          "stamina": 67.48738275569085
+        },
+        {
+          "goals": 2,
+          "shots": 8,
+          "onTarget": 6,
+          "xg": 1.1328877444024734,
+          "passes": 130,
+          "passOk": 103,
+          "fouls": 11,
+          "yellow": 2,
+          "red": 0,
+          "corners": 3,
+          "tackles": 28,
+          "interceptions": 5,
+          "crosses": 3,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 26,
+          "throughOk": 14,
+          "pressWins": 6,
+          "defErrors": 3,
+          "oneOnOnes": 1,
+          "setPieceShots": 3,
+          "setPieceGoals": 1,
+          "poss": 0.5367510809141444,
+          "stamina": 73.89456617992052
+        }
+      ],
+      "eventCounts": {
+        "kickoff": 1,
+        "pass": 195,
+        "through": 29,
+        "dribble": 41,
+        "foul": 23,
+        "freekick": 5,
+        "fk_scene": 5,
+        "shot_taken": 16,
+        "save": 5,
+        "corner": 5,
+        "cross": 5,
+        "header_clear": 7,
+        "intercept": 16,
+        "run_burst": 15,
+        "tackle": 53,
+        "looseControl": 16,
+        "bad_pass": 23,
+        "run_break": 13,
+        "goal": 2,
+        "tactical_shift": 5,
+        "post": 1,
+        "gk_claim": 1,
+        "miss": 8,
+        "blocked": 2,
+        "halftime": 1,
+        "yellow": 2,
+        "defensive_error": 3,
+        "header_shot": 1,
+        "gk_sweep": 1
+      },
+      "steps": 5013,
+      "dt": 0.08
+    },
+    {
+      "id": "T14",
+      "suite": "styles",
+      "group": "style:press",
+      "seed": 400015,
+      "meta": {
+        "testedStyle": "press",
+        "testedSide": 0
+      },
+      "teams": [
+        {
+          "squadIndex": 184,
+          "name": "Itália",
+          "rating": 90,
+          "style": "press",
+          "form": "3-4-2-1",
+          "variation": 0
+        },
+        {
+          "squadIndex": 184,
+          "name": "Itália",
+          "rating": 90,
+          "style": "balanced",
+          "form": "3-4-2-1",
+          "variation": 0
+        }
+      ],
+      "score": [
+        2,
+        2
+      ],
+      "goals": 4,
+      "shots": 25,
+      "onTarget": 12,
+      "xg": 3.367913159471953,
+      "passes": 214,
+      "passOk": 175,
+      "possession": [
+        0.6182456140350869,
+        0.381754385964913
+      ],
+      "fouls": 17,
+      "yellow": 4,
+      "red": 1,
+      "corners": 6,
+      "tackles": 46,
+      "interceptions": 14,
+      "crosses": [
+        3,
+        3
+      ],
+      "lowCrosses": [
+        0,
+        0
+      ],
+      "throughBalls": [
+        12,
+        18
+      ],
+      "pressWins": [
+        20,
+        12
+      ],
+      "defErrors": [
+        0,
+        1
+      ],
+      "oneOnOnes": [
+        0,
+        1
+      ],
+      "setPieceShots": 3,
+      "setPieceGoals": 0,
+      "goalMinutes": [
+        17,
+        22,
+        25,
+        42
+      ],
+      "stamina": [
+        68.93887160090213,
+        72.88617610645858
+      ],
+      "teamStats": [
+        {
+          "goals": 2,
+          "shots": 11,
+          "onTarget": 8,
+          "xg": 2.2502000670608258,
+          "passes": 152,
+          "passOk": 124,
+          "fouls": 6,
+          "yellow": 1,
+          "red": 0,
+          "corners": 3,
+          "tackles": 25,
+          "interceptions": 7,
+          "crosses": 3,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 12,
+          "throughOk": 5,
+          "pressWins": 20,
+          "defErrors": 0,
+          "oneOnOnes": 0,
+          "setPieceShots": 2,
+          "setPieceGoals": 0,
+          "poss": 0.6182456140350869,
+          "stamina": 68.93887160090213
+        },
+        {
+          "goals": 2,
+          "shots": 14,
+          "onTarget": 4,
+          "xg": 1.1177130924111274,
+          "passes": 62,
+          "passOk": 51,
+          "fouls": 11,
+          "yellow": 3,
+          "red": 1,
+          "corners": 3,
+          "tackles": 21,
+          "interceptions": 7,
+          "crosses": 3,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 18,
+          "throughOk": 11,
+          "pressWins": 12,
+          "defErrors": 1,
+          "oneOnOnes": 1,
+          "setPieceShots": 1,
+          "setPieceGoals": 0,
+          "poss": 0.381754385964913,
+          "stamina": 72.88617610645858
+        }
+      ],
+      "eventCounts": {
+        "kickoff": 1,
+        "foul": 17,
+        "dribble": 34,
+        "tackle": 46,
+        "shot_taken": 21,
+        "save": 7,
+        "corner": 6,
+        "cross": 6,
+        "pass": 175,
+        "bad_pass": 22,
+        "through": 16,
+        "looseControl": 17,
+        "run_burst": 7,
+        "gk_sweep": 6,
+        "run_break": 11,
+        "miss": 8,
+        "intercept": 11,
+        "yellow": 3,
+        "gk_claim": 4,
+        "penalty": 1,
+        "goal": 4,
+        "tactical_shift": 5,
+        "red": 1,
+        "freekick": 2,
+        "fk_scene": 2,
+        "header_shot": 1,
+        "blocked": 2,
+        "header_clear": 4,
+        "halftime": 1,
+        "post": 2,
+        "defensive_error": 1,
+        "gk_bad_distribution": 1,
+        "legend": 1
+      },
+      "steps": 5010,
+      "dt": 0.08
+    },
+    {
+      "id": "F15",
+      "suite": "formations",
+      "group": "formation:4-3-3",
+      "seed": 500016,
+      "meta": {
+        "testedFormation": "4-3-3",
+        "testedSide": 0
+      },
+      "teams": [
+        {
+          "squadIndex": 137,
+          "name": "França",
+          "rating": 86,
+          "style": "tiki",
+          "form": "4-3-3",
+          "variation": 2
+        },
+        {
+          "squadIndex": 137,
+          "name": "França",
+          "rating": 86,
+          "style": "tiki",
+          "form": "4-3-3",
+          "variation": 0
+        }
+      ],
+      "score": [
+        1,
+        3
+      ],
+      "goals": 4,
+      "shots": 23,
+      "onTarget": 9,
+      "xg": 3.9348395812722634,
+      "passes": 236,
+      "passOk": 176,
+      "possession": [
+        0.5481635481635478,
+        0.45183645183645216
+      ],
+      "fouls": 5,
+      "yellow": 2,
+      "red": 0,
+      "corners": 1,
+      "tackles": 23,
+      "interceptions": 36,
+      "crosses": [
+        1,
+        2
+      ],
+      "lowCrosses": [
+        0,
+        1
+      ],
+      "throughBalls": [
+        10,
+        13
+      ],
+      "pressWins": [
+        7,
+        5
+      ],
+      "defErrors": [
+        0,
+        0
+      ],
+      "oneOnOnes": [
+        3,
+        1
+      ],
+      "setPieceShots": 0,
+      "setPieceGoals": 0,
+      "goalMinutes": [
+        34,
+        58,
+        62,
+        85
+      ],
+      "stamina": [
+        71.00959714422112,
+        70.94834754280089
+      ],
+      "teamStats": [
+        {
+          "goals": 1,
+          "shots": 10,
+          "onTarget": 3,
+          "xg": 2.4426736425797944,
+          "passes": 149,
+          "passOk": 114,
+          "fouls": 2,
+          "yellow": 1,
+          "red": 0,
+          "corners": 1,
+          "tackles": 14,
+          "interceptions": 14,
+          "crosses": 1,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 10,
+          "throughOk": 2,
+          "pressWins": 7,
+          "defErrors": 0,
+          "oneOnOnes": 3,
+          "setPieceShots": 0,
+          "setPieceGoals": 0,
+          "poss": 0.5481635481635478,
+          "stamina": 71.00959714422112
+        },
+        {
+          "goals": 3,
+          "shots": 13,
+          "onTarget": 6,
+          "xg": 1.4921659386924688,
+          "passes": 87,
+          "passOk": 62,
+          "fouls": 3,
+          "yellow": 1,
+          "red": 0,
+          "corners": 0,
+          "tackles": 9,
+          "interceptions": 22,
+          "crosses": 2,
+          "lowCrosses": 1,
+          "lowCrossesOk": 0,
+          "throughBalls": 13,
+          "throughOk": 1,
+          "pressWins": 5,
+          "defErrors": 0,
+          "oneOnOnes": 1,
+          "setPieceShots": 0,
+          "setPieceGoals": 0,
+          "poss": 0.45183645183645216,
+          "stamina": 70.94834754280089
+        }
+      ],
+      "eventCounts": {
+        "kickoff": 1,
+        "pass": 176,
+        "looseControl": 18,
+        "tackle": 23,
+        "dribble": 10,
+        "shot_taken": 23,
+        "save": 5,
+        "run_break": 30,
+        "intercept": 35,
+        "header_clear": 2,
+        "through": 11,
+        "blocked": 6,
+        "corner": 1,
+        "cross": 3,
+        "miss": 8,
+        "bad_pass": 21,
+        "gk_bad_distribution": 3,
+        "goal": 4,
+        "tactical_shift": 5,
+        "run_burst": 8,
+        "foul": 5,
+        "yellow": 2,
+        "halftime": 1,
+        "offside": 2,
+        "gk_sweep": 2,
+        "gk_claim": 2,
+        "legend": 1
+      },
+      "steps": 4868,
+      "dt": 0.08
+    },
+    {
+      "id": "F16",
+      "suite": "formations",
+      "group": "formation:4-4-2",
+      "seed": 500017,
+      "meta": {
+        "testedFormation": "4-4-2",
+        "testedSide": 1
+      },
+      "teams": [
+        {
+          "squadIndex": 51,
+          "name": "Brasil",
+          "rating": 89,
+          "style": "tiki",
+          "form": "4-3-3",
+          "variation": 1
+        },
+        {
+          "squadIndex": 51,
+          "name": "Brasil",
+          "rating": 89,
+          "style": "tiki",
+          "form": "4-4-2",
+          "variation": 1
+        }
+      ],
+      "score": [
+        1,
+        1
+      ],
+      "goals": 2,
+      "shots": 17,
+      "onTarget": 9,
+      "xg": 1.6826981111072614,
+      "passes": 215,
+      "passOk": 179,
+      "possession": [
+        0.4085365853658542,
+        0.5914634146341458
+      ],
+      "fouls": 19,
+      "yellow": 3,
+      "red": 1,
+      "corners": 5,
+      "tackles": 50,
+      "interceptions": 11,
+      "crosses": [
+        2,
+        3
+      ],
+      "lowCrosses": [
+        0,
+        0
+      ],
+      "throughBalls": [
+        7,
+        6
+      ],
+      "pressWins": [
+        7,
+        10
+      ],
+      "defErrors": [
+        0,
+        0
+      ],
+      "oneOnOnes": [
+        1,
+        0
+      ],
+      "setPieceShots": 2,
+      "setPieceGoals": 0,
+      "goalMinutes": [
+        8,
+        73
+      ],
+      "stamina": [
+        71.86369528802932,
+        76.56655462479449
+      ],
+      "teamStats": [
+        {
+          "goals": 1,
+          "shots": 8,
+          "onTarget": 4,
+          "xg": 0.872403637030787,
+          "passes": 71,
+          "passOk": 58,
+          "fouls": 9,
+          "yellow": 2,
+          "red": 0,
+          "corners": 2,
+          "tackles": 25,
+          "interceptions": 7,
+          "crosses": 2,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 7,
+          "throughOk": 4,
+          "pressWins": 7,
+          "defErrors": 0,
+          "oneOnOnes": 1,
+          "setPieceShots": 0,
+          "setPieceGoals": 0,
+          "poss": 0.4085365853658542,
+          "stamina": 71.86369528802932
+        },
+        {
+          "goals": 1,
+          "shots": 9,
+          "onTarget": 5,
+          "xg": 0.8102944740764743,
+          "passes": 144,
+          "passOk": 121,
+          "fouls": 10,
+          "yellow": 1,
+          "red": 1,
+          "corners": 3,
+          "tackles": 25,
+          "interceptions": 4,
+          "crosses": 3,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 6,
+          "throughOk": 1,
+          "pressWins": 10,
+          "defErrors": 0,
+          "oneOnOnes": 0,
+          "setPieceShots": 2,
+          "setPieceGoals": 0,
+          "poss": 0.5914634146341458,
+          "stamina": 76.56655462479449
+        }
+      ],
+      "eventCounts": {
+        "kickoff": 1,
+        "bad_pass": 23,
+        "pass": 179,
+        "looseControl": 14,
+        "gk_bad_distribution": 4,
+        "shot_taken": 15,
+        "miss": 5,
+        "blocked": 2,
+        "tackle": 50,
+        "save": 6,
+        "corner": 5,
+        "cross": 5,
+        "header_clear": 7,
+        "goal": 2,
+        "foul": 19,
+        "dribble": 13,
+        "run_break": 14,
+        "tactical_shift": 5,
+        "intercept": 11,
+        "gk_claim_miss": 1,
+        "header_shot": 1,
+        "run_burst": 7,
+        "through": 8,
+        "freekick": 1,
+        "fk_scene": 1,
+        "gk_sweep": 3,
+        "gk_claim": 3,
+        "post": 1,
+        "halftime": 1,
+        "yellow": 3,
+        "legend": 1,
+        "red": 1
+      },
+      "steps": 5004,
+      "dt": 0.08
+    },
+    {
+      "id": "F17",
+      "suite": "formations",
+      "group": "formation:4-2-3-1",
+      "seed": 500018,
+      "meta": {
+        "testedFormation": "4-2-3-1",
+        "testedSide": 0
+      },
+      "teams": [
+        {
+          "squadIndex": 311,
+          "name": "Espanha",
+          "rating": 85,
+          "style": "press",
+          "form": "4-2-3-1",
+          "variation": 0
+        },
+        {
+          "squadIndex": 311,
+          "name": "Espanha",
+          "rating": 85,
+          "style": "press",
+          "form": "4-3-3",
+          "variation": 2
+        }
+      ],
+      "score": [
+        1,
+        0
+      ],
+      "goals": 1,
+      "shots": 16,
+      "onTarget": 5,
+      "xg": 2.0539445039280415,
+      "passes": 212,
+      "passOk": 160,
+      "possession": [
+        0.5376653248993674,
+        0.4623346751006328
+      ],
+      "fouls": 44,
+      "yellow": 7,
+      "red": 1,
+      "corners": 3,
+      "tackles": 105,
+      "interceptions": 25,
+      "crosses": [
+        0,
+        4
+      ],
+      "lowCrosses": [
+        0,
+        1
+      ],
+      "throughBalls": [
+        19,
+        23
+      ],
+      "pressWins": [
+        45,
+        45
+      ],
+      "defErrors": [
+        1,
+        0
+      ],
+      "oneOnOnes": [
+        0,
+        1
+      ],
+      "setPieceShots": 6,
+      "setPieceGoals": 1,
+      "goalMinutes": [
+        17
+      ],
+      "stamina": [
+        66.41919711672979,
+        62.014372986165725
+      ],
+      "teamStats": [
+        {
+          "goals": 1,
+          "shots": 7,
+          "onTarget": 2,
+          "xg": 0.4720305133968439,
+          "passes": 125,
+          "passOk": 98,
+          "fouls": 17,
+          "yellow": 3,
+          "red": 1,
+          "corners": 0,
+          "tackles": 55,
+          "interceptions": 11,
+          "crosses": 0,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 19,
+          "throughOk": 8,
+          "pressWins": 45,
+          "defErrors": 1,
+          "oneOnOnes": 0,
+          "setPieceShots": 2,
+          "setPieceGoals": 1,
+          "poss": 0.5376653248993674,
+          "stamina": 66.41919711672979
+        },
+        {
+          "goals": 0,
+          "shots": 9,
+          "onTarget": 3,
+          "xg": 1.5819139905311976,
+          "passes": 87,
+          "passOk": 62,
+          "fouls": 27,
+          "yellow": 4,
+          "red": 0,
+          "corners": 3,
+          "tackles": 50,
+          "interceptions": 14,
+          "crosses": 4,
+          "lowCrosses": 1,
+          "lowCrossesOk": 0,
+          "throughBalls": 23,
+          "throughOk": 10,
+          "pressWins": 45,
+          "defErrors": 0,
+          "oneOnOnes": 1,
+          "setPieceShots": 4,
+          "setPieceGoals": 0,
+          "poss": 0.4623346751006328,
+          "stamina": 62.014372986165725
+        }
+      ],
+      "eventCounts": {
+        "kickoff": 1,
+        "pass": 160,
+        "bad_pass": 24,
+        "through": 25,
+        "cross": 4,
+        "gk_sweep": 4,
+        "gk_claim": 2,
+        "looseControl": 16,
+        "tackle": 105,
+        "header_clear": 10,
+        "foul": 44,
+        "intercept": 23,
+        "run_break": 16,
+        "dribble": 10,
+        "shot_taken": 10,
+        "miss": 7,
+        "yellow": 7,
+        "freekick": 5,
+        "fk_scene": 5,
+        "goal": 1,
+        "run_burst": 12,
+        "tactical_shift": 4,
+        "halftime": 1,
+        "red": 1,
+        "gk_bad_distribution": 1,
+        "offside": 2,
+        "blocked": 2,
+        "defensive_error": 1,
+        "injury": 1,
+        "save": 2,
+        "corner": 3,
+        "header_shot": 1
+      },
+      "steps": 5213,
+      "dt": 0.08
+    },
+    {
+      "id": "F18",
+      "suite": "formations",
+      "group": "formation:3-5-2",
+      "seed": 500019,
+      "meta": {
+        "testedFormation": "3-5-2",
+        "testedSide": 1
+      },
+      "teams": [
+        {
+          "squadIndex": 313,
+          "name": "Espanha",
+          "rating": 92,
+          "style": "balanced",
+          "form": "4-3-3",
+          "variation": 0
+        },
+        {
+          "squadIndex": 313,
+          "name": "Espanha",
+          "rating": 92,
+          "style": "balanced",
+          "form": "3-5-2",
+          "variation": 0
+        }
+      ],
+      "score": [
+        2,
+        1
+      ],
+      "goals": 3,
+      "shots": 8,
+      "onTarget": 3,
+      "xg": 0.8226725532294553,
+      "passes": 233,
+      "passOk": 201,
+      "possession": [
+        0.5558328134747347,
+        0.4441671865252655
+      ],
+      "fouls": 19,
+      "yellow": 1,
+      "red": 0,
+      "corners": 0,
+      "tackles": 41,
+      "interceptions": 17,
+      "crosses": [
+        6,
+        1
+      ],
+      "lowCrosses": [
+        3,
+        1
+      ],
+      "throughBalls": [
+        6,
+        9
+      ],
+      "pressWins": [
+        2,
+        6
+      ],
+      "defErrors": [
+        0,
+        0
+      ],
+      "oneOnOnes": [
+        0,
+        0
+      ],
+      "setPieceShots": 0,
+      "setPieceGoals": 0,
+      "goalMinutes": [
+        13,
+        55,
+        75
+      ],
+      "stamina": [
+        72.75907267691578,
+        71.1188114034024
+      ],
+      "teamStats": [
+        {
+          "goals": 2,
+          "shots": 5,
+          "onTarget": 2,
+          "xg": 0.4969072938867135,
+          "passes": 139,
+          "passOk": 121,
+          "fouls": 9,
+          "yellow": 1,
+          "red": 0,
+          "corners": 0,
+          "tackles": 21,
+          "interceptions": 9,
+          "crosses": 6,
+          "lowCrosses": 3,
+          "lowCrossesOk": 1,
+          "throughBalls": 6,
+          "throughOk": 3,
+          "pressWins": 2,
+          "defErrors": 0,
+          "oneOnOnes": 0,
+          "setPieceShots": 0,
+          "setPieceGoals": 0,
+          "poss": 0.5558328134747347,
+          "stamina": 72.75907267691578
+        },
+        {
+          "goals": 1,
+          "shots": 3,
+          "onTarget": 1,
+          "xg": 0.3257652593427418,
+          "passes": 94,
+          "passOk": 80,
+          "fouls": 10,
+          "yellow": 0,
+          "red": 0,
+          "corners": 0,
+          "tackles": 20,
+          "interceptions": 8,
+          "crosses": 1,
+          "lowCrosses": 1,
+          "lowCrossesOk": 0,
+          "throughBalls": 9,
+          "throughOk": 0,
+          "pressWins": 6,
+          "defErrors": 0,
+          "oneOnOnes": 0,
+          "setPieceShots": 0,
+          "setPieceGoals": 0,
+          "poss": 0.4441671865252655,
+          "stamina": 71.1188114034024
+        }
+      ],
+      "eventCounts": {
+        "kickoff": 1,
+        "bad_pass": 13,
+        "pass": 201,
+        "through": 25,
+        "cross": 7,
+        "header_clear": 6,
+        "run_break": 21,
+        "tackle": 41,
+        "dribble": 15,
+        "foul": 19,
+        "intercept": 17,
+        "looseControl": 20,
+        "yellow": 1,
+        "run_burst": 12,
+        "shot_taken": 7,
+        "goal": 3,
+        "tactical_shift": 6,
+        "miss": 5,
+        "gk_bad_distribution": 4,
+        "gk_sweep": 4,
+        "gk_claim": 5,
+        "halftime": 1,
+        "low_cross_shot": 1
+      },
+      "steps": 4987,
+      "dt": 0.08
+    },
+    {
+      "id": "F19",
+      "suite": "formations",
+      "group": "formation:5-3-2",
+      "seed": 500020,
+      "meta": {
+        "testedFormation": "5-3-2",
+        "testedSide": 0
+      },
+      "teams": [
+        {
+          "squadIndex": 154,
+          "name": "Alemanha",
+          "rating": 87,
+          "style": "counter",
+          "form": "5-3-2",
+          "variation": 1
+        },
+        {
+          "squadIndex": 154,
+          "name": "Alemanha",
+          "rating": 87,
+          "style": "counter",
+          "form": "4-3-3",
+          "variation": 1
+        }
+      ],
+      "score": [
+        1,
+        1
+      ],
+      "goals": 2,
+      "shots": 27,
+      "onTarget": 8,
+      "xg": 3.123173691556647,
+      "passes": 219,
+      "passOk": 175,
+      "possession": [
+        0.5516039051603902,
+        0.4483960948396098
+      ],
+      "fouls": 8,
+      "yellow": 0,
+      "red": 0,
+      "corners": 8,
+      "tackles": 34,
+      "interceptions": 23,
+      "crosses": [
+        3,
+        7
+      ],
+      "lowCrosses": [
+        0,
+        1
+      ],
+      "throughBalls": [
+        21,
+        19
+      ],
+      "pressWins": [
+        3,
+        8
+      ],
+      "defErrors": [
+        1,
+        1
+      ],
+      "oneOnOnes": [
+        1,
+        0
+      ],
+      "setPieceShots": 4,
+      "setPieceGoals": 0,
+      "goalMinutes": [
+        5,
+        68
+      ],
+      "stamina": [
+        74.34357839128403,
+        71.37688536736256
+      ],
+      "teamStats": [
+        {
+          "goals": 1,
+          "shots": 8,
+          "onTarget": 4,
+          "xg": 1.1971368963582516,
+          "passes": 129,
+          "passOk": 100,
+          "fouls": 5,
+          "yellow": 0,
+          "red": 0,
+          "corners": 3,
+          "tackles": 15,
+          "interceptions": 8,
+          "crosses": 3,
+          "lowCrosses": 0,
+          "lowCrossesOk": 0,
+          "throughBalls": 21,
+          "throughOk": 10,
+          "pressWins": 3,
+          "defErrors": 1,
+          "oneOnOnes": 1,
+          "setPieceShots": 1,
+          "setPieceGoals": 0,
+          "poss": 0.5516039051603902,
+          "stamina": 74.34357839128403
+        },
+        {
+          "goals": 1,
+          "shots": 19,
+          "onTarget": 4,
+          "xg": 1.9260367951983952,
+          "passes": 90,
+          "passOk": 75,
+          "fouls": 3,
+          "yellow": 0,
+          "red": 0,
+          "corners": 5,
+          "tackles": 19,
+          "interceptions": 15,
+          "crosses": 7,
+          "lowCrosses": 1,
+          "lowCrossesOk": 1,
+          "throughBalls": 19,
+          "throughOk": 7,
+          "pressWins": 8,
+          "defErrors": 1,
+          "oneOnOnes": 0,
+          "setPieceShots": 3,
+          "setPieceGoals": 0,
+          "poss": 0.4483960948396098,
+          "stamina": 71.37688536736256
+        }
+      ],
+      "eventCounts": {
+        "kickoff": 1,
+        "pass": 175,
+        "looseControl": 19,
+        "through": 44,
+        "cross": 10,
+        "low_cross_shot": 1,
+        "miss": 13,
+        "intercept": 23,
+        "run_burst": 11,
+        "run_break": 23,
+        "shot_taken": 22,
+        "goal": 2,
+        "dribble": 36,
+        "tackle": 34,
+        "bad_pass": 19,
+        "tactical_shift": 15,
+        "gk_bad_distribution": 2,
+        "offside": 1,
+        "foul": 8,
+        "save": 4,
+        "post": 2,
+        "corner": 8,
+        "gk_claim": 4,
+        "gk_claim_miss": 1,
+        "gk_sweep": 2,
+        "blocked": 4,
+        "halftime": 1,
+        "freekick": 2,
+        "fk_scene": 2,
+        "header_shot": 2,
+        "defensive_error": 2,
+        "header_clear": 2
+      },
+      "steps": 4923,
+      "dt": 0.08
+    }
+  ]
+}
