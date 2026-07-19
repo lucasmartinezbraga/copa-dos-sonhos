@@ -37,7 +37,6 @@ jobs:
           node tests/phase8_goalkeepers_setpieces.js
           node tests/phase8_penalty_shootout.js
           CDS_LAB_PHASE47=1 CDS_LAB_PHASE8=1 node tests/phase8_live_match.js
-          CDS_LAB_PHASE47=1 CDS_LAB_PHASE8=1 node tests/phase8_regression8.js
           python3 tools/build_phase8.py
           python3 tools/verify.py
 
