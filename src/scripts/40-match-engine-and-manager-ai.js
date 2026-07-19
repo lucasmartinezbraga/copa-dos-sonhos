@@ -310,6 +310,8 @@ class MatchSim {
       score:this.score.slice(),
       phase:{inPossession:tm.atkForm||null,outOfPossession:tm.defForm||null,style:tm.styleKey||null},
       summary:{passAccuracy,throughAccuracy,xg:st.xg,shots:st.shots,pressWins:st.pressWins,defErrors:st.defErrors},
+      goalkeeping:{shotsFaced:st.gkShotsFaced,secureCatches:st.gkSecureCatches,parries:st.gkParries,rebounds:st.reboundsConceded,sweeps:st.gkSweeps,sweepsFailed:st.gkSweepsFailed,claimsAttempted:st.gkClaimsAttempted,claimsWon:st.gkClaimsWon,claimsMissed:st.gkClaimsMissed,punches:st.gkPunches,distribution:{short:st.gkDistributionShort,long:st.gkDistributionLong,completed:st.gkDistributionCompleted,failed:st.gkDistributionFailed}},
+      setPieces:{shots:st.setPieceShots,goals:st.setPieceGoals,firstContactWon:st.setPieceFirstContactWon,firstContactLost:st.setPieceFirstContactLost,corners:{nearPost:st.cornersNearPost,farPost:st.cornersFarPost,penaltySpot:st.cornersPenaltySpot,short:st.cornersShort},freeKicks:{direct:st.freeKickDirect,crossed:st.freeKickCrossed,short:st.freeKickShort},penalties:{taken:st.penaltiesTaken,scored:st.penaltiesScored,saved:st.penaltiesSaved,missed:st.penaltiesMissed}},
       roles:tm.players.map(p=>({id:p.ref&&p.ref.id,name:p.ref&&p.ref.n,position:p.slotPos,inPossessionPosition:p.ipPos||p.slotPos,outOfPossessionPosition:p.oopPos||p.slotPos,inPossession:p.ipRole||p.role,outOfPossession:p.oopRole,focus:p.focus,stamina:Math.round(p.stamina),rating:+(p.rating||6).toFixed(2)})),
       heatmaps:tm.players.map(p=>({id:p.ref&&p.ref.id,name:p.ref&&p.ref.n,cols:ADV4.analytics.cols,rows:ADV4.analytics.rows,values:p.heatmap?Array.from(p.heatmap):[]})),
       passingMap:Object.entries(st.passingMap||{}).map(([link,count])=>({link,count})),
@@ -325,13 +327,21 @@ class MatchSim {
     throughBalls:0, throughOk:0, lowCrosses:0, lowCrossesOk:0,
     oneOnOnes:0, setPieceShots:0, setPieceGoals:0,
     pressWins:0, defErrors:0, gkSweeps:0, gkBadDistribution:0,
+    gkShotsFaced:0, gkSecureCatches:0, gkParries:0, reboundsConceded:0,
+    gkSweepsFailed:0, gkClaimsAttempted:0, gkClaimsWon:0, gkClaimsMissed:0, gkPunches:0,
+    gkDistributionShort:0, gkDistributionLong:0, gkDistributionCompleted:0, gkDistributionFailed:0,
+    setPieceFirstContactWon:0, setPieceFirstContactLost:0,
+    cornersNearPost:0, cornersFarPost:0, cornersPenaltySpot:0, cornersShort:0,
+    cornerDefZonal:0, cornerDefMan:0, cornerDefMixed:0,
+    freeKickDirect:0, freeKickCrossed:0, freeKickShort:0,
+    penaltiesTaken:0, penaltiesScored:0, penaltiesSaved:0, penaltiesMissed:0,
     passingMap:Object.create(null), heatSamples:0
   }; }
 
   _resetPositions() {
     for (const tm of this.teams) for (const p of tm.players) {
       if (p.red) continue;
-      p.x = p.hx; p.y = p.hy; p.vx = 0; p.vy = 0; p.settle = 0;
+      p.x = p.hx; p.y = p.hy; p.vx = 0; p.vy = 0; p.settle = 0; p._setPieceRole = null;
     }
   }
 
@@ -636,11 +646,20 @@ class MatchSim {
     if(best && direct<.55 && best.dist>30){
       const short=this._safePass(o,opps); if(short) best=short;
     }
-    if(!best){ this._clearBall(o); return; }
+    if(!best){
+      this.stats[o.team].gkDistributionLong++;
+      this.stats[o.team].gkDistributionFailed++;
+      this._clearBall(o); return;
+    }
+    const distKind = best.dist > 30 || direct > .66 ? 'long' : 'short';
+    this.stats[o.team][distKind === 'long' ? 'gkDistributionLong' : 'gkDistributionShort']++;
+    o._gkDistributionPending = true;
     const ctx=this._actionContext(o,nearest,'pass');
     const bad=clamp(.18-(skill-55)/250 + ctx.pressure*.12 + ctx.fatigue*.05, .025,.28);
     if(chance(bad)){
       this.stats[o.team].gkBadDistribution++;
+      this.stats[o.team].gkDistributionFailed++;
+      o._gkDistributionPending = false;
       this._emit('gk_bad_distribution',{by:o});
       const tx=clamp(o.x+tm.attackDir*R(12,28),2,FL-2), ty=clamp(o.y+R(-18,18),2,FW-2);
       this._startTravel(o,{x:tx,y:ty},'pass',()=>this._looseBall(tx,ty),null,direct>.6?'launch':'short');
@@ -873,8 +892,8 @@ class MatchSim {
         if(setPiece){ this.stats[o.team].setPieceShots++; atk._setPieceShotUntil=this.t+1; }
         if(chance(pGoal)) this._goal(atk,false);
         else if(chance(.48+(gk?facet(gk,'gk')/300:0))){
-          this.stats[o.team].onTarget++; if(gk){this.stats[1-o.team].saves++;gk.rating+=.2;}
-          this._emit('save',{gk,big:pGoal>.30}); if(chance(CAL.restarts.lowCrossSaveCorner))this._setCorner(o.team);else this._turnover(gk);
+          this.stats[o.team].onTarget++;
+          this._gkResolveSave(gk,atk,{atk:finish,oneOnOne:true,saveTarget:{x:g.x,y:g.y+R(-2.5,2.5)},g,tm:this.teams[atk.team],cornerChance:CAL.restarts.lowCrossSaveCorner});
         } else { this._emit('miss',{by:atk}); this._goalKickOrRestart(1-o.team); }
       },atk,'through');
       return;
@@ -892,6 +911,7 @@ class MatchSim {
       const pWin=duelProb(facet(atk,'head_atk')+setBoost,(def?facet(def,'head_def'):40)+5);
       if(chance(pWin)){
         this.stats[o.team].crossesOk++; this.stats[o.team].shots++; this.beat=.5;
+        if(setPiece)this.stats[o.team].setPieceFirstContactWon++;
         const pGoal=clamp(.105*(1+(facet(atk,'head_atk')-(gk?facet(gk,'gk'):40))/100*.9)*(setPiece?1.24:1),.025,.28);
         this.stats[o.team].xg+=pGoal;
         if(setPiece){this.stats[o.team].setPieceShots++;atk._setPieceShotUntil=this.t+1;}
@@ -899,11 +919,11 @@ class MatchSim {
         if(chance(pGoal))this._goal(atk,false);
         else{
           const hr=R(),saveShare=.27+(gk?facet(gk,'gk')/100:.4)*.12;
-          if(hr<saveShare){this.stats[o.team].onTarget++;if(gk){gk.rating+=.2;this.stats[1-o.team].saves++;}this._emit('save',{gk,big:false});if(chance(CAL.restarts.aerialSaveCorner))this._setCorner(o.team);else this._goalKickOrRestart(1-o.team);}
+          if(hr<saveShare){this.stats[o.team].onTarget++;this._gkResolveSave(gk,atk,{atk:facet(atk,'head_atk'),oneOnOne:false,saveTarget:{x:g.x,y:g.y+R(-3,3)},g,tm:this.teams[atk.team],cornerChance:CAL.restarts.aerialSaveCorner});}
           else if(hr<saveShare+.18){this._emit('blocked',{by:def});if(chance(CAL.restarts.aerialBlockCorner))this._setCorner(o.team);else this._looseBall(atk.x,atk.y);}
           else{this._emit('miss',{by:atk});this._goalKickOrRestart(1-o.team);}
         }
-      }else{if(def){def.rating+=.08;this._emit('header_clear',{by:def});this._turnover(def);}else this._goalKickOrRestart(1-o.team);}
+      }else{if(setPiece)this.stats[o.team].setPieceFirstContactLost++;if(def){def.rating+=.08;this._emit('header_clear',{by:def});this._turnover(def);}else this._goalKickOrRestart(1-o.team);}
     },atk,'launch');
   }
 
@@ -1266,6 +1286,7 @@ class MatchSim {
     this.stats[o.team].passes++;
     const wasIntercepted = inter && chance(ib);
     if (wasIntercepted) {
+      if (o.isGK && o._gkDistributionPending) { this.stats[o.team].gkDistributionFailed++; o._gkDistributionPending=false; }
       // interceptado
       this._startTravel(o, { x: inter.px, y: inter.py }, 'pass', () => {
         this.stats[inter.d.team].interceptions++;
@@ -1296,6 +1317,7 @@ class MatchSim {
           const callP = clamp(.92 + lineIQ/700 - timing/850 - highLine*.16 - Math.max(0,best.paceEdge||0)*.08,.56,.95);
           if (rxRcv > offLine + 1.2 && chance(callP)) {
             this._emit('offside', { by: m, on: o });
+            if (o.isGK && o._gkDistributionPending) { this.stats[o.team].gkDistributionFailed++; o._gkDistributionPending=false; }
             this.stats[o.team].offsides = (this.stats[o.team].offsides || 0) + 1;
             // impedimento: posse passa pro adversário (tiro livre indireto, simplificado)
             const gk = this.teams[1 - o.team].players.find(p => p.isGK && !p.red);
@@ -1337,6 +1359,7 @@ class MatchSim {
         const miss = 2.8 + best.dist * 0.09 + (1 - passSkill) * 4;
         const badTarget = { x: clamp(lx + R(-1.5, 1.5), 0.5, FL - 0.5), y: clamp(ly + missSide * miss, 0.5, FW - 0.5) };
         this._emit('bad_pass', { by: o, to: m, kind });
+        if (o.isGK && o._gkDistributionPending) { this.stats[o.team].gkDistributionFailed++; o._gkDistributionPending=false; }
         this._startTravel(o, badTarget, 'pass', () => this._looseBall(badTarget.x, badTarget.y), null, kind);
         return;
       }
@@ -1353,8 +1376,22 @@ class MatchSim {
           const gkDanger = gk2 ? D(m.x,m.y,this.teams[1-o.team].goal.x,this.teams[1-o.team].goal.y) : 99;
           const sweeper = gk2 && gkDanger < 23 && (gk2.oopRole === 'sweeper' || facet(gk2,'gk_one_on_one') > 78);
           const sweepP = sweeper ? clamp(.13 + (23-gkDanger)/45 + (facet(gk2,'gk_one_on_one')-65)/190, .08, .46) : 0;
-          const swept = chance(sweepP);
-          if (!chance(runWin) || swept) {
+          /* FASE 8 · a saída vira decisão + execução: o goleiro decide sair
+             (função, distância, 1v1) e pode FALHAR — antecipação e aceleração
+             decidem. Batido, fica 2,5s fora do lance e o chute seguinte
+             encontra o gol semiaberto (_sweptFailUntil consumido no _shoot). */
+          let swept = false, sweepFailed = false;
+          if (sweeper && chance(clamp(sweepP*1.35, 0, .55))) {
+            const exec = clamp(.44 + (facet(gk2,'gk_one_on_one')-60)/140
+              + (getAttr(gk2,'aceleracao')-60)/260 - Math.max(0, gkDanger-14)/38, .18, .90);
+            if (chance(exec)) swept = true;
+            else {
+              sweepFailed = true; gk2._sweptFailUntil = this.t + 2.5;
+              this.stats[gk2.team].gkSweepsFailed++;
+              this._emit('gk_sweep_failed', { gk: gk2, by: m });
+            }
+          }
+          if ((!chance(runWin) && !sweepFailed) || swept) {
             const winner = swept && gk2 ? gk2 : (cover || gk2);
             if (winner) {
               this.stats[winner.team].interceptions++;
@@ -1365,9 +1402,10 @@ class MatchSim {
             return;
           }
           this.stats[o.team].throughOk++;
-          m._throughReceiverUntil = this.t + 3.2;
+          m._throughReceiverUntil = this.t + (sweepFailed ? 4.5 : 3.2);
         }
         this.stats[o.team].passOk++;
+        if (o.isGK && o._gkDistributionPending) { this.stats[o.team].gkDistributionCompleted++; o._gkDistributionPending=false; }
         if (best.progressM < -2) m._backwardReceiveUntil = this.t + 1.6;
         if (best.intoBox) this.stats[o.team].keyPasses++;
         const linkKey = o.idx + '>' + m.idx;
@@ -1391,7 +1429,8 @@ class MatchSim {
     if(o.y<FW/2)this.stats[o.team].attacksL++;else this.stats[o.team].attacksR++;
     this._bumpMom(o.team,.08); o._act='shoot';
     const atk=facet(o,oneOnOne?'one_on_one':(longshot?'shot_far':'shot'));
-    const gkF=gk?facet(gk,oneOnOne?'gk_one_on_one':'gk'):40;
+    const gkScrambling=gk&&(gk._sweptFailUntil||0)>this.t;
+    const gkF=gk?(gkScrambling?18:facet(gk,oneOnOne?'gk_one_on_one':'gk')):40;
     let base=distanceXg(dtg); if(volley)base*=.86; if(oneOnOne)base=Math.max(base,.27); base*=fire;
     const angMul=clamp(1-Math.abs(o.y-g.y)/42,.32,1);
     const ctx=this._actionContext(o,nearest.dist,'shot');
@@ -1413,7 +1452,7 @@ class MatchSim {
       const goalY=clamp(g.y+R(-3.15,3.15)*(1.15-shotQuality*.45),g.y-3.35,g.y+3.35);
       this._startTravel(o,{x:g.x+tm.attackDir*.9,y:goalY},'shot',()=>this._goal(o,longshot||facet(o,'shot')>90),null,'shot');
     }else{
-      const gkQual=gk?facet(gk,oneOnOne?'gk_one_on_one':'gk')/100:.4;
+      const gkQual=gk?(gkScrambling?.15:facet(gk,oneOnOne?'gk_one_on_one':'gk')/100):.4;
       const r2=R();
       const saveCut=CAL.shooting.savedShare+gkQual*CAL.shooting.keeperSaveInfluence+(oneOnOne?.04:0);
       const blockCut=saveCut+CAL.shooting.blockedShare*(oneOnOne?.55:1);
@@ -1421,7 +1460,7 @@ class MatchSim {
       if(r2<saveCut){
         const saveTarget={x:g.x-tm.attackDir*1.25,y:clamp(g.y+dispersion,g.y-3.35,g.y+3.35)};
         this.stats[o.team].onTarget++;
-        this._startTravel(o,saveTarget,'shot',()=>{this.stats[1-o.team].saves++;if(gk)gk.rating+=(atk>82?.35:.18);this._emit('save',{gk,big:atk>82||oneOnOne});if(chance(CAL.restarts.shotSaveCorner))this._setCorner(o.team);else this._turnover(gk);},null,'shot');
+        this._startTravel(o,saveTarget,'shot',()=>this._gkResolveSave(gk,o,{atk,oneOnOne,saveTarget,g,tm}),null,'shot');
       }else if(r2<blockCut){
         const defenders=this.teams[1-o.team].players.filter(p=>!p.red&&!p.isGK);let blocker=null,bestLine=99;
         for(const d of defenders){const t=clamp(this._projT(o.x,o.y,g.x,g.y,d.x,d.y),0,1);if(t<.12||t>.88)continue;const px=lerp(o.x,g.x,t),py=lerp(o.y,g.y,t),ld=D(d.x,d.y,px,py);if(ld<bestLine){bestLine=ld;blocker=d;}}
@@ -1435,6 +1474,41 @@ class MatchSim {
       }
     }
     o._throughReceiverUntil=0;
+  }
+
+  /* FASE 8 · A defesa deixa de ser um evento único: o goleiro resolve o
+     chute conforme segurança e dificuldade — segura, espalma para escanteio
+     ou concede rebote VIVO (via _looseBall, a mesma segunda bola já disputada
+     em bloqueios e bolas na trave). Toda aleatoriedade é seedada (chance/R). */
+  _gkResolveSave(gk, o, ctx) {
+    const st = this.stats[1-o.team];
+    st.saves++; st.gkShotsFaced++;
+    if (gk) gk.rating += (ctx.atk > 82 ? .35 : .18);
+    const big = ctx.atk > 82 || ctx.oneOnOne;
+    const sec = gk ? facet(gk, 'gk')/100 : .4;              // qualidade/segurança
+    const hard = clamp(ctx.atk/100*(ctx.oneOnOne ? 1.08 : 1), .3, 1.1);
+    // defesa segura: goleiro confiável domina chutes controláveis
+    if (chance(clamp(.60 + sec*.5 - hard*.55, .10, .90))) {
+      st.gkSecureCatches++;
+      this._emit('save', { gk, big, kind:'catch' });
+      this._turnover(gk); return;
+    }
+    st.gkParries++;
+    // espalmada lateral: some pela linha de fundo → escanteio (chance base
+    // vem do contexto do lance: chute aberto, cruzamento rasteiro, falta...)
+    const cornerBase = ctx.cornerChance != null ? ctx.cornerChance : CAL.restarts.shotSaveCorner;
+    if (chance(clamp(cornerBase + (1-sec)*.10, .15, .75))) {
+      this._emit('save', { gk, big, kind:'deflect_corner' });
+      this._setCorner(o.team); return;
+    }
+    // rebote vivo dentro da área: posição real, ambos os times reagem
+    st.reboundsConceded++;
+    const central = chance(clamp(.42 - sec*.30, .08, .50)); // GK inseguro solta no meio
+    const rx = clamp(ctx.g.x - ctx.tm.attackDir*(central ? R(2.5,6) : R(4,10)), 2, FL-2);
+    const ry = clamp(central ? ctx.g.y + R(-3,3)
+                             : ctx.g.y + (ctx.saveTarget.y > ctx.g.y ? 1 : -1)*R(4,12), 2, FW-2);
+    this._emit('save', { gk, big, kind: central ? 'spill_central' : 'parry_wide', rebound:true });
+    this._looseBall(rx, ry);
   }
 
   _goal(o, golaco) {
@@ -1691,24 +1765,61 @@ class MatchSim {
 
   _freeKick(team, x, y, input) {
     const tm = this.teams[team];
-    const taker = tm.players.filter(p=>!p.red).sort((a,b)=> facet(b,'setpiece')-facet(a,'setpiece'))[0];
+    const taker = tm.players.filter(p=>!p.red&&!p.isGK).sort((a,b)=> facet(b,'setpiece')-facet(a,'setpiece'))[0];
     const gk = this.teams[1-team].players.find(p=>p.isGK&&!p.red);
     const vg = tm.oppGoal;
     const dtg = D(x, y, vg.x, vg.y);
     if (input == null && this._requestSetPiece('freekick', { team, taker, gk, x, y, dist:dtg },
       chosen => this._freeKick(team, x, y, chosen))) return;
+
+    const manual = !!(input && !input.assisted);
+    const aerial = tm.players.filter(p=>!p.red&&!p.isGK&&p!==taker).sort((a,b)=>facet(b,'head_atk')-facet(a,'head_atk'));
+    const oppAerial = this.teams[1-team].players.filter(p=>!p.red&&!p.isGK).sort((a,b)=>facet(b,'head_def')-facet(a,'head_def'));
+    const aerialEdge = (aerial[0]?facet(aerial[0],'head_atk'):50) - (oppAerial[0]?facet(oppAerial[0],'head_def'):50);
+    let routine = input && input.routine;
+    if (!routine) {
+      if (manual || dtg <= 25 || (dtg <= 29 && facet(taker,'setpiece') >= 78 && chance(.62))) routine='direct';
+      else if (dtg <= 40 && (aerialEdge > -5 || chance(.58))) routine='crossed';
+      else routine='short';
+    }
+    this._emit('freekick_routine',{team,by:taker,routine,dist:dtg});
+
+    if (routine === 'crossed') {
+      this.stats[team].freeKickCrossed++;
+      const sideY = y < FW/2 ? 1 : FW-1;
+      taker.x=clamp(x,2,FL-2); taker.y=clamp(y,2,FW-2);
+      aerial.slice(0,3).forEach((a,i)=>{a._setPieceRole=i===0?'target_primary':i===1?'target_far':'second_ball';a.x=clamp(vg.x-tm.attackDir*(7+i*2.8),2,FL-2);a.y=clamp(FW/2+(i-1)*5.2,3,FW-3);});
+      this.dead=.45;
+      this.pendingRestart=()=>{this._giveBall(taker);taker._setPieceDeliveryUntil=this.t+2.2;this._cross(taker);};
+      return;
+    }
+    if (routine === 'short') {
+      this.stats[team].freeKickShort++;
+      const mate=tm.players.filter(p=>!p.red&&!p.isGK&&p!==taker).sort((a,b)=>D(a.x,a.y,x,y)-D(b.x,b.y,x,y))[0];
+      this.dead=.35;
+      this.pendingRestart=()=>{
+        this._giveBall(taker);
+        if(!mate){this._clearBall(taker);return;}
+        mate.x=clamp(x+tm.attackDir*5,2,FL-2);mate.y=clamp(y+(y<FW/2?4:-4),2,FW-2);
+        this.stats[team].passes++;
+        this._startTravel(taker,{x:mate.x,y:mate.y},'pass',()=>{this.stats[team].passOk++;mate._setPieceDeliveryUntil=this.t+2;this._receive(mate);},mate,'short');
+      };
+      return;
+    }
+
+    this.stats[team].freeKickDirect++;
     this.stats[team].shots++;
     this.stats[team].setPieceShots++;
     this.beat = 0.5;
     const takerSkill = facet(taker,'setpiece');
     const keeperSkill = gk ? facet(gk,'gk') : 40;
     const resolved = C.resolveFreeKickPhysics(takerSkill, keeperSkill, dtg, input);
-    const { result, pGoal, manual, visual } = resolved;
+    const { result, pGoal, visual } = resolved;
     this.stats[team].xg += pGoal;
-    this._emit('freekick', { by: taker, manual });
-    this._emit('fk_scene', { by: taker, gk, result, dist: dtg, defTeam: 1 - team, manual, visual });
+    this._emit('freekick', { by: taker, manual:resolved.manual });
+    this._emit('fk_scene', { by: taker, gk, result, dist: dtg, defTeam: 1 - team, manual:resolved.manual, visual });
     if (result === 'goal') { taker._setPieceShotUntil = this.t + 1; this._goal(taker, true); }
-    else if (result === 'save') { if (gk) { gk.rating += 0.25; this.stats[1-team].saves++; } this.stats[team].onTarget++; if (chance(CAL.restarts.freeKickSaveCorner)) this._setCorner(team); else this._goalKickOrRestart(1-team); }
+    else if (result === 'save') { this.stats[team].onTarget++; const tmA = this.teams[team]; this._gkResolveSave(gk, taker, { atk: takerSkill, oneOnOne: false, saveTarget: { x: tmA.oppGoal.x, y: tmA.oppGoal.y + R(-3, 3) }, g: tmA.oppGoal, tm: tmA, cornerChance: CAL.restarts.freeKickSaveCorner }); }
     else if (result === 'wall') this._looseBall(x + this.teams[team].attackDir * 6, y + R(-6, 6));
     else this._goalKickOrRestart(1-team);
   }
@@ -1720,6 +1831,7 @@ class MatchSim {
     if (input == null && this._requestSetPiece('penalty', { team, taker, gk },
       chosen => this._penalty(team, chosen))) return;
     this.stats[team].shots++;
+    this.stats[team].penaltiesTaken++;
     this.beat = 0.7;
     const takerSkill = facet(taker,'pen');
     const keeperSkill = gk ? facet(gk,'pen_gk') : 40;
@@ -1743,43 +1855,72 @@ class MatchSim {
     const result = offTarget ? 'miss' : chance(pGoal) ? 'goal' : 'save';
     const visual = { aimX, aimY, actualX, actualY, power, curve, execution };
     this._emit('penalty', { by: taker, manual, visual });
-    if (result === 'goal') { this._goal(taker, false); return; }
+    if (result === 'goal') { this.stats[team].penaltiesScored++; taker._setPieceShotUntil=this.t+1; this._goal(taker, false); return; }
     const saved = result === 'save';
     if (saved) {
       this.stats[team].onTarget++;
+      this.stats[team].penaltiesSaved++;
       if (gk) { gk.rating += 0.4; this.stats[1-team].saves++; }
     }
+    if (!saved) this.stats[team].penaltiesMissed++;
     this._emit('pen_miss', { by: taker, gk: saved ? gk : null, saved });
     this._goalKickOrRestart(1-team);
   }
 
   /* ---------------------------- ESCANTEIO ----------------------------- */
   _bumpMom(team, v) { if (!this.mom) this.mom = [0,0]; this.mom[team] = clamp(this.mom[team] + v, 0, 1); this.mom[1-team] = clamp(this.mom[1-team] - v*0.6, 0, 1); }
-  _setCorner(team) {
+  _setCorner(team, forcedRoutine, forcedDefStyle) {
     this._bumpMom(team, 0.10);
     this.stats[team].corners++;
-    const tm = this.teams[team];
-    const dir = tm.attackDir;
-    const g = tm.oppGoal;
-    const taker = tm.players.filter(p=>!p.red && !p.isGK).sort((a,b)=> getAttr(b,'cruzamento')-getAttr(a,'cruzamento'))[0];
-    const headers = tm.players.filter(p=>!p.red && !p.isGK && p!==taker).sort((a,b)=> facet(b,'head_atk')-facet(a,'head_atk')).slice(0,3);
-    const defs = this.teams[1-team].players.filter(p=>!p.isGK && !p.red).sort((a,b)=> facet(b,'head_def')-facet(a,'head_def')).slice(0,4);
-    // CÂMERA PADRÃO: encena de verdade no campo — cobrador na bandeirinha,
-    // atacantes e zagueiros brigando na área — e a bola voa com _cross orgânico
-    // (duelo aéreo real, com resultado calculado quando a disputa acontece).
-    const cy = chance(0.5) ? 1.5 : FW - 1.5;
-    taker.x = clamp(g.x - dir*0.8, 1, FL-1); taker.y = cy; taker.settle = 1.2;
-    headers.forEach((h,i)=>{ h.x = clamp(g.x - dir*(7 + i*2.6), 2, FL-2); h.y = clamp(FW/2 + (i-1)*5.5, 3, FW-3); });
-    defs.forEach((d,i)=>{ d.x = clamp(g.x - dir*(5.5 + i*2.4), 2, FL-2); d.y = clamp(FW/2 + (i-1.5)*4.6, 3, FW-3); });
-    // A bola já aparece na bandeirinha durante a preparação. Antes ela ficava
-    // no lance anterior e teleportava somente quando _cross começava.
-    this.ball.owner = null; this.ball.traveling = false;
-    this.ball.x = taker.x; this.ball.y = taker.y; this.ball.z = 0;
-    this.ball.vx = this.ball.vy = this.ball.vz = 0;
-    this.ball.target = null; this.ball.receiver = null;
-    this._emit('corner', { team, by: taker, x: taker.x, y: taker.y });
-    this.dead = 0.6;                                     // respiro pra ler a cena
-    this.pendingRestart = () => { this._giveBall(taker); taker._setPieceDeliveryUntil = this.t + 2; this._cross(taker); };
+    const tm = this.teams[team], defTm=this.teams[1-team];
+    const dir = tm.attackDir, g = tm.oppGoal;
+    const taker = tm.players.filter(p=>!p.red && !p.isGK).sort((a,b)=> facet(b,'setpiece')-facet(a,'setpiece'))[0];
+    const attackers = tm.players.filter(p=>!p.red&&!p.isGK&&p!==taker).sort((a,b)=>facet(b,'head_atk')-facet(a,'head_atk'));
+    const defenders = defTm.players.filter(p=>!p.isGK&&!p.red).sort((a,b)=>facet(b,'head_def')-facet(a,'head_def'));
+    const aerialEdge=(attackers[0]?facet(attackers[0],'head_atk'):50)-(defenders[0]?facet(defenders[0],'head_def'):50);
+    let routine=forcedRoutine;
+    if (!routine) {
+      if (aerialEdge < -7 && facet(taker,'setpiece')>72 && chance(.38)) routine='short';
+      else if (attackers[0] && getAttr(attackers[0],'impulsao')>80 && chance(.38)) routine='near_post';
+      else if (attackers[1] && facet(attackers[1],'head_atk')>76 && chance(.42)) routine='far_post';
+      else routine='penalty_spot';
+    }
+    const defStyle = forcedDefStyle || (defenders.length>=4 && defenders.slice(0,4).reduce((n,d)=>n+facet(d,'head_def'),0)/4>76 ? 'zonal' : chance(.5)?'mixed':'man');
+    this.stats[team][routine==='near_post'?'cornersNearPost':routine==='far_post'?'cornersFarPost':routine==='short'?'cornersShort':'cornersPenaltySpot']++;
+    this.stats[1-team][defStyle==='zonal'?'cornerDefZonal':defStyle==='man'?'cornerDefMan':'cornerDefMixed']++;
+
+    const cy = chance(.5) ? 1.5 : FW-1.5, sign=cy<FW/2?-1:1;
+    taker.x=clamp(g.x-dir*.8,1,FL-1);taker.y=cy;taker.settle=1.2;taker._setPieceRole='taker';
+    const zones = routine==='near_post'
+      ? [[5.2,-3.0],[8.8,2.0],[11.5,6.5]]
+      : routine==='far_post'
+      ? [[9.5,5.5],[6.8,-1.5],[12.5,-6.0]]
+      : [[9.0,0],[7.0,-5],[11.5,5.5]];
+    attackers.slice(0,3).forEach((a,i)=>{const z=zones[i];a._setPieceRole=i===0?'target_primary':i===1?'target_secondary':'second_ball';a.x=clamp(g.x-dir*z[0],2,FL-2);a.y=clamp(g.y+z[1]*sign,3,FW-3);});
+    const rebound=attackers[3];if(rebound){rebound._setPieceRole='rebound';rebound.x=clamp(g.x-dir*19,2,FL-2);rebound.y=clamp(g.y,4,FW-4);}
+    attackers.slice(4,6).forEach((a,i)=>{a._setPieceRole='cover';a.x=clamp(g.x-dir*(29+i*5),2,FL-2);a.y=clamp(g.y+(i?10:-10),4,FW-4);});
+
+    defenders.slice(0,4).forEach((d,i)=>{
+      d._setPieceRole=defStyle==='man'?'mark':defStyle==='zonal'?'zone':'mixed';
+      if(defStyle==='man'&&attackers[i]){d.x=clamp(attackers[i].x-dir*.9,2,FL-2);d.y=clamp(attackers[i].y+(i%2?.7:-.7),3,FW-3);}
+      else {d.x=clamp(g.x-dir*(4.8+i*1.7),2,FL-2);d.y=clamp(g.y+(i-1.5)*4.3,3,FW-3);}
+    });
+    const counter=defenders[4];if(counter){counter._setPieceRole='counter';counter.x=clamp(g.x-dir*28,2,FL-2);counter.y=g.y;}
+
+    this.ball.owner=null;this.ball.traveling=false;this.ball.x=taker.x;this.ball.y=taker.y;this.ball.z=0;
+    this.ball.vx=this.ball.vy=this.ball.vz=0;this.ball.target=null;this.ball.receiver=null;
+    this._emit('corner',{team,by:taker,x:taker.x,y:taker.y,routine,defStyle,assignments:tm.players.filter(p=>p._setPieceRole).map(p=>({idx:p.idx,role:p._setPieceRole}))});
+    this.dead=.6;
+    this.pendingRestart=()=>{
+      this._giveBall(taker);
+      if(routine==='short'){
+        const support=attackers[0];
+        if(!support){taker._setPieceDeliveryUntil=this.t+2;this._cross(taker);return;}
+        support.x=clamp(taker.x-dir*5,2,FL-2);support.y=clamp(taker.y-sign*5,2,FW-2);support._setPieceRole='short_option';
+        this.stats[team].passes++;
+        this._startTravel(taker,{x:support.x,y:support.y},'pass',()=>{this.stats[team].passOk++;support._setPieceDeliveryUntil=this.t+2.2;this._receive(support);},support,'short');
+      }else{taker._setPieceDeliveryUntil=this.t+2.2;this._cross(taker);}
+    };
   }
 
   /* --------------------------- FORA / REINÍCIO ------------------------ */
@@ -1859,36 +2000,29 @@ class MatchSim {
     p._gkClaimCd = Math.max(0, (p._gkClaimCd || 0) - dt);
     if (p._gkClaimCd > 0 || !b.traveling || b.kind !== 'pass' || !b.target || !b.lastTouch) return false;
     if (b.lastTouch.team === tm.side || D(b.target.x, b.target.y, tm.goal.x, tm.goal.y) > 19) return false;
-
-    const domain = getAttr(p, 'dominio_area');
-    const exit = getAttr(p, 'saida_gol');
-    const reflex = getAttr(p, 'reflexos');
-    const radius = 1.25 + domain / 100 * 1.65;
-    if (D(p.x, p.y, b.x, b.y) > radius || b.z > 2.7) return false;
-
-    let rival = null, rd = 1e9;
-    for (const a of this.teams[1 - tm.side].players) {
-      if (a.red || a.isGK) continue;
-      const d = D(a.x, a.y, b.x, b.y);
-      if (d < rd) { rd = d; rival = a; }
+    const domain=getAttr(p,'dominio_area'),exit=getAttr(p,'saida_gol'),reflex=getAttr(p,'reflexos'),security=getAttr(p,'seguranca');
+    const radius=1.25+domain/100*1.65;
+    if(D(p.x,p.y,b.x,b.y)>radius||b.z>2.7)return false;
+    let rival=null,rd=1e9;for(const a of this.teams[1-tm.side].players){if(a.red||a.isGK)continue;const d=D(a.x,a.y,b.x,b.y);if(d<rd){rd=d;rival=a;}}
+    this.stats[tm.side].gkClaimsAttempted++;
+    const claimSkill=domain*.44+exit*.31+reflex*.15+security*.10;
+    const aerialThreat=rival&&rd<5.5?facet(rival,'head_atk'):42;
+    const win=clamp(duelProb(claimSkill+9,aerialThreat),.48,.96);
+    p._gkClaimCd=.65;
+    if(!chance(win)){this.stats[tm.side].gkClaimsMissed++;this._emit('gk_claim_miss',{gk:p,by:rival});return false;}
+    b.onArrive=null;b.receiver=null;b.traveling=false;
+    const pressure=clamp((5.5-rd)/5.5,0,1);
+    const catchP=clamp(.46+security/190+domain/310-pressure*.35-b.z*.07,.18,.91);
+    if(chance(catchP)){
+      this.stats[tm.side].gkClaimsWon++;
+      this._turnover(p);p.settle=Math.max(p.settle,.82);p.rating+=.10;
+      if(D(p.x,p.y,tm.goal.x,tm.goal.y)>9||b.passKind==='through'){this.stats[tm.side].gkSweeps++;this._emit('gk_sweep',{gk:p,by:rival});}
+      this._emit('gk_claim',{gk:p,by:rival,kind:'catch'});return true;
     }
-    const claimSkill = domain * 0.48 + exit * 0.34 + reflex * 0.18;
-    const aerialThreat = rival && rd < 5.5 ? facet(rival, 'head_atk') : 42;
-    const win = clamp(duelProb(claimSkill + 9, aerialThreat), 0.52, 0.96);
-    p._gkClaimCd = 0.65;
-    if (!chance(win)) {
-      this._emit('gk_claim_miss', { gk: p, by: rival });
-      return false;
-    }
-
-    b.onArrive = null; b.receiver = null; b.traveling = false;
-    this._turnover(p);
-    p.settle = Math.max(p.settle, 0.82);
-    p.rating += 0.10;
-    this.stats[tm.side].claims = (this.stats[tm.side].claims || 0) + 1;
-    if (D(p.x,p.y,tm.goal.x,tm.goal.y) > 9 || b.passKind === 'through') { this.stats[tm.side].gkSweeps++; this._emit('gk_sweep',{gk:p,by:rival}); }
-    this._emit('gk_claim', { gk: p, by: rival });
-    return true;
+    this.stats[tm.side].gkPunches++;
+    const awayX=clamp(p.x+tm.attackDir*R(7,14),2,FL-2),awayY=clamp(p.y+(chance(.5)?-1:1)*R(6,15),2,FW-2);
+    this._emit('gk_punch',{gk:p,by:rival,x:awayX,y:awayY});
+    this._looseBall(awayX,awayY);return true;
   }
 
   /* --------------------- MOVIMENTO / FÍSICA (§5.6/5.8) ---------------- */

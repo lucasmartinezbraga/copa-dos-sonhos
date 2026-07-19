@@ -1,35 +1,55 @@
-# Copa dos Sonhos — versão atual 4.3.2
+# Copa dos Sonhos — versão atual 5.1.0
 
-Esta é a versão final da **Fase 3 — Laboratório estatístico e calibração do motor**.
+Esta é a versão funcional concluída da **Fase 8 — Goleiros e bolas paradas**.
 
-## Estado da Fase 3
+## Base
 
-**Concluída.** O motor 4.3.2 passou pela matriz oficial de 214 partidas em passo fixo de 1/60 s, sem métricas ou estilos fora dos critérios. A regressão adicional de 3.200 partidas obteve 93,16/100, também sem reprovações, usando o mesmo motor e o mesmo passo.
+- motor-base certificado: 4.3.2;
+- Fases 4–7: camada 5.0.0;
+- Fase 8: camada 5.1.0;
+- passo fixo: 1/60 s;
+- banco: 7.739 jogadores e 13.284 escalações.
 
-### Evidências principais
+## Principais sistemas
 
-- matriz oficial: 214/214 partidas;
-- nota: 93,14/100;
-- métricas reprovadas: 0;
-- identidades táticas reprovadas: 0;
-- lado A em jogos decisivos: 50,0%;
-- determinismo e passo fixo: aprovados;
-- banco: 7.739 jogadores e 13.284 escalações validadas.
+- defesas seguras, espalmadas e rebotes vivos;
+- saídas em profundidade com risco real;
+- domínio, soco e erro em cruzamentos;
+- distribuição curta e longa do goleiro;
+- quatro rotinas ofensivas de escanteio;
+- três estruturas defensivas de escanteio;
+- faltas diretas, cruzadas e curtas;
+- pênaltis instrumentados;
+- estatísticas e API próprias da Fase 8.
 
-## Conteúdo
+## Build
 
-- HTML autocontido jogável em `dist/COPA DOS SONHOS - FASE 3 - MOTOR CALIBRADO.html`;
-- código-fonte modular em `src/`;
-- metas em `calibration/targets.json`;
-- relatório oficial em `reports/phase3/validation214-v43.json`;
-- regressão massiva em `reports/phase3/regression3200-v432-3200.json`;
-- relatório legível e CSVs em `reports/phase3/final/`;
-- manifesto de conclusão em `manifests/phase3-qa.json`.
+```text
+ dist/COPA DOS SONHOS - FASE 8 - GOLEIROS E BOLAS PARADAS - V5.1.0.html
+```
 
-## Verificação integral
+SHA-256:
+
+```text
+e36ad25d177b67dd2274f2e338564f0d837b09aee16a6f50d1c01019b4535cae
+```
+
+## Validação
 
 ```bash
-python3 tools/finalize_phase3.py
-python3 tools/build.py
-python3 tools/verify.py
+node tests/phase8_gk_saves.js
+node tests/phase8_goalkeepers_setpieces.js
+node tests/phase8_live_match.js
+node tests/phase8_regression8.js
+python tests/phase8_browser_smoke.py
+python tools/verify.py
+python tools/build_phase8.py
 ```
+
+Relatório completo:
+
+```text
+reports/phase8/FASE_8_RELATORIO.md
+```
+
+A camada 5.1.0 é uma build funcional validada. A certificação estatística massiva continua pertencendo ao motor-base 4.3.2, cuja regressão oficial possui 3.200 partidas.

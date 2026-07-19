@@ -10,10 +10,15 @@ function createRuntime(root){
   sandbox.CanvasRenderingContext2D=undefined;
   sandbox.__cdsDebugWarn=()=>{};
   sandbox.__cdsDebugLog=()=>{};
-  for(const rel of [
+  const mods=[
     'src/scripts/00-polyfills.js','src/scripts/10-data.js','src/scripts/20-core.js',
     'src/scripts/25-data-integrity-v3.js','src/scripts/30-tactics.js','src/scripts/40-match-engine-and-manager-ai.js'
-  ]){
+  ];
+  // CDS_LAB_PHASE47=1 inclui a camada 5.0.0 (Fases 4-7) na simulação — permite
+  // medir o motor 4.3.2 puro e o 5.0.0 na MESMA matriz de confrontos.
+  if(process.env.CDS_LAB_PHASE47==='1'||process.env.CDS_LAB_PHASE8==='1')mods.push('src/scripts/45-phases-4-to-7.js');
+  if(process.env.CDS_LAB_PHASE8==='1')mods.push('src/scripts/46-phase8-goalkeepers-setpieces.js');
+  for(const rel of mods){
     const code=fs.readFileSync(path.join(root,rel),'utf8');
     new Function('window','globalThis','module','require','console','performance','CanvasRenderingContext2D',
       code+'\n//# sourceURL='+rel)(sandbox,sandbox,undefined,undefined,console,performance,undefined);
@@ -55,7 +60,7 @@ function createRuntime(root){
       crosses:[s0.crosses,s1.crosses],lowCrosses:[s0.lowCrosses,s1.lowCrosses],throughBalls:[s0.throughBalls,s1.throughBalls],pressWins:[s0.pressWins,s1.pressWins],defErrors:[s0.defErrors,s1.defErrors],oneOnOnes:[s0.oneOnOnes,s1.oneOnOnes],
       setPieceShots:s0.setPieceShots+s1.setPieceShots,setPieceGoals:s0.setPieceGoals+s1.setPieceGoals,goalMinutes,
       stamina:[avgStamina(sim.teams[0]),avgStamina(sim.teams[1])],
-      teamStats:[s0,s1].map((s,side)=>({goals:s.goals,shots:s.shots,onTarget:s.onTarget,xg:s.xg,passes:s.passes,passOk:s.passOk,fouls:s.fouls,yellow:s.yellow,red:s.red,corners:s.corners,tackles:s.tackles,interceptions:s.interceptions,crosses:s.crosses,lowCrosses:s.lowCrosses,lowCrossesOk:s.lowCrossesOk,throughBalls:s.throughBalls,throughOk:s.throughOk,pressWins:s.pressWins,defErrors:s.defErrors,oneOnOnes:s.oneOnOnes,setPieceShots:s.setPieceShots,setPieceGoals:s.setPieceGoals,poss:(s.possTime||0)/possTotal,stamina:side===0?avgStamina(sim.teams[0]):avgStamina(sim.teams[1])})),
+      teamStats:[s0,s1].map((s,side)=>({goals:s.goals,shots:s.shots,onTarget:s.onTarget,xg:s.xg,passes:s.passes,passOk:s.passOk,fouls:s.fouls,yellow:s.yellow,red:s.red,corners:s.corners,tackles:s.tackles,interceptions:s.interceptions,crosses:s.crosses,lowCrosses:s.lowCrosses,lowCrossesOk:s.lowCrossesOk,throughBalls:s.throughBalls,throughOk:s.throughOk,pressWins:s.pressWins,defErrors:s.defErrors,oneOnOnes:s.oneOnOnes,setPieceShots:s.setPieceShots,setPieceGoals:s.setPieceGoals,gkShotsFaced:s.gkShotsFaced,gkSecureCatches:s.gkSecureCatches,gkParries:s.gkParries,reboundsConceded:s.reboundsConceded,gkSweeps:s.gkSweeps,gkSweepsFailed:s.gkSweepsFailed,gkClaimsAttempted:s.gkClaimsAttempted,gkClaimsWon:s.gkClaimsWon,gkClaimsMissed:s.gkClaimsMissed,gkPunches:s.gkPunches,gkDistributionShort:s.gkDistributionShort,gkDistributionLong:s.gkDistributionLong,gkDistributionCompleted:s.gkDistributionCompleted,gkDistributionFailed:s.gkDistributionFailed,setPieceFirstContactWon:s.setPieceFirstContactWon,setPieceFirstContactLost:s.setPieceFirstContactLost,cornersNearPost:s.cornersNearPost,cornersFarPost:s.cornersFarPost,cornersPenaltySpot:s.cornersPenaltySpot,cornersShort:s.cornersShort,freeKickDirect:s.freeKickDirect,freeKickCrossed:s.freeKickCrossed,freeKickShort:s.freeKickShort,penaltiesTaken:s.penaltiesTaken,penaltiesScored:s.penaltiesScored,penaltiesSaved:s.penaltiesSaved,penaltiesMissed:s.penaltiesMissed,poss:(s.possTime||0)/possTotal,stamina:side===0?avgStamina(sim.teams[0]):avgStamina(sim.teams[1])})),
       eventCounts,steps,dt};
   }
   return {sandbox,db,runJob};

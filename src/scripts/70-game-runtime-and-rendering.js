@@ -25,10 +25,12 @@ const NARR = {
     : `Defesa do goleiro.`,
   gk_claim:    e  => `🧤 <b>${esc((e.gk||{ref:{n:'Goleiro'}}).ref.n)}</b> sai do gol e domina pelo alto!`,
   gk_claim_miss:e => `A bola passa pela saída de <b>${esc((e.gk||{ref:{n:'Goleiro'}}).ref.n)}</b>!`,
+  gk_punch:    e  => `🥊 <b>${esc((e.gk||{ref:{n:'Goleiro'}}).ref.n)}</b> soca a bola para longe!`,
+  gk_sweep_failed:e=> `⚠️ <b>${esc((e.gk||{ref:{n:'Goleiro'}}).ref.n)}</b> sai do gol e é batido!`,
   post:        () => '🔴 NA TRAVE! Incrível!',
   miss:        e  => `<b>${esc(e.by.ref.n)}</b> manda pra fora.`,
   blocked:     () => 'Bloqueado pela defesa!',
-  corner:      () => '🚩 Escanteio.',
+  corner:      e  => `🚩 Escanteio${e.routine==='short'?' curto':e.routine==='near_post'?' no primeiro poste':e.routine==='far_post'?' no segundo poste':''}.`,
   cross:       e  => `<b>${esc(e.by.ref.n)}</b> levanta na área…`,
   foul:        e  => `Falta em <b>${esc(e.on.ref.n)}</b>.`,
   yellow:      e  => `🟨 Amarelo para <b>${esc(e.p.ref.n)}</b>.`,
@@ -50,7 +52,7 @@ const NARR = {
   tackle:      e  => `<b>${esc(e.by.ref.n)}</b> rouba a bola!`,
   dribble:     () => 'Dribla o marcador!',
 };
-const MINOR = new Set(['tackle','dribble','intercept','corner','cross','blocked','header_clear','gk_claim_miss']);
+const MINOR = new Set(['tackle','dribble','intercept','corner','cross','blocked','header_clear','gk_claim_miss','gk_punch']);
 
 /* ─── ESTADO ──────────────────────────────────────────────────────────── */
 let sim = null, raf = 0, acc = 0, lastT = 0;
@@ -3197,8 +3199,14 @@ function statsHtml() {
     ['Defesa e disciplina',[
       ['Desarmes',s[0].tackles,s[1].tackles],['Interceptações',s[0].interceptions,s[1].interceptions],['Defesas do goleiro',s[0].saves,s[1].saves],['Faltas',s[0].fouls,s[1].fouls],['Amarelos',s[0].yellow,s[1].yellow],['Impedimentos',s[0].offsides,s[1].offsides]
     ]],
-    ['Motor 4.0',[
-      ['Bolas em profundidade',s[0].throughBalls||0,s[1].throughBalls||0],['Profundidade certa',s[0].throughOk||0,s[1].throughOk||0],['Cruzamentos rasteiros',s[0].lowCrosses||0,s[1].lowCrosses||0],['Recuperações por pressão',s[0].pressWins||0,s[1].pressWins||0],['Erros defensivos',s[0].defErrors||0,s[1].defErrors||0],['Saídas do goleiro',s[0].gkSweeps||0,s[1].gkSweeps||0]
+    ['Motor 5.0',[
+      ['Bolas em profundidade',s[0].throughBalls||0,s[1].throughBalls||0],['Profundidade certa',s[0].throughOk||0,s[1].throughOk||0],['Cruzamentos rasteiros',s[0].lowCrosses||0,s[1].lowCrosses||0],['Recuperações por pressão',s[0].pressWins||0,s[1].pressWins||0],['Erros defensivos',s[0].defErrors||0,s[1].defErrors||0]
+    ]],
+    ['Goleiros · Fase 8',[
+      ['Defesas seguras',s[0].gkSecureCatches||0,s[1].gkSecureCatches||0],['Espalmadas',s[0].gkParries||0,s[1].gkParries||0],['Rebotes cedidos',s[0].reboundsConceded||0,s[1].reboundsConceded||0],['Saídas certas',s[0].gkSweeps||0,s[1].gkSweeps||0],['Saídas falhas',s[0].gkSweepsFailed||0,s[1].gkSweepsFailed||0],['Cruzamentos dominados',s[0].gkClaimsWon||0,s[1].gkClaimsWon||0],['Socos',s[0].gkPunches||0,s[1].gkPunches||0],['Reposições certas',s[0].gkDistributionCompleted||0,s[1].gkDistributionCompleted||0]
+    ]],
+    ['Bolas paradas · Fase 8',[
+      ['Finalizações de bola parada',s[0].setPieceShots||0,s[1].setPieceShots||0],['Gols de bola parada',s[0].setPieceGoals||0,s[1].setPieceGoals||0],['Primeiro contato ganho',s[0].setPieceFirstContactWon||0,s[1].setPieceFirstContactWon||0],['Faltas diretas',s[0].freeKickDirect||0,s[1].freeKickDirect||0],['Faltas cruzadas',s[0].freeKickCrossed||0,s[1].freeKickCrossed||0],['Escanteios curtos',s[0].cornersShort||0,s[1].cornersShort||0],['Pênaltis convertidos',s[0].penaltiesScored||0,s[1].penaltiesScored||0]
     ]]
   ];
   const n0 = esc(clip(sim.teams[0].name||sim.teams[0].squad.c,16)), n1 = esc(clip(sim.teams[1].name||sim.teams[1].squad.c,16));
