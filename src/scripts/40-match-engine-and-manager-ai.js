@@ -327,7 +327,8 @@ class MatchSim {
     throughBalls:0, throughOk:0, lowCrosses:0, lowCrossesOk:0,
     oneOnOnes:0, setPieceShots:0, setPieceGoals:0,
     pressWins:0, defErrors:0, gkSweeps:0, gkBadDistribution:0,
-    gkShotsFaced:0, gkSecureCatches:0, gkParries:0, reboundsConceded:0,
+    gkShotsFaced:0, gkSecureCatches:0, gkParries:0, reboundsConceded:0, gkDoubleCatches:0,
+    gkDistToFullback:0, gkDistToCenterBack:0, gkDistToMidfield:0, gkDistToForward:0,
     gkSweepsFailed:0, gkClaimsAttempted:0, gkClaimsWon:0, gkClaimsMissed:0, gkPunches:0,
     gkDistributionShort:0, gkDistributionLong:0, gkDistributionCompleted:0, gkDistributionFailed:0,
     setPieceFirstContactWon:0, setPieceFirstContactLost:0,
@@ -653,6 +654,12 @@ class MatchSim {
     }
     const distKind = best.dist > 30 || direct > .66 ? 'long' : 'short';
     this.stats[o.team][distKind === 'long' ? 'gkDistributionLong' : 'gkDistributionShort']++;
+    // distribuição direcionada (auditoria Fase 8): registra a FUNÇÃO do alvo
+    // real da reposição — lateral, zagueiro, meio ou ataque
+    const rp = String(best.m && best.m.slotPos || '');
+    this.stats[o.team][/CB/.test(rp) ? 'gkDistToCenterBack'
+      : /WB$|^LB$|^RB$/.test(rp) ? 'gkDistToFullback'
+      : /M$/.test(rp) ? 'gkDistToMidfield' : 'gkDistToForward']++;
     o._gkDistributionPending = true;
     const ctx=this._actionContext(o,nearest,'pass');
     const bad=clamp(.18-(skill-55)/250 + ctx.pressure*.12 + ctx.fatigue*.05, .025,.28);
@@ -1494,6 +1501,13 @@ class MatchSim {
       this._turnover(gk); return;
     }
     st.gkParries++;
+    // defesa em dois tempos: espalma e mata a bola no chão antes do ataque
+    // chegar — goleiro seguro transforma o rebote em posse
+    if (chance(clamp(.18 + sec*.30 - hard*.18, .06, .50))) {
+      st.gkDoubleCatches++;
+      this._emit('save', { gk, big, kind:'double_catch' });
+      this._turnover(gk); return;
+    }
     // espalmada lateral: some pela linha de fundo → escanteio (chance base
     // vem do contexto do lance: chute aberto, cruzamento rasteiro, falta...)
     const cornerBase = ctx.cornerChance != null ? ctx.cornerChance : CAL.restarts.shotSaveCorner;

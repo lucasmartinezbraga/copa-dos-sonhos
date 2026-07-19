@@ -16,8 +16,11 @@ function snapshot(sim,team){
       shotsFaced:st.gkShotsFaced||0,secureCatches:st.gkSecureCatches||0,parries:st.gkParries||0,
       reboundsConceded:st.reboundsConceded||0,sweeps:st.gkSweeps||0,sweepsFailed:st.gkSweepsFailed||0,
       claimsAttempted:st.gkClaimsAttempted||0,claimsWon:st.gkClaimsWon||0,claimsMissed:st.gkClaimsMissed||0,
-      punches:st.gkPunches||0,distribution:{short:st.gkDistributionShort||0,long:st.gkDistributionLong||0,
-        completed:st.gkDistributionCompleted||0,failed:st.gkDistributionFailed||0}
+      punches:st.gkPunches||0,doubleCatches:st.gkDoubleCatches||0,
+      distribution:{short:st.gkDistributionShort||0,long:st.gkDistributionLong||0,
+        completed:st.gkDistributionCompleted||0,failed:st.gkDistributionFailed||0,
+        toFullback:st.gkDistToFullback||0,toCenterBack:st.gkDistToCenterBack||0,
+        toMidfield:st.gkDistToMidfield||0,toForward:st.gkDistToForward||0}
     },
     setPieces:{
       shots:st.setPieceShots||0,goals:st.setPieceGoals||0,firstContactWon:st.setPieceFirstContactWon||0,
