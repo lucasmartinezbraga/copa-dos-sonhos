@@ -10,10 +10,14 @@ function createRuntime(root){
   sandbox.CanvasRenderingContext2D=undefined;
   sandbox.__cdsDebugWarn=()=>{};
   sandbox.__cdsDebugLog=()=>{};
-  for(const rel of [
+  const mods=[
     'src/scripts/00-polyfills.js','src/scripts/10-data.js','src/scripts/20-core.js',
     'src/scripts/25-data-integrity-v3.js','src/scripts/30-tactics.js','src/scripts/40-match-engine-and-manager-ai.js'
-  ]){
+  ];
+  // CDS_LAB_PHASE47=1 inclui a camada 5.0.0 (Fases 4-7) na simulação — permite
+  // medir o motor 4.3.2 puro e o 5.0.0 na MESMA matriz de confrontos.
+  if(process.env.CDS_LAB_PHASE47==='1')mods.push('src/scripts/45-phases-4-to-7.js');
+  for(const rel of mods){
     const code=fs.readFileSync(path.join(root,rel),'utf8');
     new Function('window','globalThis','module','require','console','performance','CanvasRenderingContext2D',
       code+'\n//# sourceURL='+rel)(sandbox,sandbox,undefined,undefined,console,performance,undefined);
