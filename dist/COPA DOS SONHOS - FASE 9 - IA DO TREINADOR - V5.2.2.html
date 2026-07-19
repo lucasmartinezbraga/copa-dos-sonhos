@@ -2665,14 +2665,19 @@ const ENGINE_CALIBRATION = Object.freeze({
     postShare: 0.055,
   }),
   restarts: Object.freeze({
-    lowCrossSaveCorner: 0.40,
-    failedCrossCorner: 0.58,
-    aerialSaveCorner: 0.45,
-    aerialBlockCorner: 0.52,
-    shotSaveCorner: 0.60,
-    shotBlockCorner: 0.46,
-    postCorner: 0.52,
-    freeKickSaveCorner: 0.60,
+    /* CALIBRAÇÃO (auditoria v5.2.2): escanteios mediam 4.08/partida com a
+       faixa de design em 5.0–11.5. Shares elevados ~25% de forma distribuída
+       — desvios, bloqueios e bolas na trave passam a morrer mais na linha de
+       fundo, como no futebol real (~10/jogo). Validado por bateria de 100
+       partidas antes do commit. */
+    lowCrossSaveCorner: 0.55,
+    failedCrossCorner: 0.72,
+    aerialSaveCorner: 0.58,
+    aerialBlockCorner: 0.66,
+    shotSaveCorner: 0.68,
+    shotBlockCorner: 0.62,
+    postCorner: 0.64,
+    freeKickSaveCorner: 0.68,
   }),
   targets: Object.freeze({
     goals: Object.freeze([1.8, 2.8]),
