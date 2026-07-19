@@ -6,6 +6,13 @@
    ========================================================================= */
 (function () {
 'use strict';
+/* AUDITORIA (Fases 0-9) - RNG visual deterministico: efeitos, confete,
+   narracao e audio nunca usam Math.random nem tocam o RNG seedado da
+   partida (nao consomem rolagens do motor). Sequencia propria e
+   reprodutivel entre execucoes. */
+let _vseed = 0x9E3779B9 >>> 0;
+function vrand(){ _vseed=(_vseed+0x6D2B79F5)>>>0; let t=_vseed; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return ((t^t>>>14)>>>0)/4294967296; }
+
 
 /* ------------------------------- ESTADO --------------------------------- */
 const G = window.G = {
@@ -24,7 +31,7 @@ const G = window.G = {
 
 const $ = sel => document.querySelector(sel);
 const app = () => $('#app');
-const rnd = a => a[Math.floor(Math.random() * a.length)];
+const rnd = a => a[Math.floor(vrand() * a.length)];
 
 window.flagSvg = function(f, size) {
   var s = size || 24;

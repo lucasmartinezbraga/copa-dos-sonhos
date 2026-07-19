@@ -6,6 +6,13 @@
    ========================================================================= */
 (function () {
 'use strict';
+/* AUDITORIA (Fases 0-9) - RNG visual deterministico: efeitos, confete,
+   narracao e audio nunca usam Math.random nem tocam o RNG seedado da
+   partida (nao consomem rolagens do motor). Sequencia propria e
+   reprodutivel entre execucoes. */
+let _vseed = 0x9E3779B9 >>> 0;
+function vrand(){ _vseed=(_vseed+0x6D2B79F5)>>>0; let t=_vseed; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return ((t^t>>>14)>>>0)/4294967296; }
+
 const $ = s => document.querySelector(s);
 
 /* ─── VELOCIDADES ────────────────────────────────────────────────────── */
@@ -87,7 +94,7 @@ function playUXSound(type) {
       const len = Math.max(1, Math.floor(_audioCtx.sampleRate * dur));
       const buf = _audioCtx.createBuffer(1, len, _audioCtx.sampleRate);
       const data = buf.getChannelData(0);
-      for (let i=0;i<len;i++) data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+      for (let i=0;i<len;i++) data[i] = (vrand() * 2 - 1) * (1 - i / len);
       const src = _audioCtx.createBufferSource();
       const hp = _audioCtx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 420;
       const gain = _audioCtx.createGain();
@@ -230,14 +237,14 @@ const PASS_NARR = [
 ];
 
 /* ─── HELPERS ─────────────────────────────────────────────────────────── */
-function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+function pick(a) { return a[Math.floor(vrand() * a.length)]; }
 function makeConfetti(leftSide) {
   const cols = ['#ffcb45','#2e9bff','#2bbf63','#ff4d6d','#ffffff'];
   return Array.from({length: 34}, () => ({
-    x: (leftSide ? 0.15 : 0.85) + (Math.random()-0.5)*0.5,
-    y: 0.1 + Math.random()*0.2, vx: (Math.random()-0.5)*0.006,
-    vy: 0.004 + Math.random()*0.006, c: pick(cols),
-    r: 2 + Math.random()*3, spin: Math.random()*6,
+    x: (leftSide ? 0.15 : 0.85) + (vrand()-0.5)*0.5,
+    y: 0.1 + vrand()*0.2, vx: (vrand()-0.5)*0.006,
+    vy: 0.004 + vrand()*0.006, c: pick(cols),
+    r: 2 + vrand()*3, spin: vrand()*6,
   }));
 }
 function a8Html(p, isLegend) {
@@ -1215,8 +1222,8 @@ function openSetPieceMinigame(req){
        Pênaltis e shootout ficam com wind=null: distância curta demais para o
        vento importar, e o duelo 1x1 deve continuar puramente psicológico. */
     wind:req.kind==='freekick'?(function(){
-      const dir=Math.random()<.5?-1:1;
-      const force=Math.random()*.9;
+      const dir=vrand()<.5?-1:1;
+      const force=vrand()*.9;
       return { dir, force, kmh: Math.round(4+force*24) };
     })():null,
     tension:0
@@ -1267,7 +1274,7 @@ function onEvent(e) {
   }
   // narração de construção (throttled) + efeitos visuais por lance
   if (e.type === 'pass') {
-    if (passNarrCd <= 0 && Math.random() < 0.6) {
+    if (passNarrCd <= 0 && vrand() < 0.6) {
       passNarrCd = 6.5;
       const a = esc(lastWord(e.by.ref.n, 12)), b = esc(lastWord(e.to.ref.n, 12));
       latestEvent = { txt: pick(PASS_NARR)(a, b, zoneOf(e.to)), min: Math.floor(sim.minute) };
@@ -1357,7 +1364,7 @@ function onEvent(e) {
   if (e.type === 'fk_scene' && e.by) {
     const wallN = e.dist < 20 ? 5 : e.dist < 25 ? 4 : 3;
     const vis=e.visual||{};
-    const curve = vis.curve!=null?vis.curve:(Math.random()<.5?-.55:.55);
+    const curve = vis.curve!=null?vis.curve:(vrand()<.5?-.55:.55);
     const actualX=vis.actualX!=null?vis.actualX:(curve<0?.25:.75);
     const shotDir=actualX<.5?-1:1;
     const gkDir = e.result === 'save' ? shotDir : -shotDir;
