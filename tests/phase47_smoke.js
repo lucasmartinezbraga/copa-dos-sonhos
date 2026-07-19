@@ -1,0 +1,18 @@
+'use strict';
+const assert=require('assert');
+const core=require('../src/scripts/20-core.js');
+Object.assign(globalThis,core);
+const match=require('../src/scripts/40-match-engine-and-manager-ai.js');
+Object.assign(globalThis,match);
+const api=require('../src/scripts/45-phases-4-to-7.js');
+assert.strictEqual(api.installed,true);
+assert.strictEqual(api.VERSION,'5.0.0');
+assert.strictEqual(typeof match.MatchSim.prototype.setTeamInstructions,'function');
+assert.strictEqual(typeof match.MatchSim.prototype.setPlayerPhaseRole,'function');
+assert.strictEqual(typeof match.MatchSim.prototype.getTacticalCoherence,'function');
+const bad=api.normalizeInstructions({inPossession:{buildup:{method:'short'},progression:{verticality:90},finalThird:{}},transition:{afterRecovery:'counter'},outOfPossession:{}},'balanced');
+assert(api.detectConflicts(bad).some(x=>x.code==='SHORT_COUNTER'));
+const press=api.normalizeInstructions('highPress','balanced');
+assert.strictEqual(press.outOfPossession.block,'high');
+assert(press.outOfPossession.pressing>=80);
+console.log('phase47_smoke: OK');
