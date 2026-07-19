@@ -1,0 +1,162 @@
+/* =========================================================================
+   BOLA PARADA V3 — controles compactos e adaptados ao gesto principal.
+   ========================================================================= */
+.setpiece-ui .sp-bottom { width:min(760px,100%); margin-inline:auto; }
+.sp-curve-icon { display:inline-block; font-size:15px; line-height:1; }
+.sp-curve-text { margin-left:3px; }
+.sp-shoot-main { display:block; line-height:1; }
+.sp-shoot-sub { display:block; margin-top:2px; font-size:.72em; font-weight:700; opacity:.7; letter-spacing:.55px; }
+
+@media (max-width:700px) {
+  .setpiece-ui { padding:8px; background:linear-gradient(180deg,rgba(2,7,16,.5),transparent 24%,transparent 70%,rgba(2,7,16,.72)); }
+  .sp-top { gap:6px; }
+  .sp-title { font-size:15px; }
+  .sp-sub { font-size:8.5px; letter-spacing:.75px; }
+  .sp-badge { padding:5px 7px; font-size:8px; }
+  .sp-bottom { grid-template-columns:minmax(112px,.72fr) minmax(188px,1.28fr); gap:6px; align-items:end; }
+  .sp-card { padding:6px; border-radius:11px; background:rgba(5,11,24,.72); box-shadow:0 8px 22px rgba(0,0,0,.24); }
+  .sp-label { margin-bottom:4px; font-size:8px; letter-spacing:.8px; }
+  .sp-curves { gap:3px; }
+  .sp-curve { min-width:0; min-height:30px; padding:0 3px; font-size:9px; border-radius:7px; }
+  .sp-curve-text { display:none; }
+  .sp-power-track { height:5px; margin:0 0 5px; }
+  .sp-shoot { min-height:31px; padding:3px 6px; font-size:9.5px; border-radius:8px; box-shadow:none; }
+  .sp-shoot-sub { display:none; }
+  .sp-hint { display:none; }
+}
+
+/* Treino em retrato: uma única câmera alta ocupa todo o espaço restante; o
+   painel inferior flutua sobre o gramado e não empurra a cena para cima. */
+@media (max-width:700px) and (orientation:portrait) {
+  html:has(.fk-training), body:has(.fk-training) { height:100%; overflow:hidden; background:#050b16; }
+  #app:has(.fk-training), .fk-training { width:100%; height:100dvh; min-height:0; overflow:hidden; }
+  .fk-training .fk-train-head {
+    position:relative; z-index:20; grid-template-columns:auto 1fr auto; gap:8px;
+    min-height:52px; height:52px; padding:4px 8px 7px;
+    background:rgba(7,16,31,.96); box-shadow:0 7px 22px rgba(0,0,0,.2);
+  }
+  .fk-training .fk-exit { width:34px; height:34px; border-radius:10px; font-size:18px; }
+  .fk-training .fk-train-title b { font-size:12px; letter-spacing:.8px; }
+  .fk-training .fk-train-title span { max-width:220px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:8px; }
+  .fk-training .fk-score b { font-size:20px; }
+  .fk-training .fk-score span { font-size:7px; }
+  .fk-training .fk-rounds {
+    position:absolute; left:50px; right:56px; bottom:3px; z-index:2;
+    gap:4px; padding:0; border:0; background:transparent;
+  }
+  .fk-training .fk-round-dot { height:3px; }
+  .fk-training .field-wrap {
+    position:relative; width:100%; max-width:none; height:calc(100dvh - 52px); margin:0;
+    overflow:hidden; aspect-ratio:auto; background:linear-gradient(180deg,#07111f 0 41%,#0c4828 41% 100%);
+  }
+  .fk-training #fieldcv {
+    position:absolute; top:0; left:50%; display:block;
+    width:auto !important; height:100% !important; max-width:none !important;
+    transform:translateX(-50%); object-fit:contain;
+  }
+  .fk-training .setpiece-ui.is-training .sp-title { display:none; }
+  .fk-training .setpiece-ui.is-training .sp-sub {
+    display:inline-flex; padding:5px 8px; border:1px solid rgba(255,255,255,.13); border-radius:999px;
+    background:rgba(4,10,22,.58); color:#e2e9f4; backdrop-filter:blur(8px);
+  }
+  .fk-training .setpiece-ui.is-training .sp-badge { display:none; }
+  .fk-training .sp-bottom { margin-bottom:max(2px,env(safe-area-inset-bottom)); }
+}
+
+/* Treino em paisagem: cena em tela inteira; cabeçalho e controles viram duas
+   pequenas ilhas translúcidas sobre a câmera. */
+@media (orientation:landscape) and (max-height:600px) {
+  html:has(.fk-training), body:has(.fk-training) { height:100%; overflow:hidden; background:#050b16; }
+  #app:has(.fk-training), .fk-training { position:relative; width:100%; height:100dvh; min-height:0; overflow:hidden; }
+  .fk-training .fk-train-head {
+    position:absolute; z-index:20; top:max(6px,env(safe-area-inset-top)); left:max(8px,env(safe-area-inset-left));
+    width:min(310px,38vw); min-height:42px; height:42px; padding:4px 8px 7px; gap:7px;
+    border:1px solid rgba(255,255,255,.14); border-radius:13px;
+    background:rgba(5,12,25,.72); backdrop-filter:blur(11px); -webkit-backdrop-filter:blur(11px);
+  }
+  .fk-training .fk-exit { width:31px; height:31px; border-radius:9px; }
+  .fk-training .fk-train-title b { font-size:11px; }
+  .fk-training .fk-train-title span { font-size:7.5px; }
+  .fk-training .fk-score b { font-size:18px; }
+  .fk-training .fk-score span { font-size:6.5px; }
+  .fk-training .fk-rounds { position:absolute; left:46px; right:52px; bottom:3px; gap:3px; padding:0; border:0; background:none; }
+  .fk-training .fk-round-dot { height:3px; }
+  .fk-training .field-wrap { position:absolute; inset:0; width:100%; max-width:none; height:100dvh; margin:0; aspect-ratio:auto; overflow:hidden; }
+  .fk-training #fieldcv { position:absolute; inset:0; width:100% !important; height:100% !important; max-width:none !important; object-fit:cover; transform:none; }
+  .fk-training .setpiece-ui { padding:max(7px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left)); }
+  .fk-training .setpiece-ui.is-training .sp-top { justify-content:flex-end; }
+  .fk-training .setpiece-ui.is-training .sp-title,
+  .fk-training .setpiece-ui.is-training .sp-sub { display:none; }
+  .fk-training .setpiece-ui.is-training .sp-badge { margin-right:46px; padding:5px 8px; font-size:8px; }
+  .fk-training .sp-bottom { width:min(510px,calc(100% - 120px)); margin:0 auto; grid-template-columns:155px 1fr; }
+}
+
+/* Painéis comparativos da partida. */
+.match-section { padding:10px 12px 15px; }
+.match-section-title { margin:3px 0 7px; color:#8fa0b9; font:800 9px var(--f-cond); letter-spacing:1.45px; text-transform:uppercase; }
+.stat-board { display:grid; gap:10px; }
+.stat-group { padding:10px; border:1px solid rgba(255,255,255,.1); border-radius:14px; background:rgba(16,29,53,.68); }
+.stat-group-title { margin-bottom:8px; color:#dfe7f3; font:800 11px var(--f-cond); letter-spacing:1.15px; text-transform:uppercase; }
+.stat-row + .stat-row { margin-top:8px; }
+.stat-row-head { display:grid; grid-template-columns:34px 1fr 34px; gap:7px; align-items:center; }
+.stat-row-label { color:#92a1b8; font:700 9px var(--f-cond); letter-spacing:.75px; text-align:center; text-transform:uppercase; }
+.stat-value { color:#fff; font:900 14px var(--f-display); }
+.stat-value:first-child { text-align:right; }
+.stat-track { display:flex; height:5px; margin-top:3px; overflow:hidden; border-radius:99px; background:rgba(255,255,255,.07); }
+.formation-shell { margin:8px 0; padding:7px; border:1px solid rgba(255,255,255,.11); border-radius:15px; background:#0b1b2c; box-shadow:inset 0 0 28px rgba(0,0,0,.2); }
+.formation-shell svg { display:block; width:100%; border-radius:10px; }
+.tactic-style-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
+.tactic-style-grid .stylerow { margin:0; padding:9px; min-height:62px; }
+@media (min-width:900px) { .stat-board { grid-template-columns:repeat(3,minmax(0,1fr)); } .tactic-style-grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
+
+
+/* Modern Glass & Glow */
+.card { 
+  backdrop-filter: blur(12px); 
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.btn-gold {
+  position: relative;
+  overflow: hidden;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.btn-gold::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+  transform: rotate(45deg);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) rotate(45deg); }
+}
+
+body {
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(255, 203, 69, 0.05) 0%, transparent 40%),
+    #070b14;
+  animation: bgPulse 10s ease-in-out infinite alternate;
+}
+
+@keyframes bgPulse {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 10% 10%; }
+}
+
+.top {
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  background: rgba(7, 11, 20, 0.8);
+}
+
+

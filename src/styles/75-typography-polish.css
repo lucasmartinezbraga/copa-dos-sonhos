@@ -1,0 +1,28 @@
+/* =========================================================================
+   TIPOGRAFIA — CAMADA DE POLIMENTO
+   =========================================================================
+   1. RENDERIZAÇÃO: antialiasing em tela escura. Sobre fundo #070b14, o
+      subpixel-rendering padrão deixa halos coloridos nas bordas dos glifos
+      claros; o antialiased/grayscale produz o traço limpo que se espera de
+      um placar esportivo. optimizeLegibility liga kerning/ligaduras.
+   2. NÚMEROS TABULARES: relógio, placar e percentuais trocam de dígito o
+      tempo todo. Com dígitos proporcionais, "07:31 → 07:32" muda a LARGURA
+      do texto e o placar "respira" a cada segundo. tnum/tabular-nums fixa
+      cada dígito numa mesma caixa: o cronômetro corre sem tremer um pixel.
+      (Os subsets embutidos preservam a feature tnum — ver build_fonts.py.)
+   3. LEGIBILIDADE MIÚDA: os rótulos condensados de 7–9px do HUD móvel ganham
+      um fio de letter-spacing — em fontes condensadas pequenas, é o espaço
+      entre letras (não o tamanho) que devolve a leitura.
+   ========================================================================= */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+.mh-sc, .mh-score, .mh-clock, .mh-ck,
+.poss-label, .statsbar, .sp-sub, .spd {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+}
+.mh-ck, .mh-clock { letter-spacing: .06em; }
+

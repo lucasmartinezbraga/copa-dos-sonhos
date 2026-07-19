@@ -1,0 +1,64 @@
+{
+  "runtime": {
+    "browser_model": "classic scripts; concatenados inline em produção e externos no modo dev",
+    "public_globals": [
+      "DATA",
+      "MatchSim",
+      "CUP",
+      "UI",
+      "G"
+    ],
+    "dom_boundary": {
+      "pure_or_dom_free": [
+        "10-data.js",
+        "20-core.js",
+        "30-tactics.js",
+        "40-match-engine-and-manager-ai.js",
+        "50-tournament.js"
+      ],
+      "dom_dependent": [
+        "60-ui-flow.js",
+        "70-game-runtime-and-rendering.js"
+      ]
+    }
+  },
+  "dependency_order": [
+    "00-polyfills.js",
+    "10-data.js",
+    "20-core.js",
+    "30-tactics.js",
+    "40-match-engine-and-manager-ai.js",
+    "50-tournament.js",
+    "60-ui-flow.js",
+    "70-game-runtime-and-rendering.js"
+  ],
+  "css_cascade_order": [
+    "00-foundation-and-common-ui.css",
+    "20-setup-and-draft.css",
+    "30-match-core.css",
+    "40-match-desktop.css",
+    "50-match-mobile.css",
+    "60-set-pieces.css",
+    "70-responsive-overrides.css",
+    "75-typography-polish.css",
+    "80-prematch-base.css",
+    "85-match-mobile-field-first.css",
+    "90-prematch-role-zones.css",
+    "91-ux-redesign.css",
+    "92-ux-refinement.css",
+    "93-prematch-redesign.css",
+    "99-final-overrides.css"
+  ],
+  "contracts": [
+    "A ordem de scripts é obrigatória.",
+    "A ordem do CSS é obrigatória.",
+    "dist é gerado; src é editável.",
+    "reference é imutável."
+  ],
+  "next_safe_refactors": [
+    "Criar interface pública de ManagerAI para extrair IA do MatchSim.",
+    "Separar canvas, minigames e painéis do game runtime.",
+    "Extrair DATA para JSON validado no build.",
+    "Versionar saves após testes de migração."
+  ]
+}

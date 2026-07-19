@@ -1,0 +1,53 @@
+# Build outputs
+dist/
+*.html
+!src/index.dev.html
+!src/index.template.html
+!reference/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Test outputs
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
+
+# Node (se usar Node no futuro)
+node_modules/
+package-lock.json
+yarn.lock

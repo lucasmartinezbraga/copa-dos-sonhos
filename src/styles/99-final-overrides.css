@@ -1,0 +1,94 @@
+/* CORREÇÃO FINAL · CAMPO COMPACTO, SEM MANCHA E COM ROLAGEM */
+.pm.pm26{
+  display:block!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  overscroll-behavior-y:contain;
+  -webkit-overflow-scrolling:touch;
+}
+.pm26-shell{
+  height:auto!important;
+  min-height:calc(100dvh - 28px)!important;
+  overflow:visible!important;
+  grid-template-rows:auto auto auto!important;
+}
+.pm26-body{
+  height:auto!important;
+  min-height:0!important;
+  overflow:visible!important;
+  align-items:start;
+}
+.pm26-stage{
+  height:auto!important;
+  min-height:0!important;
+  overflow:visible!important;
+  grid-template-rows:auto auto auto!important;
+}
+.pm26-panel{
+  height:auto!important;
+  max-height:calc(100dvh - 180px);
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+}
+.pm26-field{
+  width:100%;
+  height:clamp(420px,calc(100dvh - 350px),510px)!important;
+  min-height:420px!important;
+  max-height:510px!important;
+  flex:none!important;
+}
+/* A classe global .top aplicava um fundo escuro no gol superior. */
+.pm26-field .pm-goal.top,
+.pm26-field .pm-goal.bot{
+  background:transparent!important;
+  box-shadow:none!important;
+  z-index:2!important;
+}
+/* O texto já aparece no cabeçalho de leitura; remover a pílula sobre o gol evita sobreposição. */
+.pm26-badge{display:none!important}
+.pm26-chip{
+  width:76px;
+}
+.pm26-chipdot{
+  width:48px;
+  height:48px;
+  font-size:15px;
+}
+.pm26-chipname{font-size:11px;max-width:82px}
+.pm26-chiprole{font-size:9px}
+.pm26-scroll-hint{
+  display:none;
+  margin:10px 0 0;
+  padding:9px 12px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;
+  background:rgba(255,255,255,.035);
+  color:#9fb0cc;
+  font:800 11px/1.3 var(--f-cond);
+  letter-spacing:.5px;
+  text-align:center;
+  text-transform:uppercase;
+}
+@media (max-height:820px){
+  .pm.pm26{padding:8px 12px!important}
+  .pm26-shell{gap:8px!important}
+  .pm26-field{height:clamp(390px,calc(100dvh - 300px),460px)!important;min-height:390px!important;max-height:460px!important}
+  .pm26-stagehead{padding-bottom:5px!important}
+  .pm26-stagecopy .sub{display:none}
+  .pm26-legend{padding-top:5px!important}
+  .pm26-panel{max-height:calc(100dvh - 145px)}
+  .pm26-scroll-hint{display:block}
+}
+@media (max-height:680px){
+  .pm26-field{height:400px!important;min-height:400px!important}
+  .pm26-body{grid-template-columns:1fr!important}
+  .pm26-panel{max-height:none!important}
+}
+@media (max-width:1100px){
+  .pm26-body{grid-template-columns:1fr!important}
+  .pm26-panel{max-height:none!important}
+  .pm26-field{height:clamp(410px,62dvh,520px)!important}
+  .pm26-scroll-hint{display:block}
+}
+
