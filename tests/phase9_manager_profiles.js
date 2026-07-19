@@ -5,7 +5,7 @@ const path=require('path');const {createRuntime}=require('../tools/lab_runtime.j
 function team(idx,profile){const s=structuredClone(rt.db.squads[idx]),l=sb.autoLineup(s,'4-3-3',0);return{squad:s,name:s.c,flag:'',color:'#fff',lineup:l.lineup,bench:l.bench,style:'balanced',axes:Object.assign({},sb.STYLE_AXES.balanced),managerProfile:profile};}
 function profileFor(seed){sb.srand(seed);const sim=new sb.MatchSim(team(312),team(288),{neutral:true});sim.setInteractive(0);return{profile:sim.getManagerData(1).profile,plan:sim.getManagerData(1).preMatch,stats:sim.stats[1]};}
 const a=profileFor(12345),b=profileFor(12345);
-if(!sb.CDS_PHASE9||sb.CDS_PHASE9.VERSION!=='5.2.0')throw new Error('módulo Fase 9 ausente');
+if(!sb.CDS_PHASE9||sb.CDS_PHASE9.VERSION!=='5.2.1')throw new Error('módulo Fase 9 ausente');
 if(JSON.stringify(a.profile)!==JSON.stringify(b.profile))throw new Error('perfil não determinístico');
 if(JSON.stringify(a.plan)!==JSON.stringify(b.plan))throw new Error('plano pré-jogo não determinístico');
 if(!a.plan||!a.plan.preset||!a.plan.opponent)throw new Error('plano pré-jogo incompleto');

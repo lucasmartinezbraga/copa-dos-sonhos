@@ -1,0 +1,95 @@
+{
+  "ok": true,
+  "version": "5.2.1",
+  "derived": {
+    "key": "adaptive",
+    "label": "Adaptável",
+    "aggression": 60,
+    "riskTolerance": 62,
+    "adaptability": 85,
+    "pressingPreference": 64,
+    "possessionPreference": 64,
+    "defensivePreference": 60,
+    "substitutionTiming": 65,
+    "evidenceThreshold": 0.44,
+    "persistence": 8,
+    "reviewMinutes": 6
+  },
+  "preMatch": {
+    "minute": 0,
+    "preset": "counter",
+    "reason": "Ataque adversário veloz: controlar profundidade e transitar",
+    "opponent": {
+      "name": "Espanha",
+      "form": {
+        "inPossession": null,
+        "outOfPossession": null
+      },
+      "style": "balanced",
+      "keyPlayers": [
+        {
+          "id": "s313p0",
+          "name": "Andres Iniesta",
+          "position": "CM",
+          "overall": 94,
+          "dominantFoot": "unknown",
+          "likelyRole": {
+            "inPossession": "cm_b2b",
+            "outOfPossession": "press_mid"
+          }
+        },
+        {
+          "id": "s313p1",
+          "name": "Xavi Hernandez",
+          "position": "CM",
+          "overall": 93,
+          "dominantFoot": "unknown",
+          "likelyRole": {
+            "inPossession": "cm_b2b",
+            "outOfPossession": "press_mid"
+          }
+        },
+        {
+          "id": "s313p2",
+          "name": "Iker Casillas",
+          "position": "GK",
+          "overall": 92,
+          "dominantFoot": "unknown",
+          "likelyRole": {
+            "inPossession": "gk_seguro",
+            "outOfPossession": "line_keeper"
+          }
+        }
+      ],
+      "pace": 80.5,
+      "aerial": 82.7,
+      "goalkeeperBuild": 90.3,
+      "recentResults": null,
+      "fatigue": 0,
+      "cards": {
+        "yellow": [],
+        "red": []
+      },
+      "suspensions": "unknown",
+      "injuries": []
+    }
+  },
+  "explicit": {
+    "key": "adaptive",
+    "label": "Professor",
+    "aggression": 60,
+    "riskTolerance": 31,
+    "adaptability": 97,
+    "pressingPreference": 64,
+    "possessionPreference": 64,
+    "defensivePreference": 60,
+    "substitutionTiming": 62,
+    "evidenceThreshold": 0.44,
+    "persistence": 8,
+    "reviewMinutes": 6
+  },
+  "profilePlans": {
+    "aggressive": "highPress",
+    "possession": "possession"
+  }
+}

@@ -1,0 +1,141 @@
+{
+  "ok": true,
+  "version": "5.2.1",
+  "preMatch": {
+    "name": "Espanha",
+    "form": {
+      "inPossession": null,
+      "outOfPossession": null
+    },
+    "style": "balanced",
+    "keyPlayers": [
+      {
+        "id": "s313p0",
+        "name": "Andres Iniesta",
+        "position": "CM",
+        "overall": 94,
+        "dominantFoot": "unknown",
+        "likelyRole": {
+          "inPossession": "cm_b2b",
+          "outOfPossession": "press_mid"
+        }
+      },
+      {
+        "id": "s313p1",
+        "name": "Xavi Hernandez",
+        "position": "CM",
+        "overall": 93,
+        "dominantFoot": "unknown",
+        "likelyRole": {
+          "inPossession": "cm_b2b",
+          "outOfPossession": "press_mid"
+        }
+      },
+      {
+        "id": "s313p2",
+        "name": "Iker Casillas",
+        "position": "GK",
+        "overall": 92,
+        "dominantFoot": "unknown",
+        "likelyRole": {
+          "inPossession": "gk_seguro",
+          "outOfPossession": "line_keeper"
+        }
+      }
+    ],
+    "pace": 80.5,
+    "aerial": 82.7,
+    "goalkeeperBuild": 90.3,
+    "recentResults": [
+      "V 2-0",
+      "E 1-1",
+      "V 3-1"
+    ],
+    "fatigue": 23,
+    "cards": {
+      "yellow": [
+        "Jogador A"
+      ],
+      "red": []
+    },
+    "suspensions": [
+      "Suspenso X"
+    ],
+    "injuries": [
+      "Lesionado Y"
+    ]
+  },
+  "diagnostics": [
+    "LEFT_OVERLOAD",
+    "WINGER_DISCONNECTED",
+    "YELLOW_TARGETED",
+    "ISOLATED_ATTACK",
+    "ROLE_MISMATCH",
+    "LOW_ZONE_OCCUPANCY"
+  ],
+  "roleChange": {
+    "before": {
+      "id": "s289p1",
+      "name": "Kim Joo-sung",
+      "inPossession": {
+        "position": "LW",
+        "role": "wg_aberta",
+        "duty": "attack"
+      },
+      "outOfPossession": {
+        "position": "LW",
+        "role": "press_front",
+        "duty": "attack"
+      }
+    },
+    "after": {
+      "inPossession": {
+        "position": "LW",
+        "role": "wg_aberta",
+        "duty": "support"
+      },
+      "outOfPossession": {
+        "position": "LW",
+        "role": "press_front",
+        "duty": "defend"
+      }
+    }
+  },
+  "crossType": "low",
+  "evaluation": {
+    "minute": 45,
+    "score": 0.175,
+    "outcome": "positive",
+    "success": true,
+    "window": {
+      "xgFor": 0.7,
+      "xgAgainst": 0,
+      "shotsFor": 4,
+      "shotsAgainst": 0,
+      "possession": 0.5,
+      "scoreDelta": 0
+    },
+    "decision": "maintain"
+  },
+  "saveRoundTrip": true,
+  "metrics": {
+    "analyses": 0,
+    "diagnoses": 0,
+    "changes": 2,
+    "substitutions": 0,
+    "evaluations": 1,
+    "successful": 1,
+    "failed": 0,
+    "inconclusive": 0,
+    "reversals": 0,
+    "preMatchPlans": 1,
+    "noActions": 0,
+    "roleChanges": 1,
+    "dutyChanges": 1,
+    "pressOrientations": 1,
+    "crossChanges": 1,
+    "targetedPlayers": 1,
+    "stateExports": 1,
+    "stateImports": 0
+  }
+}

@@ -1,23 +1,26 @@
 {
   "phase": 9,
-  "engineVersion": "5.2.0",
+  "engineVersion": "5.2.1",
   "parentEngine": "5.1.0",
   "certifiedBase": "4.3.2",
   "fixedStep": 0.016666666666666666,
-  "build": "dist/COPA DOS SONHOS - FASE 9 - IA DO TREINADOR - V5.2.0.html",
-  "bytes": 1347742,
-  "sha256": "315fcc3a2fcd708772e0bdeaed5c4b8e9dabca05d3406602c3fec17cd620018e",
+  "build": "dist/COPA DOS SONHOS - FASE 9 - IA DO TREINADOR - V5.2.1.html",
+  "bytes": 1367390,
+  "sha256": "ab2845d4951f26c03f533c5846ece7364ba5e5657123a99dbebd5ad4e94faf2e",
   "features": [
     "manager-profiles",
-    "pre-match-plan",
+    "expanded-pre-match-plan",
     "live-match-diagnosis",
-    "evidence-thresholds",
+    "player-role-and-duty-changes",
+    "directed-pressing",
+    "cross-type-adaptation",
     "tactical-memory",
     "change-evaluation",
     "automatic-reversal",
     "contextual-substitutions",
     "formation-adaptation",
     "corridor-reinforcement",
+    "manager-save-roundtrip",
     "phase9-manager-ui",
     "manager-data-api"
   ],
@@ -34,8 +37,8 @@
     },
     {
       "file": "src/scripts/47-phase9-manager-ai.js",
-      "bytes": 28305,
-      "sha256": "0a94199d559683b2c224ae2b2d3ca712285a1bf7f5f88fed28987cee71b144de"
+      "bytes": 47951,
+      "sha256": "e60fb91b084eeab246ee275449b7d9c863824cae4708fe727a0c62b8f8287de3"
     }
   ]
 }
