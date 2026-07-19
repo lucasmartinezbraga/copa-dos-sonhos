@@ -510,7 +510,7 @@ const GRAN_MAP = {
    e o motor usam a mesma escala 0..100, sem uma segunda nota invisível e
    saturada em 99. Os blocos separam intenção, execução e resultado. */
 const ENGINE_CALIBRATION = Object.freeze({
-  version: '4.0.0',
+  version: '4.0.1',
   attributes: Object.freeze({
     /* ═══ BALANCEAMENTO · ONDE O ATRIBUTO MANDA E ONDE A SORTE ENTRA ═════
        O motor decide TUDO por sigmoide de duelo: P = 1/(1+e^(-Δ/spread)),
@@ -557,10 +557,16 @@ const ENGINE_CALIBRATION = Object.freeze({
     maxError: 0.24,
   }),
   defending: Object.freeze({
+    /* Valores idênticos ao 4.0.0: os cartões saíram do código do motor para
+       cá (estrutura da Fase 3), mas recalibrá-los exige bateria validada no
+       laboratório — nenhum número muda antes do relatório de regressão. */
     tackleAttemptRate: 45.0,
     boxAttemptRate: 16.0,
     foulBase: 0.29,
     foulComposure: 0.12,
+    yellowFirst: 0.19,
+    yellowSecond: 0.10,
+    straightRed: 0.003,
   }),
   shooting: Object.freeze({
     distanceXg: Object.freeze([

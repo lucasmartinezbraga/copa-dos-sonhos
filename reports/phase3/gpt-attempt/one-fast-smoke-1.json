@@ -1,0 +1,234 @@
+{
+  "schema": "cds-lab-v1",
+  "label": "one-fast",
+  "mode": "smoke",
+  "createdAt": "2026-07-19T01:19:18.924Z",
+  "engineVersion": "4.0.0",
+  "targetsVersion": "1.0.0",
+  "matches": 1,
+  "workers": 1,
+  "dt": 0.08,
+  "elapsedMs": 4340.811317,
+  "workerMs": [
+    1306.6426740000006
+  ],
+  "overall": {
+    "name": "overall",
+    "games": 1,
+    "goalsPerMatch": 5,
+    "shotsPerMatch": 38,
+    "xgPerMatch": 6.41108115849601,
+    "onTargetRate": 0.42105263157894735,
+    "passCompletion": 0.8271028037383178,
+    "foulsPerMatch": 42,
+    "yellowsPerMatch": 4,
+    "redsPerMatch": 0,
+    "cornersPerMatch": 7,
+    "tacklesPerMatch": 98,
+    "interceptionsPerMatch": 18,
+    "drawRate": 0,
+    "zeroZeroRate": 0,
+    "blowoutRate": 0,
+    "lateGoalShare": 0,
+    "setPieceGoalShare": 0,
+    "averageEndingStamina": 70.26915917446584,
+    "averagePossessionA": 0.5501858736059477,
+    "goalP50": 5,
+    "goalP90": 5,
+    "shotP90": 38,
+    "maxGoals": 5,
+    "scoreFrequency": {
+      "3-2": 1
+    }
+  },
+  "features": {
+    "suites": {
+      "formations": {
+        "name": "formations",
+        "games": 1,
+        "goalsPerMatch": 5,
+        "shotsPerMatch": 38,
+        "xgPerMatch": 6.41108115849601,
+        "onTargetRate": 0.42105263157894735,
+        "passCompletion": 0.8271028037383178,
+        "foulsPerMatch": 42,
+        "yellowsPerMatch": 4,
+        "redsPerMatch": 0,
+        "cornersPerMatch": 7,
+        "tacklesPerMatch": 98,
+        "interceptionsPerMatch": 18,
+        "drawRate": 0,
+        "zeroZeroRate": 0,
+        "blowoutRate": 0,
+        "lateGoalShare": 0,
+        "setPieceGoalShare": 0,
+        "averageEndingStamina": 70.26915917446584,
+        "averagePossessionA": 0.5501858736059477,
+        "goalP50": 5,
+        "goalP90": 5,
+        "shotP90": 38,
+        "maxGoals": 5,
+        "scoreFrequency": {
+          "3-2": 1
+        }
+      }
+    },
+    "groups": {
+      "formation:4-3-3": {
+        "name": "formation:4-3-3",
+        "games": 1,
+        "goalsPerMatch": 5,
+        "shotsPerMatch": 38,
+        "xgPerMatch": 6.41108115849601,
+        "onTargetRate": 0.42105263157894735,
+        "passCompletion": 0.8271028037383178,
+        "foulsPerMatch": 42,
+        "yellowsPerMatch": 4,
+        "redsPerMatch": 0,
+        "cornersPerMatch": 7,
+        "tacklesPerMatch": 98,
+        "interceptionsPerMatch": 18,
+        "drawRate": 0,
+        "zeroZeroRate": 0,
+        "blowoutRate": 0,
+        "lateGoalShare": 0,
+        "setPieceGoalShare": 0,
+        "averageEndingStamina": 70.26915917446584,
+        "averagePossessionA": 0.5501858736059477,
+        "goalP50": 5,
+        "goalP90": 5,
+        "shotP90": 38,
+        "maxGoals": 5,
+        "scoreFrequency": {
+          "3-2": 1
+        }
+      }
+    },
+    "styles": {}
+  },
+  "calibration": {
+    "score": 35.32052383966151,
+    "checks": {
+      "goalsPerMatch": {
+        "value": 5,
+        "min": 2.4,
+        "target": 2.8,
+        "max": 3.2,
+        "score": 0,
+        "status": "high"
+      },
+      "shotsPerMatch": {
+        "value": 38,
+        "min": 20,
+        "target": 25,
+        "max": 30,
+        "score": 0,
+        "status": "high"
+      },
+      "xgPerMatch": {
+        "value": 6.41108115849601,
+        "min": 2.3,
+        "target": 2.9,
+        "max": 3.5,
+        "score": 0,
+        "status": "high"
+      },
+      "onTargetRate": {
+        "value": 0.42105263157894735,
+        "min": 0.34,
+        "target": 0.4,
+        "max": 0.47,
+        "score": 92.48120300751881,
+        "status": "ok"
+      },
+      "passCompletion": {
+        "value": 0.8271028037383178,
+        "min": 0.75,
+        "target": 0.82,
+        "max": 0.89,
+        "score": 97.46328437917221,
+        "status": "ok"
+      },
+      "foulsPerMatch": {
+        "value": 42,
+        "min": 16,
+        "target": 21,
+        "max": 28,
+        "score": 0,
+        "status": "high"
+      },
+      "yellowsPerMatch": {
+        "value": 4,
+        "min": 2.4,
+        "target": 3.8,
+        "max": 5.6,
+        "score": 97.22222222222221,
+        "status": "ok"
+      },
+      "redsPerMatch": {
+        "value": 0,
+        "min": 0.06,
+        "target": 0.16,
+        "max": 0.3,
+        "score": 50,
+        "status": "low"
+      },
+      "cornersPerMatch": {
+        "value": 7,
+        "min": 5,
+        "target": 8,
+        "max": 11.5,
+        "score": 92.85714285714286,
+        "status": "ok"
+      },
+      "drawRate": {
+        "value": 0,
+        "min": 0.2,
+        "target": 0.26,
+        "max": 0.33,
+        "score": 0,
+        "status": "low"
+      },
+      "zeroZeroRate": {
+        "value": 0,
+        "min": 0.045,
+        "target": 0.075,
+        "max": 0.12,
+        "score": 15,
+        "status": "low"
+      },
+      "blowoutRate": {
+        "value": 0,
+        "min": 0.025,
+        "target": 0.065,
+        "max": 0.13,
+        "score": 51.19047619047619,
+        "status": "low"
+      },
+      "lateGoalShare": {
+        "value": 0,
+        "min": 0.17,
+        "target": 0.24,
+        "max": 0.34,
+        "score": 0,
+        "status": "low"
+      },
+      "setPieceGoalShare": {
+        "value": 0,
+        "min": 0.1,
+        "target": 0.17,
+        "max": 0.27,
+        "score": 16.17647058823529,
+        "status": "low"
+      },
+      "averageEndingStamina": {
+        "value": 70.26915917446584,
+        "min": 64,
+        "target": 73,
+        "max": 83,
+        "score": 93.1728979361646,
+        "status": "ok"
+      }
+    }
+  }
+}

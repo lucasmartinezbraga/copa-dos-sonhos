@@ -15,7 +15,7 @@ const CAL = C.ENGINE_CALIBRATION;
    contexto, gatilhos, interações de função, fadiga tardia e leitura espacial
    às mesmas disputas de atributos usadas pelo motor original. */
 const ADV4 = Object.freeze({
-  version: '4.0.0',
+  version: '4.0.1',
   context: Object.freeze({
     pressureRadius: 5.4,
     lateMinute: 74,
@@ -612,6 +612,7 @@ class MatchSim {
   }
 
   _trackAnalytics(dt){
+    if (this.opts && this.opts.labMode) return;
     this._analyticsT += dt;
     if(this._analyticsT < ADV4.analytics.sample) return;
     this._analyticsT=0;
@@ -1653,14 +1654,14 @@ class MatchSim {
     this.stats[fouler.team].fouls++;
     this._emit('foul', { by: fouler, on: victim });
     // cartão?
-    const hard = chance(fouler.yellow >= 1 ? 0.10 : 0.19);
+    const hard = chance(fouler.yellow >= 1 ? CAL.defending.yellowSecond : CAL.defending.yellowFirst);
     if (hard) {
       fouler.yellow++; this.stats[fouler.team].yellow++;
       if (fouler.yellow >= 2) {
         fouler.red = true; this.stats[fouler.team].red++; this._emit('red', { p: fouler, second: true });
         if (this.ball.owner === fouler) { this.ball.owner = null; this.ball.traveling = false; this._goalKickOrRestart(1 - fouler.team); }
       } else this._emit('yellow', { p: fouler });
-    } else if (chance(0.003)) {
+    } else if (chance(CAL.defending.straightRed)) {
       fouler.red = true; this.stats[fouler.team].red++; this._emit('red', { p: fouler, second: false });
       if (this.ball.owner === fouler) { this.ball.owner = null; this.ball.traveling = false; this._goalKickOrRestart(1 - fouler.team); }
     }
@@ -2443,7 +2444,10 @@ class MatchSim {
   /* ------------------------------ EVENTOS ----------------------------- */
   _emit(type, data) {
     const ev = Object.assign({ type, minute: Math.floor(this.minute), t: this.t }, data);
-    this.events.push(ev);
+    // O laboratório executa milhares de partidas e não precisa reter cada passe,
+    // bote e corrida. O callback continua recebendo todos os eventos necessários
+    // para a auditoria, mas o array interno só guarda marcos de jogo.
+    if (!(this.opts && this.opts.labMode) || ['goal','yellow','red','injury','halftime','extratime','sub'].includes(type)) this.events.push(ev);
     try { this.onEvent(ev); } catch(e){}
   }
 
