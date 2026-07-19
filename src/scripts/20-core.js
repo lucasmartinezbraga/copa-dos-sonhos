@@ -510,7 +510,7 @@ const GRAN_MAP = {
    e o motor usam a mesma escala 0..100, sem uma segunda nota invisível e
    saturada em 99. Os blocos separam intenção, execução e resultado. */
 const ENGINE_CALIBRATION = Object.freeze({
-  version: '4.0.1',
+  version: '4.3.2',
   attributes: Object.freeze({
     /* ═══ BALANCEAMENTO · ONDE O ATRIBUTO MANDA E ONDE A SORTE ENTRA ═════
        O motor decide TUDO por sigmoide de duelo: P = 1/(1+e^(-Δ/spread)),
@@ -541,6 +541,7 @@ const ENGINE_CALIBRATION = Object.freeze({
   }),
   timing: Object.freeze({
     clockRate: 0.24,
+    fixedStep: 1 / 60,
     decisionInterval: 0.28,
     tackleCooldown: 0.55,
   }),
@@ -557,22 +558,19 @@ const ENGINE_CALIBRATION = Object.freeze({
     maxError: 0.24,
   }),
   defending: Object.freeze({
-    /* Valores idênticos ao 4.0.0: os cartões saíram do código do motor para
-       cá (estrutura da Fase 3), mas recalibrá-los exige bateria validada no
-       laboratório — nenhum número muda antes do relatório de regressão. */
-    tackleAttemptRate: 45.0,
-    boxAttemptRate: 16.0,
+    tackleAttemptRate: 12.0,
+    boxAttemptRate: 4.2,
     foulBase: 0.29,
     foulComposure: 0.12,
-    yellowFirst: 0.19,
-    yellowSecond: 0.10,
-    straightRed: 0.003,
+    yellowFirst: 0.18,
+    yellowSecond: 0.05,
+    straightRed: 0.0008,
   }),
   shooting: Object.freeze({
     distanceXg: Object.freeze([
       [6, 0.48], [11, 0.27], [16, 0.135], [22, 0.064], [30, 0.032], [Infinity, 0.015],
     ]),
-    conversionScale: 2.20,
+    conversionScale: 2.25,
     /* BALANCEAMENTO · finalizador e goleiro com voz de verdade:
        · skillInfluence 0.90 → 1.05: o termo (FIN−GK)/100 modula a conversão
          em ±~26% na faixa típica (antes ±22%). A POSIÇÃO do chute continua
@@ -593,6 +591,16 @@ const ENGINE_CALIBRATION = Object.freeze({
     keeperSaveInfluence: 0.21,
     blockedShare: 0.18,
     postShare: 0.055,
+  }),
+  restarts: Object.freeze({
+    lowCrossSaveCorner: 0.40,
+    failedCrossCorner: 0.58,
+    aerialSaveCorner: 0.45,
+    aerialBlockCorner: 0.52,
+    shotSaveCorner: 0.60,
+    shotBlockCorner: 0.46,
+    postCorner: 0.52,
+    freeKickSaveCorner: 0.60,
   }),
   targets: Object.freeze({
     goals: Object.freeze([1.8, 2.8]),
@@ -1314,7 +1322,7 @@ const STYLE_FX = {
   counter: { l:'Contra-Ataque', d:'Bloco baixo, transição letal.',      line:-0.060, tackle:0.88, far:1.00, cross:1.00, drain:0.95 },
   press:   { l:'Gegenpressing', d:'Pressão alta. Custa fôlego.',        line:+0.020, tackle:1.30, far:1.00, cross:1.00, drain:1.18 },
   direct:  { l:'Jogo Direto',   d:'Bola longa e cruzamento.',           line:-0.010, tackle:1.00, far:1.25, cross:1.35, drain:1.00 },
-  wings:   { l:'Pelas Alas',    d:'Amplitude máxima pelos lados.',      line: 0.000, tackle:1.00, far:0.90, cross:1.45, drain:1.00 },
+  wings:   { l:'Pelas Alas',    d:'Amplitude máxima pelos lados.',      line: 0.000, tackle:1.00, far:0.90, cross:1.55, drain:1.00 },
   balanced:{ l:'Equilibrado',   d:'Sem extremos: joga o que o jogo pede.',line: 0.000, tackle:1.05, far:0.95, cross:1.05, drain:1.02 },
   park:    { l:'Retranca',      d:'Ferrolho: defende com todos, sai no susto.',line:-0.095, tackle:1.10, far:1.10, cross:0.95, drain:0.90 },
 };
@@ -1324,13 +1332,13 @@ const STYLE_NEUTRO = { l:'Equilibrado', d:'', line:0, tackle:1, far:1, cross:1, 
 /* Eixos táticos padrão por estilo (preset 0..100, 50 neutro). O jogador parte
    daqui e afina. Compartilhado entre o motor (match.js) e a UI. */
 const STYLE_AXES = {
-  tiki:     { line: 68, press: 60, width: 40, tempo: 25, posture: 62 },
-  counter:  { line: 30, press: 40, width: 45, tempo: 82, posture: 42 },
+  tiki:     { line: 60, press: 52, width: 42, tempo: 30, posture: 55 },
+  counter:  { line: 34, press: 44, width: 48, tempo: 72, posture: 49 },
   press:    { line: 66, press: 92, width: 50, tempo: 60, posture: 66 },
   direct:   { line: 46, press: 52, width: 62, tempo: 85, posture: 58 },
   wings:    { line: 50, press: 50, width: 90, tempo: 60, posture: 60 },
   balanced: { line: 50, press: 50, width: 50, tempo: 50, posture: 50 },
-  park:     { line: 12, press: 40, width: 42, tempo: 55, posture: 20 },
+  park:     { line: 18, press: 42, width: 34, tempo: 95, posture: 40 },
 };
 
 /* ------------------------- ESCALACAO AUTOMATICA ------------------------ */
@@ -1470,5 +1478,3 @@ const __CORE = {
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = __CORE;
 if (typeof window !== 'undefined') Object.assign(window, __CORE);
-
-

@@ -1,6 +1,6 @@
 {
-  "phase": 2,
-  "name": "Banco V3: posições, atributos, goleiros, traits e validação",
+  "phase": 3,
+  "name": "Laboratório estatístico, passo fixo e calibração do motor 4.3",
   "baseline_file": "COPA DOS SONHOS - FASE 1 - ARQUITETURA MODULAR.html",
   "baseline_sha256": "7878fa516eea86d97dbc376977f5e2786d5a2b573780067b5e81b47682b2a76e",
   "head_script": {
@@ -36,8 +36,8 @@
     },
     {
       "file": "src/styles/60-set-pieces.css",
-      "bytes": 8603,
-      "sha256": "9306772f311a30598a7b21554cbd51c38846049c14bbef264c10d81192e19ea6"
+      "bytes": 8599,
+      "sha256": "57ec91017d91bdad1ffc50a44585936a3674fcb1c2911a0640ac0d446841ad54"
     },
     {
       "file": "src/styles/70-responsive-overrides.css",
@@ -98,8 +98,8 @@
     },
     {
       "file": "src/scripts/20-core.js",
-      "bytes": 80771,
-      "sha256": "0cf0693a4ad149dfd936f7ac515e1d52b7843884db73f9ef2a9293b92504708b"
+      "bytes": 80805,
+      "sha256": "c7dc60a3a12ed1c19a42ef01282051cf110b92400614fc944b311d45183b2335"
     },
     {
       "file": "src/scripts/25-data-integrity-v3.js",
@@ -113,38 +113,42 @@
     },
     {
       "file": "src/scripts/40-match-engine-and-manager-ai.js",
-      "bytes": 157256,
-      "sha256": "5b5a464ff8c1ecd5d5b218d0151bd336714ec29cdd27140d2839dde1245d9acd"
+      "bytes": 157490,
+      "sha256": "ddde5c79b4f3629a8b3a609b7b71124510d1eb1c628f5124ea4598cb445a79d4"
     },
     {
       "file": "src/scripts/50-tournament.js",
-      "bytes": 15405,
-      "sha256": "83a68e8be82a70cadbd15e6a32f3874120d658b9ce84a296656fd5a9be0166f7"
+      "bytes": 15401,
+      "sha256": "3512c382647c7ea6a3e6b509f5b4b2b77c802c66a7b76d120216387aca0fbea7"
     },
     {
       "file": "src/scripts/60-ui-flow.js",
-      "bytes": 52871,
-      "sha256": "8751aa74ade876b3ae39e1f33d2063cad18fcd0f8c261707efcaeafccc7e7388"
+      "bytes": 52868,
+      "sha256": "71c38c320fca6e52e12d86c03d478c55f6e15d185ce627ebcb20d5a41eb915f5"
     },
     {
       "file": "src/scripts/70-game-runtime-and-rendering.js",
-      "bytes": 203557,
-      "sha256": "4a7a0f771354401523bf401714814e1ab092011c7d417453cb3b1ee8c52fdcc6"
+      "bytes": 203555,
+      "sha256": "644454b8d7b400c2a177b2d2689d7aff3126fb91fd8a7fd06daef6c1f21c96c1"
     }
   ],
-  "build_output": "dist/COPA DOS SONHOS - FASE 2 - BANCO V3 VALIDADO.html",
+  "build_output": "dist/COPA DOS SONHOS - FASE 3 - MOTOR CALIBRADO.html",
   "module_order_is_contract": true,
   "notes": [
     "HTML final continua autocontido.",
-    "Banco bruto preservado; camada V3 aplicada após o decode legado.",
-    "Posições possuem primária, secundárias e emergenciais explícitas.",
-    "Goleiros possuem ficha granular completa, inclusive registros sem A8.",
-    "Pé e altura não curados são parâmetros de simulação marcados como estimados.",
-    "Validador fica disponível em window.CDS_DATA_AUDIT."
+    "Laboratório oficial usa o passo fixo real de 1/60 s.",
+    "Tentativas de desarme usam taxa temporal e cooldown apenas após tentativa real.",
+    "Todos os estilos, inclusive a Retranca, foram validados por confrontos espelhados.",
+    "Escanteios, conversão e bolas paradas foram calibrados pela matriz oficial.",
+    "Matriz oficial possui checkpoint e retomada automática.",
+    "Relatórios incluem intervalos de confiança, estilos, formações e viés de lado.",
+    "Regressão massiva adicional executa 3.200 partidas no mesmo passo fixo."
   ],
-  "parent_phase": 1,
+  "parent_phase": 2,
   "parent_build_sha256": "7878fa516eea86d97dbc376977f5e2786d5a2b573780067b5e81b47682b2a76e",
-  "last_build_sha256": "0d495bf089a79654748405ff19bd7dc0e0f4bda06831663f6bca12fe48afa614",
+  "last_build_sha256": "8dab0dda2c25af13a5ccb7282290868765dad25292831eec8ddd39179ce11e80",
   "audit_file": "reports/phase2-audit.json",
-  "qa_file": "manifests/phase2-qa.json"
+  "qa_file": "manifests/phase3-qa.json",
+  "calibration_report": "reports/phase3/validation214-v43.json",
+  "mass_regression_report": "reports/phase3/regression3200-v432-3200.json"
 }

@@ -11,10 +11,10 @@ def run(cmd:list[str],timeout:int=900)->subprocess.CompletedProcess:
 
 def main():
     ap=argparse.ArgumentParser()
-    ap.add_argument('--matches',type=int,default=300)
-    ap.add_argument('--chunk-size',type=int,default=5)
-    ap.add_argument('--parallel',type=int,default=2)
-    ap.add_argument('--dt',type=float,default=.08)
+    ap.add_argument('--matches',type=int,default=3200)
+    ap.add_argument('--chunk-size',type=int,default=10)
+    ap.add_argument('--parallel',type=int,default=4)
+    ap.add_argument('--dt',type=float,default=1/60)
     ap.add_argument('--label',default='phase3')
     ap.add_argument('--mode',default='full')
     args=ap.parse_args()
