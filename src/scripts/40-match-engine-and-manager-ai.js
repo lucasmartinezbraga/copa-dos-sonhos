@@ -329,6 +329,7 @@ class MatchSim {
     pressWins:0, defErrors:0, gkSweeps:0, gkBadDistribution:0,
     gkShotsFaced:0, gkSecureCatches:0, gkParries:0, reboundsConceded:0, gkDoubleCatches:0,
     gkDistToFullback:0, gkDistToCenterBack:0, gkDistToMidfield:0, gkDistToForward:0,
+    cornersInswinger:0, cornersOutswinger:0,
     gkSweepsFailed:0, gkClaimsAttempted:0, gkClaimsWon:0, gkClaimsMissed:0, gkPunches:0,
     gkDistributionShort:0, gkDistributionLong:0, gkDistributionCompleted:0, gkDistributionFailed:0,
     setPieceFirstContactWon:0, setPieceFirstContactLost:0,
@@ -915,7 +916,8 @@ class MatchSim {
     const def=defs.slice().sort((a,b)=>D(a.x,a.y,atk.x,atk.y)-D(b.x,b.y,atk.x,atk.y))[0];
     this._startTravel(o,{x:atk.x,y:atk.y},'pass',()=>{
       const setBoost=setPiece?ADV4.crossing.aerialSetPieceBoost*100:0;
-      const pWin=duelProb(facet(atk,'head_atk')+setBoost,(def?facet(def,'head_def'):40)+5);
+      const sw=(o._deliverySwingUntil||0)>this.t?o._deliverySwing:null;
+      const pWin=duelProb(facet(atk,'head_atk')+setBoost+(sw==='in'?2.5:0),(def?facet(def,'head_def'):40)+5);
       if(chance(pWin)){
         this.stats[o.team].crossesOk++; this.stats[o.team].shots++; this.beat=.5;
         if(setPiece)this.stats[o.team].setPieceFirstContactWon++;
@@ -1933,7 +1935,19 @@ class MatchSim {
         support.x=clamp(taker.x-dir*5,2,FL-2);support.y=clamp(taker.y-sign*5,2,FW-2);support._setPieceRole='short_option';
         this.stats[team].passes++;
         this._startTravel(taker,{x:support.x,y:support.y},'pass',()=>{this.stats[team].passOk++;support._setPieceDeliveryUntil=this.t+2.2;this._receive(support);},support,'short');
-      }else{taker._setPieceDeliveryUntil=this.t+2.2;this._cross(taker);}
+      }else{
+        /* AUDITORIA · cruzamento fechado (inswinger) ou aberto (outswinger):
+           decidido pelo pé dominante do cobrador × lado do escanteio.
+           Fechado gira para o gol: primeiro contato mais perigoso, mas o
+           goleiro alcança mais bolas; aberto foge do goleiro. */
+        const foot=(taker.ref&&taker.ref.profileV3&&taker.ref.profileV3.dominantFoot)||'right';
+        const leftCorner=dir>0?cy<FW/2:cy>FW/2;
+        const inswing=(foot==='right')===leftCorner;
+        this.stats[team][inswing?'cornersInswinger':'cornersOutswinger']++;
+        taker._deliverySwing=inswing?'in':'out';taker._deliverySwingUntil=this.t+3;
+        this._emit('corner_delivery',{team,by:taker,swing:taker._deliverySwing});
+        taker._setPieceDeliveryUntil=this.t+2.2;this._cross(taker);
+      }
     };
   }
 
@@ -2015,7 +2029,8 @@ class MatchSim {
     if (p._gkClaimCd > 0 || !b.traveling || b.kind !== 'pass' || !b.target || !b.lastTouch) return false;
     if (b.lastTouch.team === tm.side || D(b.target.x, b.target.y, tm.goal.x, tm.goal.y) > 19) return false;
     const domain=getAttr(p,'dominio_area'),exit=getAttr(p,'saida_gol'),reflex=getAttr(p,'reflexos'),security=getAttr(p,'seguranca');
-    const radius=1.25+domain/100*1.65;
+    const sw=b.lastTouch&&(b.lastTouch._deliverySwingUntil||0)>this.t?b.lastTouch._deliverySwing:null;
+    const radius=1.25+domain/100*1.65+(sw==='in'?.55:sw==='out'?-.55:0);
     if(D(p.x,p.y,b.x,b.y)>radius||b.z>2.7)return false;
     let rival=null,rd=1e9;for(const a of this.teams[1-tm.side].players){if(a.red||a.isGK)continue;const d=D(a.x,a.y,b.x,b.y);if(d<rd){rd=d;rival=a;}}
     this.stats[tm.side].gkClaimsAttempted++;

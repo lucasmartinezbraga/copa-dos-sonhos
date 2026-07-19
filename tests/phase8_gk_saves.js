@@ -45,6 +45,11 @@ for (const seed of seeds) {
     const targeted = st.gkDistToFullback + st.gkDistToCenterBack + st.gkDistToMidfield + st.gkDistToForward;
     if (targeted > st.gkDistributionShort + st.gkDistributionLong)
       throw new Error('alvos direcionados > reposições registradas');
+    for (const k of ['cornersInswinger','cornersOutswinger'])
+      if (!Number.isFinite(st[k]) || st[k] < 0) throw new Error('estatística inválida: ' + k);
+    if (st.cornersInswinger + st.cornersOutswinger >
+        st.corners - st.cornersShort + 2)
+      throw new Error('cruzamentos de escanteio > escanteios cruzados');
     if (st.gkSecureCatches + st.gkParries !== st.gkShotsFaced)
       throw new Error('decomposição inconsistente: catch+parry != faced');
     if (st.reboundsConceded > st.gkParries)

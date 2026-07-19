@@ -25,7 +25,7 @@ function snapshot(sim,team){
     setPieces:{
       shots:st.setPieceShots||0,goals:st.setPieceGoals||0,firstContactWon:st.setPieceFirstContactWon||0,
       firstContactLost:st.setPieceFirstContactLost||0,
-      corners:{nearPost:st.cornersNearPost||0,farPost:st.cornersFarPost||0,penaltySpot:st.cornersPenaltySpot||0,short:st.cornersShort||0},
+      corners:{nearPost:st.cornersNearPost||0,farPost:st.cornersFarPost||0,penaltySpot:st.cornersPenaltySpot||0,short:st.cornersShort||0,inswinger:st.cornersInswinger||0,outswinger:st.cornersOutswinger||0},
       cornerDefence:{zonal:st.cornerDefZonal||0,man:st.cornerDefMan||0,mixed:st.cornerDefMixed||0},
       freeKicks:{direct:st.freeKickDirect||0,crossed:st.freeKickCrossed||0,short:st.freeKickShort||0},
       penalties:{taken:st.penaltiesTaken||0,scored:st.penaltiesScored||0,saved:st.penaltiesSaved||0,missed:st.penaltiesMissed||0}
