@@ -326,6 +326,7 @@ class MatchSim {
     oneOnOnes:0, setPieceShots:0, setPieceGoals:0,
     pressWins:0, defErrors:0, gkSweeps:0, gkBadDistribution:0,
     gkShotsFaced:0, gkSecureCatches:0, gkParries:0, reboundsConceded:0,
+    setPieceFirstContactWon:0, setPieceFirstContactLost:0,
     passingMap:Object.create(null), heatSamples:0
   }; }
 
@@ -874,8 +875,8 @@ class MatchSim {
         if(setPiece){ this.stats[o.team].setPieceShots++; atk._setPieceShotUntil=this.t+1; }
         if(chance(pGoal)) this._goal(atk,false);
         else if(chance(.48+(gk?facet(gk,'gk')/300:0))){
-          this.stats[o.team].onTarget++; if(gk){this.stats[1-o.team].saves++;gk.rating+=.2;}
-          this._emit('save',{gk,big:pGoal>.30}); if(chance(CAL.restarts.lowCrossSaveCorner))this._setCorner(o.team);else this._turnover(gk);
+          this.stats[o.team].onTarget++;
+          this._gkResolveSave(gk,atk,{atk:finish,oneOnOne:true,saveTarget:{x:g.x,y:g.y+R(-2.5,2.5)},g,tm:this.teams[atk.team],cornerChance:CAL.restarts.lowCrossSaveCorner});
         } else { this._emit('miss',{by:atk}); this._goalKickOrRestart(1-o.team); }
       },atk,'through');
       return;
@@ -893,6 +894,7 @@ class MatchSim {
       const pWin=duelProb(facet(atk,'head_atk')+setBoost,(def?facet(def,'head_def'):40)+5);
       if(chance(pWin)){
         this.stats[o.team].crossesOk++; this.stats[o.team].shots++; this.beat=.5;
+        if(setPiece)this.stats[o.team].setPieceFirstContactWon++;
         const pGoal=clamp(.105*(1+(facet(atk,'head_atk')-(gk?facet(gk,'gk'):40))/100*.9)*(setPiece?1.24:1),.025,.28);
         this.stats[o.team].xg+=pGoal;
         if(setPiece){this.stats[o.team].setPieceShots++;atk._setPieceShotUntil=this.t+1;}
@@ -900,11 +902,11 @@ class MatchSim {
         if(chance(pGoal))this._goal(atk,false);
         else{
           const hr=R(),saveShare=.27+(gk?facet(gk,'gk')/100:.4)*.12;
-          if(hr<saveShare){this.stats[o.team].onTarget++;if(gk){gk.rating+=.2;this.stats[1-o.team].saves++;}this._emit('save',{gk,big:false});if(chance(CAL.restarts.aerialSaveCorner))this._setCorner(o.team);else this._goalKickOrRestart(1-o.team);}
+          if(hr<saveShare){this.stats[o.team].onTarget++;this._gkResolveSave(gk,atk,{atk:facet(atk,'head_atk'),oneOnOne:false,saveTarget:{x:g.x,y:g.y+R(-3,3)},g,tm:this.teams[atk.team],cornerChance:CAL.restarts.aerialSaveCorner});}
           else if(hr<saveShare+.18){this._emit('blocked',{by:def});if(chance(CAL.restarts.aerialBlockCorner))this._setCorner(o.team);else this._looseBall(atk.x,atk.y);}
           else{this._emit('miss',{by:atk});this._goalKickOrRestart(1-o.team);}
         }
-      }else{if(def){def.rating+=.08;this._emit('header_clear',{by:def});this._turnover(def);}else this._goalKickOrRestart(1-o.team);}
+      }else{if(setPiece)this.stats[o.team].setPieceFirstContactLost++;if(def){def.rating+=.08;this._emit('header_clear',{by:def});this._turnover(def);}else this._goalKickOrRestart(1-o.team);}
     },atk,'launch');
   }
 
@@ -1456,8 +1458,10 @@ class MatchSim {
       this._turnover(gk); return;
     }
     st.gkParries++;
-    // espalmada lateral: some pela linha de fundo → escanteio
-    if (chance(clamp(CAL.restarts.shotSaveCorner + (1-sec)*.10, .15, .75))) {
+    // espalmada lateral: some pela linha de fundo → escanteio (chance base
+    // vem do contexto do lance: chute aberto, cruzamento rasteiro, falta...)
+    const cornerBase = ctx.cornerChance != null ? ctx.cornerChance : CAL.restarts.shotSaveCorner;
+    if (chance(clamp(cornerBase + (1-sec)*.10, .15, .75))) {
       this._emit('save', { gk, big, kind:'deflect_corner' });
       this._setCorner(o.team); return;
     }
@@ -1742,7 +1746,7 @@ class MatchSim {
     this._emit('freekick', { by: taker, manual });
     this._emit('fk_scene', { by: taker, gk, result, dist: dtg, defTeam: 1 - team, manual, visual });
     if (result === 'goal') { taker._setPieceShotUntil = this.t + 1; this._goal(taker, true); }
-    else if (result === 'save') { if (gk) { gk.rating += 0.25; this.stats[1-team].saves++; } this.stats[team].onTarget++; if (chance(CAL.restarts.freeKickSaveCorner)) this._setCorner(team); else this._goalKickOrRestart(1-team); }
+    else if (result === 'save') { this.stats[team].onTarget++; const tmA = this.teams[team]; this._gkResolveSave(gk, taker, { atk: takerSkill, oneOnOne: false, saveTarget: { x: tmA.oppGoal.x, y: tmA.oppGoal.y + R(-3, 3) }, g: tmA.oppGoal, tm: tmA, cornerChance: CAL.restarts.freeKickSaveCorner }); }
     else if (result === 'wall') this._looseBall(x + this.teams[team].attackDir * 6, y + R(-6, 6));
     else this._goalKickOrRestart(1-team);
   }

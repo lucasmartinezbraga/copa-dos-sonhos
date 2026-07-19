@@ -37,7 +37,8 @@ for (const seed of seeds) {
   for (const st of sim.stats) {
     faced += st.gkShotsFaced; catches += st.gkSecureCatches;
     parries += st.gkParries; rebounds += st.reboundsConceded;
-    for (const key of ['gkShotsFaced','gkSecureCatches','gkParries','reboundsConceded'])
+    for (const key of ['gkShotsFaced','gkSecureCatches','gkParries','reboundsConceded',
+                       'setPieceFirstContactWon','setPieceFirstContactLost'])
       if (!Number.isFinite(st[key]) || st[key] < 0) throw new Error('estatística inválida: ' + key);
     if (st.gkSecureCatches + st.gkParries !== st.gkShotsFaced)
       throw new Error('decomposição inconsistente: catch+parry != faced');
