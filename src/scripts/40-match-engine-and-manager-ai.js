@@ -1501,19 +1501,19 @@ class MatchSim {
       this._turnover(gk); return;
     }
     st.gkParries++;
-    // defesa em dois tempos: espalma e mata a bola no chão antes do ataque
-    // chegar — goleiro seguro transforma o rebote em posse
-    if (chance(clamp(.18 + sec*.30 - hard*.18, .06, .50))) {
-      st.gkDoubleCatches++;
-      this._emit('save', { gk, big, kind:'double_catch' });
-      this._turnover(gk); return;
-    }
     // espalmada lateral: some pela linha de fundo → escanteio (chance base
     // vem do contexto do lance: chute aberto, cruzamento rasteiro, falta...)
     const cornerBase = ctx.cornerChance != null ? ctx.cornerChance : CAL.restarts.shotSaveCorner;
     if (chance(clamp(cornerBase + (1-sec)*.10, .15, .75))) {
       this._emit('save', { gk, big, kind:'deflect_corner' });
       this._setCorner(o.team); return;
+    }
+    // defesa em dois tempos: a bola que ficou em jogo pode ser morta no chão
+    // antes do ataque chegar — goleiro seguro transforma o rebote em posse
+    if (chance(clamp(.18 + sec*.30 - hard*.18, .06, .50))) {
+      st.gkDoubleCatches++;
+      this._emit('save', { gk, big, kind:'double_catch' });
+      this._turnover(gk); return;
     }
     // rebote vivo dentro da área: posição real, ambos os times reagem
     st.reboundsConceded++;

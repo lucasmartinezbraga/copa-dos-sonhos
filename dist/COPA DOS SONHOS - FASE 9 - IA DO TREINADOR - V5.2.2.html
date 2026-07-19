@@ -4575,7 +4575,8 @@ class MatchSim {
     throughBalls:0, throughOk:0, lowCrosses:0, lowCrossesOk:0,
     oneOnOnes:0, setPieceShots:0, setPieceGoals:0,
     pressWins:0, defErrors:0, gkSweeps:0, gkBadDistribution:0,
-    gkShotsFaced:0, gkSecureCatches:0, gkParries:0, reboundsConceded:0,
+    gkShotsFaced:0, gkSecureCatches:0, gkParries:0, reboundsConceded:0, gkDoubleCatches:0,
+    gkDistToFullback:0, gkDistToCenterBack:0, gkDistToMidfield:0, gkDistToForward:0,
     gkSweepsFailed:0, gkClaimsAttempted:0, gkClaimsWon:0, gkClaimsMissed:0, gkPunches:0,
     gkDistributionShort:0, gkDistributionLong:0, gkDistributionCompleted:0, gkDistributionFailed:0,
     setPieceFirstContactWon:0, setPieceFirstContactLost:0,
@@ -4901,6 +4902,12 @@ class MatchSim {
     }
     const distKind = best.dist > 30 || direct > .66 ? 'long' : 'short';
     this.stats[o.team][distKind === 'long' ? 'gkDistributionLong' : 'gkDistributionShort']++;
+    // distribuição direcionada (auditoria Fase 8): registra a FUNÇÃO do alvo
+    // real da reposição — lateral, zagueiro, meio ou ataque
+    const rp = String(best.m && best.m.slotPos || '');
+    this.stats[o.team][/CB/.test(rp) ? 'gkDistToCenterBack'
+      : /WB$|^LB$|^RB$/.test(rp) ? 'gkDistToFullback'
+      : /M$/.test(rp) ? 'gkDistToMidfield' : 'gkDistToForward']++;
     o._gkDistributionPending = true;
     const ctx=this._actionContext(o,nearest,'pass');
     const bad=clamp(.18-(skill-55)/250 + ctx.pressure*.12 + ctx.fatigue*.05, .025,.28);
@@ -5748,6 +5755,13 @@ class MatchSim {
     if (chance(clamp(cornerBase + (1-sec)*.10, .15, .75))) {
       this._emit('save', { gk, big, kind:'deflect_corner' });
       this._setCorner(o.team); return;
+    }
+    // defesa em dois tempos: a bola que ficou em jogo pode ser morta no chão
+    // antes do ataque chegar — goleiro seguro transforma o rebote em posse
+    if (chance(clamp(.18 + sec*.30 - hard*.18, .06, .50))) {
+      st.gkDoubleCatches++;
+      this._emit('save', { gk, big, kind:'double_catch' });
+      this._turnover(gk); return;
     }
     // rebote vivo dentro da área: posição real, ambos os times reagem
     st.reboundsConceded++;
@@ -7301,8 +7315,11 @@ function snapshot(sim,team){
       shotsFaced:st.gkShotsFaced||0,secureCatches:st.gkSecureCatches||0,parries:st.gkParries||0,
       reboundsConceded:st.reboundsConceded||0,sweeps:st.gkSweeps||0,sweepsFailed:st.gkSweepsFailed||0,
       claimsAttempted:st.gkClaimsAttempted||0,claimsWon:st.gkClaimsWon||0,claimsMissed:st.gkClaimsMissed||0,
-      punches:st.gkPunches||0,distribution:{short:st.gkDistributionShort||0,long:st.gkDistributionLong||0,
-        completed:st.gkDistributionCompleted||0,failed:st.gkDistributionFailed||0}
+      punches:st.gkPunches||0,doubleCatches:st.gkDoubleCatches||0,
+      distribution:{short:st.gkDistributionShort||0,long:st.gkDistributionLong||0,
+        completed:st.gkDistributionCompleted||0,failed:st.gkDistributionFailed||0,
+        toFullback:st.gkDistToFullback||0,toCenterBack:st.gkDistToCenterBack||0,
+        toMidfield:st.gkDistToMidfield||0,toForward:st.gkDistToForward||0}
     },
     setPieces:{
       shots:st.setPieceShots||0,goals:st.setPieceGoals||0,firstContactWon:st.setPieceFirstContactWon||0,
