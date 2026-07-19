@@ -1,4 +1,4 @@
-<!-- FASE 9 · INTELIGÊNCIA DO TREINADOR ADVERSÁRIO · ENGINE 5.2.1 -->
+<!-- FASE 9 · INTELIGÊNCIA DO TREINADOR ADVERSÁRIO · ENGINE 5.2.2 -->
 <!DOCTYPE html>
 <html lang="pt-BR"><head>
 <!-- ═══════════════════════════════════════════════════════════════════════════
@@ -53,7 +53,7 @@
 </script>
 <!-- PONTO 3: charset/viewport foram promovidos para o topo do <head>; as
      cópias que existiam aqui foram removidas para não haver declaração dupla. -->
-<title>Copa dos Sonhos — Fase 9 — Build 5.2.1</title>
+<title>Copa dos Sonhos — Fase 9 — Build 5.2.2</title>
 <!-- TIPOGRAFIA: preconnects do Google Fonts removidos — as fontes agora são
      100% embutidas no <style>
 /* ══════════════════════════════════════════════════════════════════════
@@ -2665,14 +2665,19 @@ const ENGINE_CALIBRATION = Object.freeze({
     postShare: 0.055,
   }),
   restarts: Object.freeze({
-    lowCrossSaveCorner: 0.40,
-    failedCrossCorner: 0.58,
-    aerialSaveCorner: 0.45,
-    aerialBlockCorner: 0.52,
-    shotSaveCorner: 0.60,
-    shotBlockCorner: 0.46,
-    postCorner: 0.52,
-    freeKickSaveCorner: 0.60,
+    /* CALIBRAÇÃO (auditoria v5.2.2): escanteios mediam 4.08/partida com a
+       faixa de design em 5.0–11.5. Shares elevados ~25% de forma distribuída
+       — desvios, bloqueios e bolas na trave passam a morrer mais na linha de
+       fundo, como no futebol real (~10/jogo). Validado por bateria de 100
+       partidas antes do commit. */
+    lowCrossSaveCorner: 0.55,
+    failedCrossCorner: 0.72,
+    aerialSaveCorner: 0.58,
+    aerialBlockCorner: 0.66,
+    shotSaveCorner: 0.68,
+    shotBlockCorner: 0.62,
+    postCorner: 0.64,
+    freeKickSaveCorner: 0.68,
   }),
   targets: Object.freeze({
     goals: Object.freeze([1.8, 2.8]),
@@ -4575,7 +4580,9 @@ class MatchSim {
     throughBalls:0, throughOk:0, lowCrosses:0, lowCrossesOk:0,
     oneOnOnes:0, setPieceShots:0, setPieceGoals:0,
     pressWins:0, defErrors:0, gkSweeps:0, gkBadDistribution:0,
-    gkShotsFaced:0, gkSecureCatches:0, gkParries:0, reboundsConceded:0,
+    gkShotsFaced:0, gkSecureCatches:0, gkParries:0, reboundsConceded:0, gkDoubleCatches:0,
+    gkDistToFullback:0, gkDistToCenterBack:0, gkDistToMidfield:0, gkDistToForward:0,
+    cornersInswinger:0, cornersOutswinger:0,
     gkSweepsFailed:0, gkClaimsAttempted:0, gkClaimsWon:0, gkClaimsMissed:0, gkPunches:0,
     gkDistributionShort:0, gkDistributionLong:0, gkDistributionCompleted:0, gkDistributionFailed:0,
     setPieceFirstContactWon:0, setPieceFirstContactLost:0,
@@ -4901,6 +4908,12 @@ class MatchSim {
     }
     const distKind = best.dist > 30 || direct > .66 ? 'long' : 'short';
     this.stats[o.team][distKind === 'long' ? 'gkDistributionLong' : 'gkDistributionShort']++;
+    // distribuição direcionada (auditoria Fase 8): registra a FUNÇÃO do alvo
+    // real da reposição — lateral, zagueiro, meio ou ataque
+    const rp = String(best.m && best.m.slotPos || '');
+    this.stats[o.team][/CB/.test(rp) ? 'gkDistToCenterBack'
+      : /WB$|^LB$|^RB$/.test(rp) ? 'gkDistToFullback'
+      : /M$/.test(rp) ? 'gkDistToMidfield' : 'gkDistToForward']++;
     o._gkDistributionPending = true;
     const ctx=this._actionContext(o,nearest,'pass');
     const bad=clamp(.18-(skill-55)/250 + ctx.pressure*.12 + ctx.fatigue*.05, .025,.28);
@@ -5156,7 +5169,8 @@ class MatchSim {
     const def=defs.slice().sort((a,b)=>D(a.x,a.y,atk.x,atk.y)-D(b.x,b.y,atk.x,atk.y))[0];
     this._startTravel(o,{x:atk.x,y:atk.y},'pass',()=>{
       const setBoost=setPiece?ADV4.crossing.aerialSetPieceBoost*100:0;
-      const pWin=duelProb(facet(atk,'head_atk')+setBoost,(def?facet(def,'head_def'):40)+5);
+      const sw=(o._deliverySwingUntil||0)>this.t?o._deliverySwing:null;
+      const pWin=duelProb(facet(atk,'head_atk')+setBoost+(sw==='in'?2.5:0),(def?facet(def,'head_def'):40)+5);
       if(chance(pWin)){
         this.stats[o.team].crossesOk++; this.stats[o.team].shots++; this.beat=.5;
         if(setPiece)this.stats[o.team].setPieceFirstContactWon++;
@@ -5749,6 +5763,13 @@ class MatchSim {
       this._emit('save', { gk, big, kind:'deflect_corner' });
       this._setCorner(o.team); return;
     }
+    // defesa em dois tempos: a bola que ficou em jogo pode ser morta no chão
+    // antes do ataque chegar — goleiro seguro transforma o rebote em posse
+    if (chance(clamp(.18 + sec*.30 - hard*.18, .06, .50))) {
+      st.gkDoubleCatches++;
+      this._emit('save', { gk, big, kind:'double_catch' });
+      this._turnover(gk); return;
+    }
     // rebote vivo dentro da área: posição real, ambos os times reagem
     st.reboundsConceded++;
     const central = chance(clamp(.42 - sec*.30, .08, .50)); // GK inseguro solta no meio
@@ -6167,7 +6188,19 @@ class MatchSim {
         support.x=clamp(taker.x-dir*5,2,FL-2);support.y=clamp(taker.y-sign*5,2,FW-2);support._setPieceRole='short_option';
         this.stats[team].passes++;
         this._startTravel(taker,{x:support.x,y:support.y},'pass',()=>{this.stats[team].passOk++;support._setPieceDeliveryUntil=this.t+2.2;this._receive(support);},support,'short');
-      }else{taker._setPieceDeliveryUntil=this.t+2.2;this._cross(taker);}
+      }else{
+        /* AUDITORIA · cruzamento fechado (inswinger) ou aberto (outswinger):
+           decidido pelo pé dominante do cobrador × lado do escanteio.
+           Fechado gira para o gol: primeiro contato mais perigoso, mas o
+           goleiro alcança mais bolas; aberto foge do goleiro. */
+        const foot=(taker.ref&&taker.ref.profileV3&&taker.ref.profileV3.dominantFoot)||'right';
+        const leftCorner=dir>0?cy<FW/2:cy>FW/2;
+        const inswing=(foot==='right')===leftCorner;
+        this.stats[team][inswing?'cornersInswinger':'cornersOutswinger']++;
+        taker._deliverySwing=inswing?'in':'out';taker._deliverySwingUntil=this.t+3;
+        this._emit('corner_delivery',{team,by:taker,swing:taker._deliverySwing});
+        taker._setPieceDeliveryUntil=this.t+2.2;this._cross(taker);
+      }
     };
   }
 
@@ -6249,7 +6282,8 @@ class MatchSim {
     if (p._gkClaimCd > 0 || !b.traveling || b.kind !== 'pass' || !b.target || !b.lastTouch) return false;
     if (b.lastTouch.team === tm.side || D(b.target.x, b.target.y, tm.goal.x, tm.goal.y) > 19) return false;
     const domain=getAttr(p,'dominio_area'),exit=getAttr(p,'saida_gol'),reflex=getAttr(p,'reflexos'),security=getAttr(p,'seguranca');
-    const radius=1.25+domain/100*1.65;
+    const sw=b.lastTouch&&(b.lastTouch._deliverySwingUntil||0)>this.t?b.lastTouch._deliverySwing:null;
+    const radius=1.25+domain/100*1.65+(sw==='in'?.55:sw==='out'?-.55:0);
     if(D(p.x,p.y,b.x,b.y)>radius||b.z>2.7)return false;
     let rival=null,rd=1e9;for(const a of this.teams[1-tm.side].players){if(a.red||a.isGK)continue;const d=D(a.x,a.y,b.x,b.y);if(d<rd){rd=d;rival=a;}}
     this.stats[tm.side].gkClaimsAttempted++;
@@ -7301,13 +7335,16 @@ function snapshot(sim,team){
       shotsFaced:st.gkShotsFaced||0,secureCatches:st.gkSecureCatches||0,parries:st.gkParries||0,
       reboundsConceded:st.reboundsConceded||0,sweeps:st.gkSweeps||0,sweepsFailed:st.gkSweepsFailed||0,
       claimsAttempted:st.gkClaimsAttempted||0,claimsWon:st.gkClaimsWon||0,claimsMissed:st.gkClaimsMissed||0,
-      punches:st.gkPunches||0,distribution:{short:st.gkDistributionShort||0,long:st.gkDistributionLong||0,
-        completed:st.gkDistributionCompleted||0,failed:st.gkDistributionFailed||0}
+      punches:st.gkPunches||0,doubleCatches:st.gkDoubleCatches||0,
+      distribution:{short:st.gkDistributionShort||0,long:st.gkDistributionLong||0,
+        completed:st.gkDistributionCompleted||0,failed:st.gkDistributionFailed||0,
+        toFullback:st.gkDistToFullback||0,toCenterBack:st.gkDistToCenterBack||0,
+        toMidfield:st.gkDistToMidfield||0,toForward:st.gkDistToForward||0}
     },
     setPieces:{
       shots:st.setPieceShots||0,goals:st.setPieceGoals||0,firstContactWon:st.setPieceFirstContactWon||0,
       firstContactLost:st.setPieceFirstContactLost||0,
-      corners:{nearPost:st.cornersNearPost||0,farPost:st.cornersFarPost||0,penaltySpot:st.cornersPenaltySpot||0,short:st.cornersShort||0},
+      corners:{nearPost:st.cornersNearPost||0,farPost:st.cornersFarPost||0,penaltySpot:st.cornersPenaltySpot||0,short:st.cornersShort||0,inswinger:st.cornersInswinger||0,outswinger:st.cornersOutswinger||0},
       cornerDefence:{zonal:st.cornerDefZonal||0,man:st.cornerDefMan||0,mixed:st.cornerDefMixed||0},
       freeKicks:{direct:st.freeKickDirect||0,crossed:st.freeKickCrossed||0,short:st.freeKickShort||0},
       penalties:{taken:st.penaltiesTaken||0,scored:st.penaltiesScored||0,saved:st.penaltiesSaved||0,missed:st.penaltiesMissed||0}
@@ -7333,7 +7370,7 @@ if(NODE)module.exports=API;
 const NODE=typeof module!=='undefined'&&module.exports;
 const M=root.MatchSim;
 if(!M||!M.prototype||M.prototype.__P9__)return;
-const VERSION='5.2.1';
+const VERSION='5.2.2';
 const C=root.clamp||((v,a,b)=>Math.max(a,Math.min(b,v)));
 const LINE=root.LINE_OF||{};
 const getAttr=(p,k,f=60)=>{try{const fn=root.getAttr,v=fn&&fn(p&&p.ref?p.ref:p,k);return Number.isFinite(v)?v:f;}catch(_){return f;}};
@@ -7582,7 +7619,7 @@ Q.importManagerState=function(team,payload){const t=team===1?1:0,tm=this.teams[t
 const oldState=Q.getState;Q.getState=function(){const out=oldState.call(this);out.engineVersion=VERSION;out.phase9=this.teams.map((tm,i)=>({version:VERSION,team:i,state:clone(tm.managerAI),teamConfig:snapshotTeamState(tm)}));return out;};
 if(!NODE&&typeof document!=='undefined'){
   const Old=root.MatchSim;class Active extends Old{constructor(){super(...arguments);root.__CDS_ACTIVE_SIM=this;}}root.MatchSim=Active;
-  const boot=()=>{if(document.getElementById('p9btn'))return;const css=document.createElement('style');css.textContent='#p9btn{position:fixed;left:12px;bottom:12px;z-index:999999;border:1px solid #64d8ff;border-radius:999px;background:#0b1726;color:#a9edff;padding:9px 12px;font:700 11px system-ui}#p9box{position:fixed;inset:0;z-index:1000001;background:#020712dd;display:none;place-items:end center;padding:12px;color:#fff;font-family:system-ui}#p9box.on{display:grid}#p9box>div{width:min(760px,100%);max-height:86vh;overflow:auto;background:#0b1425;border:1px solid #29536d;border-radius:18px;padding:15px}.p9card{background:#101d30;border:1px solid #203c58;border-radius:10px;padding:10px;margin:8px 0}.p9ev{font-size:12px;color:#b8c9d9;margin-top:4px}';document.head.appendChild(css);const b=document.createElement('button');b.id='p9btn';b.textContent='IA DO TREINADOR 5.2.1';const x=document.createElement('div');x.id='p9box';x.innerHTML='<div><button id="p9close" style="float:right">×</button><h3>Leitura do treinador adversário — 5.2.1</h3><main></main></div>';document.body.append(b,x);const esc=s=>String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));const paint=()=>{const sim=root.__CDS_ACTIVE_SIM,m=x.querySelector('main');if(!sim)return m.innerHTML='<p>Inicie uma partida.</p>';const side=sim._aiTeam===0?0:1,d=sim.getManagerData(side);m.innerHTML='<div class="p9card"><b>'+esc(d.profile.label)+'</b><div class="p9ev">Adaptabilidade '+d.profile.adaptability+' · Risco '+d.profile.riskTolerance+' · Pressão '+d.profile.pressingPreference+'</div></div>'+(d.currentDiagnosis?'<div class="p9card"><b>Diagnóstico atual</b><div>'+esc(d.currentDiagnosis.label)+'</div><div class="p9ev">'+esc(d.currentDiagnosis.evidence)+'</div></div>':'')+'<h4>Decisões</h4>'+d.history.slice(-8).reverse().map(h=>'<div class="p9card"><b>'+h.minute+'’ · '+esc(h.action&&h.action.label||h.diagnosis)+'</b><div>'+esc(h.diagnosis||'')+'</div><div class="p9ev">'+esc(h.expected||'')+(h.evaluation?' · avaliação '+h.evaluation.score:'')+'</div></div>').join('')+'<p>Análises: '+d.metrics.analyses+' · Mudanças: '+d.metrics.changes+' · Subs: '+d.metrics.substitutions+' · Reversões: '+d.metrics.reversals+'</p>';};b.onclick=()=>{x.classList.add('on');paint();};x.querySelector('#p9close').onclick=()=>x.classList.remove('on');};document.readyState==='loading'?document.addEventListener('DOMContentLoaded',boot):boot();
+  const boot=()=>{if(document.getElementById('p9btn'))return;const css=document.createElement('style');css.textContent='#p9btn{position:fixed;left:12px;bottom:12px;z-index:999999;border:1px solid #64d8ff;border-radius:999px;background:#0b1726;color:#a9edff;padding:9px 12px;font:700 11px system-ui}#p9box{position:fixed;inset:0;z-index:1000001;background:#020712dd;display:none;place-items:end center;padding:12px;color:#fff;font-family:system-ui}#p9box.on{display:grid}#p9box>div{width:min(760px,100%);max-height:86vh;overflow:auto;background:#0b1425;border:1px solid #29536d;border-radius:18px;padding:15px}.p9card{background:#101d30;border:1px solid #203c58;border-radius:10px;padding:10px;margin:8px 0}.p9ev{font-size:12px;color:#b8c9d9;margin-top:4px}';document.head.appendChild(css);const b=document.createElement('button');b.id='p9btn';b.textContent='IA DO TREINADOR 5.2.2';const x=document.createElement('div');x.id='p9box';x.innerHTML='<div><button id="p9close" style="float:right">×</button><h3>Leitura do treinador adversário — 5.2.2</h3><main></main></div>';document.body.append(b,x);const esc=s=>String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));const paint=()=>{const sim=root.__CDS_ACTIVE_SIM,m=x.querySelector('main');if(!sim)return m.innerHTML='<p>Inicie uma partida.</p>';const side=sim._aiTeam===0?0:1,d=sim.getManagerData(side);m.innerHTML='<div class="p9card"><b>'+esc(d.profile.label)+'</b><div class="p9ev">Adaptabilidade '+d.profile.adaptability+' · Risco '+d.profile.riskTolerance+' · Pressão '+d.profile.pressingPreference+'</div></div>'+(d.currentDiagnosis?'<div class="p9card"><b>Diagnóstico atual</b><div>'+esc(d.currentDiagnosis.label)+'</div><div class="p9ev">'+esc(d.currentDiagnosis.evidence)+'</div></div>':'')+'<h4>Decisões</h4>'+d.history.slice(-8).reverse().map(h=>'<div class="p9card"><b>'+h.minute+'’ · '+esc(h.action&&h.action.label||h.diagnosis)+'</b><div>'+esc(h.diagnosis||'')+'</div><div class="p9ev">'+esc(h.expected||'')+(h.evaluation?' · avaliação '+h.evaluation.score:'')+'</div></div>').join('')+'<p>Análises: '+d.metrics.analyses+' · Mudanças: '+d.metrics.changes+' · Subs: '+d.metrics.substitutions+' · Reversões: '+d.metrics.reversals+'</p>';};b.onclick=()=>{x.classList.add('on');paint();};x.querySelector('#p9close').onclick=()=>x.classList.remove('on');};document.readyState==='loading'?document.addEventListener('DOMContentLoaded',boot):boot();
 }
 const API={VERSION,PROFILES:PROFILE_TEMPLATES,deriveProfile,metricSnapshot,diagnose,actionFor,applyAction,preMatchPlan,getManagerData:(sim,team)=>sim.getManagerData(team),installed:true};root.CDS_PHASE9=API;if(NODE)module.exports=API;
 })(typeof window!=='undefined'?window:globalThis);
@@ -8165,7 +8202,7 @@ SCREENS.home = function () {
       </header>
       <main class="home-main-v2">
         <section class="home-copy-v2">
-          <span class="home-status"><i></i> Motor 5.2.1 · inteligência adaptativa do treinador</span>
+          <span class="home-status"><i></i> Motor 5.2.2 · inteligência adaptativa do treinador</span>
           <h1 class="display home-title-v2">Copa dos<span>Sonhos</span></h1>
           <p class="home-lead-v2">Escolha um craque de cada seleção histórica, construa um time impossível e leve suas lendas por uma Copa completa. Aqui, nome não ganha jogo: posição, atributos e decisões táticas aparecem dentro de campo.</p>
           <div class="home-facts"><span class="home-fact">369 seleções históricas</span><span class="home-fact">1934 → 2026</span><span class="home-fact">Momentos decisivos jogáveis</span></div>

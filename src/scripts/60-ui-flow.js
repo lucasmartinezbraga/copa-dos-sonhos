@@ -6,6 +6,13 @@
    ========================================================================= */
 (function () {
 'use strict';
+/* AUDITORIA (Fases 0-9) - RNG visual deterministico: efeitos, confete,
+   narracao e audio nunca usam Math.random nem tocam o RNG seedado da
+   partida (nao consomem rolagens do motor). Sequencia propria e
+   reprodutivel entre execucoes. */
+let _vseed = 0x9E3779B9 >>> 0;
+function vrand(){ _vseed=(_vseed+0x6D2B79F5)>>>0; let t=_vseed; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return ((t^t>>>14)>>>0)/4294967296; }
+
 
 /* ------------------------------- ESTADO --------------------------------- */
 const G = window.G = {
@@ -24,7 +31,7 @@ const G = window.G = {
 
 const $ = sel => document.querySelector(sel);
 const app = () => $('#app');
-const rnd = a => a[Math.floor(Math.random() * a.length)];
+const rnd = a => a[Math.floor(vrand() * a.length)];
 
 window.flagSvg = function(f, size) {
   var s = size || 24;
@@ -651,8 +658,14 @@ function saveGame() {
   try {
     if (!G.cup || !G.draft) return;
     const d = G.draft;
+    const SC = window.CDS_SAVE_CONTRACT;
     const save = {
-      v: 1, modo: G.modo, style: G.style, axes: G.axes, formKey: G.formKey, varIdx: G.varIdx,
+      v: SC ? SC.SAVE_VERSION : 2,
+      engineVersion: (typeof ENGINE_CALIBRATION !== 'undefined' && ENGINE_CALIBRATION.version) || 'unknown',
+      savedAt: { phase: G.cup.phase, round: G.cup.round },
+      instructions: G.instructions || null, instructionPreset: G.instructionPreset || null,
+      phaseRoles: G.phaseRoles || null, manager: G.manager || null,
+      modo: G.modo, style: G.style, axes: G.axes, formKey: G.formKey, varIdx: G.varIdx,
       picks: d.slots.map(sl => ({ p: sl.p, from: sl.from, x: sl.x, y: sl.y, pos: sl.pos })),
       benchPicks: d.benchPicks,
       cup: G.cup,
@@ -664,10 +677,20 @@ window._saveCopa = saveGame;                       // pra o game.js chamar após
 function hasSave() { try { return !!localStorage.getItem(SAVE_KEY); } catch (_) { return false; } }
 function loadGame() {
   let save;
-  try { save = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch (_) { return false; }
-  if (!save || save.v !== 1 || !save.cup || !Array.isArray(save.picks) || save.picks.length < 11) return false;
+  try {
+    const SC = window.CDS_SAVE_CONTRACT;
+    const raw = localStorage.getItem(SAVE_KEY);
+    // contrato versionado: migra saves antigos (v1→v2), rejeita corrompidos
+    // e versões futuras com segurança — sem crash, sem progresso inventado.
+    save = SC ? SC.decodeSave(raw) : JSON.parse(raw);
+  } catch (_) { return false; }
+  if (!save || !save.cup || !Array.isArray(save.picks) || save.picks.length < 11) return false;
   try {
     G.modo = save.modo; G.style = save.style; G.axes = save.axes; G.formKey = save.formKey; G.varIdx = save.varIdx;
+    if (save.instructions) G.instructions = save.instructions;
+    if (save.instructionPreset) G.instructionPreset = save.instructionPreset;
+    if (save.phaseRoles) G.phaseRoles = save.phaseRoles;
+    if (save.manager) G.manager = save.manager;
     const me = CUP.registerPlayerTeam(G.db, save.picks.map(pk => ({ p: pk.p, from: pk.from })), save.benchPicks || []);
     G.lineup = save.picks.map((pk, i) => ({ p: me.pl[i], x: pk.x, y: pk.y, pos: pk.pos, from: pk.from }));
     G.bench = me.pl.slice(11);

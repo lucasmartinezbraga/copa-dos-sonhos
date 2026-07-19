@@ -38,8 +38,18 @@ for (const seed of seeds) {
     faced += st.gkShotsFaced; catches += st.gkSecureCatches;
     parries += st.gkParries; rebounds += st.reboundsConceded;
     for (const key of ['gkShotsFaced','gkSecureCatches','gkParries','reboundsConceded',
-                       'setPieceFirstContactWon','setPieceFirstContactLost'])
+                       'setPieceFirstContactWon','setPieceFirstContactLost','gkDoubleCatches',
+                       'gkDistToFullback','gkDistToCenterBack','gkDistToMidfield','gkDistToForward'])
       if (!Number.isFinite(st[key]) || st[key] < 0) throw new Error('estatística inválida: ' + key);
+    if (st.gkDoubleCatches > st.gkParries) throw new Error('dois tempos > espalmadas');
+    const targeted = st.gkDistToFullback + st.gkDistToCenterBack + st.gkDistToMidfield + st.gkDistToForward;
+    if (targeted > st.gkDistributionShort + st.gkDistributionLong)
+      throw new Error('alvos direcionados > reposições registradas');
+    for (const k of ['cornersInswinger','cornersOutswinger'])
+      if (!Number.isFinite(st[k]) || st[k] < 0) throw new Error('estatística inválida: ' + k);
+    if (st.cornersInswinger + st.cornersOutswinger >
+        st.corners - st.cornersShort + 2)
+      throw new Error('cruzamentos de escanteio > escanteios cruzados');
     if (st.gkSecureCatches + st.gkParries !== st.gkShotsFaced)
       throw new Error('decomposição inconsistente: catch+parry != faced');
     if (st.reboundsConceded > st.gkParries)

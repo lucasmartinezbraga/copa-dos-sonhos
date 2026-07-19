@@ -26,3 +26,9 @@
 - regressÃ£o pareada de oito partidas;
 - desktop e mobile;
 - determinismo e integridade do banco.
+
+## 5.2.2 — Correcoes da Auditoria de Conformidade (Fases 0-9)
+- Zero Math.random() no codigo-fonte: RNG visual deterministico proprio (vrand) em 60-ui-flow e 70-game-runtime.
+- Fase 4 (bloqueador): selecao probabilistica ponderada por softmax seedado (T=0.06); metrica decisionNonBest; regressao 100 partidas dt=1/60 com nota 91.4/100.
+- Contrato de save versionado (48-save-contract.js): SAVE_VERSION=2, migracao v1->v2, rejeicao segura de corrompidos/versoes futuras, engineVersion e campos das Fases 6/9 no save.
+- Detalhes: AUDITORIA_CORRECOES_V5.2.2.md
