@@ -1,0 +1,478 @@
+{
+  "ok": true,
+  "viewports": [
+    {
+      "title": "Copa dos Sonhos — Fase 9 — Build 5.2.0",
+      "phase9": "5.2.0",
+      "phase8": "5.1.0",
+      "phase47": "5.0.0",
+      "app": true,
+      "managerButton": true,
+      "viewport": 1366,
+      "bodyWidth": 1366,
+      "documentWidth": 1366,
+      "overflow": 0,
+      "players": 7739,
+      "match": {
+        "over": true,
+        "steps": 23694,
+        "score": [
+          1,
+          0
+        ],
+        "version": "5.2.0",
+        "finite": true,
+        "manager": {
+          "version": "5.2.0",
+          "team": 1,
+          "profile": {
+            "key": "adaptive",
+            "label": "Adaptável",
+            "aggression": 60,
+            "riskTolerance": 62,
+            "adaptability": 85,
+            "pressingPreference": 64,
+            "possessionPreference": 64,
+            "defensivePreference": 60,
+            "substitutionTiming": 65,
+            "evidenceThreshold": 0.44,
+            "persistence": 8,
+            "reviewMinutes": 6
+          },
+          "preMatch": {
+            "minute": 0,
+            "preset": "counter",
+            "reason": "Ataque adversário veloz: controlar profundidade e transitar",
+            "opponent": {
+              "name": "Espanha",
+              "form": null,
+              "style": "balanced",
+              "pace": 80.5,
+              "aerial": 82.7
+            }
+          },
+          "currentDiagnosis": {
+            "code": "RIGHT_OVERLOAD",
+            "severity": 1,
+            "label": "Sobrecarga pelo lado direito rival",
+            "evidence": "13 ataques contra 4",
+            "objective": "defend"
+          },
+          "diagnoses": [
+            {
+              "code": "LOSING_LATE",
+              "severity": 1,
+              "label": "Desvantagem no placar",
+              "evidence": "Perdendo por 1 aos 84 minutos",
+              "objective": "attack"
+            },
+            {
+              "code": "RIGHT_OVERLOAD",
+              "severity": 1,
+              "label": "Sobrecarga pelo lado direito rival",
+              "evidence": "13 ataques contra 4",
+              "objective": "defend"
+            },
+            {
+              "code": "MIDFIELD_INFERIORITY",
+              "severity": 0.9186872744169947,
+              "label": "Meio-campo em inferioridade",
+              "evidence": "43% de posse e desvantagem territorial",
+              "objective": "control"
+            },
+            {
+              "code": "ISOLATED_ATTACK",
+              "severity": 0.74,
+              "label": "Ataque isolado",
+              "evidence": "1 finalizações e 0.09 xG",
+              "objective": "attack"
+            }
+          ],
+          "pendingEvaluation": {
+            "minute": 84.08400000001402,
+            "action": "reinforce_right",
+            "objective": "defend"
+          },
+          "history": [
+            {
+              "minute": 0,
+              "type": "pre_match",
+              "diagnosis": "Plano pré-jogo",
+              "evidence": [
+                "Velocidade ofensiva rival 80.5",
+                "Ameaça aérea 82.7"
+              ],
+              "action": {
+                "id": "pre_match_counter",
+                "label": "Plano counter"
+              },
+              "expected": "Ataque adversário veloz: controlar profundidade e transitar"
+            },
+            {
+              "minute": 12,
+              "type": "change",
+              "diagnosis": "Sobrecarga pelo lado direito rival",
+              "diagnosisCode": "RIGHT_OVERLOAD",
+              "evidence": [
+                "5 ataques contra 1"
+              ],
+              "severity": 0.75,
+              "action": {
+                "id": "reinforce_right",
+                "label": "Reforçar corredor direito defensivo"
+              },
+              "expected": "Reduzir progressões e cruzamentos pelo corredor atacado",
+              "substitution": null,
+              "evaluation": {
+                "minute": 18,
+                "score": -0.135,
+                "outcome": "negative",
+                "success": false,
+                "window": {
+                  "xgFor": 0,
+                  "xgAgainst": 0.05173078034000722,
+                  "shotsFor": 0,
+                  "shotsAgainst": 1,
+                  "possession": 0.34773662551439877,
+                  "scoreDelta": 0
+                }
+              }
+            },
+            {
+              "minute": 24,
+              "type": "change",
+              "diagnosis": "Meio-campo em inferioridade",
+              "diagnosisCode": "MIDFIELD_INFERIORITY",
+              "evidence": [
+                "39% de posse e desvantagem territorial"
+              ],
+              "severity": 0.708,
+              "action": {
+                "id": "add_midfield",
+                "label": "Adicionar presença no meio"
+              },
+              "expected": "Recuperar posse e conexões centrais",
+              "substitution": null,
+              "evaluation": {
+                "minute": 30,
+                "score": 0.283,
+                "outcome": "positive",
+                "success": true,
+                "window": {
+                  "xgFor": 0,
+                  "xgAgainst": 0,
+                  "shotsFor": 0,
+                  "shotsAgainst": 0,
+                  "possession": 0.6884920634920793,
+                  "scoreDelta": 0
+                }
+              }
+            },
+            {
+              "minute": 30,
+              "type": "change",
+              "diagnosis": "Sobrecarga pelo lado direito rival",
+              "diagnosisCode": "RIGHT_OVERLOAD",
+              "evidence": [
+                "7 ataques contra 1"
+              ],
+              "severity": 0.875,
+              "action": {
+                "id": "reinforce_right",
+                "label": "Reforçar corredor direito defensivo"
+              },
+              "expected": "Reduzir progressões e cruzamentos pelo corredor atacado",
+              "substitution": null,
+              "evaluation": {
+                "minute": 36,
+                "score": -0.203,
+                "outcome": "negative",
+                "success": false,
+                "window": {
+                  "xgFor": 0,
+                  "xgAgainst": 0.09866018095154283,
+                  "shotsFor": 0,
+                  "shotsAgainst": 1,
+                  "possession": 0.5534351145038168,
+                  "scoreDelta": 0
+                }
+              }
+            },
+            {
+              "minute": 36,
+              "type": "change",
+              "diagnosis": "Ataque isolado",
+              "diagnosisCode": "ISOLATED_ATTACK",
+              "evidence": [
+                "0 finalizações e 0.00 xG"
+              ],
+              "severity": 0.82,
+              "action": {
+                "id": "connect_attack",
+                "label": "Aproximar o ataque"
+              },
+              "expected": "Aumentar finalizações e entradas no último terço",
+              "substitution": null,
+              "evaluation": {
+                "minute": 42,
+                "score": -0.485,
+                "outcome": "negative",
+                "success": false,
+                "window": {
+                  "xgFor": 0,
+                  "xgAgainst": 0.8812912734229812,
+                  "shotsFor": 0,
+                  "shotsAgainst": 2,
+                  "possession": 0.5435139573070608,
+                  "scoreDelta": 0
+                }
+              },
+              "reverted": true
+            },
+            {
+              "minute": 42,
+              "type": "change",
+              "diagnosis": "Pressão ineficiente",
+              "diagnosisCode": "PRESS_INEFFECTIVE",
+              "evidence": [
+                "Pressão 68 com apenas 1 recuperações"
+              ],
+              "severity": 0.5,
+              "action": {
+                "id": "reset_press",
+                "label": "Reorganizar a pressão"
+              },
+              "expected": "Reduzir desgaste e recuperar compactação",
+              "substitution": null,
+              "evaluation": {
+                "minute": 48,
+                "score": 0,
+                "outcome": "inconclusive",
+                "success": null,
+                "window": {
+                  "xgFor": 0,
+                  "xgAgainst": 0,
+                  "shotsFor": 0,
+                  "shotsAgainst": 0,
+                  "possession": 0.4158004158004156,
+                  "scoreDelta": 0
+                }
+              }
+            },
+            {
+              "minute": 48,
+              "type": "change",
+              "diagnosis": "Sobrecarga pelo lado direito rival",
+              "diagnosisCode": "RIGHT_OVERLOAD",
+              "evidence": [
+                "9 ataques contra 2"
+              ],
+              "severity": 0.938,
+              "action": {
+                "id": "reinforce_right",
+                "label": "Reforçar corredor direito defensivo"
+              },
+              "expected": "Reduzir progressões e cruzamentos pelo corredor atacado",
+              "substitution": null,
+              "evaluation": {
+                "minute": 54,
+                "score": -0.906,
+                "outcome": "negative",
+                "success": false,
+                "window": {
+                  "xgFor": 0,
+                  "xgAgainst": 0.5009631671817085,
+                  "shotsFor": 0,
+                  "shotsAgainst": 3,
+                  "possession": 0.5566666666666669,
+                  "scoreDelta": 0
+                }
+              },
+              "reverted": true
+            },
+            {
+              "minute": 54,
+              "type": "change",
+              "diagnosis": "Ataque isolado",
+              "diagnosisCode": "ISOLATED_ATTACK",
+              "evidence": [
+                "0 finalizações e 0.00 xG"
+              ],
+              "severity": 0.82,
+              "action": {
+                "id": "connect_attack",
+                "label": "Aproximar o ataque"
+              },
+              "expected": "Aumentar finalizações e entradas no último terço",
+              "substitution": null,
+              "evaluation": {
+                "minute": 60,
+                "score": 0,
+                "outcome": "inconclusive",
+                "success": null,
+                "window": {
+                  "xgFor": 0,
+                  "xgAgainst": 0,
+                  "shotsFor": 0,
+                  "shotsAgainst": 0,
+                  "possession": 0.22899159663865545,
+                  "scoreDelta": 0
+                }
+              }
+            },
+            {
+              "minute": 66,
+              "type": "change",
+              "diagnosis": "Sobrecarga pelo lado direito rival",
+              "diagnosisCode": "RIGHT_OVERLOAD",
+              "evidence": [
+                "12 ataques contra 4"
+              ],
+              "severity": 1,
+              "action": {
+                "id": "reinforce_right",
+                "label": "Reforçar corredor direito defensivo"
+              },
+              "expected": "Reduzir progressões e cruzamentos pelo corredor atacado",
+              "substitution": null,
+              "evaluation": {
+                "minute": 72,
+                "score": 0,
+                "outcome": "inconclusive",
+                "success": null,
+                "window": {
+                  "xgFor": 0,
+                  "xgAgainst": 0,
+                  "shotsFor": 0,
+                  "shotsAgainst": 0,
+                  "possession": 0.30158730158730157,
+                  "scoreDelta": 0
+                }
+              }
+            },
+            {
+              "minute": 72,
+              "type": "change",
+              "diagnosis": "Desvantagem no placar",
+              "diagnosisCode": "LOSING_LATE",
+              "evidence": [
+                "Perdendo por 1 aos 72 minutos"
+              ],
+              "severity": 1,
+              "action": {
+                "id": "structured_chase",
+                "label": "Busca estruturada do empate"
+              },
+              "expected": "Aumentar xG, presença de área e recuperações altas",
+              "substitution": {
+                "out": "Yoo Byung-ok",
+                "in": "Park Chang-sun",
+                "mode": "attack"
+              },
+              "evaluation": {
+                "minute": 78,
+                "score": 0.137,
+                "outcome": "positive",
+                "success": true,
+                "window": {
+                  "xgFor": 0.09396318714924551,
+                  "xgAgainst": 0.10847620018236181,
+                  "shotsFor": 1,
+                  "shotsAgainst": 1,
+                  "possession": 0.3672316384180789,
+                  "scoreDelta": 0
+                }
+              }
+            },
+            {
+              "minute": 78,
+              "type": "change",
+              "diagnosis": "Meio-campo em inferioridade",
+              "diagnosisCode": "MIDFIELD_INFERIORITY",
+              "evidence": [
+                "42% de posse e desvantagem territorial"
+              ],
+              "severity": 0.924,
+              "action": {
+                "id": "add_midfield",
+                "label": "Adicionar presença no meio"
+              },
+              "expected": "Recuperar posse e conexões centrais",
+              "substitution": null,
+              "evaluation": {
+                "minute": 84,
+                "score": -0.034,
+                "outcome": "inconclusive",
+                "success": null,
+                "window": {
+                  "xgFor": 0,
+                  "xgAgainst": 0,
+                  "shotsFor": 0,
+                  "shotsAgainst": 0,
+                  "possession": 0.47761194029850745,
+                  "scoreDelta": 0
+                }
+              }
+            },
+            {
+              "minute": 84,
+              "type": "change",
+              "diagnosis": "Sobrecarga pelo lado direito rival",
+              "diagnosisCode": "RIGHT_OVERLOAD",
+              "evidence": [
+                "13 ataques contra 4"
+              ],
+              "severity": 1,
+              "action": {
+                "id": "reinforce_right",
+                "label": "Reforçar corredor direito defensivo"
+              },
+              "expected": "Reduzir progressões e cruzamentos pelo corredor atacado",
+              "substitution": null
+            }
+          ],
+          "metrics": {
+            "analyses": 15,
+            "diagnoses": 33,
+            "changes": 11,
+            "substitutions": 1,
+            "evaluations": 10,
+            "successful": 2,
+            "failed": 4,
+            "inconclusive": 4,
+            "reversals": 2,
+            "preMatchPlans": 1
+          }
+        }
+      }
+    },
+    {
+      "title": "Copa dos Sonhos — Fase 9 — Build 5.2.0",
+      "phase9": "5.2.0",
+      "phase8": "5.1.0",
+      "phase47": "5.0.0",
+      "app": true,
+      "managerButton": true,
+      "viewport": 390,
+      "bodyWidth": 390,
+      "documentWidth": 390,
+      "overflow": 0,
+      "players": 7739,
+      "match": null
+    },
+    {
+      "title": "Copa dos Sonhos — Fase 9 — Build 5.2.0",
+      "phase9": "5.2.0",
+      "phase8": "5.1.0",
+      "phase47": "5.0.0",
+      "app": true,
+      "managerButton": true,
+      "viewport": 844,
+      "bodyWidth": 844,
+      "documentWidth": 844,
+      "overflow": 0,
+      "players": 7739,
+      "match": null
+    }
+  ]
+}

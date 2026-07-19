@@ -1,0 +1,2137 @@
+{
+  "summary": {
+    "games": 8,
+    "engineVersion": "5.2.0",
+    "fixedStep": 0.016666666666666666,
+    "invalidStates": 0,
+    "goalsPerMatch": 2.5,
+    "shotsPerMatch": 22,
+    "xgPerMatch": 2.336867446764287,
+    "onTargetRate": 0.39204545454545453,
+    "passCompletion": 0.7868580894533407,
+    "cornersPerMatch": 4.125,
+    "foulsPerMatch": 24.125,
+    "setPieceShotsPerMatch": 2.875,
+    "manager": {
+      "analyses": 120,
+      "diagnoses": 97,
+      "changes": 35,
+      "substitutions": 12,
+      "evaluations": 25,
+      "successful": 6,
+      "failed": 15,
+      "inconclusive": 4,
+      "reversals": 0,
+      "preMatchPlans": 8,
+      "changesPerMatch": 4.375
+    },
+    "pairedBaseline": {
+      "engineVersion": "5.1.0",
+      "goalsPerMatch": 3.125,
+      "shotsPerMatch": 23.625,
+      "xgPerMatch": 2.6382849501577064,
+      "onTargetRate": 0.3968253968253968,
+      "passCompletion": 0.7953311617806732,
+      "cornersPerMatch": 4.25,
+      "foulsPerMatch": 25.375
+    },
+    "pairedDelta": {
+      "goals": -0.2,
+      "shots": -0.06878306878306878,
+      "xg": -0.11424751650704056,
+      "onTarget": -0.004779942279942273,
+      "passCompletion": -0.00847307232733252,
+      "corners": -0.029411764705882353,
+      "fouls": -0.04926108374384237
+    }
+  },
+  "matches": [
+    {
+      "game": 1,
+      "seed": 81000,
+      "score": [
+        2,
+        1
+      ],
+      "steps": 24274,
+      "finite": true,
+      "ai": 1,
+      "manager": {
+        "version": "5.2.0",
+        "team": 1,
+        "profile": {
+          "key": "aggressive",
+          "label": "Agressivo",
+          "aggression": 77,
+          "riskTolerance": 75,
+          "adaptability": 67,
+          "pressingPreference": 86,
+          "possessionPreference": 44,
+          "defensivePreference": 35,
+          "substitutionTiming": 66,
+          "evidenceThreshold": 0.48,
+          "persistence": 9,
+          "reviewMinutes": 7
+        },
+        "preMatch": {
+          "minute": 0,
+          "preset": "highPress",
+          "reason": "Perfil agressivo: pressionar a primeira construção",
+          "opponent": {
+            "name": "Argentina",
+            "form": null,
+            "style": "balanced",
+            "pace": 84.3,
+            "aerial": 83.5
+          }
+        },
+        "currentDiagnosis": {
+          "code": "LOSING_LATE",
+          "severity": 1,
+          "label": "Desvantagem no placar",
+          "evidence": "Perdendo por 1 aos 84 minutos",
+          "objective": "attack"
+        },
+        "diagnoses": [
+          {
+            "code": "LOSING_LATE",
+            "severity": 1,
+            "label": "Desvantagem no placar",
+            "evidence": "Perdendo por 1 aos 84 minutos",
+            "objective": "attack"
+          },
+          {
+            "code": "YELLOW_RISK",
+            "severity": 0.64,
+            "label": "Risco disciplinar",
+            "evidence": "2 jogadores amarelados",
+            "objective": "defend"
+          },
+          {
+            "code": "LEFT_OVERLOAD",
+            "severity": 0.625,
+            "label": "Sobrecarga pelo lado esquerdo rival",
+            "evidence": "6 ataques contra 4",
+            "objective": "defend"
+          }
+        ],
+        "pendingEvaluation": {
+          "minute": 84.08400000001402,
+          "action": "all_out_attack",
+          "objective": "attack"
+        },
+        "history": [
+          {
+            "minute": 0,
+            "type": "pre_match",
+            "diagnosis": "Plano pré-jogo",
+            "evidence": [
+              "Velocidade ofensiva rival 84.3",
+              "Ameaça aérea 83.5"
+            ],
+            "action": {
+              "id": "pre_match_highPress",
+              "label": "Plano highPress"
+            },
+            "expected": "Perfil agressivo: pressionar a primeira construção"
+          },
+          {
+            "minute": 30,
+            "type": "change",
+            "diagnosis": "Ataque isolado",
+            "diagnosisCode": "ISOLATED_ATTACK",
+            "evidence": [
+              "3 finalizações e 0.15 xG"
+            ],
+            "severity": 0.58,
+            "action": {
+              "id": "connect_attack",
+              "label": "Aproximar o ataque"
+            },
+            "expected": "Aumentar finalizações e entradas no último terço",
+            "substitution": null,
+            "evaluation": {
+              "minute": 38,
+              "score": 0.094,
+              "outcome": "positive",
+              "success": true,
+              "window": {
+                "xgFor": 0.02547809204445109,
+                "xgAgainst": 0.019029407072817417,
+                "shotsFor": 1,
+                "shotsAgainst": 1,
+                "possession": 0.5372781065088758,
+                "scoreDelta": 0
+              }
+            }
+          },
+          {
+            "minute": 54,
+            "type": "change",
+            "diagnosis": "Sobrecarga pelo lado esquerdo rival",
+            "diagnosisCode": "LEFT_OVERLOAD",
+            "evidence": [
+              "5 ataques contra 2"
+            ],
+            "severity": 0.688,
+            "action": {
+              "id": "reinforce_left",
+              "label": "Reforçar corredor esquerdo defensivo"
+            },
+            "expected": "Reduzir progressões e cruzamentos pelo corredor atacado",
+            "substitution": null,
+            "evaluation": {
+              "minute": 62,
+              "score": -0.294,
+              "outcome": "negative",
+              "success": false,
+              "window": {
+                "xgFor": 0.053880416440552414,
+                "xgAgainst": 0.12948345454861832,
+                "shotsFor": 1,
+                "shotsAgainst": 2,
+                "possession": 0.41947565543071164,
+                "scoreDelta": 0
+              }
+            }
+          },
+          {
+            "minute": 66,
+            "type": "change",
+            "diagnosis": "Desvantagem no placar",
+            "diagnosisCode": "LOSING_LATE",
+            "evidence": [
+              "Perdendo por 1 aos 66 minutos"
+            ],
+            "severity": 0.872,
+            "action": {
+              "id": "all_out_attack",
+              "label": "Ataque total"
+            },
+            "expected": "Aumentar xG, presença de área e recuperações altas",
+            "substitution": {
+              "out": "Ricardinho II",
+              "in": "Ronaldinho Gaúcho",
+              "mode": "attack"
+            }
+          },
+          {
+            "minute": 72,
+            "type": "change",
+            "diagnosis": "Linha alta vulnerável",
+            "diagnosisCode": "HIGH_LINE_EXPOSED",
+            "evidence": [
+              "0 um contra um e 6 bolas em profundidade"
+            ],
+            "severity": 0.979,
+            "action": {
+              "id": "drop_line",
+              "label": "Baixar linha e proteger profundidade"
+            },
+            "expected": "Reduzir um contra um e bolas nas costas",
+            "substitution": null
+          },
+          {
+            "minute": 78,
+            "type": "change",
+            "diagnosis": "Risco disciplinar",
+            "diagnosisCode": "YELLOW_RISK",
+            "evidence": [
+              "3 jogadores amarelados"
+            ],
+            "severity": 0.72,
+            "action": {
+              "id": "disciplinary_sub",
+              "label": "Proteger jogador amarelado"
+            },
+            "expected": "Reduzir risco de expulsão",
+            "substitution": {
+              "out": "Juninho Paulista",
+              "in": "Roque Júnior",
+              "mode": "disciplinary"
+            }
+          },
+          {
+            "minute": 84,
+            "type": "change",
+            "diagnosis": "Desvantagem no placar",
+            "diagnosisCode": "LOSING_LATE",
+            "evidence": [
+              "Perdendo por 1 aos 84 minutos"
+            ],
+            "severity": 1,
+            "action": {
+              "id": "all_out_attack",
+              "label": "Ataque total"
+            },
+            "expected": "Aumentar xG, presença de área e recuperações altas",
+            "substitution": null
+          }
+        ],
+        "metrics": {
+          "analyses": 15,
+          "diagnoses": 16,
+          "changes": 6,
+          "substitutions": 2,
+          "evaluations": 2,
+          "successful": 1,
+          "failed": 1,
+          "inconclusive": 0,
+          "reversals": 0,
+          "preMatchPlans": 1
+        }
+      },
+      "stats": [
+        {
+          "shots": 13,
+          "onTarget": 5,
+          "xg": 1.720061831033451,
+          "passes": 108,
+          "passOk": 92,
+          "corners": 1,
+          "fouls": 12,
+          "yellow": 2,
+          "red": 0,
+          "setPieceShots": 0,
+          "setPieceGoals": 1,
+          "managerAnalyses": 0,
+          "managerDiagnoses": 0,
+          "managerChanges": 0,
+          "managerSubstitutions": 0,
+          "managerEvaluations": 0,
+          "managerSuccessfulChanges": 0,
+          "managerFailedChanges": 0,
+          "managerInconclusiveChanges": 0,
+          "managerReversals": 0,
+          "managerPreMatchPlans": 0
+        },
+        {
+          "shots": 12,
+          "onTarget": 6,
+          "xg": 1.2210052980546828,
+          "passes": 123,
+          "passOk": 97,
+          "corners": 1,
+          "fouls": 16,
+          "yellow": 3,
+          "red": 0,
+          "setPieceShots": 2,
+          "setPieceGoals": 0,
+          "managerAnalyses": 15,
+          "managerDiagnoses": 16,
+          "managerChanges": 6,
+          "managerSubstitutions": 2,
+          "managerEvaluations": 2,
+          "managerSuccessfulChanges": 1,
+          "managerFailedChanges": 1,
+          "managerInconclusiveChanges": 0,
+          "managerReversals": 0,
+          "managerPreMatchPlans": 1
+        }
+      ]
+    },
+    {
+      "game": 2,
+      "seed": 88919,
+      "score": [
+        1,
+        0
+      ],
+      "steps": 24953,
+      "finite": true,
+      "ai": 0,
+      "manager": {
+        "version": "5.2.0",
+        "team": 0,
+        "profile": {
+          "key": "possession",
+          "label": "Controlador",
+          "aggression": 54,
+          "riskTolerance": 48,
+          "adaptability": 73,
+          "pressingPreference": 68,
+          "possessionPreference": 88,
+          "defensivePreference": 48,
+          "substitutionTiming": 57,
+          "evidenceThreshold": 0.52,
+          "persistence": 11,
+          "reviewMinutes": 8
+        },
+        "preMatch": {
+          "minute": 0,
+          "preset": "possession",
+          "reason": "Perfil controlador: dominar bola e território",
+          "opponent": {
+            "name": "Colômbia",
+            "form": null,
+            "style": "direct",
+            "pace": 74.8,
+            "aerial": 71.5
+          }
+        },
+        "currentDiagnosis": {
+          "code": "LEADING_LATE",
+          "severity": 0.9361333333335561,
+          "label": "Vantagem a proteger",
+          "evidence": "Vencendo por 1 no terço final",
+          "objective": "defend"
+        },
+        "diagnoses": [
+          {
+            "code": "LEADING_LATE",
+            "severity": 1,
+            "label": "Vantagem a proteger",
+            "evidence": "Vencendo por 1 no terço final",
+            "objective": "defend"
+          }
+        ],
+        "pendingEvaluation": null,
+        "history": [
+          {
+            "minute": 0,
+            "type": "pre_match",
+            "diagnosis": "Plano pré-jogo",
+            "evidence": [
+              "Velocidade ofensiva rival 74.8",
+              "Ameaça aérea 71.5"
+            ],
+            "action": {
+              "id": "pre_match_possession",
+              "label": "Plano possession"
+            },
+            "expected": "Perfil controlador: dominar bola e território"
+          },
+          {
+            "minute": 54,
+            "type": "change",
+            "diagnosis": "Sobrecarga pelo lado direito rival",
+            "diagnosisCode": "RIGHT_OVERLOAD",
+            "evidence": [
+              "5 ataques contra 2"
+            ],
+            "severity": 0.688,
+            "action": {
+              "id": "reinforce_right",
+              "label": "Reforçar corredor direito defensivo"
+            },
+            "expected": "Reduzir progressões e cruzamentos pelo corredor atacado",
+            "substitution": null,
+            "evaluation": {
+              "minute": 62,
+              "score": -0.301,
+              "outcome": "negative",
+              "success": false,
+              "window": {
+                "xgFor": 0.14235738052232938,
+                "xgAgainst": 0.14912446790793188,
+                "shotsFor": 2,
+                "shotsAgainst": 2,
+                "possession": 0.5570552147239264,
+                "scoreDelta": 0
+              }
+            }
+          },
+          {
+            "minute": 78,
+            "type": "change",
+            "diagnosis": "Vantagem a proteger",
+            "diagnosisCode": "LEADING_LATE",
+            "evidence": [
+              "Vencendo por 1 no terço final"
+            ],
+            "severity": 0.936,
+            "action": {
+              "id": "protect_lead",
+              "label": "Proteger a vantagem"
+            },
+            "expected": "Reduzir xG e finalizações adversárias",
+            "substitution": {
+              "out": "Enzo Scifo",
+              "in": "Franky van der Elst",
+              "mode": "defend"
+            },
+            "evaluation": {
+              "minute": 86,
+              "score": -0.222,
+              "outcome": "negative",
+              "success": false,
+              "window": {
+                "xgFor": 0,
+                "xgAgainst": 0.11200194600000002,
+                "shotsFor": 0,
+                "shotsAgainst": 1,
+                "possession": 0.4950354609929078,
+                "scoreDelta": 0
+              }
+            }
+          }
+        ],
+        "metrics": {
+          "analyses": 15,
+          "diagnoses": 5,
+          "changes": 2,
+          "substitutions": 1,
+          "evaluations": 2,
+          "successful": 0,
+          "failed": 2,
+          "inconclusive": 0,
+          "reversals": 0,
+          "preMatchPlans": 1
+        }
+      },
+      "stats": [
+        {
+          "shots": 9,
+          "onTarget": 4,
+          "xg": 1.655139872757262,
+          "passes": 130,
+          "passOk": 107,
+          "corners": 1,
+          "fouls": 17,
+          "yellow": 1,
+          "red": 0,
+          "setPieceShots": 1,
+          "setPieceGoals": 0,
+          "managerAnalyses": 15,
+          "managerDiagnoses": 5,
+          "managerChanges": 2,
+          "managerSubstitutions": 1,
+          "managerEvaluations": 2,
+          "managerSuccessfulChanges": 0,
+          "managerFailedChanges": 2,
+          "managerInconclusiveChanges": 0,
+          "managerReversals": 0,
+          "managerPreMatchPlans": 1
+        },
+        {
+          "shots": 11,
+          "onTarget": 3,
+          "xg": 0.8299990500510696,
+          "passes": 83,
+          "passOk": 58,
+          "corners": 1,
+          "fouls": 26,
+          "yellow": 4,
+          "red": 0,
+          "setPieceShots": 2,
+          "setPieceGoals": 0,
+          "managerAnalyses": 0,
+          "managerDiagnoses": 0,
+          "managerChanges": 0,
+          "managerSubstitutions": 0,
+          "managerEvaluations": 0,
+          "managerSuccessfulChanges": 0,
+          "managerFailedChanges": 0,
+          "managerInconclusiveChanges": 0,
+          "managerReversals": 0,
+          "managerPreMatchPlans": 0
+        }
+      ]
+    },
+    {
+      "game": 3,
+      "seed": 96838,
+      "score": [
+        1,
+        1
+      ],
+      "steps": 23889,
+      "finite": true,
+      "ai": 1,
+      "manager": {
+        "version": "5.2.0",
+        "team": 1,
+        "profile": {
+          "key": "possession",
+          "label": "Controlador",
+          "aggression": 58,
+          "riskTolerance": 50,
+          "adaptability": 78,
+          "pressingPreference": 68,
+          "possessionPreference": 88,
+          "defensivePreference": 48,
+          "substitutionTiming": 51,
+          "evidenceThreshold": 0.52,
+          "persistence": 11,
+          "reviewMinutes": 8
+        },
+        "preMatch": {
+          "minute": 0,
+          "preset": "possession",
+          "reason": "Perfil controlador: dominar bola e território",
+          "opponent": {
+            "name": "Brasil",
+            "form": null,
+            "style": "counter",
+            "pace": 98.5,
+            "aerial": 96
+          }
+        },
+        "currentDiagnosis": {
+          "code": "LEADING_LATE",
+          "severity": 0.9361333333335561,
+          "label": "Vantagem a proteger",
+          "evidence": "Vencendo por 1 no terço final",
+          "objective": "defend"
+        },
+        "diagnoses": [
+          {
+            "code": "LEADING_LATE",
+            "severity": 1,
+            "label": "Vantagem a proteger",
+            "evidence": "Vencendo por 1 no terço final",
+            "objective": "defend"
+          },
+          {
+            "code": "YELLOW_RISK",
+            "severity": 0.72,
+            "label": "Risco disciplinar",
+            "evidence": "3 jogadores amarelados",
+            "objective": "defend"
+          }
+        ],
+        "pendingEvaluation": null,
+        "history": [
+          {
+            "minute": 0,
+            "type": "pre_match",
+            "diagnosis": "Plano pré-jogo",
+            "evidence": [
+              "Velocidade ofensiva rival 98.5",
+              "Ameaça aérea 96.0"
+            ],
+            "action": {
+              "id": "pre_match_possession",
+              "label": "Plano possession"
+            },
+            "expected": "Perfil controlador: dominar bola e território"
+          },
+          {
+            "minute": 18,
+            "type": "change",
+            "diagnosis": "Sobrecarga pelo lado direito rival",
+            "diagnosisCode": "RIGHT_OVERLOAD",
+            "evidence": [
+              "5 ataques contra 1"
+            ],
+            "severity": 0.75,
+            "action": {
+              "id": "reinforce_right",
+              "label": "Reforçar corredor direito defensivo"
+            },
+            "expected": "Reduzir progressões e cruzamentos pelo corredor atacado",
+            "substitution": null,
+            "evaluation": {
+              "minute": 26,
+              "score": -0.209,
+              "outcome": "negative",
+              "success": false,
+              "window": {
+                "xgFor": 0.06335274472600852,
+                "xgAgainst": 0.11378681324112844,
+                "shotsFor": 1,
+                "shotsAgainst": 1,
+                "possession": 0.5558698727015442,
+                "scoreDelta": 0
+              }
+            }
+          },
+          {
+            "minute": 30,
+            "type": "change",
+            "diagnosis": "Ataque isolado",
+            "diagnosisCode": "ISOLATED_ATTACK",
+            "evidence": [
+              "3 finalizações e 0.20 xG"
+            ],
+            "severity": 0.58,
+            "action": {
+              "id": "connect_attack",
+              "label": "Aproximar o ataque"
+            },
+            "expected": "Aumentar finalizações e entradas no último terço",
+            "substitution": null,
+            "evaluation": {
+              "minute": 38,
+              "score": -0.015,
+              "outcome": "inconclusive",
+              "success": null,
+              "window": {
+                "xgFor": 0,
+                "xgAgainst": 0.02658469121035345,
+                "shotsFor": 0,
+                "shotsAgainst": 1,
+                "possession": 0.6762075134168157,
+                "scoreDelta": 0
+              }
+            }
+          },
+          {
+            "minute": 42,
+            "type": "change",
+            "diagnosis": "Sobrecarga pelo lado direito rival",
+            "diagnosisCode": "RIGHT_OVERLOAD",
+            "evidence": [
+              "8 ataques contra 4"
+            ],
+            "severity": 0.75,
+            "action": {
+              "id": "reinforce_right",
+              "label": "Reforçar corredor direito defensivo"
+            },
+            "expected": "Reduzir progressões e cruzamentos pelo corredor atacado",
+            "substitution": null,
+            "evaluation": {
+              "minute": 50,
+              "score": -0.184,
+              "outcome": "negative",
+              "success": false,
+              "window": {
+                "xgFor": 0,
+                "xgAgainst": 0.08581432527523392,
+                "shotsFor": 0,
+                "shotsAgainst": 1,
+                "possession": 0.6693037974683544,
+                "scoreDelta": 0
+              }
+            }
+          },
+          {
+            "minute": 54,
+            "type": "change",
+            "diagnosis": "Risco disciplinar",
+            "diagnosisCode": "YELLOW_RISK",
+            "evidence": [
+              "2 jogadores amarelados"
+            ],
+            "severity": 0.64,
+            "action": {
+              "id": "disciplinary_sub",
+              "label": "Proteger jogador amarelado"
+            },
+            "expected": "Reduzir risco de expulsão",
+            "substitution": {
+              "out": "Ball",
+              "in": "Byrne",
+              "mode": "disciplinary"
+            },
+            "evaluation": {
+              "minute": 62,
+              "score": -0.128,
+              "outcome": "negative",
+              "success": false,
+              "window": {
+                "xgFor": 0.06002195773035379,
+                "xgAgainst": 0.05741955103005736,
+                "shotsFor": 1,
+                "shotsAgainst": 1,
+                "possession": 0.5580952380952379,
+                "scoreDelta": 0
+              }
+            }
+          },
+          {
+            "minute": 66,
+            "type": "change",
+            "diagnosis": "Sobrecarga pelo lado direito rival",
+            "diagnosisCode": "RIGHT_OVERLOAD",
+            "evidence": [
+              "8 ataques contra 5"
+            ],
+            "severity": 0.688,
+            "action": {
+              "id": "reinforce_right",
+              "label": "Reforçar corredor direito defensivo"
+            },
+            "expected": "Reduzir progressões e cruzamentos pelo corredor atacado",
+            "substitution": null,
+            "evaluation": {
+              "minute": 74,
+              "score": -0.198,
+              "outcome": "negative",
+              "success": false,
+              "window": {
+                "xgFor": 0,
+                "xgAgainst": 0.05369019607259007,
+                "shotsFor": 0,
+                "shotsAgainst": 2,
+                "possession": 0.6226053639846744,
+                "scoreDelta": 0
+              }
+            }
+          },
+          {
+            "minute": 78,
+            "type": "change",
+            "diagnosis": "Vantagem a proteger",
+            "diagnosisCode": "LEADING_LATE",
+            "evidence": [
+              "Vencendo por 1 no terço final"
+            ],
+            "severity": 0.936,
+            "action": {
+              "id": "protect_lead",
+              "label": "Proteger a vantagem"
+            },
+            "expected": "Reduzir xG e finalizações adversárias",
+            "substitution": {
+              "out": "Moore",
+              "in": "Eastham",
+              "mode": "defend"
+            },
+            "evaluation": {
+              "minute": 86,
+              "score": -1,
+              "outcome": "negative",
+              "success": false,
+              "window": {
+                "xgFor": 0,
+                "xgAgainst": 1.2269685303194078,
+                "shotsFor": 0,
+                "shotsAgainst": 5,
+                "possession": 0.5732323232323232,
+                "scoreDelta": -1
+              }
+            }
+          }
+        ],
+        "metrics": {
+          "analyses": 15,
+          "diagnoses": 19,
+          "changes": 6,
+          "substitutions": 2,
+          "evaluations": 6,
+          "successful": 0,
+          "failed": 5,
+          "inconclusive": 1,
+          "reversals": 0,
+          "preMatchPlans": 1
+        }
+      },
+      "stats": [
+        {
+          "shots": 24,
+          "onTarget": 10,
+          "xg": 2.163105611500211,
+          "passes": 82,
+          "passOk": 59,
+          "corners": 4,
+          "fouls": 9,
+          "yellow": 1,
+          "red": 0,
+          "setPieceShots": 3,
+          "setPieceGoals": 0,
+          "managerAnalyses": 0,
+          "managerDiagnoses": 0,
+          "managerChanges": 0,
+          "managerSubstitutions": 0,
+          "managerEvaluations": 0,
+          "managerSuccessfulChanges": 0,
+          "managerFailedChanges": 0,
+          "managerInconclusiveChanges": 0,
+          "managerReversals": 0,
+          "managerPreMatchPlans": 0
+        },
+        {
+          "shots": 6,
+          "onTarget": 2,
+          "xg": 0.97903749835384,
+          "passes": 147,
+          "passOk": 121,
+          "corners": 0,
+          "fouls": 9,
+          "yellow": 4,
+          "red": 0,
+          "setPieceShots": 1,
+          "setPieceGoals": 0,
+          "managerAnalyses": 15,
+          "managerDiagnoses": 19,
+          "managerChanges": 6,
+          "managerSubstitutions": 2,
+          "managerEvaluations": 6,
+          "managerSuccessfulChanges": 0,
+          "managerFailedChanges": 5,
+          "managerInconclusiveChanges": 1,
+          "managerReversals": 0,
+          "managerPreMatchPlans": 1
+        }
+      ]
+    },
+    {
+      "game": 4,
+      "seed": 104757,
+      "score": [
+        3,
+        2
+      ],
+      "steps": 23805,
+      "finite": true,
+      "ai": 0,
+      "manager": {
+        "version": "5.2.0",
+        "team": 0,
+        "profile": {
+          "key": "aggressive",
+          "label": "Agressivo",
+          "aggression": 87,
+          "riskTolerance": 81,
+          "adaptability": 69,
+          "pressingPreference": 86,
+          "possessionPreference": 44,
+          "defensivePreference": 35,
+          "substitutionTiming": 62,
+          "evidenceThreshold": 0.48,
+          "persistence": 9,
+          "reviewMinutes": 7
+        },
+        "preMatch": {
+          "minute": 0,
+          "preset": "highPress",
+          "reason": "Perfil agressivo: pressionar a primeira construção",
+          "opponent": {
+            "name": "Alemanha",
+            "form": null,
+            "style": "park",
+            "pace": 73.6,
+            "aerial": 72.3
+          }
+        },
+        "currentDiagnosis": {
+          "code": "LEADING_LATE",
+          "severity": 0.9361333333335561,
+          "label": "Vantagem a proteger",
+          "evidence": "Vencendo por 1 no terço final",
+          "objective": "defend"
+        },
+        "diagnoses": [
+          {
+            "code": "LEADING_LATE",
+            "severity": 1,
+            "label": "Vantagem a proteger",
+            "evidence": "Vencendo por 1 no terço final",
+            "objective": "defend"
+          },
+          {
+            "code": "YELLOW_RISK",
+            "severity": 0.72,
+            "label": "Risco disciplinar",
+            "evidence": "3 jogadores amarelados",
+            "objective": "defend"
+          },
+          {
+            "code": "POOR_SHOT_QUALITY",
+            "severity": 0.5808199159928358,
+            "label": "Finalizações de baixa qualidade",
+            "evidence": "16 chutes para 1.24 xG",
+            "objective": "attack"
+          }
+        ],
+        "pendingEvaluation": null,
+        "history": [
+          {
+            "minute": 0,
+            "type": "pre_match",
+            "diagnosis": "Plano pré-jogo",
+            "evidence": [
+              "Velocidade ofensiva rival 73.6",
+              "Ameaça aérea 72.3"
+            ],
+            "action": {
+              "id": "pre_match_highPress",
+              "label": "Plano highPress"
+            },
+            "expected": "Perfil agressivo: pressionar a primeira construção"
+          },
+          {
+            "minute": 12,
+            "type": "change",
+            "diagnosis": "Linha alta vulnerável",
+            "diagnosisCode": "HIGH_LINE_EXPOSED",
+            "evidence": [
+              "0 um contra um e 3 bolas em profundidade"
+            ],
+            "severity": 0.764,
+            "action": {
+              "id": "drop_line",
+              "label": "Baixar linha e proteger profundidade"
+            },
+            "expected": "Reduzir um contra um e bolas nas costas",
+            "substitution": null,
+            "evaluation": {
+              "minute": 20,
+              "score": -0.419,
+              "outcome": "negative",
+              "success": false,
+              "window": {
+                "xgFor": 0.08100849162798118,
+                "xgAgainst": 0.2203430086693592,
+                "shotsFor": 1,
+                "shotsAgainst": 2,
+                "possession": 0.4865671641791118,
+                "scoreDelta": -1
+              }
+            }
+          },
+          {
+            "minute": 30,
+            "type": "change",
+            "diagnosis": "Finalizações de baixa qualidade",
+            "diagnosisCode": "POOR_SHOT_QUALITY",
+            "evidence": [
+              "9 chutes para 0.60 xG"
+            ],
+            "severity": 0.624,
+            "action": {
+              "id": "work_ball",
+              "label": "Trabalhar melhor as chances"
+            },
+            "expected": "Aumentar xG por finalização",
+            "substitution": null,
+            "evaluation": {
+              "minute": 38,
+              "score": 0.118,
+              "outcome": "positive",
+              "success": true,
+              "window": {
+                "xgFor": 0.07912925813713478,
+                "xgAgainst": 0.10645979485922352,
+                "shotsFor": 1,
+                "shotsAgainst": 1,
+                "possession": 0.528,
+                "scoreDelta": 0
+              }
+            }
+          },
+          {
+            "minute": 48,
+            "type": "change",
+            "diagnosis": "Finalizações de baixa qualidade",
+            "diagnosisCode": "POOR_SHOT_QUALITY",
+            "evidence": [
+              "11 chutes para 0.78 xG"
+            ],
+            "severity": 0.608,
+            "action": {
+              "id": "work_ball",
+              "label": "Trabalhar melhor as chances"
+            },
+            "expected": "Aumentar xG por finalização",
+            "substitution": null,
+            "evaluation": {
+              "minute": 56,
+              "score": 0.068,
+              "outcome": "positive",
+              "success": true,
+              "window": {
+                "xgFor": 0.03794612918888973,
+                "xgAgainst": 0.09613371434178053,
+                "shotsFor": 1,
+                "shotsAgainst": 1,
+                "possession": 0.48390804597701137,
+                "scoreDelta": 0
+              }
+            }
+          },
+          {
+            "minute": 60,
+            "type": "change",
+            "diagnosis": "Sobrecarga pelo lado direito rival",
+            "diagnosisCode": "RIGHT_OVERLOAD",
+            "evidence": [
+              "5 ataques contra 2"
+            ],
+            "severity": 0.688,
+            "action": {
+              "id": "reinforce_right",
+              "label": "Reforçar corredor direito defensivo"
+            },
+            "expected": "Reduzir progressões e cruzamentos pelo corredor atacado",
+            "substitution": null,
+            "evaluation": {
+              "minute": 68,
+              "score": -0.993,
+              "outcome": "negative",
+              "success": false,
+              "window": {
+                "xgFor": 0.1466460229904355,
+                "xgAgainst": 0.6270083895536793,
+                "shotsFor": 2,
+                "shotsAgainst": 2,
+                "possession": 0.37714285714285717,
+                "scoreDelta": 0
+              }
+            }
+          },
+          {
+            "minute": 72,
+            "type": "change",
+            "diagnosis": "Finalizações de baixa qualidade",
+            "diagnosisCode": "POOR_SHOT_QUALITY",
+            "evidence": [
+              "14 chutes para 0.96 xG"
+            ],
+            "severity": 0.616,
+            "action": {
+              "id": "work_ball",
+              "label": "Trabalhar melhor as chances"
+            },
+            "expected": "Aumentar xG por finalização",
+            "substitution": null
+          },
+          {
+            "minute": 78,
+            "type": "change",
+            "diagnosis": "Vantagem a proteger",
+            "diagnosisCode": "LEADING_LATE",
+            "evidence": [
+              "Vencendo por 1 no terço final"
+            ],
+            "severity": 0.936,
+            "action": {
+              "id": "protect_lead",
+              "label": "Proteger a vantagem"
+            },
+            "expected": "Reduzir xG e finalizações adversárias",
+            "substitution": {
+              "out": "Geremi Njitap",
+              "in": "Sébastien Bassong",
+              "mode": "defend"
+            },
+            "evaluation": {
+              "minute": 86,
+              "score": -0.171,
+              "outcome": "negative",
+              "success": false,
+              "window": {
+                "xgFor": 0,
+                "xgAgainst": 0.0768382824162468,
+                "shotsFor": 0,
+                "shotsAgainst": 1,
+                "possession": 0.6443768996960488,
+                "scoreDelta": 0
+              }
+            }
+          }
+        ],
+        "metrics": {
+          "analyses": 15,
+          "diagnoses": 18,
+          "changes": 6,
+          "substitutions": 1,
+          "evaluations": 5,
+          "successful": 2,
+          "failed": 3,
+          "inconclusive": 0,
+          "reversals": 0,
+          "preMatchPlans": 1
+        }
+      },
+      "stats": [
+        {
+          "shots": 17,
+          "onTarget": 7,
+          "xg": 1.3081240183796718,
+          "passes": 118,
+          "passOk": 98,
+          "corners": 3,
+          "fouls": 5,
+          "yellow": 3,
+          "red": 0,
+          "setPieceShots": 3,
+          "setPieceGoals": 1,
+          "managerAnalyses": 15,
+          "managerDiagnoses": 18,
+          "managerChanges": 6,
+          "managerSubstitutions": 1,
+          "managerEvaluations": 5,
+          "managerSuccessfulChanges": 2,
+          "managerFailedChanges": 3,
+          "managerInconclusiveChanges": 0,
+          "managerReversals": 0,
+          "managerPreMatchPlans": 1
+        },
+        {
+          "shots": 12,
+          "onTarget": 4,
+          "xg": 1.4478913990981932,
+          "passes": 100,
+          "passOk": 82,
+          "corners": 1,
+          "fouls": 8,
+          "yellow": 1,
+          "red": 0,
+          "setPieceShots": 1,
+          "setPieceGoals": 0,
+          "managerAnalyses": 0,
+          "managerDiagnoses": 0,
+          "managerChanges": 0,
+          "managerSubstitutions": 0,
+          "managerEvaluations": 0,
+          "managerSuccessfulChanges": 0,
+          "managerFailedChanges": 0,
+          "managerInconclusiveChanges": 0,
+          "managerReversals": 0,
+          "managerPreMatchPlans": 0
+        }
+      ]
+    },
+    {
+      "game": 5,
+      "seed": 112676,
+      "score": [
+        3,
+        1
+      ],
+      "steps": 24293,
+      "finite": true,
+      "ai": 1,
+      "manager": {
+        "version": "5.2.0",
+        "team": 1,
+        "profile": {
+          "key": "aggressive",
+          "label": "Agressivo",
+          "aggression": 81,
+          "riskTolerance": 80,
+          "adaptability": 71,
+          "pressingPreference": 86,
+          "possessionPreference": 44,
+          "defensivePreference": 35,
+          "substitutionTiming": 65,
+          "evidenceThreshold": 0.48,
+          "persistence": 9,
+          "reviewMinutes": 7
+        },
+        "preMatch": {
+          "minute": 0,
+          "preset": "highPress",
+          "reason": "Perfil agressivo: pressionar a primeira construção",
+          "opponent": {
+            "name": "Costa Rica",
+            "form": null,
+            "style": "direct",
+            "pace": 72.3,
+            "aerial": 69
+          }
+        },
+        "currentDiagnosis": {
+          "code": "HIGH_LINE_EXPOSED",
+          "severity": 1,
+          "label": "Linha alta vulnerável",
+          "evidence": "0 um contra um e 11 bolas em profundidade",
+          "objective": "defend"
+        },
+        "diagnoses": [
+          {
+            "code": "LOSING_LATE",
+            "severity": 1,
+            "label": "Desvantagem no placar",
+            "evidence": "Perdendo por 2 aos 84 minutos",
+            "objective": "attack"
+          },
+          {
+            "code": "HIGH_LINE_EXPOSED",
+            "severity": 1,
+            "label": "Linha alta vulnerável",
+            "evidence": "0 um contra um e 11 bolas em profundidade",
+            "objective": "defend"
+          },
+          {
+            "code": "POOR_SHOT_QUALITY",
+            "severity": 0.5570486325339807,
+            "label": "Finalizações de baixa qualidade",
+            "evidence": "22 chutes para 1.83 xG",
+            "objective": "attack"
+          }
+        ],
+        "pendingEvaluation": {
+          "minute": 84.08400000001402,
+          "action": "drop_line",
+          "objective": "defend"
+        },
+        "history": [
+          {
+            "minute": 0,
+            "type": "pre_match",
+            "diagnosis": "Plano pré-jogo",
+            "evidence": [
+              "Velocidade ofensiva rival 72.3",
+              "Ameaça aérea 69.0"
+            ],
+            "action": {
+              "id": "pre_match_highPress",
+              "label": "Plano highPress"
+            },
+            "expected": "Perfil agressivo: pressionar a primeira construção"
+          },
+          {
+            "minute": 30,
+            "type": "change",
+            "diagnosis": "Linha alta vulnerável",
+            "diagnosisCode": "HIGH_LINE_EXPOSED",
+            "evidence": [
+              "0 um contra um e 5 bolas em profundidade"
+            ],
+            "severity": 0.907,
+            "action": {
+              "id": "drop_line",
+              "label": "Baixar linha e proteger profundidade"
+            },
+            "expected": "Reduzir um contra um e bolas nas costas",
+            "substitution": null,
+            "evaluation": {
+              "minute": 38,
+              "score": -0.089,
+              "outcome": "negative",
+              "success": false,
+              "window": {
+                "xgFor": 0.3627936111253111,
+                "xgAgainst": 0.08269007414738028,
+                "shotsFor": 4,
+                "shotsAgainst": 1,
+                "possession": 0.4344262295081967,
+                "scoreDelta": -1
+              }
+            }
+          },
+          {
+            "minute": 42,
+            "type": "change",
+            "diagnosis": "Finalizações de baixa qualidade",
+            "diagnosisCode": "POOR_SHOT_QUALITY",
+            "evidence": [
+              "10 chutes para 0.74 xG"
+            ],
+            "severity": 0.596,
+            "action": {
+              "id": "work_ball",
+              "label": "Trabalhar melhor as chances"
+            },
+            "expected": "Aumentar xG por finalização",
+            "substitution": null,
+            "evaluation": {
+              "minute": 50,
+              "score": 0.293,
+              "outcome": "positive",
+              "success": true,
+              "window": {
+                "xgFor": 0.15005120203264644,
+                "xgAgainst": 0.08972742810553014,
+                "shotsFor": 2,
+                "shotsAgainst": 1,
+                "possession": 0.49048913043478276,
+                "scoreDelta": -1
+              }
+            }
+          },
+          {
+            "minute": 60,
+            "type": "change",
+            "diagnosis": "Desvantagem no placar",
+            "diagnosisCode": "LOSING_LATE",
+            "evidence": [
+              "Perdendo por 2 aos 60 minutos"
+            ],
+            "severity": 0.829,
+            "action": {
+              "id": "all_out_attack",
+              "label": "Ataque total"
+            },
+            "expected": "Aumentar xG, presença de área e recuperações altas",
+            "substitution": {
+              "out": "Arcari",
+              "in": "Castellazzi",
+              "mode": "attack"
+            }
+          },
+          {
+            "minute": 66,
+            "type": "change",
+            "diagnosis": "Linha alta vulnerável",
+            "diagnosisCode": "HIGH_LINE_EXPOSED",
+            "evidence": [
+              "0 um contra um e 11 bolas em profundidade"
+            ],
+            "severity": 1,
+            "action": {
+              "id": "drop_line",
+              "label": "Baixar linha e proteger profundidade"
+            },
+            "expected": "Reduzir um contra um e bolas nas costas",
+            "substitution": null
+          },
+          {
+            "minute": 72,
+            "type": "change",
+            "diagnosis": "Risco disciplinar",
+            "diagnosisCode": "YELLOW_RISK",
+            "evidence": [
+              "2 jogadores amarelados"
+            ],
+            "severity": 0.64,
+            "action": {
+              "id": "disciplinary_sub",
+              "label": "Proteger jogador amarelado"
+            },
+            "expected": "Reduzir risco de expulsão",
+            "substitution": {
+              "out": "Bertolini",
+              "in": "Caligaris",
+              "mode": "disciplinary"
+            }
+          },
+          {
+            "minute": 78,
+            "type": "change",
+            "diagnosis": "Desvantagem no placar",
+            "diagnosisCode": "LOSING_LATE",
+            "evidence": [
+              "Perdendo por 2 aos 78 minutos"
+            ],
+            "severity": 1,
+            "action": {
+              "id": "all_out_attack",
+              "label": "Ataque total"
+            },
+            "expected": "Aumentar xG, presença de área e recuperações altas",
+            "substitution": null
+          },
+          {
+            "minute": 84,
+            "type": "change",
+            "diagnosis": "Linha alta vulnerável",
+            "diagnosisCode": "HIGH_LINE_EXPOSED",
+            "evidence": [
+              "0 um contra um e 11 bolas em profundidade"
+            ],
+            "severity": 1,
+            "action": {
+              "id": "drop_line",
+              "label": "Baixar linha e proteger profundidade"
+            },
+            "expected": "Reduzir um contra um e bolas nas costas",
+            "substitution": null
+          }
+        ],
+        "metrics": {
+          "analyses": 15,
+          "diagnoses": 19,
+          "changes": 7,
+          "substitutions": 2,
+          "evaluations": 2,
+          "successful": 1,
+          "failed": 1,
+          "inconclusive": 0,
+          "reversals": 0,
+          "preMatchPlans": 1
+        }
+      },
+      "stats": [
+        {
+          "shots": 4,
+          "onTarget": 4,
+          "xg": 1.0638021699547422,
+          "passes": 136,
+          "passOk": 104,
+          "corners": 0,
+          "fouls": 12,
+          "yellow": 2,
+          "red": 0,
+          "setPieceShots": 1,
+          "setPieceGoals": 1,
+          "managerAnalyses": 0,
+          "managerDiagnoses": 0,
+          "managerChanges": 0,
+          "managerSubstitutions": 0,
+          "managerEvaluations": 0,
+          "managerSuccessfulChanges": 0,
+          "managerFailedChanges": 0,
+          "managerInconclusiveChanges": 0,
+          "managerReversals": 0,
+          "managerPreMatchPlans": 0
+        },
+        {
+          "shots": 22,
+          "onTarget": 5,
+          "xg": 1.8312325210631066,
+          "passes": 83,
+          "passOk": 65,
+          "corners": 5,
+          "fouls": 12,
+          "yellow": 2,
+          "red": 0,
+          "setPieceShots": 6,
+          "setPieceGoals": 1,
+          "managerAnalyses": 15,
+          "managerDiagnoses": 19,
+          "managerChanges": 7,
+          "managerSubstitutions": 2,
+          "managerEvaluations": 2,
+          "managerSuccessfulChanges": 1,
+          "managerFailedChanges": 1,
+          "managerInconclusiveChanges": 0,
+          "managerReversals": 0,
+          "managerPreMatchPlans": 1
+        }
+      ]
+    },
+    {
+      "game": 6,
+      "seed": 120595,
+      "score": [
+        1,
+        1
+      ],
+      "steps": 24095,
+      "finite": true,
+      "ai": 0,
+      "manager": {
+        "version": "5.2.0",
+        "team": 0,
+        "profile": {
+          "key": "possession",
+          "label": "Controlador",
+          "aggression": 58,
+          "riskTolerance": 50,
+          "adaptability": 72,
+          "pressingPreference": 68,
+          "possessionPreference": 88,
+          "defensivePreference": 48,
+          "substitutionTiming": 54,
+          "evidenceThreshold": 0.52,
+          "persistence": 11,
+          "reviewMinutes": 8
+        },
+        "preMatch": {
+          "minute": 0,
+          "preset": "possession",
+          "reason": "Perfil controlador: dominar bola e território",
+          "opponent": {
+            "name": "México",
+            "form": null,
+            "style": "tiki",
+            "pace": 67.8,
+            "aerial": 68.3
+          }
+        },
+        "currentDiagnosis": {
+          "code": "LEADING_LATE",
+          "severity": 0.7361333333333117,
+          "label": "Vantagem a proteger",
+          "evidence": "Vencendo por 1 no terço final",
+          "objective": "defend"
+        },
+        "diagnoses": [
+          {
+            "code": "LEADING_LATE",
+            "severity": 1,
+            "label": "Vantagem a proteger",
+            "evidence": "Vencendo por 1 no terço final",
+            "objective": "defend"
+          }
+        ],
+        "pendingEvaluation": null,
+        "history": [
+          {
+            "minute": 0,
+            "type": "pre_match",
+            "diagnosis": "Plano pré-jogo",
+            "evidence": [
+              "Velocidade ofensiva rival 67.8",
+              "Ameaça aérea 68.3"
+            ],
+            "action": {
+              "id": "pre_match_possession",
+              "label": "Plano possession"
+            },
+            "expected": "Perfil controlador: dominar bola e território"
+          },
+          {
+            "minute": 30,
+            "type": "change",
+            "diagnosis": "Ataque isolado",
+            "diagnosisCode": "ISOLATED_ATTACK",
+            "evidence": [
+              "1 finalizações e 0.04 xG"
+            ],
+            "severity": 0.74,
+            "action": {
+              "id": "connect_attack",
+              "label": "Aproximar o ataque"
+            },
+            "expected": "Aumentar finalizações e entradas no último terço",
+            "substitution": null,
+            "evaluation": {
+              "minute": 38,
+              "score": 0.259,
+              "outcome": "positive",
+              "success": true,
+              "window": {
+                "xgFor": 0.08849943032017019,
+                "xgAgainst": 0,
+                "shotsFor": 2,
+                "shotsAgainst": 0,
+                "possession": 0.46908602150537637,
+                "scoreDelta": 0
+              }
+            }
+          },
+          {
+            "minute": 48,
+            "type": "change",
+            "diagnosis": "Ataque isolado",
+            "diagnosisCode": "ISOLATED_ATTACK",
+            "evidence": [
+              "3 finalizações e 0.13 xG"
+            ],
+            "severity": 0.58,
+            "action": {
+              "id": "connect_attack",
+              "label": "Aproximar o ataque"
+            },
+            "expected": "Aumentar finalizações e entradas no último terço",
+            "substitution": null,
+            "evaluation": {
+              "minute": 56,
+              "score": 0.131,
+              "outcome": "positive",
+              "success": true,
+              "window": {
+                "xgFor": 0.04525587511311158,
+                "xgAgainst": 0,
+                "shotsFor": 1,
+                "shotsAgainst": 0,
+                "possession": 0.7405940594059404,
+                "scoreDelta": 0
+              }
+            }
+          },
+          {
+            "minute": 72,
+            "type": "change",
+            "diagnosis": "Vantagem a proteger",
+            "diagnosisCode": "LEADING_LATE",
+            "evidence": [
+              "Vencendo por 1 no terço final"
+            ],
+            "severity": 0.736,
+            "action": {
+              "id": "protect_lead",
+              "label": "Proteger a vantagem"
+            },
+            "expected": "Reduzir xG e finalizações adversárias",
+            "substitution": {
+              "out": "Ľubomír Moravčík",
+              "in": "Vladimír Kinier",
+              "mode": "defend"
+            },
+            "evaluation": {
+              "minute": 80,
+              "score": 0,
+              "outcome": "inconclusive",
+              "success": null,
+              "window": {
+                "xgFor": 0,
+                "xgAgainst": 0,
+                "shotsFor": 0,
+                "shotsAgainst": 0,
+                "possession": 0.21603260869565216,
+                "scoreDelta": 0
+              }
+            }
+          }
+        ],
+        "metrics": {
+          "analyses": 15,
+          "diagnoses": 7,
+          "changes": 3,
+          "substitutions": 1,
+          "evaluations": 3,
+          "successful": 2,
+          "failed": 0,
+          "inconclusive": 1,
+          "reversals": 0,
+          "preMatchPlans": 1
+        }
+      },
+      "stats": [
+        {
+          "shots": 7,
+          "onTarget": 2,
+          "xg": 0.3522596885372725,
+          "passes": 106,
+          "passOk": 85,
+          "corners": 4,
+          "fouls": 9,
+          "yellow": 0,
+          "red": 0,
+          "setPieceShots": 0,
+          "setPieceGoals": 0,
+          "managerAnalyses": 15,
+          "managerDiagnoses": 7,
+          "managerChanges": 3,
+          "managerSubstitutions": 1,
+          "managerEvaluations": 3,
+          "managerSuccessfulChanges": 2,
+          "managerFailedChanges": 0,
+          "managerInconclusiveChanges": 1,
+          "managerReversals": 0,
+          "managerPreMatchPlans": 1
+        },
+        {
+          "shots": 6,
+          "onTarget": 4,
+          "xg": 0.784487380988034,
+          "passes": 116,
+          "passOk": 85,
+          "corners": 1,
+          "fouls": 13,
+          "yellow": 3,
+          "red": 0,
+          "setPieceShots": 0,
+          "setPieceGoals": 0,
+          "managerAnalyses": 0,
+          "managerDiagnoses": 0,
+          "managerChanges": 0,
+          "managerSubstitutions": 0,
+          "managerEvaluations": 0,
+          "managerSuccessfulChanges": 0,
+          "managerFailedChanges": 0,
+          "managerInconclusiveChanges": 0,
+          "managerReversals": 0,
+          "managerPreMatchPlans": 0
+        }
+      ]
+    },
+    {
+      "game": 7,
+      "seed": 128514,
+      "score": [
+        1,
+        1
+      ],
+      "steps": 23790,
+      "finite": true,
+      "ai": 1,
+      "manager": {
+        "version": "5.2.0",
+        "team": 1,
+        "profile": {
+          "key": "pragmatic",
+          "label": "Pragmático",
+          "aggression": 45,
+          "riskTolerance": 42,
+          "adaptability": 72,
+          "pressingPreference": 42,
+          "possessionPreference": 50,
+          "defensivePreference": 72,
+          "substitutionTiming": 60,
+          "evidenceThreshold": 0.54,
+          "persistence": 12,
+          "reviewMinutes": 8
+        },
+        "preMatch": {
+          "minute": 0,
+          "preset": "counter",
+          "reason": "Ataque adversário veloz: controlar profundidade e transitar",
+          "opponent": {
+            "name": "Inglaterra",
+            "form": null,
+            "style": "park",
+            "pace": 78,
+            "aerial": 80.5
+          }
+        },
+        "currentDiagnosis": {
+          "code": "BUILDUP_FAIL",
+          "severity": 0.574,
+          "label": "Saída de bola falhando",
+          "evidence": "71% de passe e 2 erros do goleiro",
+          "objective": "control"
+        },
+        "diagnoses": [
+          {
+            "code": "BUILDUP_FAIL",
+            "severity": 0.5508780487804879,
+            "label": "Saída de bola falhando",
+            "evidence": "72% de passe e 2 erros do goleiro",
+            "objective": "control"
+          }
+        ],
+        "pendingEvaluation": null,
+        "history": [
+          {
+            "minute": 0,
+            "type": "pre_match",
+            "diagnosis": "Plano pré-jogo",
+            "evidence": [
+              "Velocidade ofensiva rival 78.0",
+              "Ameaça aérea 80.5"
+            ],
+            "action": {
+              "id": "pre_match_counter",
+              "label": "Plano counter"
+            },
+            "expected": "Ataque adversário veloz: controlar profundidade e transitar"
+          },
+          {
+            "minute": 48,
+            "type": "change",
+            "diagnosis": "Risco disciplinar",
+            "diagnosisCode": "YELLOW_RISK",
+            "evidence": [
+              "3 jogadores amarelados"
+            ],
+            "severity": 0.72,
+            "action": {
+              "id": "disciplinary_sub",
+              "label": "Proteger jogador amarelado"
+            },
+            "expected": "Reduzir risco de expulsão",
+            "substitution": {
+              "out": "Edgar Barreto",
+              "in": "Julio Dos Santos",
+              "mode": "disciplinary"
+            },
+            "evaluation": {
+              "minute": 56,
+              "score": -0.267,
+              "outcome": "negative",
+              "success": false,
+              "window": {
+                "xgFor": 0,
+                "xgAgainst": 0.10138833451518547,
+                "shotsFor": 0,
+                "shotsAgainst": 2,
+                "possession": 0.28041237113402095,
+                "scoreDelta": 0
+              }
+            }
+          },
+          {
+            "minute": 66,
+            "type": "change",
+            "diagnosis": "Risco disciplinar",
+            "diagnosisCode": "YELLOW_RISK",
+            "evidence": [
+              "2 jogadores amarelados"
+            ],
+            "severity": 0.64,
+            "action": {
+              "id": "disciplinary_sub",
+              "label": "Proteger jogador amarelado"
+            },
+            "expected": "Reduzir risco de expulsão",
+            "substitution": {
+              "out": "Justo Villar",
+              "in": "Paulo Da Silva",
+              "mode": "disciplinary"
+            },
+            "evaluation": {
+              "minute": 74,
+              "score": 0,
+              "outcome": "inconclusive",
+              "success": null,
+              "window": {
+                "xgFor": 0,
+                "xgAgainst": 0,
+                "shotsFor": 0,
+                "shotsAgainst": 0,
+                "possession": 0.44905008635578586,
+                "scoreDelta": 0
+              }
+            }
+          },
+          {
+            "minute": 78,
+            "type": "change",
+            "diagnosis": "Saída de bola falhando",
+            "diagnosisCode": "BUILDUP_FAIL",
+            "evidence": [
+              "71% de passe e 2 erros do goleiro"
+            ],
+            "severity": 0.574,
+            "action": {
+              "id": "bypass_press",
+              "label": "Contornar a pressão rival"
+            },
+            "expected": "Reduzir perdas na saída e avançar com segurança",
+            "substitution": null,
+            "evaluation": {
+              "minute": 86,
+              "score": -0.245,
+              "outcome": "negative",
+              "success": false,
+              "window": {
+                "xgFor": 0.08677901602084348,
+                "xgAgainst": 0.11691482347342408,
+                "shotsFor": 1,
+                "shotsAgainst": 2,
+                "possession": 0.35918367346938773,
+                "scoreDelta": 0
+              }
+            }
+          }
+        ],
+        "metrics": {
+          "analyses": 15,
+          "diagnoses": 7,
+          "changes": 3,
+          "substitutions": 2,
+          "evaluations": 3,
+          "successful": 0,
+          "failed": 2,
+          "inconclusive": 1,
+          "reversals": 0,
+          "preMatchPlans": 1
+        }
+      },
+      "stats": [
+        {
+          "shots": 14,
+          "onTarget": 7,
+          "xg": 1.1733656570209052,
+          "passes": 157,
+          "passOk": 134,
+          "corners": 3,
+          "fouls": 4,
+          "yellow": 1,
+          "red": 0,
+          "setPieceShots": 0,
+          "setPieceGoals": 0,
+          "managerAnalyses": 0,
+          "managerDiagnoses": 0,
+          "managerChanges": 0,
+          "managerSubstitutions": 0,
+          "managerEvaluations": 0,
+          "managerSuccessfulChanges": 0,
+          "managerFailedChanges": 0,
+          "managerInconclusiveChanges": 0,
+          "managerReversals": 0,
+          "managerPreMatchPlans": 0
+        },
+        {
+          "shots": 8,
+          "onTarget": 2,
+          "xg": 1.3348572543420971,
+          "passes": 89,
+          "passOk": 64,
+          "corners": 5,
+          "fouls": 8,
+          "yellow": 3,
+          "red": 0,
+          "setPieceShots": 2,
+          "setPieceGoals": 0,
+          "managerAnalyses": 15,
+          "managerDiagnoses": 7,
+          "managerChanges": 3,
+          "managerSubstitutions": 2,
+          "managerEvaluations": 3,
+          "managerSuccessfulChanges": 0,
+          "managerFailedChanges": 2,
+          "managerInconclusiveChanges": 1,
+          "managerReversals": 0,
+          "managerPreMatchPlans": 1
+        }
+      ]
+    },
+    {
+      "game": 8,
+      "seed": 136433,
+      "score": [
+        1,
+        0
+      ],
+      "steps": 24475,
+      "finite": true,
+      "ai": 0,
+      "manager": {
+        "version": "5.2.0",
+        "team": 0,
+        "profile": {
+          "key": "possession",
+          "label": "Controlador",
+          "aggression": 57,
+          "riskTolerance": 52,
+          "adaptability": 71,
+          "pressingPreference": 68,
+          "possessionPreference": 88,
+          "defensivePreference": 48,
+          "substitutionTiming": 59,
+          "evidenceThreshold": 0.52,
+          "persistence": 11,
+          "reviewMinutes": 8
+        },
+        "preMatch": {
+          "minute": 0,
+          "preset": "possession",
+          "reason": "Perfil controlador: dominar bola e território",
+          "opponent": {
+            "name": "Rússia",
+            "form": null,
+            "style": "press",
+            "pace": 72,
+            "aerial": 71
+          }
+        },
+        "currentDiagnosis": {
+          "code": "LEADING_LATE",
+          "severity": 0.7361333333333117,
+          "label": "Vantagem a proteger",
+          "evidence": "Vencendo por 1 no terço final",
+          "objective": "defend"
+        },
+        "diagnoses": [
+          {
+            "code": "LEADING_LATE",
+            "severity": 1,
+            "label": "Vantagem a proteger",
+            "evidence": "Vencendo por 1 no terço final",
+            "objective": "defend"
+          }
+        ],
+        "pendingEvaluation": null,
+        "history": [
+          {
+            "minute": 0,
+            "type": "pre_match",
+            "diagnosis": "Plano pré-jogo",
+            "evidence": [
+              "Velocidade ofensiva rival 72.0",
+              "Ameaça aérea 71.0"
+            ],
+            "action": {
+              "id": "pre_match_possession",
+              "label": "Plano possession"
+            },
+            "expected": "Perfil controlador: dominar bola e território"
+          },
+          {
+            "minute": 30,
+            "type": "change",
+            "diagnosis": "Ataque isolado",
+            "diagnosisCode": "ISOLATED_ATTACK",
+            "evidence": [
+              "3 finalizações e 0.20 xG"
+            ],
+            "severity": 0.58,
+            "action": {
+              "id": "connect_attack",
+              "label": "Aproximar o ataque"
+            },
+            "expected": "Aumentar finalizações e entradas no último terço",
+            "substitution": null,
+            "evaluation": {
+              "minute": 38,
+              "score": 0,
+              "outcome": "inconclusive",
+              "success": null,
+              "window": {
+                "xgFor": 0,
+                "xgAgainst": 0,
+                "shotsFor": 0,
+                "shotsAgainst": 0,
+                "possession": 0.9385964912280702,
+                "scoreDelta": 0
+              }
+            }
+          },
+          {
+            "minute": 72,
+            "type": "change",
+            "diagnosis": "Vantagem a proteger",
+            "diagnosisCode": "LEADING_LATE",
+            "evidence": [
+              "Vencendo por 1 no terço final"
+            ],
+            "severity": 0.736,
+            "action": {
+              "id": "protect_lead",
+              "label": "Proteger a vantagem"
+            },
+            "expected": "Reduzir xG e finalizações adversárias",
+            "substitution": {
+              "out": "Kylian Mbappé",
+              "in": "Dayot Upamecano",
+              "mode": "defend"
+            },
+            "evaluation": {
+              "minute": 80,
+              "score": -0.302,
+              "outcome": "negative",
+              "success": false,
+              "window": {
+                "xgFor": 0,
+                "xgAgainst": 0.12561719797829884,
+                "shotsFor": 0,
+                "shotsAgainst": 2,
+                "possession": 0.38672768878718555,
+                "scoreDelta": 0
+              }
+            }
+          }
+        ],
+        "metrics": {
+          "analyses": 15,
+          "diagnoses": 6,
+          "changes": 2,
+          "substitutions": 1,
+          "evaluations": 2,
+          "successful": 0,
+          "failed": 1,
+          "inconclusive": 1,
+          "reversals": 0,
+          "preMatchPlans": 1
+        }
+      },
+      "stats": [
+        {
+          "shots": 7,
+          "onTarget": 3,
+          "xg": 0.5361795623949647,
+          "passes": 154,
+          "passOk": 124,
+          "corners": 2,
+          "fouls": 16,
+          "yellow": 1,
+          "red": 0,
+          "setPieceShots": 1,
+          "setPieceGoals": 0,
+          "managerAnalyses": 15,
+          "managerDiagnoses": 6,
+          "managerChanges": 2,
+          "managerSubstitutions": 1,
+          "managerEvaluations": 2,
+          "managerSuccessfulChanges": 0,
+          "managerFailedChanges": 1,
+          "managerInconclusiveChanges": 1,
+          "managerReversals": 0,
+          "managerPreMatchPlans": 1
+        },
+        {
+          "shots": 4,
+          "onTarget": 1,
+          "xg": 0.29439076058479063,
+          "passes": 79,
+          "passOk": 50,
+          "corners": 1,
+          "fouls": 17,
+          "yellow": 3,
+          "red": 0,
+          "setPieceShots": 0,
+          "setPieceGoals": 0,
+          "managerAnalyses": 0,
+          "managerDiagnoses": 0,
+          "managerChanges": 0,
+          "managerSubstitutions": 0,
+          "managerEvaluations": 0,
+          "managerSuccessfulChanges": 0,
+          "managerFailedChanges": 0,
+          "managerInconclusiveChanges": 0,
+          "managerReversals": 0,
+          "managerPreMatchPlans": 0
+        }
+      ]
+    }
+  ]
+}
