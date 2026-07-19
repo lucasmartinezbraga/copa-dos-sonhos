@@ -325,6 +325,7 @@ class MatchSim {
     throughBalls:0, throughOk:0, lowCrosses:0, lowCrossesOk:0,
     oneOnOnes:0, setPieceShots:0, setPieceGoals:0,
     pressWins:0, defErrors:0, gkSweeps:0, gkBadDistribution:0,
+    gkShotsFaced:0, gkSecureCatches:0, gkParries:0, reboundsConceded:0,
     passingMap:Object.create(null), heatSamples:0
   }; }
 
@@ -1421,7 +1422,7 @@ class MatchSim {
       if(r2<saveCut){
         const saveTarget={x:g.x-tm.attackDir*1.25,y:clamp(g.y+dispersion,g.y-3.35,g.y+3.35)};
         this.stats[o.team].onTarget++;
-        this._startTravel(o,saveTarget,'shot',()=>{this.stats[1-o.team].saves++;if(gk)gk.rating+=(atk>82?.35:.18);this._emit('save',{gk,big:atk>82||oneOnOne});if(chance(CAL.restarts.shotSaveCorner))this._setCorner(o.team);else this._turnover(gk);},null,'shot');
+        this._startTravel(o,saveTarget,'shot',()=>this._gkResolveSave(gk,o,{atk,oneOnOne,saveTarget,g,tm}),null,'shot');
       }else if(r2<blockCut){
         const defenders=this.teams[1-o.team].players.filter(p=>!p.red&&!p.isGK);let blocker=null,bestLine=99;
         for(const d of defenders){const t=clamp(this._projT(o.x,o.y,g.x,g.y,d.x,d.y),0,1);if(t<.12||t>.88)continue;const px=lerp(o.x,g.x,t),py=lerp(o.y,g.y,t),ld=D(d.x,d.y,px,py);if(ld<bestLine){bestLine=ld;blocker=d;}}
@@ -1435,6 +1436,39 @@ class MatchSim {
       }
     }
     o._throughReceiverUntil=0;
+  }
+
+  /* FASE 8 · A defesa deixa de ser um evento único: o goleiro resolve o
+     chute conforme segurança e dificuldade — segura, espalma para escanteio
+     ou concede rebote VIVO (via _looseBall, a mesma segunda bola já disputada
+     em bloqueios e bolas na trave). Toda aleatoriedade é seedada (chance/R). */
+  _gkResolveSave(gk, o, ctx) {
+    const st = this.stats[1-o.team];
+    st.saves++; st.gkShotsFaced++;
+    if (gk) gk.rating += (ctx.atk > 82 ? .35 : .18);
+    const big = ctx.atk > 82 || ctx.oneOnOne;
+    const sec = gk ? facet(gk, 'gk')/100 : .4;              // qualidade/segurança
+    const hard = clamp(ctx.atk/100*(ctx.oneOnOne ? 1.08 : 1), .3, 1.1);
+    // defesa segura: goleiro confiável domina chutes controláveis
+    if (chance(clamp(.60 + sec*.5 - hard*.55, .10, .90))) {
+      st.gkSecureCatches++;
+      this._emit('save', { gk, big, kind:'catch' });
+      this._turnover(gk); return;
+    }
+    st.gkParries++;
+    // espalmada lateral: some pela linha de fundo → escanteio
+    if (chance(clamp(CAL.restarts.shotSaveCorner + (1-sec)*.10, .15, .75))) {
+      this._emit('save', { gk, big, kind:'deflect_corner' });
+      this._setCorner(o.team); return;
+    }
+    // rebote vivo dentro da área: posição real, ambos os times reagem
+    st.reboundsConceded++;
+    const central = chance(clamp(.42 - sec*.30, .08, .50)); // GK inseguro solta no meio
+    const rx = clamp(ctx.g.x - ctx.tm.attackDir*(central ? R(2.5,6) : R(4,10)), 2, FL-2);
+    const ry = clamp(central ? ctx.g.y + R(-3,3)
+                             : ctx.g.y + (ctx.saveTarget.y > ctx.g.y ? 1 : -1)*R(4,12), 2, FW-2);
+    this._emit('save', { gk, big, kind: central ? 'spill_central' : 'parry_wide', rebound:true });
+    this._looseBall(rx, ry);
   }
 
   _goal(o, golaco) {
