@@ -1,0 +1,1817 @@
+{
+  "ok": true,
+  "version": "5.2.1",
+  "profile": {
+    "key": "adaptive",
+    "label": "Laboratório",
+    "aggression": 60,
+    "riskTolerance": 82,
+    "adaptability": 96,
+    "pressingPreference": 64,
+    "possessionPreference": 64,
+    "defensivePreference": 72,
+    "substitutionTiming": 55,
+    "evidenceThreshold": 0.44,
+    "persistence": 8,
+    "reviewMinutes": 6
+  },
+  "metrics": {
+    "analyses": 3,
+    "diagnoses": 9,
+    "changes": 3,
+    "substitutions": 2,
+    "evaluations": 2,
+    "successful": 1,
+    "failed": 1,
+    "inconclusive": 0,
+    "reversals": 1,
+    "preMatchPlans": 1,
+    "noActions": 0,
+    "roleChanges": 0,
+    "dutyChanges": 0,
+    "pressOrientations": 1,
+    "crossChanges": 0,
+    "targetedPlayers": 0,
+    "stateExports": 0,
+    "stateImports": 0
+  },
+  "history": [
+    {
+      "minute": 0,
+      "type": "pre_match",
+      "diagnosis": "Plano pré-jogo",
+      "evidence": [
+        "Velocidade ofensiva rival 80.5",
+        "Ameaça aérea 82.7",
+        "Jogadores-chave: Andres Iniesta, Xavi Hernandez, Iker Casillas",
+        "Goleiro com a bola: 90.3",
+        "Contexto recente: desconhecido"
+      ],
+      "affectedPlayers": [
+        {
+          "id": "s313p0",
+          "name": "Andres Iniesta",
+          "position": "CM",
+          "overall": 94,
+          "dominantFoot": "unknown",
+          "likelyRole": {
+            "inPossession": "cm_b2b",
+            "outOfPossession": "press_mid"
+          }
+        },
+        {
+          "id": "s313p1",
+          "name": "Xavi Hernandez",
+          "position": "CM",
+          "overall": 93,
+          "dominantFoot": "unknown",
+          "likelyRole": {
+            "inPossession": "cm_b2b",
+            "outOfPossession": "press_mid"
+          }
+        },
+        {
+          "id": "s313p2",
+          "name": "Iker Casillas",
+          "position": "GK",
+          "overall": 92,
+          "dominantFoot": "unknown",
+          "likelyRole": {
+            "inPossession": "gk_seguro",
+            "outOfPossession": "line_keeper"
+          }
+        }
+      ],
+      "affectedSectors": [
+        "team-plan"
+      ],
+      "intensity": "baseline",
+      "action": {
+        "id": "pre_match_counter",
+        "label": "Plano counter"
+      },
+      "expected": "Ataque adversário veloz: controlar profundidade e transitar",
+      "decision": "maintain"
+    },
+    {
+      "minute": 72,
+      "type": "change",
+      "diagnosis": "Desvantagem no placar",
+      "diagnosisCode": "LOSING_LATE",
+      "evidence": [
+        "Perdendo por 2 aos 72 minutos"
+      ],
+      "severity": 1,
+      "affectedPlayers": [],
+      "affectedSectors": [
+        "attack"
+      ],
+      "intensity": "very-high",
+      "action": {
+        "id": "all_out_attack",
+        "label": "Ataque total"
+      },
+      "expected": "Aumentar xG, presença de área e recuperações altas",
+      "substitution": {
+        "out": "Yoo Byung-ok",
+        "in": "Park Chang-sun",
+        "mode": "attack"
+      },
+      "roleChange": null,
+      "beforeConfig": {
+        "preset": "custom",
+        "instructions": {
+          "inPossession": {
+            "buildup": {
+              "method": "direct",
+              "focus": "mixed",
+              "useGoalkeeper": true
+            },
+            "progression": {
+              "tempo": 78,
+              "passLength": 74,
+              "verticality": 83,
+              "width": 55,
+              "carryMore": true,
+              "passMore": false
+            },
+            "finalThird": {
+              "workBall": false,
+              "earlyShots": true,
+              "crossType": "mixed",
+              "overlap": true,
+              "underlap": false,
+              "longShots": "more"
+            }
+          },
+          "transition": {
+            "afterLoss": "regroup",
+            "afterRecovery": "counter",
+            "goalkeeperDistribution": "fast"
+          },
+          "outOfPossession": {
+            "block": "mid",
+            "defensiveLine": 38,
+            "engagementLine": 45,
+            "pressing": 44,
+            "orientation": "balanced",
+            "marking": "zonal",
+            "preventCross": true,
+            "protectBox": true,
+            "offsideTrap": false
+          }
+        },
+        "axes": {
+          "line": 41,
+          "press": 47,
+          "width": 50,
+          "tempo": 50,
+          "posture": 50
+        },
+        "defVar": 0,
+        "atkVar": 0,
+        "sideShift": null,
+        "attackFocus": null,
+        "pressOrientation": null,
+        "roles": [
+          {
+            "id": "s289p2",
+            "inPossession": {
+              "position": "GK",
+              "role": "gk_seguro",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "GK",
+              "role": "line_keeper",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p0",
+            "inPossession": {
+              "position": "LB",
+              "role": "fb_equilibrado",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "LB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p3",
+            "inPossession": {
+              "position": "CB",
+              "role": "cb_defensor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p5",
+            "inPossession": {
+              "position": "CB",
+              "role": "cb_defensor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p21",
+            "inPossession": {
+              "position": "RB",
+              "role": "fb_equilibrado",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "RB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p8",
+            "inPossession": {
+              "position": "CM",
+              "role": "cm_b2b",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CM",
+              "role": "press_mid",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p9",
+            "inPossession": {
+              "position": "CDM",
+              "role": "dm_construtor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CDM",
+              "role": "anchor",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p20",
+            "inPossession": {
+              "position": "CM",
+              "role": "cm_b2b",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CM",
+              "role": "press_mid",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p1",
+            "inPossession": {
+              "position": "LW",
+              "role": "wg_aberta",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "LW",
+              "role": "press_front",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p4",
+            "inPossession": {
+              "position": "ST",
+              "role": "fc_completo",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "ST",
+              "role": "press_front",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p16",
+            "inPossession": {
+              "position": "RW",
+              "role": "wg_aberta",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "RW",
+              "role": "press_front",
+              "duty": "defend"
+            }
+          }
+        ]
+      },
+      "afterConfig": {
+        "preset": "highPress",
+        "instructions": {
+          "inPossession": {
+            "buildup": {
+              "method": "balanced",
+              "focus": "mixed",
+              "useGoalkeeper": true
+            },
+            "progression": {
+              "tempo": 50,
+              "passLength": 50,
+              "verticality": 50,
+              "width": 50,
+              "carryMore": false,
+              "passMore": false
+            },
+            "finalThird": {
+              "workBall": false,
+              "earlyShots": false,
+              "crossType": "mixed",
+              "overlap": false,
+              "underlap": false,
+              "longShots": "balanced"
+            }
+          },
+          "transition": {
+            "afterLoss": "counterpress",
+            "afterRecovery": "counter",
+            "goalkeeperDistribution": "balanced"
+          },
+          "outOfPossession": {
+            "block": "high",
+            "defensiveLine": 72,
+            "engagementLine": 78,
+            "pressing": 86,
+            "orientation": "balanced",
+            "marking": "zonal",
+            "preventCross": false,
+            "protectBox": true,
+            "offsideTrap": true
+          }
+        },
+        "axes": {
+          "line": 53,
+          "press": 61,
+          "width": 50,
+          "tempo": 62,
+          "posture": 66
+        },
+        "defForm": "3-4-3",
+        "defVar": 0,
+        "atkForm": "4-2-4",
+        "atkVar": 0,
+        "sideShift": null,
+        "attackFocus": null,
+        "pressOrientation": null,
+        "roles": [
+          {
+            "id": "s289p2",
+            "inPossession": {
+              "position": "GK",
+              "role": "gk_seguro",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "GK",
+              "role": "line_keeper",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p0",
+            "inPossession": {
+              "position": "LB",
+              "role": "fb_equilibrado",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "LWB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p3",
+            "inPossession": {
+              "position": "RW",
+              "role": "wg_aberta",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p5",
+            "inPossession": {
+              "position": "CB",
+              "role": "cb_defensor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p10",
+            "inPossession": {
+              "position": "RB",
+              "role": "fb_equilibrado"
+            },
+            "outOfPossession": {
+              "position": "RWB",
+              "role": "hold"
+            }
+          },
+          {
+            "id": "s289p8",
+            "inPossession": {
+              "position": "CDM",
+              "role": "dm_construtor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CM",
+              "role": "press_mid",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p9",
+            "inPossession": {
+              "position": "CB",
+              "role": "cb_defensor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p20",
+            "inPossession": {
+              "position": "CDM",
+              "role": "dm_construtor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CM",
+              "role": "press_mid",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p1",
+            "inPossession": {
+              "position": "ST",
+              "role": "fc_completo",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "LW",
+              "role": "press_front",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p4",
+            "inPossession": {
+              "position": "ST",
+              "role": "fc_completo",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "ST",
+              "role": "press_front",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p16",
+            "inPossession": {
+              "position": "LW",
+              "role": "wg_aberta",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "RW",
+              "role": "press_front",
+              "duty": "defend"
+            }
+          }
+        ]
+      },
+      "decision": "pending",
+      "evaluation": {
+        "minute": 80,
+        "score": 1,
+        "outcome": "positive",
+        "success": true,
+        "window": {
+          "xgFor": 1.1,
+          "xgAgainst": 0.10000000000000009,
+          "shotsFor": 7,
+          "shotsAgainst": 1,
+          "possession": 0.5,
+          "scoreDelta": 0
+        },
+        "decision": "maintain"
+      },
+      "afterEvaluationConfig": {
+        "preset": "highPress",
+        "instructions": {
+          "inPossession": {
+            "buildup": {
+              "method": "balanced",
+              "focus": "mixed",
+              "useGoalkeeper": true
+            },
+            "progression": {
+              "tempo": 50,
+              "passLength": 50,
+              "verticality": 50,
+              "width": 50,
+              "carryMore": false,
+              "passMore": false
+            },
+            "finalThird": {
+              "workBall": false,
+              "earlyShots": false,
+              "crossType": "mixed",
+              "overlap": false,
+              "underlap": false,
+              "longShots": "balanced"
+            }
+          },
+          "transition": {
+            "afterLoss": "counterpress",
+            "afterRecovery": "counter",
+            "goalkeeperDistribution": "balanced"
+          },
+          "outOfPossession": {
+            "block": "high",
+            "defensiveLine": 72,
+            "engagementLine": 78,
+            "pressing": 86,
+            "orientation": "balanced",
+            "marking": "zonal",
+            "preventCross": false,
+            "protectBox": true,
+            "offsideTrap": true
+          }
+        },
+        "axes": {
+          "line": 53,
+          "press": 61,
+          "width": 50,
+          "tempo": 62,
+          "posture": 66
+        },
+        "defForm": "3-4-3",
+        "defVar": 0,
+        "atkForm": "4-2-4",
+        "atkVar": 0,
+        "sideShift": null,
+        "attackFocus": null,
+        "pressOrientation": null,
+        "roles": [
+          {
+            "id": "s289p2",
+            "inPossession": {
+              "position": "GK",
+              "role": "gk_seguro",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "GK",
+              "role": "line_keeper",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p0",
+            "inPossession": {
+              "position": "LB",
+              "role": "fb_equilibrado",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "LWB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p3",
+            "inPossession": {
+              "position": "RW",
+              "role": "wg_aberta",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p5",
+            "inPossession": {
+              "position": "CB",
+              "role": "cb_defensor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p10",
+            "inPossession": {
+              "position": "RB",
+              "role": "fb_equilibrado"
+            },
+            "outOfPossession": {
+              "position": "RWB",
+              "role": "hold"
+            }
+          },
+          {
+            "id": "s289p8",
+            "inPossession": {
+              "position": "CDM",
+              "role": "dm_construtor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CM",
+              "role": "press_mid",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p9",
+            "inPossession": {
+              "position": "CB",
+              "role": "cb_defensor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p20",
+            "inPossession": {
+              "position": "CDM",
+              "role": "dm_construtor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CM",
+              "role": "press_mid",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p1",
+            "inPossession": {
+              "position": "ST",
+              "role": "fc_completo",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "LW",
+              "role": "press_front",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p4",
+            "inPossession": {
+              "position": "ST",
+              "role": "fc_completo",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "ST",
+              "role": "press_front",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p16",
+            "inPossession": {
+              "position": "LW",
+              "role": "wg_aberta",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "RW",
+              "role": "press_front",
+              "duty": "defend"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "minute": 90,
+      "type": "change",
+      "diagnosis": "Sobrecarga pelo lado esquerdo rival",
+      "diagnosisCode": "LEFT_OVERLOAD",
+      "evidence": [
+        "16 ataques contra 4"
+      ],
+      "severity": 1,
+      "affectedPlayers": [],
+      "affectedSectors": [
+        "left"
+      ],
+      "intensity": "medium",
+      "action": {
+        "id": "reinforce_left",
+        "label": "Reforçar corredor esquerdo defensivo"
+      },
+      "expected": "Reduzir progressões e cruzamentos pelo corredor atacado",
+      "substitution": null,
+      "roleChange": null,
+      "beforeConfig": {
+        "preset": "highPress",
+        "instructions": {
+          "inPossession": {
+            "buildup": {
+              "method": "balanced",
+              "focus": "mixed",
+              "useGoalkeeper": true
+            },
+            "progression": {
+              "tempo": 50,
+              "passLength": 50,
+              "verticality": 50,
+              "width": 50,
+              "carryMore": false,
+              "passMore": false
+            },
+            "finalThird": {
+              "workBall": false,
+              "earlyShots": false,
+              "crossType": "mixed",
+              "overlap": false,
+              "underlap": false,
+              "longShots": "balanced"
+            }
+          },
+          "transition": {
+            "afterLoss": "counterpress",
+            "afterRecovery": "counter",
+            "goalkeeperDistribution": "balanced"
+          },
+          "outOfPossession": {
+            "block": "high",
+            "defensiveLine": 72,
+            "engagementLine": 78,
+            "pressing": 86,
+            "orientation": "balanced",
+            "marking": "zonal",
+            "preventCross": false,
+            "protectBox": true,
+            "offsideTrap": true
+          }
+        },
+        "axes": {
+          "line": 53,
+          "press": 61,
+          "width": 50,
+          "tempo": 62,
+          "posture": 66
+        },
+        "defForm": "3-4-3",
+        "defVar": 0,
+        "atkForm": "4-2-4",
+        "atkVar": 0,
+        "sideShift": null,
+        "attackFocus": null,
+        "pressOrientation": null,
+        "roles": [
+          {
+            "id": "s289p2",
+            "inPossession": {
+              "position": "GK",
+              "role": "gk_seguro",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "GK",
+              "role": "line_keeper",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p0",
+            "inPossession": {
+              "position": "LB",
+              "role": "fb_equilibrado",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "LWB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p3",
+            "inPossession": {
+              "position": "RW",
+              "role": "wg_aberta",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p5",
+            "inPossession": {
+              "position": "CB",
+              "role": "cb_defensor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p10",
+            "inPossession": {
+              "position": "RB",
+              "role": "fb_equilibrado"
+            },
+            "outOfPossession": {
+              "position": "RWB",
+              "role": "hold"
+            }
+          },
+          {
+            "id": "s289p8",
+            "inPossession": {
+              "position": "CDM",
+              "role": "dm_construtor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CM",
+              "role": "press_mid",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p9",
+            "inPossession": {
+              "position": "CB",
+              "role": "cb_defensor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p20",
+            "inPossession": {
+              "position": "CDM",
+              "role": "dm_construtor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CM",
+              "role": "press_mid",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p1",
+            "inPossession": {
+              "position": "ST",
+              "role": "fc_completo",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "LW",
+              "role": "press_front",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p4",
+            "inPossession": {
+              "position": "ST",
+              "role": "fc_completo",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "ST",
+              "role": "press_front",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p16",
+            "inPossession": {
+              "position": "LW",
+              "role": "wg_aberta",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "RW",
+              "role": "press_front",
+              "duty": "defend"
+            }
+          }
+        ]
+      },
+      "afterConfig": {
+        "preset": "custom",
+        "instructions": {
+          "inPossession": {
+            "buildup": {
+              "method": "balanced",
+              "focus": "mixed",
+              "useGoalkeeper": true
+            },
+            "progression": {
+              "tempo": 50,
+              "passLength": 50,
+              "verticality": 50,
+              "width": 50,
+              "carryMore": false,
+              "passMore": false
+            },
+            "finalThird": {
+              "workBall": false,
+              "earlyShots": false,
+              "crossType": "mixed",
+              "overlap": false,
+              "underlap": false,
+              "longShots": "balanced"
+            }
+          },
+          "transition": {
+            "afterLoss": "counterpress",
+            "afterRecovery": "counter",
+            "goalkeeperDistribution": "balanced"
+          },
+          "outOfPossession": {
+            "block": "high",
+            "defensiveLine": 72,
+            "engagementLine": 78,
+            "pressing": 86,
+            "orientation": "left",
+            "marking": "zonal",
+            "preventCross": true,
+            "protectBox": true,
+            "offsideTrap": true
+          }
+        },
+        "axes": {
+          "line": 53,
+          "press": 61,
+          "width": 50,
+          "tempo": 62,
+          "posture": 66
+        },
+        "defForm": "3-4-3",
+        "defVar": 0,
+        "atkForm": "4-2-4",
+        "atkVar": 0,
+        "sideShift": {
+          "side": "L",
+          "delta": -2.6
+        },
+        "attackFocus": null,
+        "pressOrientation": {
+          "side": "left",
+          "delta": -1.8
+        },
+        "roles": [
+          {
+            "id": "s289p2",
+            "inPossession": {
+              "position": "GK",
+              "role": "gk_seguro",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "GK",
+              "role": "line_keeper",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p0",
+            "inPossession": {
+              "position": "LB",
+              "role": "fb_equilibrado",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "LWB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p3",
+            "inPossession": {
+              "position": "RW",
+              "role": "wg_aberta",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p5",
+            "inPossession": {
+              "position": "CB",
+              "role": "cb_defensor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p10",
+            "inPossession": {
+              "position": "RB",
+              "role": "fb_equilibrado"
+            },
+            "outOfPossession": {
+              "position": "RWB",
+              "role": "hold"
+            }
+          },
+          {
+            "id": "s289p8",
+            "inPossession": {
+              "position": "CDM",
+              "role": "dm_construtor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CM",
+              "role": "press_mid",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p9",
+            "inPossession": {
+              "position": "CB",
+              "role": "cb_defensor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p20",
+            "inPossession": {
+              "position": "CDM",
+              "role": "dm_construtor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CM",
+              "role": "press_mid",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p1",
+            "inPossession": {
+              "position": "ST",
+              "role": "fc_completo",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "LW",
+              "role": "press_front",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p4",
+            "inPossession": {
+              "position": "ST",
+              "role": "fc_completo",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "ST",
+              "role": "press_front",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p16",
+            "inPossession": {
+              "position": "LW",
+              "role": "wg_aberta",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "RW",
+              "role": "press_front",
+              "duty": "defend"
+            }
+          }
+        ]
+      },
+      "decision": "pending",
+      "evaluation": {
+        "minute": 97,
+        "score": -1,
+        "outcome": "negative",
+        "success": false,
+        "window": {
+          "xgFor": 0,
+          "xgAgainst": 1.4,
+          "shotsFor": 0,
+          "shotsAgainst": 5,
+          "possession": 0.5,
+          "scoreDelta": 0
+        },
+        "decision": "revert"
+      },
+      "reverted": true,
+      "afterEvaluationConfig": {
+        "preset": "custom",
+        "instructions": {
+          "inPossession": {
+            "buildup": {
+              "method": "balanced",
+              "focus": "mixed",
+              "useGoalkeeper": true
+            },
+            "progression": {
+              "tempo": 50,
+              "passLength": 50,
+              "verticality": 50,
+              "width": 50,
+              "carryMore": false,
+              "passMore": false
+            },
+            "finalThird": {
+              "workBall": false,
+              "earlyShots": false,
+              "crossType": "mixed",
+              "overlap": false,
+              "underlap": false,
+              "longShots": "balanced"
+            }
+          },
+          "transition": {
+            "afterLoss": "counterpress",
+            "afterRecovery": "counter",
+            "goalkeeperDistribution": "balanced"
+          },
+          "outOfPossession": {
+            "block": "high",
+            "defensiveLine": 72,
+            "engagementLine": 78,
+            "pressing": 86,
+            "orientation": "balanced",
+            "marking": "zonal",
+            "preventCross": false,
+            "protectBox": true,
+            "offsideTrap": true
+          }
+        },
+        "axes": {
+          "line": 53,
+          "press": 61,
+          "width": 50,
+          "tempo": 62,
+          "posture": 66
+        },
+        "defForm": "3-4-3",
+        "defVar": 0,
+        "atkForm": "4-2-4",
+        "atkVar": 0,
+        "sideShift": null,
+        "attackFocus": null,
+        "pressOrientation": null,
+        "roles": [
+          {
+            "id": "s289p2",
+            "inPossession": {
+              "position": "GK",
+              "role": "gk_seguro",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "GK",
+              "role": "line_keeper",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p0",
+            "inPossession": {
+              "position": "LB",
+              "role": "fb_equilibrado",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "LWB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p3",
+            "inPossession": {
+              "position": "RW",
+              "role": "wg_aberta",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p5",
+            "inPossession": {
+              "position": "CB",
+              "role": "cb_defensor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p10",
+            "inPossession": {
+              "position": "RB",
+              "role": "fb_equilibrado"
+            },
+            "outOfPossession": {
+              "position": "RWB",
+              "role": "hold"
+            }
+          },
+          {
+            "id": "s289p8",
+            "inPossession": {
+              "position": "CDM",
+              "role": "dm_construtor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CM",
+              "role": "press_mid",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p9",
+            "inPossession": {
+              "position": "CB",
+              "role": "cb_defensor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p20",
+            "inPossession": {
+              "position": "CDM",
+              "role": "dm_construtor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CM",
+              "role": "press_mid",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p1",
+            "inPossession": {
+              "position": "ST",
+              "role": "fc_completo",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "LW",
+              "role": "press_front",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p4",
+            "inPossession": {
+              "position": "ST",
+              "role": "fc_completo",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "ST",
+              "role": "press_front",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p16",
+            "inPossession": {
+              "position": "LW",
+              "role": "wg_aberta",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "RW",
+              "role": "press_front",
+              "duty": "defend"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "minute": 107,
+      "type": "change",
+      "diagnosis": "Fadiga coletiva",
+      "diagnosisCode": "FATIGUE",
+      "evidence": [
+        "Média física em 48.0%"
+      ],
+      "severity": 1,
+      "affectedPlayers": [],
+      "affectedSectors": [
+        "all"
+      ],
+      "intensity": "medium",
+      "action": {
+        "id": "manage_fatigue",
+        "label": "Gerir fadiga e renovar energia"
+      },
+      "expected": "Estabilizar intensidade e substituir jogador exausto",
+      "substitution": {
+        "out": "Park Kyung-hoon",
+        "in": "Kim Sam-hoo",
+        "mode": "physical"
+      },
+      "roleChange": null,
+      "beforeConfig": {
+        "preset": "custom",
+        "instructions": {
+          "inPossession": {
+            "buildup": {
+              "method": "balanced",
+              "focus": "mixed",
+              "useGoalkeeper": true
+            },
+            "progression": {
+              "tempo": 50,
+              "passLength": 50,
+              "verticality": 50,
+              "width": 50,
+              "carryMore": false,
+              "passMore": false
+            },
+            "finalThird": {
+              "workBall": false,
+              "earlyShots": false,
+              "crossType": "mixed",
+              "overlap": false,
+              "underlap": false,
+              "longShots": "balanced"
+            }
+          },
+          "transition": {
+            "afterLoss": "counterpress",
+            "afterRecovery": "counter",
+            "goalkeeperDistribution": "balanced"
+          },
+          "outOfPossession": {
+            "block": "high",
+            "defensiveLine": 72,
+            "engagementLine": 78,
+            "pressing": 86,
+            "orientation": "balanced",
+            "marking": "zonal",
+            "preventCross": false,
+            "protectBox": true,
+            "offsideTrap": true
+          }
+        },
+        "axes": {
+          "line": 53,
+          "press": 61,
+          "width": 50,
+          "tempo": 62,
+          "posture": 66
+        },
+        "defForm": "3-4-3",
+        "defVar": 0,
+        "atkForm": "4-2-4",
+        "atkVar": 0,
+        "sideShift": null,
+        "attackFocus": null,
+        "pressOrientation": null,
+        "roles": [
+          {
+            "id": "s289p2",
+            "inPossession": {
+              "position": "GK",
+              "role": "gk_seguro",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "GK",
+              "role": "line_keeper",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p0",
+            "inPossession": {
+              "position": "LB",
+              "role": "fb_equilibrado",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "LWB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p3",
+            "inPossession": {
+              "position": "RW",
+              "role": "wg_aberta",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p5",
+            "inPossession": {
+              "position": "CB",
+              "role": "cb_defensor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p10",
+            "inPossession": {
+              "position": "RB",
+              "role": "fb_equilibrado"
+            },
+            "outOfPossession": {
+              "position": "RWB",
+              "role": "hold"
+            }
+          },
+          {
+            "id": "s289p8",
+            "inPossession": {
+              "position": "CDM",
+              "role": "dm_construtor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CM",
+              "role": "press_mid",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p9",
+            "inPossession": {
+              "position": "CB",
+              "role": "cb_defensor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p20",
+            "inPossession": {
+              "position": "CDM",
+              "role": "dm_construtor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CM",
+              "role": "press_mid",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p1",
+            "inPossession": {
+              "position": "ST",
+              "role": "fc_completo",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "LW",
+              "role": "press_front",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p4",
+            "inPossession": {
+              "position": "ST",
+              "role": "fc_completo",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "ST",
+              "role": "press_front",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p16",
+            "inPossession": {
+              "position": "LW",
+              "role": "wg_aberta",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "RW",
+              "role": "press_front",
+              "duty": "defend"
+            }
+          }
+        ]
+      },
+      "afterConfig": {
+        "preset": "balanced",
+        "instructions": {
+          "inPossession": {
+            "buildup": {
+              "method": "balanced",
+              "focus": "mixed",
+              "useGoalkeeper": true
+            },
+            "progression": {
+              "tempo": 50,
+              "passLength": 50,
+              "verticality": 50,
+              "width": 50,
+              "carryMore": false,
+              "passMore": false
+            },
+            "finalThird": {
+              "workBall": false,
+              "earlyShots": false,
+              "crossType": "mixed",
+              "overlap": false,
+              "underlap": false,
+              "longShots": "balanced"
+            }
+          },
+          "transition": {
+            "afterLoss": "regroup",
+            "afterRecovery": "balanced",
+            "goalkeeperDistribution": "balanced"
+          },
+          "outOfPossession": {
+            "block": "mid",
+            "defensiveLine": 50,
+            "engagementLine": 50,
+            "pressing": 50,
+            "orientation": "balanced",
+            "marking": "zonal",
+            "preventCross": false,
+            "protectBox": true,
+            "offsideTrap": false
+          }
+        },
+        "axes": {
+          "line": 53,
+          "press": 49,
+          "width": 50,
+          "tempo": 54,
+          "posture": 66
+        },
+        "defForm": "3-4-3",
+        "defVar": 0,
+        "atkForm": "4-2-4",
+        "atkVar": 0,
+        "sideShift": null,
+        "attackFocus": null,
+        "pressOrientation": null,
+        "roles": [
+          {
+            "id": "s289p2",
+            "inPossession": {
+              "position": "GK",
+              "role": "gk_seguro",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "GK",
+              "role": "line_keeper",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p19",
+            "inPossession": {
+              "position": "LB",
+              "role": "fb_equilibrado"
+            },
+            "outOfPossession": {
+              "position": "LWB",
+              "role": "hold"
+            }
+          },
+          {
+            "id": "s289p3",
+            "inPossession": {
+              "position": "RW",
+              "role": "wg_aberta",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p5",
+            "inPossession": {
+              "position": "CB",
+              "role": "cb_defensor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p10",
+            "inPossession": {
+              "position": "RB",
+              "role": "fb_equilibrado"
+            },
+            "outOfPossession": {
+              "position": "RWB",
+              "role": "hold"
+            }
+          },
+          {
+            "id": "s289p8",
+            "inPossession": {
+              "position": "CDM",
+              "role": "dm_construtor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CM",
+              "role": "press_mid",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p9",
+            "inPossession": {
+              "position": "CB",
+              "role": "cb_defensor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CB",
+              "role": "hold",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p20",
+            "inPossession": {
+              "position": "CDM",
+              "role": "dm_construtor",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "CM",
+              "role": "press_mid",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p1",
+            "inPossession": {
+              "position": "ST",
+              "role": "fc_completo",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "LW",
+              "role": "press_front",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p4",
+            "inPossession": {
+              "position": "ST",
+              "role": "fc_completo",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "ST",
+              "role": "press_front",
+              "duty": "defend"
+            }
+          },
+          {
+            "id": "s289p16",
+            "inPossession": {
+              "position": "LW",
+              "role": "wg_aberta",
+              "duty": "support"
+            },
+            "outOfPossession": {
+              "position": "RW",
+              "role": "press_front",
+              "duty": "defend"
+            }
+          }
+        ]
+      },
+      "decision": "pending"
+    }
+  ]
+}

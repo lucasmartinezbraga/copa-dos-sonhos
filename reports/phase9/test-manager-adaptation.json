@@ -1,0 +1,131 @@
+{
+  "ok": true,
+  "version": "5.2.0",
+  "profile": {
+    "key": "adaptive",
+    "label": "Laboratório",
+    "aggression": 60,
+    "riskTolerance": 82,
+    "adaptability": 96,
+    "pressingPreference": 64,
+    "possessionPreference": 64,
+    "defensivePreference": 72,
+    "substitutionTiming": 55,
+    "evidenceThreshold": 0.44,
+    "persistence": 8,
+    "reviewMinutes": 6
+  },
+  "metrics": {
+    "analyses": 3,
+    "diagnoses": 6,
+    "changes": 3,
+    "substitutions": 2,
+    "evaluations": 2,
+    "successful": 1,
+    "failed": 1,
+    "inconclusive": 0,
+    "reversals": 1,
+    "preMatchPlans": 1
+  },
+  "history": [
+    {
+      "minute": 0,
+      "type": "pre_match",
+      "diagnosis": "Plano pré-jogo",
+      "evidence": [
+        "Velocidade ofensiva rival 80.5",
+        "Ameaça aérea 82.7"
+      ],
+      "action": {
+        "id": "pre_match_counter",
+        "label": "Plano counter"
+      },
+      "expected": "Ataque adversário veloz: controlar profundidade e transitar"
+    },
+    {
+      "minute": 72,
+      "type": "change",
+      "diagnosis": "Desvantagem no placar",
+      "diagnosisCode": "LOSING_LATE",
+      "evidence": [
+        "Perdendo por 2 aos 72 minutos"
+      ],
+      "severity": 1,
+      "action": {
+        "id": "all_out_attack",
+        "label": "Ataque total"
+      },
+      "expected": "Aumentar xG, presença de área e recuperações altas",
+      "substitution": {
+        "out": "Yoo Byung-ok",
+        "in": "Park Chang-sun",
+        "mode": "attack"
+      },
+      "evaluation": {
+        "minute": 80,
+        "score": 1,
+        "outcome": "positive",
+        "success": true,
+        "window": {
+          "xgFor": 1.1,
+          "xgAgainst": 0.10000000000000009,
+          "shotsFor": 7,
+          "shotsAgainst": 1,
+          "possession": 0.5,
+          "scoreDelta": 0
+        }
+      }
+    },
+    {
+      "minute": 90,
+      "type": "change",
+      "diagnosis": "Sobrecarga pelo lado esquerdo rival",
+      "diagnosisCode": "LEFT_OVERLOAD",
+      "evidence": [
+        "16 ataques contra 4"
+      ],
+      "severity": 1,
+      "action": {
+        "id": "reinforce_left",
+        "label": "Reforçar corredor esquerdo defensivo"
+      },
+      "expected": "Reduzir progressões e cruzamentos pelo corredor atacado",
+      "substitution": null,
+      "evaluation": {
+        "minute": 97,
+        "score": -1,
+        "outcome": "negative",
+        "success": false,
+        "window": {
+          "xgFor": 0,
+          "xgAgainst": 1.4,
+          "shotsFor": 0,
+          "shotsAgainst": 5,
+          "possession": 0.5,
+          "scoreDelta": 0
+        }
+      },
+      "reverted": true
+    },
+    {
+      "minute": 107,
+      "type": "change",
+      "diagnosis": "Fadiga coletiva",
+      "diagnosisCode": "FATIGUE",
+      "evidence": [
+        "Média física em 48.0%"
+      ],
+      "severity": 1,
+      "action": {
+        "id": "manage_fatigue",
+        "label": "Gerir fadiga e renovar energia"
+      },
+      "expected": "Estabilizar intensidade e substituir jogador exausto",
+      "substitution": {
+        "out": "Park Kyung-hoon",
+        "in": "Kim Sam-hoo",
+        "mode": "physical"
+      }
+    }
+  ]
+}

@@ -1,0 +1,256 @@
+{
+  "ok": true,
+  "version": "5.2.0",
+  "score": [
+    2,
+    0
+  ],
+  "steps": 23859,
+  "profile": {
+    "key": "adaptive",
+    "label": "Adaptável",
+    "aggression": 60,
+    "riskTolerance": 62,
+    "adaptability": 85,
+    "pressingPreference": 64,
+    "possessionPreference": 64,
+    "defensivePreference": 60,
+    "substitutionTiming": 65,
+    "evidenceThreshold": 0.44,
+    "persistence": 8,
+    "reviewMinutes": 6
+  },
+  "metrics": {
+    "analyses": 15,
+    "diagnoses": 22,
+    "changes": 7,
+    "substitutions": 2,
+    "evaluations": 6,
+    "successful": 0,
+    "failed": 2,
+    "inconclusive": 4,
+    "reversals": 1,
+    "preMatchPlans": 1
+  },
+  "decisions": [
+    {
+      "minute": 0,
+      "type": "pre_match",
+      "diagnosis": "Plano pré-jogo",
+      "evidence": [
+        "Velocidade ofensiva rival 80.5",
+        "Ameaça aérea 82.7"
+      ],
+      "action": {
+        "id": "pre_match_counter",
+        "label": "Plano counter"
+      },
+      "expected": "Ataque adversário veloz: controlar profundidade e transitar"
+    },
+    {
+      "minute": 30,
+      "type": "change",
+      "diagnosis": "Ataque isolado",
+      "diagnosisCode": "ISOLATED_ATTACK",
+      "evidence": [
+        "0 finalizações e 0.00 xG"
+      ],
+      "severity": 0.82,
+      "action": {
+        "id": "connect_attack",
+        "label": "Aproximar o ataque"
+      },
+      "expected": "Aumentar finalizações e entradas no último terço",
+      "substitution": null,
+      "evaluation": {
+        "minute": 36,
+        "score": 0,
+        "outcome": "inconclusive",
+        "success": null,
+        "window": {
+          "xgFor": 0,
+          "xgAgainst": 0,
+          "shotsFor": 0,
+          "shotsAgainst": 0,
+          "possession": 0.8534482758620625,
+          "scoreDelta": 0
+        }
+      }
+    },
+    {
+      "minute": 48,
+      "type": "change",
+      "diagnosis": "Ataque isolado",
+      "diagnosisCode": "ISOLATED_ATTACK",
+      "evidence": [
+        "1 finalizações e 0.04 xG"
+      ],
+      "severity": 0.74,
+      "action": {
+        "id": "connect_attack",
+        "label": "Aproximar o ataque"
+      },
+      "expected": "Aumentar finalizações e entradas no último terço",
+      "substitution": null,
+      "evaluation": {
+        "minute": 54,
+        "score": -0.07,
+        "outcome": "inconclusive",
+        "success": null,
+        "window": {
+          "xgFor": 0,
+          "xgAgainst": 0.12666116399999994,
+          "shotsFor": 0,
+          "shotsAgainst": 1,
+          "possession": 0.6616257088846881,
+          "scoreDelta": 0
+        }
+      }
+    },
+    {
+      "minute": 54,
+      "type": "change",
+      "diagnosis": "Sobrecarga pelo lado esquerdo rival",
+      "diagnosisCode": "LEFT_OVERLOAD",
+      "evidence": [
+        "4 ataques contra 2"
+      ],
+      "severity": 0.625,
+      "action": {
+        "id": "reinforce_left",
+        "label": "Reforçar corredor esquerdo defensivo"
+      },
+      "expected": "Reduzir progressões e cruzamentos pelo corredor atacado",
+      "substitution": null,
+      "evaluation": {
+        "minute": 60,
+        "score": 0,
+        "outcome": "inconclusive",
+        "success": null,
+        "window": {
+          "xgFor": 0,
+          "xgAgainst": 0,
+          "shotsFor": 0,
+          "shotsAgainst": 0,
+          "possession": 0.12936344969199173,
+          "scoreDelta": 0
+        }
+      }
+    },
+    {
+      "minute": 60,
+      "type": "change",
+      "diagnosis": "Desvantagem no placar",
+      "diagnosisCode": "LOSING_LATE",
+      "evidence": [
+        "Perdendo por 1 aos 60 minutos"
+      ],
+      "severity": 0.729,
+      "action": {
+        "id": "structured_chase",
+        "label": "Busca estruturada do empate"
+      },
+      "expected": "Aumentar xG, presença de área e recuperações altas",
+      "substitution": {
+        "out": "Yoo Byung-ok",
+        "in": "Park Chang-sun",
+        "mode": "attack"
+      },
+      "evaluation": {
+        "minute": 66,
+        "score": -0.051,
+        "outcome": "inconclusive",
+        "success": null,
+        "window": {
+          "xgFor": 0,
+          "xgAgainst": 0.09231505752450486,
+          "shotsFor": 0,
+          "shotsAgainst": 1,
+          "possession": 0.4155251141552511,
+          "scoreDelta": 0
+        }
+      }
+    },
+    {
+      "minute": 66,
+      "type": "change",
+      "diagnosis": "Ataque isolado",
+      "diagnosisCode": "ISOLATED_ATTACK",
+      "evidence": [
+        "1 finalizações e 0.04 xG"
+      ],
+      "severity": 0.74,
+      "action": {
+        "id": "connect_attack",
+        "label": "Aproximar o ataque"
+      },
+      "expected": "Aumentar finalizações e entradas no último terço",
+      "substitution": null,
+      "evaluation": {
+        "minute": 72,
+        "score": -0.334,
+        "outcome": "negative",
+        "success": false,
+        "window": {
+          "xgFor": 0,
+          "xgAgainst": 0.6071262895321758,
+          "shotsFor": 0,
+          "shotsAgainst": 2,
+          "possession": 0.1299093655589124,
+          "scoreDelta": -1
+        }
+      },
+      "reverted": true
+    },
+    {
+      "minute": 78,
+      "type": "change",
+      "diagnosis": "Desvantagem no placar",
+      "diagnosisCode": "LOSING_LATE",
+      "evidence": [
+        "Perdendo por 2 aos 78 minutos"
+      ],
+      "severity": 1,
+      "action": {
+        "id": "structured_chase",
+        "label": "Busca estruturada do empate"
+      },
+      "expected": "Aumentar xG, presença de área e recuperações altas",
+      "substitution": {
+        "out": "Cho Min-kook",
+        "in": "Kang Deuk-soo",
+        "mode": "attack"
+      },
+      "evaluation": {
+        "minute": 84,
+        "score": -0.269,
+        "outcome": "negative",
+        "success": false,
+        "window": {
+          "xgFor": 0,
+          "xgAgainst": 0.48876976370400627,
+          "shotsFor": 0,
+          "shotsAgainst": 1,
+          "possession": 0.558891454965358,
+          "scoreDelta": 0
+        }
+      }
+    },
+    {
+      "minute": 84,
+      "type": "change",
+      "diagnosis": "Ameaça aérea adversária",
+      "diagnosisCode": "AERIAL_THREAT",
+      "evidence": [
+        "4/9 cruzamentos encontraram alvo"
+      ],
+      "severity": 0.833,
+      "action": {
+        "id": "stop_crosses",
+        "label": "Bloquear cruzamentos"
+      },
+      "expected": "Reduzir cruzamentos limpos e duelos aéreos adversários",
+      "substitution": null
+    }
+  ]
+}
