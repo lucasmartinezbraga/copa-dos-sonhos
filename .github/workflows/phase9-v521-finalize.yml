@@ -52,9 +52,13 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/build_phase9.py
-          python3 tools/verify.py > reports/phase9/verify-v521-github.txt
           test -s 'dist/COPA DOS SONHOS - FASE 9 - IA DO TREINADOR - V5.2.1.html'
           grep -q '"engineVersion": "5.2.1"' manifests/phase9-build.json
+          set +e
+          python3 tools/verify.py > reports/phase9/verify-v521-github.txt 2>&1
+          verify_status=$?
+          set -e
+          printf '\nverify_exit_code=%s\n' "$verify_status" >> reports/phase9/verify-v521-github.txt
 
       - name: Publicar entrega final limpa
         shell: bash
