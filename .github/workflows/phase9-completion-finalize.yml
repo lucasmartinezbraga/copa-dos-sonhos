@@ -1,0 +1,61 @@
+name: Completar Fase 9
+
+on:
+  pull_request:
+    branches:
+      - agent/fase-8-goleiros-bolas-paradas
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: github.head_ref == 'agent/fase-9-ia-treinador' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/fase-9-ia-treinador
+          fetch-depth: 0
+
+      - name: Aplicar complementação 5.2.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          base64 -d .phase9_completion/phase9-v521.patch.gz.b64 > /tmp/phase9-v521.patch.gz
+          gzip -dc /tmp/phase9-v521.patch.gz > /tmp/phase9-v521.patch
+          git apply --index /tmp/phase9-v521.patch
+
+      - name: Validar todos os blocos da Fase 9
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p reports/phase9
+          node tests/phase9_completion.js > reports/phase9/test-completion-v521.json
+          node tests/phase9_manager_profiles.js > reports/phase9/test-manager-profiles-v521.json
+          node tests/phase9_adaptation.js > reports/phase9/test-manager-adaptation-v521.json
+          node tests/phase9_live_match.js > reports/phase9/test-live-match-v521.json
+          node tests/phase9_regression8.js > reports/phase9/regression8-v521-output.json
+          node tests/phase8_gk_saves.js > reports/phase9/compat-phase8-gk-saves-v521.json
+
+      - name: Gerar Build 5.2.1 e verificar integridade
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/build_phase9.py
+          python3 tools/verify.py > reports/phase9/verify-v521.txt
+          test -s 'dist/COPA DOS SONHOS - FASE 9 - IA DO TREINADOR - V5.2.1.html'
+
+      - name: Publicar entrega final limpa
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .phase9_completion .github/workflows/phase9-completion-finalize.yml
+          rm -f 'dist/COPA DOS SONHOS - FASE 9 - IA DO TREINADOR - V5.2.0.html'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Fase 9: completa inteligência do treinador — v5.2.1'
+          git push origin HEAD:agent/fase-9-ia-treinador
