@@ -1,0 +1,44 @@
+name: Publicar site do jogo
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/publicar-site.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Buscar build funcional do jogo
+        run: |
+          git fetch origin agent/fases-4-7-final
+          mkdir -p docs
+          git show 'origin/agent/fases-4-7-final:dist/COPA DOS SONHOS - BUILD FINAL FASES 4 A 7 - V5.0.0.html' > docs/index.html
+          touch docs/.nojekyll
+
+      - name: Validar HTML publicado
+        run: |
+          test -s docs/index.html
+          grep -qi '<!DOCTYPE html>' docs/index.html
+          grep -qi 'Copa dos Sonhos' docs/index.html
+
+      - name: Atualizar GitHub Pages
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/index.html docs/.nojekyll
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publica build 5.0.0 no site'
+            git push origin main
+          fi
