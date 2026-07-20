@@ -357,6 +357,10 @@ class MatchSim {
   /* Suspende somente o relógio/física enquanto o jogador prepara a cobrança.
      O callback resolve uma única vez e devolve o controle ao motor. */
   _requestSetPiece(kind, data, execute) {
+    /* MOTOR VISUAL · minigames de falta e pênalti DESATIVADOS: as cobranças
+       resolvem no motor com voo real e goleiro convergindo. A arquitetura de
+       requisição fica preservada para reconexão futura sobre a base coerente. */
+    return false;
     if (!this.opts.onSetPiece || data.team !== this.interactiveTeam) return false;
     this.waiting = true;
     this.dead = 9999;
@@ -909,11 +913,15 @@ class MatchSim {
         this.stats[o.team].xg+=pGoal;
         this._emit('low_cross_shot',{by:atk,from:o,xg:pGoal});
         if(setPiece){ this.stats[o.team].setPieceShots++; atk._setPieceShotUntil=this.t+1; }
-        if(chance(pGoal)) this._goal(atk,false);
-        else if(chance(.48+(gk?facet(gk,'gk')/300:0))){
+        // MOTOR VISUAL: o chute do rasteiro VOA até o gol antes de resolver —
+        // o goleiro converge durante o voo e o contato acontece no ponto real
+        const lcDir=this.teams[atk.team].attackDir;
+        if(chance(pGoal)) this._startTravel(atk,{x:g.x+lcDir*.9,y:clamp(g.y+R(-3,3),g.y-3.3,g.y+3.3)},'shot',()=>this._goal(atk,false),null,'shot');
+        else if(chance(.48+(gk?facet(gk,'gk')/300:0))&&this._gkReachable(gk,atk.x,atk.y,g)){
           this.stats[o.team].onTarget++;
-          this._gkResolveSave(gk,atk,{atk:finish,oneOnOne:true,saveTarget:{x:g.x,y:g.y+R(-2.5,2.5)},g,tm:this.teams[atk.team],cornerChance:CAL.restarts.lowCrossSaveCorner});
-        } else { this._emit('miss',{by:atk}); this._goalKickOrRestart(1-o.team); }
+          const st={x:g.x-lcDir*1.25,y:clamp(g.y+R(-2.5,2.5),g.y-3.3,g.y+3.3)};
+          this._startTravel(atk,st,'shot',()=>this._gkResolveSave(gk,atk,{atk:finish,oneOnOne:true,saveTarget:st,g,tm:this.teams[atk.team],cornerChance:CAL.restarts.lowCrossSaveCorner}),null,'shot');
+        } else this._startTravel(atk,{x:g.x+lcDir*2,y:g.y+(chance(.5)?1:-1)*R(4.5,9)},'shot',()=>{this._emit('miss',{by:atk});this._goalKickOrRestart(1-o.team);},null,'shot');
       },atk,'through');
       return;
     }
@@ -936,12 +944,19 @@ class MatchSim {
         this.stats[o.team].xg+=pGoal;
         if(setPiece){this.stats[o.team].setPieceShots++;atk._setPieceShotUntil=this.t+1;}
         this._emit('header_shot',{by:atk,xg:pGoal,setPiece});
-        if(chance(pGoal))this._goal(atk,false);
+        // MOTOR VISUAL: o cabeceio VOA até o gol antes de resolver — nada de
+        // defesa instantânea com o goleiro a 10m do lance
+        const hdDir=this.teams[atk.team].attackDir;
+        if(chance(pGoal))this._startTravel(atk,{x:g.x+hdDir*.9,y:clamp(g.y+R(-3,3),g.y-3.3,g.y+3.3)},'shot',()=>this._goal(atk,false),null,'shot');
         else{
-          const hr=R(),saveShare=.27+(gk?facet(gk,'gk')/100:.4)*.12;
-          if(hr<saveShare){this.stats[o.team].onTarget++;this._gkResolveSave(gk,atk,{atk:facet(atk,'head_atk'),oneOnOne:false,saveTarget:{x:g.x,y:g.y+R(-3,3)},g,tm:this.teams[atk.team],cornerChance:CAL.restarts.aerialSaveCorner});}
+          const hr=R(),saveShare=(this._gkReachable(gk,atk.x,atk.y,g)?.27+(gk?facet(gk,'gk')/100:.4)*.12:0);
+          if(hr<saveShare){
+            this.stats[o.team].onTarget++;
+            const st={x:g.x-hdDir*1.25,y:clamp(g.y+R(-3,3),g.y-3.3,g.y+3.3)};
+            this._startTravel(atk,st,'shot',()=>this._gkResolveSave(gk,atk,{atk:facet(atk,'head_atk'),oneOnOne:false,saveTarget:st,g,tm:this.teams[atk.team],cornerChance:CAL.restarts.aerialSaveCorner}),null,'shot');
+          }
           else if(hr<saveShare+.18){this._emit('blocked',{by:def});if(chance(CAL.restarts.aerialBlockCorner))this._setCorner(o.team);else this._looseBall(atk.x,atk.y);}
-          else{this._emit('miss',{by:atk});this._goalKickOrRestart(1-o.team);}
+          else this._startTravel(atk,{x:g.x+hdDir*2,y:g.y+(chance(.5)?1:-1)*R(4.5,10)},'shot',()=>{this._emit('miss',{by:atk});this._goalKickOrRestart(1-o.team);},null,'shot');
         }
       }else{if(setPiece)this.stats[o.team].setPieceFirstContactLost++;if(def){def.rating+=.08;this._emit('header_clear',{by:def});this._turnover(def);}else this._goalKickOrRestart(1-o.team);}
     },atk,'launch');
@@ -1480,7 +1495,8 @@ class MatchSim {
     }else{
       const gkQual=gk?(gkScrambling?.15:facet(gk,oneOnOne?'gk_one_on_one':'gk')/100):.4;
       const r2=R();
-      const saveCut=CAL.shooting.savedShare+gkQual*CAL.shooting.keeperSaveInfluence+(oneOnOne?.04:0);
+      // defesa impossível não existe: goleiro fora de alcance zera a fatia de defesa
+      const saveCut=this._gkReachable(gk,o.x,o.y,g)?(CAL.shooting.savedShare+gkQual*CAL.shooting.keeperSaveInfluence+(oneOnOne?.04:0)):0;
       const blockCut=saveCut+CAL.shooting.blockedShare*(oneOnOne?.55:1);
       const postCut=blockCut+CAL.shooting.postShare;
       if(r2<saveCut){
@@ -1502,6 +1518,17 @@ class MatchSim {
     o._throughReceiverUntil=0;
   }
 
+  /* MOTOR VISUAL · ALCANCE FÍSICO (§13): uma defesa só pode ser sorteada se
+     o goleiro consegue CHEGAR ao ponto de interceptação antes da bola.
+     Compara tempo de voo (≈40 m/s) com tempo de recuperação do goleiro
+     (12 m/s de scramble, 1.6m de alcance corporal). Sem RNG. */
+  _gkReachable(gk, sx, sy, g) {
+    if (!gk) return false;
+    const ballTime = D(sx, sy, g.x, g.y) / 40 + 0.05;
+    const gkTime = Math.max(0, D(gk.x, gk.y, g.x, g.y) - 1.6) / 12;
+    return gkTime <= ballTime;
+  }
+
   /* FASE 8 · A defesa deixa de ser um evento único: o goleiro resolve o
      chute conforme segurança e dificuldade — segura, espalma para escanteio
      ou concede rebote VIVO (via _looseBall, a mesma segunda bola já disputada
@@ -1509,6 +1536,12 @@ class MatchSim {
   _gkResolveSave(gk, o, ctx) {
     const st = this.stats[1-o.team];
     st.saves++; st.gkShotsFaced++;
+    // CONTATO REAL: o goleiro que convergiu fecha os últimos passos e toca a
+    // bola NO ponto do lance — nenhuma defesa acontece à distância
+    if (gk) {
+      const gd = D(gk.x, gk.y, this.ball.x, this.ball.y);
+      if (gd < 9.5) { gk.x = this.ball.x; gk.y = this.ball.y; }
+    }
     if (gk) gk.rating += (ctx.atk > 82 ? .35 : .18);
     const big = ctx.atk > 82 || ctx.oneOnOne;
     const sec = gk ? facet(gk, 'gk')/100 : .4;              // qualidade/segurança
@@ -1541,7 +1574,8 @@ class MatchSim {
     const ry = clamp(central ? ctx.g.y + R(-3,3)
                              : ctx.g.y + (ctx.saveTarget.y > ctx.g.y ? 1 : -1)*R(4,12), 2, FW-2);
     this._emit('save', { gk, big, kind: central ? 'spill_central' : 'parry_wide', rebound:true });
-    this._looseBall(rx, ry);
+    // rebote nasce NO ponto de contato e viaja até onde vai morrer
+    this._deflectTo(rx, ry, 9 + hard * 6);
   }
 
   _goal(o, golaco) {
@@ -1593,6 +1627,27 @@ class MatchSim {
   _ballTravel(dt) {
     const b = this.ball;
     b.travelT += dt;
+    /* MOTOR VISUAL · COERÊNCIA DO GOLEIRO: com a bola voando em direção ao
+       gol, o goleiro defensor CONVERGE fisicamente para o ponto de
+       interceptação — leitura → deslocamento → contato. Sem isto, a defesa
+       acontecia onde a bola chegava, com o goleiro parado longe do lance.
+       Movimento determinístico (função pura do estado, sem RNG). */
+    if (b.kind === 'shot' && b.lastTouch) {
+      const defTm = this.teams[1 - b.lastTouch.team];
+      const gk = defTm.players.find(p => p.isGK && !p.red);
+      if (gk) {
+        const gd = D(gk.x, gk.y, b.target.x, b.target.y);
+        if (gd > 0.3 && gd < 30) {
+          // longe: corrida desesperada de recuperação; perto: ajuste e mergulho
+          const spd = gd > 6 ? 10.5 + facet(gk, 'gk') / 100 * 3.5
+                             : 5.5 + facet(gk, 'gk') / 100 * 3.5;
+          const step = Math.min(spd * dt, gd);
+          gk.x += (b.target.x - gk.x) / gd * step;
+          gk.y += (b.target.y - gk.y) / gd * step;
+          gk._divingUntil = this.t + 0.5;                   // marcador p/ renderização
+        }
+      }
+    }
     // física da bola com arco + atrito
     b.x += b.vx * dt; b.y += b.vy * dt;
     b.z += b.vz * dt; b.vz -= 20 * dt;                 // gravidade
@@ -1609,15 +1664,18 @@ class MatchSim {
     // Para chutes que cruzaram a linha de fundo (x fora), o callback já foi definido pelo resultado.
     if (b.y < 0 || b.y > FW || b.x < 0 || b.x > FL) {
       if (b.kind !== 'shot') { this._ballOut(); return; }
-      // Chute saiu pelo lado: aciona o callback imediatamente (miss ou gol já decidido)
+      // Chute saiu pelo lado: ancora a bola no ALVO encenado antes do callback —
+      // o contato acontece onde o desfecho foi decidido, não no ponto de fuga
+      b.x = b.target.x; b.y = b.target.y;
       b.traveling = false;
       const cb = b.onArrive; b.onArrive = null;
       if (cb) cb();
       return;
     }
     if (reached || passed || timeout) {
-      // Para chutes: se a bola chegou perto o suficiente do gol (dentro da área de gol),
-      // garante que o callback seja chamado mesmo se passou levemente pelo alvo
+      // MOTOR VISUAL: chutes ancoram no alvo (raio de chegada 3.5m) para o
+      // contato da defesa/gol acontecer exatamente no ponto encenado
+      if (b.kind === 'shot' || b.kind === 'deflect') { b.x = b.target.x; b.y = b.target.y; }
       b.traveling = false;
       const cb = b.onArrive; b.onArrive = null;
       if (cb) cb();
@@ -1632,6 +1690,24 @@ class MatchSim {
     const ang = Math.atan2(g.y - o.y, g.x - o.x);
     b.x = o.x + Math.cos(ang) * 0.55; b.y = o.y + Math.sin(ang) * 0.55;
     b.z = 0; b.vx = o.vx; b.vy = o.vy;
+  }
+
+  /* MOTOR VISUAL · DEFLEXÃO CONTÍNUA: a bola muda de trajetória APENAS no
+     ponto de contato — daí viaja de verdade até o destino, em vez de
+     teleportar. Usada em rebotes de defesa e desvios na barreira. */
+  _deflectTo(x, y, spd) {
+    const b = this.ball;
+    b.owner = null; b.traveling = true; b.travelT = 0;
+    b.from = { x: b.x, y: b.y };
+    b.target = { x, y };
+    b.kind = 'deflect'; b.passKind = 'short';
+    const d = Math.max(D(b.x, b.y, x, y), 0.1);
+    const v = spd || 11;
+    b.vx = (x - b.x) / d * v; b.vy = (y - b.y) / d * v;
+    b.z = Math.max(b.z, 0.2); b.vz = 1.5; b.speed = v;
+    b._timeout = d / v + 0.3;
+    b.onArrive = () => this._looseBall(x, y);
+    b.receiver = null;
   }
 
   _looseBall(x, y) {
@@ -1851,10 +1927,17 @@ class MatchSim {
     const { result, pGoal, visual } = resolved;
     this.stats[team].xg += pGoal;
     this._emit('freekick', { by: taker, manual:resolved.manual });
-    this._emit('fk_scene', { by: taker, gk, result, dist: dtg, defTeam: 1 - team, manual:resolved.manual, visual });
+    // fk_scene (cinemática do minigame) removida: a falta agora é animada
+    // pelo próprio estado da partida — voo real + convergência do goleiro
     if (result === 'goal') { taker._setPieceShotUntil = this.t + 1; this._goal(taker, true); }
-    else if (result === 'save') { this.stats[team].onTarget++; const tmA = this.teams[team]; this._gkResolveSave(gk, taker, { atk: takerSkill, oneOnOne: false, saveTarget: { x: tmA.oppGoal.x, y: tmA.oppGoal.y + R(-3, 3) }, g: tmA.oppGoal, tm: tmA, cornerChance: CAL.restarts.freeKickSaveCorner }); }
-    else if (result === 'wall') this._looseBall(x + this.teams[team].attackDir * 6, y + R(-6, 6));
+    else if (result === 'save') {
+      this.stats[team].onTarget++;
+      const tmA = this.teams[team];
+      // MOTOR VISUAL: a falta voa até o gol; o goleiro converge e defende lá
+      const st = { x: tmA.oppGoal.x - tmA.attackDir * 1.25, y: clamp(tmA.oppGoal.y + R(-3, 3), tmA.oppGoal.y - 3.3, tmA.oppGoal.y + 3.3) };
+      this._startTravel(taker, st, 'shot', () => this._gkResolveSave(gk, taker, { atk: takerSkill, oneOnOne: false, saveTarget: st, g: tmA.oppGoal, tm: tmA, cornerChance: CAL.restarts.freeKickSaveCorner }), null, 'shot');
+    }
+    else if (result === 'wall') this._deflectTo(x + this.teams[team].attackDir * 6, y + R(-6, 6), 12);
     else this._goalKickOrRestart(1-team);
   }
 
@@ -1889,16 +1972,31 @@ class MatchSim {
     const result = offTarget ? 'miss' : chance(pGoal) ? 'goal' : 'save';
     const visual = { aimX, aimY, actualX, actualY, power, curve, execution };
     this._emit('penalty', { by: taker, manual, visual });
-    if (result === 'goal') { this.stats[team].penaltiesScored++; taker._setPieceShotUntil=this.t+1; this._goal(taker, false); return; }
-    const saved = result === 'save';
-    if (saved) {
-      this.stats[team].onTarget++;
-      this.stats[team].penaltiesSaved++;
-      if (gk) { gk.rating += 0.4; this.stats[1-team].saves++; }
+    /* MOTOR VISUAL: o pênalti agora É um lance físico — a bola sai do pé,
+       voa até o canto escolhido e o goleiro mergulha para o ponto real. */
+    const tmA = this.teams[team], pg = tmA.oppGoal;
+    const aimLat = clamp(pg.y + (actualX - .5) * 6.6, pg.y - 3.3, pg.y + 3.3);
+    if (result === 'goal') {
+      this._startTravel(taker, { x: pg.x + tmA.attackDir * .9, y: aimLat }, 'shot',
+        () => { this.stats[team].penaltiesScored++; taker._setPieceShotUntil = this.t + 1; this._goal(taker, false); }, null, 'shot');
+      return;
     }
-    if (!saved) this.stats[team].penaltiesMissed++;
-    this._emit('pen_miss', { by: taker, gk: saved ? gk : null, saved });
-    this._goalKickOrRestart(1-team);
+    if (result === 'save') {
+      this.stats[team].onTarget++;
+      const st = { x: pg.x - tmA.attackDir * .8, y: aimLat };
+      this._startTravel(taker, st, 'shot', () => {
+        this.stats[team].penaltiesSaved++;
+        if (gk) {
+          gk.rating += 0.4; this.stats[1-team].saves++;
+          if (D(gk.x, gk.y, this.ball.x, this.ball.y) < 9.5) { gk.x = this.ball.x; gk.y = this.ball.y; }
+        }
+        this._emit('pen_miss', { by: taker, gk, saved: true });
+        this._goalKickOrRestart(1-team);
+      }, null, 'shot');
+      return;
+    }
+    this._startTravel(taker, { x: pg.x + tmA.attackDir * 2, y: pg.y + (actualX < .5 ? -1 : 1) * R(4.5, 7) }, 'shot',
+      () => { this.stats[team].penaltiesMissed++; this._emit('pen_miss', { by: taker, gk: null, saved: false }); this._goalKickOrRestart(1-team); }, null, 'shot');
   }
 
   /* ---------------------------- ESCANTEIO ----------------------------- */
