@@ -16,9 +16,10 @@ function createRuntime(root){
   ];
   // CDS_LAB_PHASE47=1 inclui a camada 5.0.0 (Fases 4-7) na simulação — permite
   // medir o motor 4.3.2 puro e o 5.0.0 na MESMA matriz de confrontos.
-  if(process.env.CDS_LAB_PHASE47==='1'||process.env.CDS_LAB_PHASE8==='1')mods.push('src/scripts/45-phases-4-to-7.js');
-  if(process.env.CDS_LAB_PHASE8==='1')mods.push('src/scripts/46-phase8-goalkeepers-setpieces.js');
-  if(process.env.CDS_LAB_PHASE9==='1')mods.push('src/scripts/47-phase9-manager-ai.js');
+  if(process.env.CDS_LAB_PHASE47==='1'||process.env.CDS_LAB_PHASE8==='1'||process.env.CDS_LAB_PHASE9==='1'||process.env.CDS_LAB_PHASE10==='1')mods.push('src/scripts/45-phases-4-to-7.js');
+  if(process.env.CDS_LAB_PHASE8==='1'||process.env.CDS_LAB_PHASE9==='1'||process.env.CDS_LAB_PHASE10==='1')mods.push('src/scripts/46-phase8-goalkeepers-setpieces.js');
+  if(process.env.CDS_LAB_PHASE9==='1'||process.env.CDS_LAB_PHASE10==='1')mods.push('src/scripts/47-phase9-manager-ai.js');
+  if(process.env.CDS_LAB_PHASE10==='1'){mods.push('src/scripts/48-save-contract.js');mods.push('src/scripts/49-phase10-cup-persistence.js');}
   for(const rel of mods){
     const code=fs.readFileSync(path.join(root,rel),'utf8');
     new Function('window','globalThis','module','require','console','performance','CanvasRenderingContext2D',

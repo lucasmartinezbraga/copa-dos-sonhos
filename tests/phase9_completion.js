@@ -5,7 +5,7 @@ const path=require('path');const {createRuntime}=require('../tools/lab_runtime.j
 function team(idx,profile,knowledge){const s=structuredClone(rt.db.squads[idx]),l=sb.autoLineup(s,'4-3-3',0);return{squad:s,name:s.c,flag:'',color:'#fff',lineup:l.lineup,bench:l.bench,style:'balanced',axes:Object.assign({},sb.STYLE_AXES.balanced),atkForm:'4-3-3',defForm:'4-3-3',managerProfile:profile,managerKnowledge:knowledge||{}};}
 const knowledge={recentResults:['V 2-0','E 1-1','V 3-1'],fatigue:23,cards:{yellow:['Jogador A'],red:[]},suspensions:['Suspenso X'],injuries:['Lesionado Y']};
 sb.srand(9011);const sim=new sb.MatchSim(team(312,'adaptive',knowledge),team(288,'pragmatic'),{neutral:true});sim.setInteractive(0);
-if(!sb.CDS_PHASE9||sb.CDS_PHASE9.VERSION!=='5.2.1')throw new Error('versão 5.2.1 ausente');
+if(!sb.CDS_PHASE9||sb.CDS_PHASE9.VERSION!=='5.2.2')throw new Error('versão 5.2.2 ausente');
 const plan=sim.getManagerData(1).preMatch;
 for(const k of ['form','keyPlayers','pace','aerial','goalkeeperBuild','recentResults','fatigue','cards','suspensions','injuries'])if(!(k in plan.opponent))throw new Error('plano pré-jogo sem '+k);
 if(!plan.opponent.keyPlayers.length||!plan.opponent.keyPlayers[0].likelyRole)throw new Error('jogadores-chave/funções prováveis ausentes');

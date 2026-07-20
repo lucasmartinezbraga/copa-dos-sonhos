@@ -160,7 +160,7 @@ function _unlockAudio(ev) {
   try { document.addEventListener(ev, _unlockAudio, { capture: true, passive: true }); } catch (_) {}
 });
 let feed = [], minorCd = 0, finished = false;
-let isKO = false, myMatch = null, mySide = 0;
+let isKO = false, myMatch = null, mySide = 0, matchTeams = null;
 let trailPts = [], goalFlash = null, latestEvent = null;
 let _prevScreen = {};   // #anti-cardume (visual): posição de tela do frame anterior, por jogador
 let celebration = null;   // overlay dramático de gol (nome + placar + confete)
@@ -890,18 +890,20 @@ function open() {
   mySide = myMatch.h === cup.playerSid ? 0 : 1;
 
   const oppSid = mySide === 0 ? myMatch.a : myMatch.h;
-  const opp = CUP.teamFor(db, oppSid, 'ME');
+  const opp = CUP.teamFor(db, oppSid, 'ME', cup);
   // cor do adversário: evita ouro (cor do jogador)
   const oppColors = ['#2e9bff','#e84040','#9b59b6','#1abc9c','#e67e22'];
   const sidHash = String(oppSid).split('').reduce((a,c)=>a+c.charCodeAt(0),0);
   opp.color = oppColors[sidHash % oppColors.length];
 
-  const me = { squad: db.byId.ME, name: db.byId.ME.c, flag: '⭐', color: '#ffcb45',
+  let me = { squad: db.byId.ME, name: db.byId.ME.c, flag: '⭐', color: '#ffcb45',
     lineup: G.lineup, bench: G.bench.slice(), style: G.style, axes: G.axes };
+  if (window.CDS_PHASE10) me = window.CDS_PHASE10.prepareTeam(cup, me, cup.playerSid, { user:true, stage:cup.phase });
 
   const A = mySide === 0 ? me : opp;
   const B = mySide === 0 ? opp : me;
   teamColors = [A.color, B.color];
+  matchTeams = [A, B];
 
   feed=[]; finished=false; tab='campo'; acc=0; lastT=0; paused=false;
   trailPts=[]; goalFlash=null; celebration=null; replay=null; replayBuf=[]; penScene=null; fkScene=null; setPieceRequest=null; shootoutState=null; breakOv=null; slowmo=null; latestEvent=null; minorCd=0; statsT=0; momHist=[]; momT=0; keyEvents=[]; playerMotions=[];
@@ -2247,6 +2249,7 @@ function finishMatch(pens) {
   vfx = []; trailPts = [];
   try { paintField(); } catch (_) {}
   const sc = [sim.score[0], sim.score[1]];
+  if (window.CDS_PHASE10 && matchTeams) window.CDS_PHASE10.recordSimulation(G.cup, sim, matchTeams, { stage:G.cup.phase, playerControlled:true });
   CUP.recordPlayerMatch(G.cup, myMatch, sc, pens);
   const myS = sc[mySide], oppS = sc[1-mySide];
   const won  = pens ? pens[mySide] > pens[1-mySide] : myS > oppS;

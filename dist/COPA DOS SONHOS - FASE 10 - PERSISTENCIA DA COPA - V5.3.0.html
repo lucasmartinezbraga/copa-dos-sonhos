@@ -1,3 +1,4 @@
+<!-- FASE 10 · PERSISTÊNCIA DA COPA · ENGINE 5.3.0 -->
 <!DOCTYPE html>
 <html lang="pt-BR"><head>
 <!-- ═══════════════════════════════════════════════════════════════════════════
@@ -52,7 +53,7 @@
 </script>
 <!-- PONTO 3: charset/viewport foram promovidos para o topo do <head>; as
      cópias que existiam aqui foram removidas para não haver declaração dupla. -->
-<title>Copa dos Sonhos</title>
+<title>Copa dos Sonhos — Fase 10 — Build 5.3.0</title>
 <!-- TIPOGRAFIA: preconnects do Google Fonts removidos — as fontes agora são
      100% embutidas no <style>
 /* ══════════════════════════════════════════════════════════════════════
@@ -7302,6 +7303,764 @@ const OUT = { MatchSim, FL, FW };
 if (typeof module !== 'undefined' && module.exports) module.exports = OUT;
 if (typeof root !== 'undefined') Object.assign(root, OUT);
 })(typeof window !== 'undefined' ? window : globalThis);
+/* Copa dos Sonhos — Fases 4–7 — motor 5.0.0 */
+(function(root){
+'use strict';
+const NODE=typeof module!=='undefined'&&module.exports;
+let B=root;if(NODE)try{B=Object.assign({},require('./40-match-engine-and-manager-ai.js'),require('./20-core.js'));}catch(_){B=root;}
+const M=B.MatchSim||root.MatchSim;if(!M||M.prototype.__P47__)return;
+const V='5.0.0',FL=B.FL||105,FW=B.FW||68,C=B.clamp||((v,a,b)=>Math.max(a,Math.min(b,v))),L=B.lerp||((a,b,t)=>a+(b-a)*t),D=B.D||((a,b,c,d)=>Math.hypot(a-c,b-d));
+const A=(p,k,f=65)=>{try{const q=B.getAttr||root.getAttr,v=q&&q(p&&p.ref?p.ref:p,k);if(Number.isFinite(v))return v;}catch(_){}return f;};
+const cp=x=>JSON.parse(JSON.stringify(x)),mg=(a,b)=>{const o=cp(a);for(const k in b)o[k]=b[k]&&typeof b[k]==='object'&&!Array.isArray(b[k])&&o[k]?mg(o[k],b[k]):cp(b[k]);return o;};
+const DEF={inPossession:{buildup:{method:'balanced',focus:'mixed',useGoalkeeper:true},progression:{tempo:50,passLength:50,verticality:50,width:50,carryMore:false,passMore:false},finalThird:{workBall:false,earlyShots:false,crossType:'mixed',overlap:false,underlap:false,longShots:'balanced'}},transition:{afterLoss:'regroup',afterRecovery:'balanced',goalkeeperDistribution:'balanced'},outOfPossession:{block:'mid',defensiveLine:50,engagementLine:50,pressing:50,orientation:'balanced',marking:'zonal',preventCross:false,protectBox:true,offsideTrap:false}};
+const P={balanced:DEF,possession:mg(DEF,{inPossession:{buildup:{method:'short',focus:'inside'},progression:{tempo:36,passLength:30,verticality:42,width:48,passMore:true},finalThird:{workBall:true,crossType:'cutback',underlap:true}},transition:{afterLoss:'counterpress',afterRecovery:'retain',goalkeeperDistribution:'short'},outOfPossession:{block:'high',defensiveLine:63,engagementLine:66,pressing:68}}),counter:mg(DEF,{inPossession:{buildup:{method:'direct'},progression:{tempo:78,passLength:74,verticality:83,width:55,carryMore:true},finalThird:{earlyShots:true,longShots:'more',overlap:true}},transition:{afterRecovery:'counter',goalkeeperDistribution:'fast'},outOfPossession:{defensiveLine:38,engagementLine:45,pressing:44}}),highPress:mg(DEF,{transition:{afterLoss:'counterpress',afterRecovery:'counter'},outOfPossession:{block:'high',defensiveLine:72,engagementLine:78,pressing:86,offsideTrap:true}}),lowBlock:mg(DEF,{inPossession:{buildup:{method:'direct',focus:'wide'},progression:{tempo:58,passLength:70,verticality:68,width:62},finalThird:{crossType:'high'}},transition:{afterRecovery:'counter',goalkeeperDistribution:'long'},outOfPossession:{block:'low',defensiveLine:24,engagementLine:32,pressing:28}}),wings:mg(DEF,{inPossession:{buildup:{focus:'wide'},progression:{width:82},finalThird:{overlap:true}}})};
+const MAP={tiki:'possession',counter:'counter',press:'highPress',park:'lowBlock',wings:'wings'};
+function norm(x,style){let o=mg(P[MAP[style]||'balanced'],typeof x==='string'?(P[x]||{}):(x||{})),p=o.inPossession.progression,d=o.outOfPossession;['tempo','passLength','verticality','width'].forEach(k=>p[k]=C(+p[k]||50,0,100));['defensiveLine','engagementLine','pressing'].forEach(k=>d[k]=C(+d[k]||50,0,100));return o;}
+function conflicts(i){const z=[],a=(code,severity,message)=>z.push({code,severity,message}),b=i.inPossession.buildup,p=i.inPossession.progression,f=i.inPossession.finalThird,t=i.transition,o=i.outOfPossession;if(b.method==='short'&&t.afterRecovery==='counter'&&p.verticality>77)a('SHORT_COUNTER',2,'Saída curta e contra-ataque extremamente direto competem pela primeira decisão.');if(o.block==='low'&&o.offsideTrap&&o.defensiveLine<42)a('LOW_OFFSIDE',3,'Bloco baixo e linha de impedimento agressiva são contraditórios.');if(t.afterRecovery==='retain'&&f.earlyShots)a('RETAIN_SHOOT',2,'Manter a posse e finalizar cedo pedem ritmos opostos.');if(t.afterLoss==='regroup'&&o.pressing>81)a('REGROUP_PRESS',2,'Recomposição imediata limita a pressão extrema após a perda.');if(o.preventCross&&o.orientation==='outside')a('CROSS_OUTSIDE',2,'Forçar por fora aumenta os cruzamentos que a equipe quer impedir.');if(f.overlap&&f.underlap)a('DUAL_RUN',1,'Overlap e underlap simultâneos exigem cobertura adicional.');return z;}
+function coherence(i){const c=conflicts(i),pen=c.reduce((s,x)=>s+(x.severity===3?18:x.severity===2?10:5),0);return{score:C(100-pen,0,100),conflicts:c};}
+function apply(tm){const i=tm.instructions,b=i.inPossession.buildup,p=i.inPossession.progression,f=i.inPossession.finalThird,t=i.transition,o=i.outOfPossession,base=tm.baseFx||tm.fx||{},fx=Object.assign({},base);let direct=(p.passLength+p.verticality)/200+(b.method==='direct'?.14:b.method==='short'?-.12:0)+(t.afterRecovery==='counter'?.13:t.afterRecovery==='retain'?-.11:0);const press=C((o.pressing*.72+o.engagementLine*.28)/100+(t.afterLoss==='counterpress'?.12:t.afterLoss==='regroup'?-.08:0),0,1);fx.direct=C(direct,.08,.95);fx.width=C(p.width/100+(b.focus==='wide'?.08:b.focus==='inside'?-.07:0),.12,.94);fx.line=L(-.1,.055,C(o.defensiveLine/100+(o.block==='high'?.08:o.block==='low'?-.1:0),0,1));fx.tackle=L(.8,1.42,press);fx.pressReach=L(-.5,1.4,press);fx.drain=(base.drain||1)*L(.9,1.18,press);fx.ritmo=(base.ritmo||1)*L(.88,1.12,p.tempo/100);fx.drible=(base.drible||1)*(p.carryMore?1.1:p.passMore?.92:1);fx.shoot=(base.shoot||1)*(f.earlyShots?1.04:f.workBall?.96:1);fx.cross=(base.cross||1)*(f.crossType==='high'?1.05:f.crossType==='cutback'?1.02:1);fx.far=(base.far||1)*(f.longShots==='more'?1.06:1);tm.baseFx=Object.assign({},fx);tm.fx=Object.assign({},fx);tm.coherence=coherence(i);}
+function stats(s){s.decisions=s.decisions||{};s.decisionQuality=s.decisionQuality||{count:0,score:0,agreement:0};s.decisionNonBest=s.decisionNonBest||0;s.corridorOccupancy=s.corridorOccupancy||[0,0,0,0,0];s.spatialSamples=s.spatialSamples||0;s.clumpCorrections=s.clumpCorrections||0;s.overlaps=s.overlaps||0;s.underlaps=s.underlaps||0;s.thirdManRuns=s.thirdManRuns||0;return s;}
+function role(sl,p){const ip=sl.inPossession||sl.ip||{},op=sl.outOfPossession||sl.oop||{};return{inPossession:{position:ip.position||sl.ipPos||p.slotPos,role:ip.role||sl.ipRole||p.role,duty:ip.duty||sl.ipDuty||'support'},outOfPossession:{position:op.position||sl.oopPos||p.slotPos,role:op.role||sl.oopRole||p.oopRole,duty:op.duty||sl.oopDuty||'defend'}};}
+function homes(p,tm){if(!p._p47h)p._p47h={a:[p.ahx,p.ahy],d:[p.dhx,p.dhy]};const R=String(p.ipRole||''),O=String(p.oopRole||''),wide=y=>L(y,y<FW/2?2.5:FW-2.5,.22),inside=y=>L(y,FW/2,.3);p.ahx=C(p._p47h.a[0]+tm.attackDir*((/wingback|ala|inside_forward|shadow/.test(R)?4:0)+(p.ipDuty==='attack'?2.5:0)),2,FL-2);p.ahy=/invert|inside|armador|playmaker/.test(R)?inside(p._p47h.a[1]):/winger|wingback|ala/.test(R)?wide(p._p47h.a[1]):p._p47h.a[1];p.dhx=C(p._p47h.d[0]-tm.attackDir*((/defensive|anchor|screen|conten/.test(O)?3:0)+(p.oopDuty==='defend'?1.5:0)),2,FL-2);p.dhy=p._p47h.d[1];p.hx=p.dhx;p.hy=p.dhy;}
+const Q=M.prototype;Q.__P47__=true;
+const ob=Q._buildTeam;Q._buildTeam=function(t,side){const tm=ob.call(this,t,side);tm.instructions=norm(t.instructions||t.teamInstructions,tm.styleKey);tm.instructionPreset=t.instructionPreset||MAP[tm.styleKey]||'balanced';tm.phase47={clock:0,lastDecision:null};apply(tm);tm.players.forEach(p=>{const r=role((t.lineup||[])[p.idx]||{},p);p.ipPos=r.inPossession.position;p.ipRole=r.inPossession.role;p.ipDuty=r.inPossession.duty;p.oopPos=r.outOfPossession.position;p.oopRole=r.outOfPossession.role;p.oopDuty=r.outOfPossession.duty;p.phaseRole=r;homes(p,tm);});return tm;};
+const os=Q._blankStats;Q._blankStats=function(){return stats(os.call(this));};
+Q.setTeamInstructions=function(team,x){const tm=this.teams[team];if(!tm)return false;tm.instructions=norm(typeof x==='string'?P[x]:mg(tm.instructions,x||{}),tm.styleKey);tm.instructionPreset=typeof x==='string'?x:'custom';apply(tm);return{instructions:cp(tm.instructions),coherence:cp(tm.coherence)};};
+Q.getTacticalCoherence=function(team){const tm=this.teams[team];return tm&&cp(tm.coherence);};
+Q.setPlayerPhaseRole=function(team,id,x){const tm=this.teams[team],p=typeof id==='number'?tm.players[id]:tm.players.find(q=>q.ref&&(q.ref.id===id||q.ref.n===id));if(!p)return false;const r=mg(p.phaseRole,x||{});p.phaseRole=r;p.ipPos=r.inPossession.position||p.slotPos;p.ipRole=r.inPossession.role||p.role;p.ipDuty=r.inPossession.duty||'support';p.oopPos=r.outOfPossession.position||p.slotPos;p.oopRole=r.outOfPossession.role||p.oopRole;p.oopDuty=r.outOfPossession.duty||'defend';homes(p,tm);return cp(r);};
+function context(sim,p){const tm=sim.teams[p.team],opp=sim.teams[1-p.team];let nd=99;opp.players.forEach(d=>{if(!d.red)nd=Math.min(nd,D(p.x,p.y,d.x,d.y));});const pressure=C((6.2-nd)/6.2,0,1),fatigue=C((100-p.stamina)/68,0,1),prog=tm.attackDir>0?p.x/FL:(FL-p.x)/FL,phase=(sim.possT||0)<2.2?'transition':prog<.36?'buildup':prog<.7?'progression':'finalThird',ins=tm.instructions,pass=(A(p,'passe')*.6+A(p,'visao')*.2+A(p,'decisao')*.2)/100,drib=(A(p,'drible')*.6+A(p,'agilidade')*.2+A(p,'decisao')*.2)/100,shot=(A(p,'finalizacao')*.6+A(p,'compostura')*.2+A(p,'decisao')*.2)/100,c=[];const add=(action,ability,fit,space,risk)=>c.push({action,score:fit+ability+space-pressure-fatigue-risk});add('pass_short',pass,phase==='buildup'?.8:.45,.2,.18);add('pass_vertical',pass,ins.inPossession.progression.verticality/100,.3,.32);if(phase!=='buildup')add('pass_through',pass,.65,.42,.54);add('carry',drib,ins.inPossession.progression.carryMore?.72:.4,nd>5?.4:.1,.35);add('dribble',drib,.45,phase==='finalThird'?.45:.2,.5);if(prog>.6)add('cross',A(p,'cruzamento')/100,.55,Math.abs(p.y-FW/2)>13?.4:.1,.38);if(prog>.68)add('shoot',shot,ins.inPossession.finalThird.earlyShots?.72:.5,1-C(D(p.x,p.y,tm.oppGoal.x,tm.oppGoal.y)/38,0,1),.48);return{phase,pressure,fatigue,candidates:c};}
+/* AUDITORIA · Fase 4 (bloqueador): a maior pontuação AUMENTA a probabilidade
+   mas não vence sempre — softmax (T=0.30) amostrado com o chance() SEEDADO do
+   motor: determinístico por seed e sem Math.random. decisionNonBest mede a
+   fração de escolhas fora do topo (evidência auditável da distribuição). */
+const od=Q._decide;Q._decide=function(p){const q=context(this,p),tm=this.teams[p.team],st=stats(this.stats[p.team]);const pool=q.candidates.slice().sort((a,b)=>b.score-a.score);let best=null;if(pool.length){const mx=pool[0].score,T=.06,w=pool.map(c=>Math.exp((c.score-mx)/T));let rem=w.reduce((s,x)=>s+x,0);const CH=B.chance||root.chance;for(let i=0;i<pool.length&&!best;i++){if(i===pool.length-1||CH(Math.min(1,w[i]/Math.max(rem,1e-9))))best=pool[i];rem-=w[i];}if(best!==pool[0])st.decisionNonBest=(st.decisionNonBest||0)+1;}p._p47Decision=best;tm.phase47.lastDecision=best;if(best){st.decisionQuality.count++;st.decisionQuality.score+=best.score;const save={direct:tm.fx.direct,drible:tm.fx.drible,shoot:tm.fx.shoot,cross:tm.fx.cross};if(/^pass_/.test(best.action))tm.fx.direct=C(tm.fx.direct+(best.action==='pass_short'?-.06:.07),.05,.98);if(best.action==='dribble'||best.action==='carry')tm.fx.drible*=1.06;if(best.action==='shoot')tm.fx.shoot*=1.04;if(best.action==='cross')tm.fx.cross*=1.04;try{return od.call(this,p);}finally{Object.assign(tm.fx,save);}}return od.call(this,p);};
+function rec(sim,p,a){if(!p||p.team==null)return;const s=stats(sim.stats[p.team]);s.decisions[a]=(s.decisions[a]||0)+1;if(p._p47Decision&&(p._p47Decision.action===a||(a==='pass'&&/^pass_/.test(p._p47Decision.action))))s.decisionQuality.agreement++;}
+[['_pass','pass'],['_carry','carry'],['_dribble','dribble'],['_cross','cross'],['_shoot','shoot'],['_clearBall','clear']].forEach(([k,a])=>{const f=Q[k];if(f)Q[k]=function(){rec(this,arguments[0],a);return f.apply(this,arguments);};});
+const om=Q._movePlayers;if(om)Q._movePlayers=function(dt){const out=om.apply(this,arguments);this.teams.forEach(tm=>{tm.phase47.clock+=dt;if(tm.phase47.clock<.25)return;tm.phase47.clock=0;const ps=tm.players.filter(p=>!p.red&&!p.isGK),s=stats(this.stats[tm.side]);ps.forEach(p=>s.corridorOccupancy[C(Math.floor(p.y/FW*5),0,4)]++);s.spatialSamples++;for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++){const a=ps[i],b=ps[j],d=D(a.x,a.y,b.x,b.y);if(d<2.05){const nx=d>.01?(a.x-b.x)/d:1,ny=d>.01?(a.y-b.y)/d:0,k=Math.min((2.05-d)*.16,.16);if(this.ball.owner!==a){a.x=C(a.x+nx*k,1,FL-1);a.y=C(a.y+ny*k,1,FW-1);}if(this.ball.owner!==b){b.x=C(b.x-nx*k,1,FL-1);b.y=C(b.y-ny*k,1,FW-1);}s.clumpCorrections++;}}const f=tm.instructions.inPossession.finalThird;if(this.ball.owner&&this.ball.owner.team===tm.side&&(f.overlap||f.underlap)){const fb=ps.find(p=>['LB','RB','LWB','RWB'].includes(p.slotPos));if(fb){fb._overlapping=!!f.overlap;fb._underlapping=!!f.underlap;f.overlap?s.overlaps++:s.underlaps++;}}});return out;};
+const oa=Q.getAdvancedData;Q.getAdvancedData=function(team){const z=oa?oa.call(this,team):{},tm=this.teams[team],s=stats(this.stats[team]);z.engineVersion=V;z.phase47={instructions:cp(tm.instructions),preset:tm.instructionPreset,coherence:cp(tm.coherence),decisions:cp(s.decisions),decisionQuality:{count:s.decisionQuality.count,averageScore:s.decisionQuality.count?s.decisionQuality.score/s.decisionQuality.count:0,agreementRate:s.decisionQuality.count?s.decisionQuality.agreement/s.decisionQuality.count:0},spatial:{samples:s.spatialSamples,corridorOccupancy:s.corridorOccupancy.slice(),clumpCorrections:s.clumpCorrections,overlaps:s.overlaps,underlaps:s.underlaps,thirdManRuns:s.thirdManRuns},roles:tm.players.map(p=>({id:p.ref&&p.ref.id,name:p.ref&&p.ref.n,inPossession:{position:p.ipPos,role:p.ipRole,duty:p.ipDuty},outOfPossession:{position:p.oopPos,role:p.oopRole,duty:p.oopDuty}}))};return z;};
+const og=Q.getState;Q.getState=function(){const s=og.call(this);s.engineVersion=V;s.tactical=this.teams.map(t=>({preset:t.instructionPreset,coherence:t.coherence.score,instructions:t.instructions}));return s;};
+if(!NODE&&typeof document!=='undefined'){const Old=root.MatchSim;class Active extends Old{constructor(){super(...arguments);root.__CDS_ACTIVE_SIM=this;}}root.MatchSim=Active;const boot=()=>{if(document.getElementById('p47btn'))return;const css=document.createElement('style');css.textContent='#p47btn{position:fixed;right:12px;bottom:12px;z-index:999999;border:1px solid #ffcb45;border-radius:999px;background:#101a2e;color:#ffcb45;padding:9px 12px;font:700 11px system-ui}#p47box{position:fixed;inset:0;z-index:1000000;background:#020712dd;display:none;place-items:end center;padding:12px;color:#fff;font-family:system-ui}#p47box.on{display:grid}#p47box>div{width:min(720px,100%);max-height:86vh;overflow:auto;background:#0b1425;border:1px solid #294064;border-radius:18px;padding:15px}.p47ps{display:flex;gap:7px;flex-wrap:wrap}.p47ps button{background:#172641;color:#fff;border:1px solid #38527a;border-radius:8px;padding:8px}.p47warn{background:#34231c;border-left:3px solid #ff9d4a;padding:8px;margin:7px 0;font-size:11px}';document.head.appendChild(css);const b=document.createElement('button');b.id='p47btn';b.textContent='TÁTICA 5.0';const x=document.createElement('div');x.id='p47box';x.innerHTML='<div><button id="p47close" style="float:right">×</button><h3>Central Tática · Fases 4–7</h3><main></main></div>';document.body.append(b,x);const paint=()=>{const sim=root.__CDS_ACTIVE_SIM,m=x.querySelector('main');if(!sim)return m.innerHTML='<p>Inicie uma partida.</p>';const side=sim.interactiveTeam===1?1:0,tm=sim.teams[side],a=sim.getAdvancedData(side).phase47;m.innerHTML='<h4>Coerência '+tm.coherence.score+'/100</h4><div class="p47ps">'+Object.keys(P).map(k=>'<button data-p="'+k+'">'+k+'</button>').join('')+'</div>'+tm.coherence.conflicts.map(c=>'<div class="p47warn">'+c.message+'</div>').join('')+'<p>Decisões: '+a.decisionQuality.count+' · Antiamontoamento: '+a.spatial.clumpCorrections+'</p>';m.querySelectorAll('[data-p]').forEach(q=>q.onclick=()=>{sim.setTeamInstructions(side,q.dataset.p);paint();});};b.onclick=()=>{x.classList.add('on');paint();};x.querySelector('#p47close').onclick=()=>x.classList.remove('on');};document.readyState==='loading'?document.addEventListener('DOMContentLoaded',boot):boot();}
+const API={VERSION:V,DEFAULT_INSTRUCTIONS:DEF,PRESETS:P,normalizeInstructions:norm,detectConflicts:conflicts,coherenceReport:coherence,installed:true};root.CDS_PHASES_4_7=API;if(NODE)module.exports=API;
+})(typeof window!=='undefined'?window:globalThis);
+
+/* Copa dos Sonhos — Fase 8 — goleiros e bolas paradas — motor 5.1.0 */
+(function(root){
+'use strict';
+const NODE=typeof module!=='undefined'&&module.exports;
+const M=root.MatchSim;
+const VERSION='5.1.0';
+const CORNER_ROUTINES=Object.freeze(['near_post','far_post','penalty_spot','short']);
+const CORNER_DEFENCES=Object.freeze(['zonal','man','mixed']);
+const FREE_KICK_ROUTINES=Object.freeze(['direct','crossed','short']);
+function snapshot(sim,team){
+  const side=team===1?1:0,st=sim&&sim.stats&&sim.stats[side];
+  if(!st)return null;
+  return {
+    version:VERSION,team:side,
+    goalkeeping:{
+      shotsFaced:st.gkShotsFaced||0,secureCatches:st.gkSecureCatches||0,parries:st.gkParries||0,
+      reboundsConceded:st.reboundsConceded||0,sweeps:st.gkSweeps||0,sweepsFailed:st.gkSweepsFailed||0,
+      claimsAttempted:st.gkClaimsAttempted||0,claimsWon:st.gkClaimsWon||0,claimsMissed:st.gkClaimsMissed||0,
+      punches:st.gkPunches||0,doubleCatches:st.gkDoubleCatches||0,
+      distribution:{short:st.gkDistributionShort||0,long:st.gkDistributionLong||0,
+        completed:st.gkDistributionCompleted||0,failed:st.gkDistributionFailed||0,
+        toFullback:st.gkDistToFullback||0,toCenterBack:st.gkDistToCenterBack||0,
+        toMidfield:st.gkDistToMidfield||0,toForward:st.gkDistToForward||0}
+    },
+    setPieces:{
+      shots:st.setPieceShots||0,goals:st.setPieceGoals||0,firstContactWon:st.setPieceFirstContactWon||0,
+      firstContactLost:st.setPieceFirstContactLost||0,
+      corners:{nearPost:st.cornersNearPost||0,farPost:st.cornersFarPost||0,penaltySpot:st.cornersPenaltySpot||0,short:st.cornersShort||0,inswinger:st.cornersInswinger||0,outswinger:st.cornersOutswinger||0},
+      cornerDefence:{zonal:st.cornerDefZonal||0,man:st.cornerDefMan||0,mixed:st.cornerDefMixed||0},
+      freeKicks:{direct:st.freeKickDirect||0,crossed:st.freeKickCrossed||0,short:st.freeKickShort||0},
+      penalties:{taken:st.penaltiesTaken||0,scored:st.penaltiesScored||0,saved:st.penaltiesSaved||0,missed:st.penaltiesMissed||0}
+    }
+  };
+}
+if(M&&M.prototype&&!M.prototype.__P8__){
+  const Q=M.prototype;Q.__P8__=true;
+  const oldState=Q.getState;
+  Q.getState=function(){const out=oldState.call(this);out.engineVersion=VERSION;out.phase8=this.stats.map((_,i)=>snapshot(this,i));return out;};
+  const oldAdvanced=Q.getAdvancedData;
+  Q.getAdvancedData=function(team){const out=oldAdvanced?oldAdvanced.call(this,team):{};out.engineVersion=VERSION;out.phase8=snapshot(this,team);return out;};
+  Q.getPhase8Data=function(team){return snapshot(this,team);};
+}
+const API={VERSION,CORNER_ROUTINES,CORNER_DEFENCES,FREE_KICK_ROUTINES,getMatchData:snapshot,installed:!!(M&&M.prototype&&M.prototype.__P8__)};
+root.CDS_PHASE8=API;
+if(NODE)module.exports=API;
+})(typeof window!=='undefined'?window:globalThis);
+
+/* Copa dos Sonhos — Fase 9 — inteligência do treinador adversário — motor 5.2.0 */
+(function(root){
+'use strict';
+const NODE=typeof module!=='undefined'&&module.exports;
+const M=root.MatchSim;
+if(!M||!M.prototype||M.prototype.__P9__)return;
+const VERSION='5.2.2';
+const C=root.clamp||((v,a,b)=>Math.max(a,Math.min(b,v)));
+const LINE=root.LINE_OF||{};
+const getAttr=(p,k,f=60)=>{try{const fn=root.getAttr,v=fn&&fn(p&&p.ref?p.ref:p,k);return Number.isFinite(v)?v:f;}catch(_){return f;}};
+const clone=x=>x==null?x:JSON.parse(JSON.stringify(x));
+const sum=(xs,fn)=>xs.reduce((a,x)=>a+fn(x),0);
+const avg=(xs,fn,f=0)=>xs.length?sum(xs,fn)/xs.length:f;
+const hash=s=>{let h=2166136261>>>0;for(const ch of String(s||'')){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)>>>0;}return h>>>0;};
+const PROFILE_TEMPLATES=Object.freeze({
+  pragmatic:{key:'pragmatic',label:'Pragmático',aggression:46,riskTolerance:42,adaptability:72,pressingPreference:42,possessionPreference:50,defensivePreference:72,substitutionTiming:58,evidenceThreshold:.54,persistence:12,reviewMinutes:8},
+  aggressive:{key:'aggressive',label:'Agressivo',aggression:82,riskTolerance:78,adaptability:66,pressingPreference:86,possessionPreference:44,defensivePreference:35,substitutionTiming:66,evidenceThreshold:.48,persistence:9,reviewMinutes:7},
+  possession:{key:'possession',label:'Controlador',aggression:54,riskTolerance:48,adaptability:74,pressingPreference:68,possessionPreference:88,defensivePreference:48,substitutionTiming:55,evidenceThreshold:.52,persistence:11,reviewMinutes:8},
+  adaptive:{key:'adaptive',label:'Adaptável',aggression:60,riskTolerance:58,adaptability:90,pressingPreference:64,possessionPreference:64,defensivePreference:60,substitutionTiming:62,evidenceThreshold:.44,persistence:8,reviewMinutes:6}
+});
+function deriveProfile(source,tm){
+  const explicit=source&&source.managerProfile;
+  if(explicit&&typeof explicit==='object')return Object.assign({},PROFILE_TEMPLATES.adaptive,clone(explicit));
+  if(typeof explicit==='string'&&PROFILE_TEMPLATES[explicit])return clone(PROFILE_TEMPLATES[explicit]);
+  const style=(source&&source.style)||tm.styleKey||'balanced';
+  const styleMap={press:'aggressive',tiki:'possession',park:'pragmatic',counter:'pragmatic',direct:'aggressive'};
+  const keys=['pragmatic','aggressive','possession','adaptive'];
+  const key=styleMap[style]||keys[hash((tm.name||'')+'|'+style)%keys.length];
+  const p=clone(PROFILE_TEMPLATES[key]);
+  const n=hash((tm.name||'')+'|profile');
+  const jitter=(shift)=>((n>>>shift)%11)-5;
+  p.aggression=C(p.aggression+jitter(0),20,95);
+  p.riskTolerance=C(p.riskTolerance+jitter(4),20,95);
+  p.adaptability=C(p.adaptability+jitter(8),30,98);
+  p.substitutionTiming=C(p.substitutionTiming+jitter(12),40,82);
+  return p;
+}
+function blankManagerStats(st){
+  st.managerAnalyses=st.managerAnalyses||0;st.managerDiagnoses=st.managerDiagnoses||0;
+  st.managerChanges=st.managerChanges||0;st.managerSubstitutions=st.managerSubstitutions||0;
+  st.managerEvaluations=st.managerEvaluations||0;st.managerSuccessfulChanges=st.managerSuccessfulChanges||0;
+  st.managerFailedChanges=st.managerFailedChanges||0;st.managerInconclusiveChanges=st.managerInconclusiveChanges||0;st.managerReversals=st.managerReversals||0;
+  st.managerPreMatchPlans=st.managerPreMatchPlans||0;st.managerNoActions=st.managerNoActions||0;
+  st.managerRoleChanges=st.managerRoleChanges||0;st.managerDutyChanges=st.managerDutyChanges||0;
+  st.managerPressOrientations=st.managerPressOrientations||0;st.managerCrossChanges=st.managerCrossChanges||0;
+  st.managerTargetedPlayers=st.managerTargetedPlayers||0;st.managerStateExports=st.managerStateExports||0;st.managerStateImports=st.managerStateImports||0;
+  return st;
+}
+function activePlayers(tm){return tm.players.filter(p=>!p.red);}
+function playerName(p){return p&&p.ref&&(p.ref.n||p.ref.name)||'Jogador';}
+function playerId(p){return p&&p.ref&&(p.ref.id!=null?p.ref.id:p.ref.n)||p&&p.idx;}
+function nearestMateDistance(tm,p){let d=99;for(const q of tm.players){if(q===p||q.red)continue;const dx=(p.x||0)-(q.x||0),dy=(p.y||0)-(q.y||0);d=Math.min(d,Math.hypot(dx,dy));}return d;}
+function roleMismatch(p){
+  const base=LINE[p.slotPos]||'MID',ip=LINE[p.ipPos||p.slotPos]||base,oop=LINE[p.oopPos||p.slotPos]||base;
+  if(base==='DEF'&&ip==='FWD')return 'Defensor projetado como atacante sem cobertura';
+  if(base==='FWD'&&oop==='DEF'&&p.oopDuty==='attack')return 'Atacante com dever ofensivo na fase defensiva';
+  if(base==='MID'&&ip==='DEF'&&p.ipDuty==='attack')return 'Meio-campista recuado com dever ofensivo incompatível';
+  if(p.ipDuty==='attack'&&p.oopDuty==='attack')return 'Dever ofensivo simultâneo com e sem bola';
+  return null;
+}
+function visibleTournamentContext(tm){
+  const k=tm.managerAI&&tm.managerAI.knowledge||{};
+  return {
+    recentResults:Array.isArray(k.recentResults)?k.recentResults.slice(-5):null,
+    fatigue:Number.isFinite(k.fatigue)?k.fatigue:null,
+    cards:k.cards&&typeof k.cards==='object'?clone(k.cards):null,
+    suspensions:Array.isArray(k.suspensions)?k.suspensions.slice():null,
+    injuries:Array.isArray(k.injuries)?k.injuries.slice():null
+  };
+}
+function metricSnapshot(sim,t){
+  const tm=sim.teams[t],oppTm=sim.teams[1-t],own=sim.stats[t],opp=sim.stats[1-t],ps=activePlayers(tm).filter(p=>!p.isGK),oppPs=activePlayers(oppTm).filter(p=>!p.isGK);
+  const ownPoss=own.possTime||0,oppPoss=opp.possTime||0,totalPoss=ownPoss+oppPoss;
+  const yellowPlayers=ps.filter(p=>p.yellow>0),oppYellow=oppPs.filter(p=>p.yellow>0);
+  const line=tm.instructions&&tm.instructions.outOfPossession?tm.instructions.outOfPossession.defensiveLine:(tm._axes?tm._axes.line:50);
+  const press=tm.instructions&&tm.instructions.outOfPossession?tm.instructions.outOfPossession.pressing:(tm._axes?tm._axes.press:50);
+  const zones=[0,0,0,0,0];for(const p of ps){const y=C(p.y||0,0,67.999),z=Math.min(4,Math.floor(y/13.6));zones[z]++;}
+  const wide=ps.filter(p=>['LW','RW','LM','RM','LWB','RWB'].includes(p.slotPos)||['LW','RW','LM','RM'].includes(p.ipPos));
+  let disconnected=null;for(const p of wide){const distance=nearestMateDistance(tm,p);const score=distance+(6.4-(p.rating||6))*3;if(distance>14&&(!disconnected||score>disconnected.score))disconnected={id:playerId(p),name:playerName(p),distance:+distance.toFixed(1),side:(p.y||0)<34?'left':'right',score};}
+  let mismatch=null;for(const p of ps){const reason=roleMismatch(p);if(reason){mismatch={id:playerId(p),name:playerName(p),reason,slot:p.slotPos,ipRole:p.ipRole,ipDuty:p.ipDuty,oopRole:p.oopRole,oopDuty:p.oopDuty};break;}}
+  let yellowTarget=null;for(const p of yellowPlayers){const side=(p.y||p.dhy||0)<34?'left':'right';const volume=side==='left'?(opp.attacksL||0):(opp.attacksR||0);if(volume>=5&&(!yellowTarget||volume>yellowTarget.volume))yellowTarget={id:playerId(p),name:playerName(p),side,volume};}
+  let opponentYellowTarget=null;for(const p of oppYellow){const side=(p.y||p.dhy||0)<34?'left':'right';const volume=side==='left'?(own.attacksL||0):(own.attacksR||0);if(volume>=4&&(!opponentYellowTarget||volume>opponentYellowTarget.volume))opponentYellowTarget={id:playerId(p),name:playerName(p),side,volume};}
+  const lowZoneIndex=zones.reduce((best,v,i,a)=>v<a[best]?i:best,0),lowZone=zones[lowZoneIndex]<=1?{index:lowZoneIndex,count:zones[lowZoneIndex],label:['left-wide','left-half','central','right-half','right-wide'][lowZoneIndex]}:null;
+  return {
+    minute:sim.minute,diff:sim.score[t]-sim.score[1-t],score:sim.score.slice(),
+    xgFor:own.xg||0,xgAgainst:opp.xg||0,shotsFor:own.shots||0,shotsAgainst:opp.shots||0,
+    onTargetFor:own.onTarget||0,onTargetAgainst:opp.onTarget||0,
+    possTimeFor:ownPoss,possTimeAgainst:oppPoss,possession:totalPoss?ownPoss/totalPoss:.5,
+    passes:own.passes||0,passOk:own.passOk||0,passAccuracy:own.passes?own.passOk/own.passes:1,
+    oppPassAccuracy:opp.passes?opp.passOk/opp.passes:1,
+    attacksForL:own.attacksL||0,attacksForR:own.attacksR||0,attacksAgainstL:opp.attacksL||0,attacksAgainstR:opp.attacksR||0,
+    crossesAgainst:opp.crosses||0,crossesOkAgainst:opp.crossesOk||0,
+    throughAgainst:opp.throughBalls||0,throughOkAgainst:opp.throughOk||0,oneOnOnesAgainst:opp.oneOnOnes||0,
+    pressWins:own.pressWins||0,defErrors:own.defErrors||0,gkBadDistribution:own.gkBadDistribution||0,
+    stamina:avg(ps,p=>p.stamina,100),yellowCount:yellowPlayers.length,redCount:tm.players.filter(p=>p.red).length,
+    lowestStamina:ps.length?Math.min(...ps.map(p=>p.stamina)):100,line,press,
+    setPieceThreat:(opp.setPieceShots||0),coherence:tm.coherence?tm.coherence.score:100,
+    zones,lowZone,disconnectedWinger:disconnected,roleMismatch:mismatch,yellowTarget,opponentYellowTarget,
+    dangerousCrossRate:opp.crosses?(opp.crossesOk||0)/opp.crosses:0
+  };
+}
+function windowDelta(before,after){
+  const possFor=after.possTimeFor-before.possTimeFor,possAgainst=after.possTimeAgainst-before.possTimeAgainst,pt=possFor+possAgainst;
+  return {xgFor:after.xgFor-before.xgFor,xgAgainst:after.xgAgainst-before.xgAgainst,shotsFor:after.shotsFor-before.shotsFor,shotsAgainst:after.shotsAgainst-before.shotsAgainst,possession:pt?possFor/pt:.5,scoreDelta:after.diff-before.diff};
+}
+function diagnose(sim,t,m){
+  const out=[],add=(code,severity,label,evidence,objective,meta)=>out.push(Object.assign({code,severity:C(severity,0,1),label,evidence,objective,affectedPlayers:[],affectedSectors:[]},meta||{}));
+  const oppAttacks=m.attacksAgainstL+m.attacksAgainstR;
+  const shotQuality=m.shotsFor?m.xgFor/m.shotsFor:0;
+  if(m.redCount>0)add('RED_CARD',.96,'Inferioridade numérica',`${m.redCount} expulsão(ões) alteraram o equilíbrio`,m.diff<0?'attack':'defend',{affectedSectors:['central']});
+  if(m.diff<0&&m.minute>=58)add('LOSING_LATE',C(.58+(m.minute-58)/42+Math.min(2,-m.diff)*.1,0,1),'Desvantagem no placar',`Perdendo por ${-m.diff} aos ${Math.floor(m.minute)} minutos`,'attack',{affectedSectors:['attack']});
+  if(m.diff>0&&m.minute>=68)add('LEADING_LATE',C(.52+(m.minute-68)/30+m.diff*.08,0,1),'Vantagem a proteger',`Vencendo por ${m.diff} no terço final`,'defend',{affectedSectors:['defence','midfield']});
+  if(oppAttacks>=6&&m.attacksAgainstL>m.attacksAgainstR*1.4)add('LEFT_OVERLOAD',C(.5+(m.attacksAgainstL-m.attacksAgainstR)/16,0,1),'Sobrecarga pelo lado esquerdo rival',`${m.attacksAgainstL} ataques contra ${m.attacksAgainstR}`,'defend',{affectedSectors:['left']});
+  if(oppAttacks>=6&&m.attacksAgainstR>m.attacksAgainstL*1.4)add('RIGHT_OVERLOAD',C(.5+(m.attacksAgainstR-m.attacksAgainstL)/16,0,1),'Sobrecarga pelo lado direito rival',`${m.attacksAgainstR} ataques contra ${m.attacksAgainstL}`,'defend',{affectedSectors:['right']});
+  if(m.line>=64&&(m.oneOnOnesAgainst+m.throughOkAgainst)>=3)add('HIGH_LINE_EXPOSED',C(.55+(m.oneOnOnesAgainst+m.throughOkAgainst)/14,0,1),'Linha alta vulnerável',`${m.oneOnOnesAgainst} um contra um e ${m.throughOkAgainst} bolas em profundidade`,'defend',{affectedSectors:['defensive-line']});
+  if(m.minute>=22&&m.possession<.43&&m.xgAgainst>m.xgFor+.25)add('MIDFIELD_INFERIORITY',C(.5+(.43-m.possession)*2+(m.xgAgainst-m.xgFor)*.16,0,1),'Meio-campo em inferioridade',`${Math.round(m.possession*100)}% de posse e desvantagem territorial`,'control',{affectedSectors:['midfield']});
+  if(m.minute>=28&&m.shotsFor<=3&&m.xgFor<.48)add('ISOLATED_ATTACK',C(.58+(3-m.shotsFor)*.08,0,1),'Ataque isolado',`${m.shotsFor} finalizações e ${m.xgFor.toFixed(2)} xG`,'attack',{affectedSectors:['attack']});
+  if(m.disconnectedWinger&&m.minute>=18)add('WINGER_DISCONNECTED',C(.52+(m.disconnectedWinger.distance-14)/20,0,1),'Ponta desconectado',`${m.disconnectedWinger.name} está a ${m.disconnectedWinger.distance} m do apoio mais próximo`,'attack',{affectedPlayers:[m.disconnectedWinger],affectedSectors:[m.disconnectedWinger.side]});
+  if(m.minute>=20&&m.passAccuracy<.72&&(m.gkBadDistribution>=1||m.defErrors>=1))add('BUILDUP_FAIL',C(.55+(.72-m.passAccuracy)*1.8,0,1),'Saída de bola falhando',`${Math.round(m.passAccuracy*100)}% de passe e ${m.gkBadDistribution} erros do goleiro`,'control',{affectedSectors:['build-up']});
+  if(m.gkBadDistribution>=2&&m.minute>=18)add('GK_DISTRIBUTION_FAIL',C(.58+m.gkBadDistribution*.05,0,1),'Goleiro errando reposições',`${m.gkBadDistribution} perdas originadas na distribuição`,'control',{affectedSectors:['goalkeeper','build-up']});
+  if(m.minute>=26&&m.press>=68&&m.pressWins<3)add('PRESS_INEFFECTIVE',C(.5+(m.press-68)/80,0,1),'Pressão ineficiente',`Pressão ${Math.round(m.press)} com apenas ${m.pressWins} recuperações`,'defend',{affectedSectors:['pressing']});
+  if(m.shotsFor>=8&&shotQuality<.085)add('POOR_SHOT_QUALITY',C(.55+(.085-shotQuality)*4,0,1),'Finalizações de baixa qualidade',`${m.shotsFor} chutes para ${m.xgFor.toFixed(2)} xG`,'attack',{affectedSectors:['final-third']});
+  if(m.stamina<61)add('FATIGUE',C(.55+(61-m.stamina)/18,0,1),'Fadiga coletiva',`Média física em ${m.stamina.toFixed(1)}%`,'control',{affectedSectors:['all']});
+  if(m.yellowTarget)add('YELLOW_TARGETED',C(.54+m.yellowTarget.volume/25,0,1),'Jogador amarelado sob ataque',`${m.yellowTarget.name} está amarelado e recebeu ${m.yellowTarget.volume} ataques pelo setor`,'defend',{affectedPlayers:[m.yellowTarget],affectedSectors:[m.yellowTarget.side]});
+  else if(m.yellowCount>=2&&m.minute>=45)add('YELLOW_RISK',C(.48+m.yellowCount*.08,0,1),'Risco disciplinar',`${m.yellowCount} jogadores amarelados`,'defend');
+  if(m.opponentYellowTarget)add('EXPLOIT_YELLOW',C(.52+m.opponentYellowTarget.volume/24,0,1),'Adversário amarelado vulnerável',`${m.opponentYellowTarget.name} está amarelado no corredor ${m.opponentYellowTarget.side}`,'attack',{affectedPlayers:[m.opponentYellowTarget],affectedSectors:[m.opponentYellowTarget.side]});
+  if(m.crossesAgainst>=7&&m.dangerousCrossRate>.34)add('DANGEROUS_CROSSES',C(.5+m.crossesOkAgainst/12,0,1),'Cruzamentos adversários perigosos',`${m.crossesOkAgainst}/${m.crossesAgainst} cruzamentos encontraram alvo`,'defend',{affectedSectors:['wide','box']});
+  if(m.lowZone&&m.minute>=20)add('LOW_ZONE_OCCUPANCY',C(.48+(1-m.lowZone.count)*.12,0,1),'Baixa ocupação de zona',`Zona ${m.lowZone.label} possui ${m.lowZone.count} jogador(es)`,'control',{affectedSectors:[m.lowZone.label]});
+  if(m.roleMismatch)add('ROLE_MISMATCH',.62,'Função incompatível',`${m.roleMismatch.name}: ${m.roleMismatch.reason}`,'control',{affectedPlayers:[m.roleMismatch],affectedSectors:['role-structure']});
+  if(m.coherence<80)add('TACTICAL_CONFLICT',C(.5+(80-m.coherence)/40,0,1),'Instruções conflitantes',`Coerência tática ${m.coherence}/100`,'control',{affectedSectors:['team-structure']});
+  return out.sort((a,b)=>b.severity-a.severity);
+}
+function snapshotTeamState(tm){return{preset:tm.instructionPreset,instructions:clone(tm.instructions),axes:clone(tm._axes),defForm:tm.defForm,defVar:tm.defVar||0,atkForm:tm.atkForm,atkVar:tm.atkVar||0,sideShift:clone(tm.managerAI&&tm.managerAI.sideShift||null),attackFocus:clone(tm.managerAI&&tm.managerAI.attackFocus||null),pressOrientation:clone(tm.managerAI&&tm.managerAI.pressOrientation||null),roles:tm.players.map(p=>({id:playerId(p),inPossession:{position:p.ipPos,role:p.ipRole,duty:p.ipDuty},outOfPossession:{position:p.oopPos,role:p.oopRole,duty:p.oopDuty}}))};}
+function availableForm(key){return !!(root.FORMATIONS&&root.FORMATIONS[key]);}
+function actionFor(d,sim,t,profile){
+  const m=metricSnapshot(sim,t),bold=profile.riskTolerance>=65,target=d.affectedPlayers&&d.affectedPlayers[0];
+  switch(d.code){
+    case 'RED_CARD':return{id:'red_compact',label:'Reorganizar após expulsão',objective:m.diff<0?'attack':'defend',preset:m.diff<0?'counter':'lowBlock',shape:{def:'5-3-2',atk:m.diff<0?'3-4-3':'5-3-2'},axes:{press:-12,width:-8,line:m.diff<0?-4:-12,posture:m.diff<0?4:-12},intensity:'high',sectors:['central'],expected:'Reduzir espaços centrais sem abandonar a transição'};
+    case 'LOSING_LATE':return{id:bold?'all_out_attack':'structured_chase',label:bold?'Ataque total':'Busca estruturada do empate',objective:'attack',preset:bold?'highPress':'counter',shape:{def:bold?'3-4-3':'4-2-3-1',atk:bold?'4-2-4':'4-2-3-1'},axes:{press:bold?14:8,line:bold?12:7,tempo:bold?12:7,posture:bold?16:9},sub:'attack',intensity:bold?'very-high':'high',sectors:['attack'],expected:'Aumentar xG, presença de área e recuperações altas'};
+    case 'LEADING_LATE':return{id:'protect_lead',label:'Proteger a vantagem',objective:'defend',preset:profile.defensivePreference>=65?'lowBlock':'possession',shape:{def:profile.defensivePreference>=65?'5-4-1':'4-5-1',atk:'4-3-3'},axes:{press:-9,line:-12,tempo:-8,posture:-10},sub:'defend',intensity:'high',sectors:['defence','midfield'],expected:'Reduzir xG e finalizações adversárias'};
+    case 'LEFT_OVERLOAD':return{id:'reinforce_left',label:'Reforçar corredor esquerdo defensivo',objective:'defend',side:'L',pressOrientation:'left',instructions:{outOfPossession:{preventCross:true,protectBox:true,orientation:'left'}},intensity:'medium',sectors:['left'],expected:'Reduzir progressões e cruzamentos pelo corredor atacado'};
+    case 'RIGHT_OVERLOAD':return{id:'reinforce_right',label:'Reforçar corredor direito defensivo',objective:'defend',side:'R',pressOrientation:'right',instructions:{outOfPossession:{preventCross:true,protectBox:true,orientation:'right'}},intensity:'medium',sectors:['right'],expected:'Reduzir progressões e cruzamentos pelo corredor atacado'};
+    case 'HIGH_LINE_EXPOSED':return{id:'drop_line',label:'Baixar linha e proteger profundidade',objective:'defend',preset:'balanced',axes:{line:-16,press:-6},shape:{def:'4-1-4-1',atk:sim.teams[t].atkForm||'4-3-3'},intensity:'high',sectors:['defensive-line'],expected:'Reduzir um contra um e bolas nas costas'};
+    case 'MIDFIELD_INFERIORITY':return{id:'add_midfield',label:'Adicionar volante e presença no meio',objective:'control',preset:'possession',shape:{def:'4-1-4-1',atk:'4-2-3-1'},axes:{width:-7,tempo:-4,press:4},intensity:'high',sectors:['midfield'],expected:'Recuperar posse e conexões centrais'};
+    case 'ISOLATED_ATTACK':return{id:'add_attacker',label:'Adicionar atacante e aproximar o setor',objective:'attack',preset:'wings',shape:{def:'4-2-3-1',atk:'4-2-4'},axes:{posture:8,width:7,tempo:5},sub:'attack',intensity:'high',sectors:['attack'],expected:'Aumentar finalizações e entradas no último terço'};
+    case 'WINGER_DISCONNECTED':return{id:'reconnect_winger_'+(target&&target.id),label:'Reconectar ponta ao bloco',objective:'attack',playerRole:target&&{id:target.id,inPossession:{role:'inside_forward',duty:'support'},outOfPossession:{role:'track_wide',duty:'support'}},axes:{width:-5},attackFocus:target&&target.side,intensity:'medium',players:target?[target]:[],sectors:target?[target.side]:['wide'],expected:'Criar apoios curtos e aproximar o ponta da zona de criação'};
+    case 'BUILDUP_FAIL':return{id:'bypass_press',label:'Contornar a pressão rival',objective:'control',preset:'counter',instructions:{inPossession:{buildup:{method:'direct'},progression:{passLength:68,verticality:66}},transition:{goalkeeperDistribution:'long'}},intensity:'medium',sectors:['build-up'],expected:'Reduzir perdas na saída e avançar com segurança'};
+    case 'GK_DISTRIBUTION_FAIL':return{id:'change_gk_distribution',label:'Alterar distribuição do goleiro',objective:'control',instructions:{transition:{goalkeeperDistribution:'long'},inPossession:{buildup:{useGoalkeeper:false,method:'direct'}}},intensity:'medium',sectors:['goalkeeper','build-up'],expected:'Retirar o goleiro da zona de pressão e reduzir perdas perigosas'};
+    case 'PRESS_INEFFECTIVE':return{id:'reset_press',label:'Reorganizar e orientar a pressão',objective:'defend',preset:'balanced',axes:{press:-14,line:-6},pressOrientation:m.attacksAgainstL>m.attacksAgainstR?'left':m.attacksAgainstR>m.attacksAgainstL?'right':'centre',instructions:{transition:{afterLoss:'regroup'},outOfPossession:{orientation:m.attacksAgainstL>m.attacksAgainstR?'left':m.attacksAgainstR>m.attacksAgainstL?'right':'balanced'}},intensity:'medium',sectors:['pressing'],expected:'Reduzir desgaste e recuperar compactação'};
+    case 'POOR_SHOT_QUALITY':return{id:'work_ball',label:'Trabalhar melhor as chances',objective:'attack',preset:'possession',crossType:'cutback',instructions:{inPossession:{finalThird:{workBall:true,earlyShots:false,longShots:'balanced',crossType:'cutback'}}},intensity:'medium',sectors:['final-third'],expected:'Aumentar xG por finalização'};
+    case 'FATIGUE':return{id:'manage_fatigue',label:'Gerir fadiga e renovar energia',objective:'control',preset:'balanced',axes:{press:-12,tempo:-8},sub:'physical',intensity:'medium',sectors:['all'],expected:'Estabilizar intensidade e substituir jogador exausto'};
+    case 'YELLOW_TARGETED':return{id:'protect_targeted_yellow_'+(target&&target.id),label:'Proteger jogador amarelado atacado',objective:'defend',playerRole:target&&{id:target.id,outOfPossession:{duty:'defend'}},pressOrientation:target&&target.side,sub:'disciplinary',intensity:'high',players:target?[target]:[],sectors:target?[target.side]:[],expected:'Reduzir duelos isolados e risco de expulsão'};
+    case 'YELLOW_RISK':return{id:'disciplinary_sub',label:'Proteger jogador amarelado',objective:'defend',sub:'disciplinary',intensity:'medium',expected:'Reduzir risco de expulsão'};
+    case 'EXPLOIT_YELLOW':return{id:'exploit_yellow_'+(target&&target.id),label:'Explorar adversário amarelado',objective:'attack',attackFocus:target&&target.side,pressOrientation:target&&target.side,instructions:{inPossession:{buildup:{focus:'wide'},progression:{width:76,carryMore:true}},outOfPossession:{orientation:target&&target.side||'balanced'}},intensity:'high',players:target?[target]:[],sectors:target?[target.side]:[],expected:'Forçar duelos e decisões defensivas no setor do adversário amarelado'};
+    case 'DANGEROUS_CROSSES':return{id:'stop_dangerous_crosses',label:'Bloquear cruzamentos perigosos',objective:'defend',crossType:'low',pressOrientation:m.attacksAgainstL>=m.attacksAgainstR?'left':'right',instructions:{outOfPossession:{preventCross:true,protectBox:true,marking:'mixed',orientation:m.attacksAgainstL>=m.attacksAgainstR?'left':'right'}},axes:{width:8,line:-5},intensity:'high',sectors:['wide','box'],expected:'Reduzir cruzamentos limpos e duelos aéreos adversários'};
+    case 'LOW_ZONE_OCCUPANCY':return{id:'occupy_zone_'+(d.affectedSectors&&d.affectedSectors[0]),label:'Reocupar zona vazia',objective:'control',attackFocus:d.affectedSectors&&d.affectedSectors[0],axes:{width:4},intensity:'medium',sectors:d.affectedSectors||[],expected:'Restaurar cobertura e linha de passe na zona pouco ocupada'};
+    case 'ROLE_MISMATCH':return{id:'fix_role_'+(target&&target.id),label:'Corrigir função incompatível',objective:'control',playerRole:target&&{id:target.id,inPossession:{position:target.slot,role:target.ipRole||'support',duty:'support'},outOfPossession:{position:target.slot,role:target.oopRole||'cover',duty:'defend'}},intensity:'medium',players:target?[target]:[],sectors:['role-structure'],expected:'Alinhar função e dever à posição real do jogador'};
+    case 'TACTICAL_CONFLICT':return{id:'restore_coherence',label:'Restaurar coerência tática',objective:'control',preset:'balanced',intensity:'medium',sectors:['team-structure'],expected:'Eliminar instruções contraditórias'};
+  }
+  return null;
+}
+function applyAxes(sim,t,mods){if(!mods||typeof sim.setAxes!=='function')return false;const tm=sim.teams[t],a=Object.assign({line:50,press:50,width:50,tempo:50,posture:50},tm._axes||{});for(const k of ['line','press','width','tempo','posture'])if(Number.isFinite(mods[k]))a[k]=C((a[k]==null?50:a[k])+mods[k],0,100);return sim.setAxes(t,a);}
+function restoreShift(tm,state,key,classes){const cur=state[key];if(cur&&cur.delta){for(const p of tm.players){if(p.isGK||!classes(p))continue;p.dhy-=cur.delta;p.hy-=cur.delta;p.ahy-=cur.delta;}}state[key]=null;}
+function shiftSide(tm,state,side){
+  restoreShift(tm,state,'sideShift',p=>LINE[p.slotPos]==='DEF'||p.slotPos==='CDM');
+  if(!side)return;
+  const delta=side==='L'||side==='left'?-2.6:2.6;
+  for(const p of tm.players){if(p.isGK)continue;if(LINE[p.slotPos]==='DEF'||p.slotPos==='CDM'){p.dhy=C(p.dhy+delta,2,66);p.hy=C(p.hy+delta,2,66);p.ahy=C(p.ahy+delta,2,66);}}
+  state.sideShift={side,delta};
+}
+function shiftAttackFocus(tm,state,side){
+  restoreShift(tm,state,'attackFocus',p=>LINE[p.slotPos]==='FWD'||LINE[p.slotPos]==='MID');
+  if(!side||side==='central'||side==='centre')return;
+  const left=String(side).includes('left'),right=String(side).includes('right');if(!left&&!right)return;
+  const delta=left?-2.2:2.2;
+  for(const p of tm.players){if(p.isGK)continue;const ln=LINE[p.slotPos];if(ln==='FWD'||ln==='MID'){p.ahy=C(p.ahy+delta,2,66);p.hy=C(p.hy+delta*.45,2,66);p.dhy=C(p.dhy+delta*.25,2,66);}}
+  state.attackFocus={side,delta};
+}
+function orientPress(tm,state,side){
+  restoreShift(tm,state,'pressOrientation',p=>LINE[p.slotPos]==='FWD'||LINE[p.slotPos]==='MID');
+  if(!side||side==='balanced'||side==='centre'||side==='central')return;
+  const delta=String(side).includes('left')?-1.8:1.8;
+  for(const p of tm.players){if(p.isGK)continue;const ln=LINE[p.slotPos];if(ln==='FWD'||ln==='MID'){p.dhy=C(p.dhy+delta,2,66);p.hy=C(p.hy+delta,2,66);}}
+  state.pressOrientation={side,delta};
+}
+function applyPlayerRole(sim,t,change){if(!change||change.id==null||typeof sim.setPlayerPhaseRole!=='function')return null;const tm=sim.teams[t],p=tm.players.find(x=>playerId(x)===change.id||String(playerId(x))===String(change.id));if(!p)return null;const before={id:playerId(p),name:playerName(p),inPossession:{position:p.ipPos||p.slotPos,role:p.ipRole||p.role||'support',duty:p.ipDuty||'support'},outOfPossession:{position:p.oopPos||p.slotPos,role:p.oopRole||'cover',duty:p.oopDuty||'defend'}};if(!p.phaseRole)p.phaseRole=clone({inPossession:before.inPossession,outOfPossession:before.outOfPossession});const payload={};if(change.inPossession)payload.inPossession=Object.assign({},before.inPossession,change.inPossession);if(change.outOfPossession)payload.outOfPossession=Object.assign({},before.outOfPossession,change.outOfPossession);for(const phase of ['inPossession','outOfPossession'])if(payload[phase])for(const k of Object.keys(payload[phase]))if(payload[phase][k]==null)delete payload[phase][k];const after=sim.setPlayerPhaseRole(t,p.idx,payload);return after?{before,after:clone(after)}:null;}
+function bestBench(tm,wantedLine){let bi=-1,best=-1;for(let i=0;i<(tm.bench||[]).length;i++){const b=tm.bench[i],ln=LINE[b.slot||b.pos]||'MID';if((b.slot||b.pos)==='GK')continue;const fit=ln===wantedLine?12:wantedLine==='FWD'&&ln==='MID'?4:wantedLine==='DEF'&&ln==='MID'?2:0;const score=(b.r||60)+fit;if(score>best){best=score;bi=i;}}return bi;}
+function chooseOut(tm,mode){let idx=-1,score=1e9;for(let i=0;i<tm.players.length;i++){const p=tm.players[i];if(p.red||p.isGK)continue;const ln=LINE[p.slotPos]||'MID';let s=(p.rating||6)*10+p.stamina*.25+(p.ref.r||60)*.15;if(mode==='attack'&&ln==='DEF')s-=16;if(mode==='defend'&&ln==='FWD')s-=14;if(mode==='physical')s=p.stamina+(p.rating||6)*2;if(mode==='disciplinary')s=p.yellow?0+(p.rating||6):100+(p.rating||6);if(s<score){score=s;idx=i;}}return idx;}
+function makeSubstitution(sim,t,mode){const tm=sim.teams[t],state=tm.managerAI;if(tm.subsLeft<=0||state.subsMade>=3||!tm.bench||!tm.bench.length)return null;if(sim.minute-state.lastSubMinute<11)return null;const critical=tm.players.some(p=>!p.red&&!p.isGK&&p.stamina<44);if(mode!=='disciplinary'&&!critical&&sim.minute<state.profile.substitutionTiming-6)return null;const outIdx=chooseOut(tm,mode),out=tm.players[outIdx];if(!out)return null;let wanted=LINE[out.slotPos]||'MID';if(mode==='attack')wanted='FWD';else if(mode==='defend')wanted='DEF';const bi=bestBench(tm,wanted);if(bi<0)return null;const incoming=tm.bench[bi],outName=out.ref&&out.ref.n,inName=incoming.n;if(!sim.substitute(t,outIdx,incoming))return null;blankManagerStats(sim.stats[t]).managerSubstitutions++;state.subsMade++;state.lastSubMinute=sim.minute;return{out:outName,in:inName,mode};}
+function evaluateChange(sim,t,force){const tm=sim.teams[t],state=tm.managerAI,pending=state.pendingEvaluation;if(!pending)return null;const elapsed=sim.minute-pending.minute;if(!force&&elapsed<state.profile.reviewMinutes)return null;const after=metricSnapshot(sim,t),d=windowDelta(pending.before,after);let score=0;if(pending.objective==='attack')score=d.xgFor*1.35+d.shotsFor*.07-d.xgAgainst*.55;else if(pending.objective==='defend')score=-d.xgAgainst*1.45-d.shotsAgainst*.06+d.xgFor*.25;else score=(d.possession-.5)*1.5+d.xgFor*.55-d.xgAgainst*.7;score=C(score,-1,1);const outcome=score>.06?'positive':score<-.08?'negative':'inconclusive',success=outcome==='positive'?true:outcome==='negative'?false:null;const st=blankManagerStats(sim.stats[t]);st.managerEvaluations++;if(outcome==='positive')st.managerSuccessfulChanges++;else if(outcome==='negative')st.managerFailedChanges++;else st.managerInconclusiveChanges++;
+  let decision=outcome==='positive'?'maintain':outcome==='negative'?'adjust':'maintain';
+  pending.entry.evaluation={minute:Math.floor(sim.minute),score:+score.toFixed(3),outcome,success,window:d,decision};
+  sim._emit('manager_evaluation',{team:t,action:pending.action,label:pending.entry.action.label,outcome,success,score,decision});
+  if(!success&&score<-.22&&state.profile.adaptability>=75&&!pending.emergency&&!pending.entry.substitution){
+    const prev=pending.previous;let restored=false;
+    if(prev.instructions&&typeof sim.setTeamInstructions==='function'){try{sim.setTeamInstructions(t,prev.instructions);restored=true;}catch(_){}}
+    if(prev.axes&&typeof sim.setAxes==='function'){try{sim.setAxes(t,prev.axes);restored=true;}catch(_){}}
+    if(prev.defForm&&prev.atkForm&&typeof sim.setShapes==='function'){try{sim.setShapes(t,prev.defForm,prev.defVar||0,prev.atkForm,prev.atkVar||0);restored=true;}catch(_){}}
+    try{shiftSide(tm,state,prev.sideShift&&prev.sideShift.side||null);shiftAttackFocus(tm,state,prev.attackFocus&&prev.attackFocus.side||null);orientPress(tm,state,prev.pressOrientation&&prev.pressOrientation.side||null);restored=true;}catch(_){}
+    if(Array.isArray(prev.roles)&&typeof sim.setPlayerPhaseRole==='function')for(const r of prev.roles){try{const rp=tm.players.find(x=>playerId(x)===r.id||String(playerId(x))===String(r.id));if(rp){sim.setPlayerPhaseRole(t,rp.idx,{inPossession:r.inPossession,outOfPossession:r.outOfPossession});restored=true;}}catch(_){}}
+    if(restored){st.managerReversals++;pending.entry.reverted=true;pending.entry.evaluation.decision='revert';decision='revert';sim._emit('manager_reversal',{team:t,action:pending.action,reason:'A mudança não melhorou os indicadores'});}
+  }
+  pending.entry.afterEvaluationConfig=snapshotTeamState(tm);state.pendingEvaluation=null;return pending.entry.evaluation;
+}
+function knownFoot(p){const r=p&&p.ref||{};return r.foot||r.preferredFoot||r.peDominante||r.dominantFoot||'unknown';}
+function preMatchPlan(sim,t){const tm=sim.teams[t],state=tm.managerAI;if(state.preMatch)return state.preMatch;const opp=sim.teams[1-t],profile=state.profile,forwards=opp.players.filter(p=>LINE[p.slotPos]==='FWD'),pace=avg(forwards,p=>(getAttr(p,'ritmo')+getAttr(p,'aceleracao'))/2,60),air=avg(forwards,p=>(getAttr(p,'cabecalho')+getAttr(p,'impulsao'))/2,60),gk=opp.players.find(p=>p.isGK),gkBuild=gk?avg([gk],p=>(getAttr(p,'passe')+getAttr(p,'decisao')+getAttr(p,'visao'))/3,60):null;
+  const keys=opp.players.filter(p=>!p.red).slice().sort((a,b)=>(b.ref&&b.ref.r||0)-(a.ref&&a.ref.r||0)).slice(0,3).map(p=>({id:playerId(p),name:playerName(p),position:p.slotPos,overall:p.ref&&p.ref.r||null,dominantFoot:knownFoot(p),likelyRole:{inPossession:p.ipRole||p.role||null,outOfPossession:p.oopRole||null}}));
+  const context=visibleTournamentContext(opp),fatigueVisible=Number.isFinite(context.fatigue)?context.fatigue:+avg(opp.players.filter(p=>!p.red),p=>100-p.stamina,0).toFixed(1),cards=context.cards||{yellow:opp.players.filter(p=>p.yellow).map(p=>playerName(p)),red:opp.players.filter(p=>p.red).map(p=>playerName(p))},suspensions=context.suspensions,injuries=context.injuries||opp.players.filter(p=>p._injured).map(p=>playerName(p));
+  let preset='balanced',reason='Plano equilibrado para iniciar a leitura da partida';if(profile.key==='aggressive')preset='highPress',reason='Perfil agressivo: pressionar a primeira construção';else if(profile.key==='possession')preset='possession',reason='Perfil controlador: dominar bola e território';else if(gkBuild!=null&&gkBuild<55&&profile.pressingPreference>=60)preset='highPress',reason='Goleiro adversário limitado com a bola: orientar pressão sobre a saída';else if(pace>=78)preset='counter',reason='Ataque adversário veloz: controlar profundidade e transitar';else if(profile.defensivePreference>=68)preset='lowBlock',reason='Perfil pragmático: proteger zonas centrais';
+  if(typeof sim.setTeamInstructions==='function')sim.setTeamInstructions(t,preset);
+  if(air>=76&&typeof sim.setTeamInstructions==='function')sim.setTeamInstructions(t,{outOfPossession:{preventCross:true,protectBox:true}});
+  if(pace>=78)applyAxes(sim,t,{line:-9,press:-3});if(gkBuild!=null&&gkBuild<55)orientPress(tm,state,'centre');
+  state.preMatch={minute:0,preset,reason,opponent:{name:opp.name,form:{inPossession:opp.atkForm||null,outOfPossession:opp.defForm||null},style:opp.styleKey||null,keyPlayers:keys,pace:+pace.toFixed(1),aerial:+air.toFixed(1),goalkeeperBuild:gkBuild==null?null:+gkBuild.toFixed(1),recentResults:context.recentResults,fatigue:fatigueVisible,cards,suspensions:suspensions||'unknown',injuries:injuries||'unknown'}};
+  const evidence=[`Velocidade ofensiva rival ${pace.toFixed(1)}`,`Ameaça aérea ${air.toFixed(1)}`,`Jogadores-chave: ${keys.map(k=>k.name).join(', ')||'não identificados'}`,`Goleiro com a bola: ${gkBuild==null?'desconhecido':gkBuild.toFixed(1)}`,`Contexto recente: ${context.recentResults?context.recentResults.join(', '):'desconhecido'}`];
+  const entry={minute:0,type:'pre_match',diagnosis:'Plano pré-jogo',evidence,affectedPlayers:keys,affectedSectors:['team-plan'],intensity:'baseline',action:{id:'pre_match_'+preset,label:'Plano '+preset},expected:reason,decision:'maintain'};state.history.push(entry);blankManagerStats(sim.stats[t]).managerPreMatchPlans++;sim._emit('manager_plan',{team:t,profile:profile.label,preset,reason,evidence});return state.preMatch;
+}
+function applyAction(sim,t,diag,action){const tm=sim.teams[t],state=tm.managerAI,previous=snapshotTeamState(tm);let changed=false,substitution=null,roleChange=null;
+  if(action.preset&&typeof sim.setTeamInstructions==='function'){sim.setTeamInstructions(t,action.preset);changed=true;}
+  if(action.instructions&&typeof sim.setTeamInstructions==='function'){sim.setTeamInstructions(t,action.instructions);changed=true;}
+  if(action.crossType&&typeof sim.setTeamInstructions==='function'){sim.setTeamInstructions(t,{inPossession:{finalThird:{crossType:action.crossType}}});blankManagerStats(sim.stats[t]).managerCrossChanges++;changed=true;}
+  if(action.axes){applyAxes(sim,t,action.axes);changed=true;}
+  if(action.shape&&typeof sim.setShapes==='function'){const df=availableForm(action.shape.def)?action.shape.def:tm.defForm,af=availableForm(action.shape.atk)?action.shape.atk:tm.atkForm;try{sim.setShapes(t,df||'4-3-3',0,af||'4-3-3',0);changed=true;}catch(_){}}
+  if(action.side){shiftSide(tm,state,action.side);changed=true;}
+  if(action.attackFocus){shiftAttackFocus(tm,state,action.attackFocus);changed=true;}
+  if(action.pressOrientation){orientPress(tm,state,action.pressOrientation);blankManagerStats(sim.stats[t]).managerPressOrientations++;changed=true;}
+  if(action.playerRole){roleChange=applyPlayerRole(sim,t,action.playerRole);if(roleChange){const st=blankManagerStats(sim.stats[t]);st.managerRoleChanges++;if(JSON.stringify(roleChange.before.inPossession)!==JSON.stringify(roleChange.after.inPossession)||JSON.stringify(roleChange.before.outOfPossession)!==JSON.stringify(roleChange.after.outOfPossession))st.managerDutyChanges++;changed=true;}}
+  if(action.sub&&sim.minute-state.lastSubMinute>=6){substitution=makeSubstitution(sim,t,action.sub);if(substitution)changed=true;}
+  if(!changed)return null;
+  const now=metricSnapshot(sim,t),entry={minute:Math.floor(sim.minute),type:'change',diagnosis:diag.label,diagnosisCode:diag.code,evidence:[diag.evidence],severity:+diag.severity.toFixed(3),affectedPlayers:clone(action.players||diag.affectedPlayers||[]),affectedSectors:clone(action.sectors||diag.affectedSectors||[]),intensity:action.intensity||'medium',action:{id:action.id,label:action.label},expected:action.expected,substitution,roleChange,beforeConfig:previous,afterConfig:snapshotTeamState(tm),decision:'pending'};
+  if(entry.affectedPlayers.length)blankManagerStats(sim.stats[t]).managerTargetedPlayers+=entry.affectedPlayers.length;
+  state.history.push(entry);state.lastActionMinute=sim.minute;state.tried[action.id]=sim.minute;state.currentDiagnosis=diag;blankManagerStats(sim.stats[t]).managerChanges++;
+  state.pendingEvaluation={minute:sim.minute,action:action.id,objective:action.objective,before:now,previous,entry,emergency:['RED_CARD','LOSING_LATE','LEADING_LATE'].includes(diag.code)};
+  sim._emit('manager_change',{team:t,profile:state.profile.label,diagnosis:diag.label,action:action.label,expected:action.expected,substitution,affectedPlayers:entry.affectedPlayers,affectedSectors:entry.affectedSectors,intensity:entry.intensity});return entry;
+}
+const Q=M.prototype;Q.__P9__=true;
+const oldBuild=Q._buildTeam;Q._buildTeam=function(source,side){const tm=oldBuild.call(this,source,side);tm.managerAI={profile:deriveProfile(source,tm),knowledge:clone(source&&((source.managerKnowledge)||(source.tournamentContext)||(source.phase9Context))||{}),preMatch:null,history:[],diagnoses:[],currentDiagnosis:null,pendingEvaluation:null,lastThinkMinute:-99,lastActionMinute:-99,lastSubMinute:-99,lastNoActionMinute:-99,subsMade:0,tried:Object.create(null),sideShift:null,attackFocus:null,pressOrientation:null};return tm;};
+const oldBlank=Q._blankStats;Q._blankStats=function(){return blankManagerStats(oldBlank.call(this));};
+const oldInteractive=Q.setInteractive;Q.setInteractive=function(team){const out=oldInteractive.call(this,team);if(this._aiTeam===0||this._aiTeam===1)preMatchPlan(this,this._aiTeam);return out;};
+Q.setManagerProfile=function(team,profile){const tm=this.teams[team];if(!tm)return false;tm.managerAI=tm.managerAI||{};tm.managerAI.profile=typeof profile==='string'&&PROFILE_TEMPLATES[profile]?clone(PROFILE_TEMPLATES[profile]):Object.assign({},tm.managerAI.profile||PROFILE_TEMPLATES.adaptive,clone(profile||{}));return clone(tm.managerAI.profile);};
+Q._phase9Evaluate=function(team,force){return evaluateChange(this,team,!!force);};
+function recordNoAction(sim,t,state,diag,reason){if(sim.minute-state.lastNoActionMinute<4)return null;const entry={minute:Math.floor(sim.minute),type:'no_action',diagnosis:diag&&diag.label||'Sem diagnóstico prioritário',diagnosisCode:diag&&diag.code||null,evidence:diag?[diag.evidence]:[],affectedPlayers:clone(diag&&diag.affectedPlayers||[]),affectedSectors:clone(diag&&diag.affectedSectors||[]),intensity:'none',action:{id:'hold',label:'Manter configuração'},expected:reason,decision:'maintain'};state.history.push(entry);state.lastNoActionMinute=sim.minute;blankManagerStats(sim.stats[t]).managerNoActions++;return entry;}
+Q._phase9Think=function(team,force){const t=team===1?1:0,tm=this.teams[t],state=tm.managerAI;if(!state)return null;preMatchPlan(this,t);evaluateChange(this,t,false);const interval=C(10-state.profile.adaptability/30,6,9);if(!force&&this.minute-state.lastThinkMinute<interval)return null;state.lastThinkMinute=this.minute;const metrics=metricSnapshot(this,t),diags=diagnose(this,t,metrics);state.diagnoses=diags.slice(0,7);const st=blankManagerStats(this.stats[t]);st.managerAnalyses++;st.managerDiagnoses+=diags.length;if(!diags.length)return recordNoAction(this,t,state,null,'Nenhuma evidência atingiu o limiar de intervenção');
+  const emergency=diags[0].severity>=.9;const changeLimit=emergency?6:5;if(st.managerChanges>=changeLimit)return recordNoAction(this,t,state,diags[0],`Limite de ${changeLimit} intervenções autônomas atingido; manter estrutura`);if(state.pendingEvaluation&&!emergency)return recordNoAction(this,t,state,diags[0],'Mudança anterior ainda está em período mínimo de avaliação');
+  const cooldown=C(state.profile.persistence-(state.profile.adaptability-50)/12,8,16);if(!force&&!emergency&&this.minute-state.lastActionMinute<cooldown)return recordNoAction(this,t,state,diags[0],'Persistir na mudança anterior antes de novo ajuste');
+  let chosen=null;for(const d of diags){const a=actionFor(d,this,t,state.profile);if(!a)continue;const last=state.tried[a.id],repeatWindow=state.profile.persistence+(d.code==='LOSING_LATE'?9:7);if(last!=null&&this.minute-last<repeatWindow)continue;const personality=(a.objective==='attack'?(state.profile.riskTolerance*.7+state.profile.aggression*.3):a.objective==='defend'?state.profile.defensivePreference:state.profile.possessionPreference)/100*.1;const score=d.severity+personality;if(score>=state.profile.evidenceThreshold&&(!chosen||score>chosen.score))chosen={diag:d,action:a,score};}
+  if(!chosen)return recordNoAction(this,t,state,diags[0],'Evidência insuficiente ou resposta já utilizada recentemente');return applyAction(this,t,chosen.diag,chosen.action);
+};
+Q.getManagerData=function(team){const t=team===1?1:0,tm=this.teams[t],s=blankManagerStats(this.stats[t]),state=tm.managerAI;return{version:VERSION,team:t,profile:clone(state.profile),knowledge:clone(state.knowledge),preMatch:clone(state.preMatch),currentDiagnosis:clone(state.currentDiagnosis),diagnoses:clone(state.diagnoses),pendingEvaluation:state.pendingEvaluation?{minute:state.pendingEvaluation.minute,action:state.pendingEvaluation.action,objective:state.pendingEvaluation.objective,entry:clone(state.pendingEvaluation.entry)}:null,history:clone(state.history),metrics:{analyses:s.managerAnalyses,diagnoses:s.managerDiagnoses,changes:s.managerChanges,substitutions:s.managerSubstitutions,evaluations:s.managerEvaluations,successful:s.managerSuccessfulChanges,failed:s.managerFailedChanges,inconclusive:s.managerInconclusiveChanges,reversals:s.managerReversals,preMatchPlans:s.managerPreMatchPlans,noActions:s.managerNoActions,roleChanges:s.managerRoleChanges,dutyChanges:s.managerDutyChanges,pressOrientations:s.managerPressOrientations,crossChanges:s.managerCrossChanges,targetedPlayers:s.managerTargetedPlayers,stateExports:s.managerStateExports,stateImports:s.managerStateImports}};};
+Q._aiReact=function(){const t=this._aiTeam;if(t===0||t===1)this._phase9Think(t,false);};
+const oldAdvanced=Q.getAdvancedData;Q.getAdvancedData=function(team){const out=oldAdvanced?oldAdvanced.call(this,team):{};out.engineVersion=VERSION;out.phase9=this.getManagerData(team);return out;};
+Q.exportManagerState=function(team){const t=team===1?1:0,tm=this.teams[t],state=tm&&tm.managerAI;if(!state)return null;blankManagerStats(this.stats[t]).managerStateExports++;return{version:VERSION,team:t,state:clone(state),teamConfig:snapshotTeamState(tm)};};
+Q.importManagerState=function(team,payload){const t=team===1?1:0,tm=this.teams[t];if(!tm||!payload||!payload.state)return false;const incoming=clone(payload.state),cfg=clone(payload.teamConfig||null);incoming.profile=Object.assign({},PROFILE_TEMPLATES.adaptive,incoming.profile||{});incoming.history=Array.isArray(incoming.history)?incoming.history:[];incoming.diagnoses=Array.isArray(incoming.diagnoses)?incoming.diagnoses:[];incoming.tried=incoming.tried||Object.create(null);const savedSide=incoming.sideShift&&incoming.sideShift.side,savedAttack=incoming.attackFocus&&incoming.attackFocus.side,savedPress=incoming.pressOrientation&&incoming.pressOrientation.side;incoming.sideShift=null;incoming.attackFocus=null;incoming.pressOrientation=null;tm.managerAI=Object.assign(tm.managerAI||{},incoming);try{if(cfg){if(cfg.instructions&&typeof this.setTeamInstructions==='function')this.setTeamInstructions(t,cfg.instructions);if(cfg.axes&&typeof this.setAxes==='function')this.setAxes(t,cfg.axes);if(cfg.defForm&&cfg.atkForm&&typeof this.setShapes==='function')this.setShapes(t,cfg.defForm,cfg.defVar||0,cfg.atkForm,cfg.atkVar||0);if(Array.isArray(cfg.roles)&&typeof this.setPlayerPhaseRole==='function')for(const r of cfg.roles){const rp=tm.players.find(x=>playerId(x)===r.id||String(playerId(x))===String(r.id));if(rp)this.setPlayerPhaseRole(t,rp.idx,{inPossession:r.inPossession,outOfPossession:r.outOfPossession});}}shiftSide(tm,tm.managerAI,savedSide||null);shiftAttackFocus(tm,tm.managerAI,savedAttack||null);orientPress(tm,tm.managerAI,savedPress||null);}catch(_){return false;}blankManagerStats(this.stats[t]).managerStateImports++;return true;};
+const oldState=Q.getState;Q.getState=function(){const out=oldState.call(this);out.engineVersion=VERSION;out.phase9=this.teams.map((tm,i)=>({version:VERSION,team:i,state:clone(tm.managerAI),teamConfig:snapshotTeamState(tm)}));return out;};
+if(!NODE&&typeof document!=='undefined'){
+  const Old=root.MatchSim;class Active extends Old{constructor(){super(...arguments);root.__CDS_ACTIVE_SIM=this;}}root.MatchSim=Active;
+  const boot=()=>{if(document.getElementById('p9btn'))return;const css=document.createElement('style');css.textContent='#p9btn{position:fixed;left:12px;bottom:12px;z-index:999999;border:1px solid #64d8ff;border-radius:999px;background:#0b1726;color:#a9edff;padding:9px 12px;font:700 11px system-ui}#p9box{position:fixed;inset:0;z-index:1000001;background:#020712dd;display:none;place-items:end center;padding:12px;color:#fff;font-family:system-ui}#p9box.on{display:grid}#p9box>div{width:min(760px,100%);max-height:86vh;overflow:auto;background:#0b1425;border:1px solid #29536d;border-radius:18px;padding:15px}.p9card{background:#101d30;border:1px solid #203c58;border-radius:10px;padding:10px;margin:8px 0}.p9ev{font-size:12px;color:#b8c9d9;margin-top:4px}';document.head.appendChild(css);const b=document.createElement('button');b.id='p9btn';b.textContent='IA DO TREINADOR 5.2.2';const x=document.createElement('div');x.id='p9box';x.innerHTML='<div><button id="p9close" style="float:right">×</button><h3>Leitura do treinador adversário — 5.2.2</h3><main></main></div>';document.body.append(b,x);const esc=s=>String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));const paint=()=>{const sim=root.__CDS_ACTIVE_SIM,m=x.querySelector('main');if(!sim)return m.innerHTML='<p>Inicie uma partida.</p>';const side=sim._aiTeam===0?0:1,d=sim.getManagerData(side);m.innerHTML='<div class="p9card"><b>'+esc(d.profile.label)+'</b><div class="p9ev">Adaptabilidade '+d.profile.adaptability+' · Risco '+d.profile.riskTolerance+' · Pressão '+d.profile.pressingPreference+'</div></div>'+(d.currentDiagnosis?'<div class="p9card"><b>Diagnóstico atual</b><div>'+esc(d.currentDiagnosis.label)+'</div><div class="p9ev">'+esc(d.currentDiagnosis.evidence)+'</div></div>':'')+'<h4>Decisões</h4>'+d.history.slice(-8).reverse().map(h=>'<div class="p9card"><b>'+h.minute+'’ · '+esc(h.action&&h.action.label||h.diagnosis)+'</b><div>'+esc(h.diagnosis||'')+'</div><div class="p9ev">'+esc(h.expected||'')+(h.evaluation?' · avaliação '+h.evaluation.score:'')+'</div></div>').join('')+'<p>Análises: '+d.metrics.analyses+' · Mudanças: '+d.metrics.changes+' · Subs: '+d.metrics.substitutions+' · Reversões: '+d.metrics.reversals+'</p>';};b.onclick=()=>{x.classList.add('on');paint();};x.querySelector('#p9close').onclick=()=>x.classList.remove('on');};document.readyState==='loading'?document.addEventListener('DOMContentLoaded',boot):boot();
+}
+const API={VERSION,PROFILES:PROFILE_TEMPLATES,deriveProfile,metricSnapshot,diagnose,actionFor,applyAction,preMatchPlan,getManagerData:(sim,team)=>sim.getManagerData(team),installed:true};root.CDS_PHASE9=API;if(NODE)module.exports=API;
+})(typeof window!=='undefined'?window:globalThis);
+
+/* Copa dos Sonhos — Contrato de save versionado.
+   Regras:
+   - todo save carrega `v` (schema) e `engineVersion`;
+   - saves antigos passam por migrações encadeadas;
+   - versão futura/desconhecida ou estrutura inválida → null;
+   - campos novos entram com defaults neutros, sem inventar progresso. */
+(function (root) {
+'use strict';
+const SAVE_VERSION = 3;
+
+const MIGRATIONS = {
+  1: function (s) {
+    return Object.assign({}, s, {
+      v: 2,
+      engineVersion: s.engineVersion || 'legacy-4.x',
+      savedAt: s.savedAt || null,
+      instructions: s.instructions || null,
+      instructionPreset: s.instructionPreset || null,
+      phaseRoles: s.phaseRoles || null,
+      manager: s.manager || null,
+    });
+  },
+  2: function (s) {
+    const cup = s.cup && typeof s.cup === 'object' ? s.cup : null;
+    return Object.assign({}, s, {
+      v: 3,
+      phase10Version: 1,
+      phase10: s.phase10 || (cup && cup.persistence) || null,
+      preparationSelection: s.preparationSelection || null,
+    });
+  },
+};
+
+function migrateSave(s) {
+  if (!s || typeof s.v !== 'number') return null;
+  s = Object.assign({}, s);
+  let guard = 0;
+  while (s.v < SAVE_VERSION && guard++ < 16) {
+    const up = MIGRATIONS[s.v];
+    if (!up) return null;
+    s = up(s);
+  }
+  return s.v === SAVE_VERSION ? s : null;
+}
+function validateSave(s) {
+  return !!(s && s.v === SAVE_VERSION && s.cup && typeof s.cup === 'object'
+    && Array.isArray(s.picks) && s.picks.length >= 11);
+}
+function decodeSave(json) {
+  let s;
+  try { s = JSON.parse(json); } catch (_) { return null; }
+  s = migrateSave(s);
+  return validateSave(s) ? s : null;
+}
+function encodeSave(s) {
+  const migrated = migrateSave(s);
+  if (!validateSave(migrated)) return null;
+  try { return JSON.stringify(migrated); } catch (_) { return null; }
+}
+
+const API = { SAVE_VERSION, MIGRATIONS, migrateSave, validateSave, decodeSave, encodeSave };
+root.CDS_SAVE_CONTRACT = API;
+if (typeof module !== 'undefined' && module.exports) module.exports = API;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* Copa dos Sonhos — Fase 10 · Persistência da Copa
+   Cada partida deixa consequências explícitas para a próxima:
+   condição, fadiga acumulada, lesões, cartões, suspensões, forma recente,
+   confiança contextual, adaptação à função, sequência de gols e preparação.
+   Não há moral/química como bônus mágico: os efeitos entram somente nos
+   mecanismos que representam (fôlego inicial, execução, leitura, bola parada). */
+(function (root) {
+'use strict';
+const C = (typeof module !== 'undefined' && module.exports) ? require('./20-core.js') : root;
+const clamp = C.clamp || ((v,a,b)=>Math.max(a,Math.min(b,v)));
+const VERSION = '1.0.0';
+const ENGINE_VERSION = '5.3.0';
+const STATE_VERSION = 1;
+
+const PREPARATIONS = Object.freeze({
+  recovery: Object.freeze({
+    key:'recovery', label:'Recuperação física', icon:'🫁',
+    description:'+12 de condição e −8 de fadiga acumulada para o elenco. Sem bônus técnico.',
+    effects:Object.freeze({ recovery:12, fatigueRelief:8 })
+  }),
+  tactical: Object.freeze({
+    key:'tactical', label:'Treino tático', icon:'🧠',
+    description:'+6% de familiaridade nas funções atuais e até +1,2% de execução na próxima partida.',
+    effects:Object.freeze({ roleLearning:.06, execution:.012 })
+  }),
+  setpieces: Object.freeze({
+    key:'setpieces', label:'Bolas paradas', icon:'🎯',
+    description:'+3,5% de execução em faltas, escanteios e pênaltis na próxima partida.',
+    effects:Object.freeze({ setPiece:.035 })
+  }),
+  finishing: Object.freeze({
+    key:'finishing', label:'Finalização', icon:'🥅',
+    description:'+2,5% de execução dos chutes na próxima partida. Não altera o atributo permanente.',
+    effects:Object.freeze({ shot:.025 })
+  }),
+  defensive: Object.freeze({
+    key:'defensive', label:'Preparação defensiva', icon:'🛡️',
+    description:'+2,5% de execução em pressão, cobertura e duelos defensivos na próxima partida.',
+    effects:Object.freeze({ defend:.025 })
+  })
+});
+
+function playerKey(p) {
+  if (!p) return null;
+  return String(p.id != null ? p.id : (p.n || 'unknown') + '#' + (p.slot || p.pos || ''));
+}
+function roleKey(slot) {
+  if (!slot) return 'unknown|unknown|bal';
+  const p = slot.p || slot.ref || slot;
+  return [slot.pos || p.slot || p.pos || 'CM', slot.role || 'default', slot.focus || 'bal'].join('|');
+}
+function stateKey(p, sid) { return String(sid == null ? 'GLOBAL' : sid) + '::' + playerKey(p); }
+function blankPlayer(p, sid) {
+  return {
+    key:stateKey(p,sid), id: playerKey(p), sid: sid || null, name: (p && p.n) || '',
+    condition:100, cumulativeFatigue:0,
+    injuryMatches:0, injuryType:null, suspensionMatches:0, yellowCards:0,
+    recentForm:[], confidence:{ finishing:0, defending:0, decision:0 },
+    roleFamiliarity:{}, scoringStreak:0,
+    appearances:0, starts:0, benchAppearances:0, minutes:0,
+    lastMinutes:0, lastStarted:false, lastRating:6, lastGoals:0,
+    lastRole:null, lastMatchIndex:0
+  };
+}
+function blankTeam(sid) {
+  return {
+    sid, matches:0, pendingPreparation:true, activePreparation:null,
+    lastPreparation:null, preparationHistory:[], recoveryAppliedFor:-1,
+    knockoutPressure:0, lastExtraTime:false, lastUnavailable:[], lastReplacements:[]
+  };
+}
+function ensureCup(cup, db) {
+  if (!cup) return null;
+  if (!cup.persistence || cup.persistence.version !== STATE_VERSION) {
+    const old = cup.persistence || {};
+    cup.persistence = {
+      version:STATE_VERSION,
+      players:old.players || {}, teams:old.teams || {},
+      history:old.history || [], createdAtMatch:old.createdAtMatch || 0
+    };
+  }
+  const P = cup.persistence;
+  const sids = [];
+  if (cup.groups) for (const g of cup.groups) for (const sid of g.teams || []) if (!sids.includes(sid)) sids.push(sid);
+  if (cup.playerSid != null && !sids.includes(cup.playerSid)) sids.push(cup.playerSid);
+  if (db && db.byId) for (const sid of sids) {
+    const sq = db.byId[sid];
+    if (sq) registerTeam(cup, sq, sid);
+  }
+  return P;
+}
+function ensureTeam(cup, sid) {
+  ensureCup(cup);
+  const P = cup.persistence;
+  if (!P.teams[sid]) P.teams[sid] = blankTeam(sid);
+  return P.teams[sid];
+}
+function ensurePlayer(cup, p, sid) {
+  if (!p) return null;
+  ensureCup(cup);
+  const key = stateKey(p, sid);
+  if (!cup.persistence.players[key]) cup.persistence.players[key] = blankPlayer(p, sid);
+  const st = cup.persistence.players[key];
+  if (!st.sid && sid) st.sid = sid;
+  return st;
+}
+function registerTeam(cup, squad, sid) {
+  sid = sid != null ? sid : (squad && squad.sid);
+  if (sid == null) return null;
+  const ts = ensureTeam(cup, sid);
+  for (const p of (squad && squad.pl) || []) ensurePlayer(cup, p, sid);
+  return ts;
+}
+function status(cup, p, sid) {
+  let st;
+  if (sid != null) st = ensurePlayer(cup,p,sid);
+  else {
+    const id=playerKey(p); st=Object.values((ensureCup(cup)||{}).players||{}).find(x=>x.id===id) || ensurePlayer(cup,p,'GLOBAL');
+  }
+  return {
+    available:st.injuryMatches <= 0 && st.suspensionMatches <= 0,
+    injured:st.injuryMatches > 0, suspended:st.suspensionMatches > 0,
+    condition:Math.round(st.condition), fatigue:Math.round(st.cumulativeFatigue),
+    injuryMatches:st.injuryMatches, injuryType:st.injuryType,
+    suspensionMatches:st.suspensionMatches, yellowCards:st.yellowCards,
+    form:recentFormValue(st), scoringStreak:st.scoringStreak,
+    confidence:Object.assign({}, st.confidence)
+  };
+}
+function recentFormValue(st) {
+  const a = st && st.recentForm || [];
+  return a.length ? +(a.reduce((s,v)=>s+v,0)/a.length).toFixed(2) : 6;
+}
+function allRoster(team) {
+  const out=[], seen=new Set();
+  const add=p=>{ const k=playerKey(p); if(p && k && !seen.has(k)){seen.add(k);out.push(p);} };
+  for (const sl of team.lineup || []) add(sl.p || sl);
+  for (const p of team.bench || []) add(p.p || p);
+  for (const p of (team.squad && team.squad.pl) || []) add(p);
+  return out;
+}
+function applyBaseRecovery(cup, sid, team) {
+  const ts = ensureTeam(cup, sid);
+  if (ts.recoveryAppliedFor === ts.matches) return;
+  for (const p of allRoster(team)) {
+    const st = ensurePlayer(cup, p, sid);
+    const base = ts.matches === 0 ? 0 : (st.lastMinutes >= 45 ? 14 : st.lastMinutes > 0 ? 17 : 20);
+    st.condition = clamp(st.condition + base, 35, 100);
+    st.cumulativeFatigue = clamp(st.cumulativeFatigue - base * .70, 0, 100);
+  }
+  ts.recoveryAppliedFor = ts.matches;
+}
+function choosePreparation(cup, sid, choice, lineup, squadOrTeam, meta) {
+  const def = PREPARATIONS[choice];
+  if (!def) throw new Error('Preparação desconhecida: ' + choice);
+  const team = squadOrTeam && squadOrTeam.lineup ? squadOrTeam : {
+    squad:squadOrTeam || null, lineup:lineup || [], bench:(squadOrTeam && squadOrTeam.pl) || []
+  };
+  registerTeam(cup, team.squad || squadOrTeam, sid);
+  const ts = ensureTeam(cup, sid);
+  applyBaseRecovery(cup, sid, team);
+  const eff = Object.assign({}, def.effects);
+  if (eff.recovery || eff.fatigueRelief) for (const p of allRoster(team)) {
+    const st = ensurePlayer(cup, p, sid);
+    st.condition = clamp(st.condition + (eff.recovery || 0), 35, 100);
+    st.cumulativeFatigue = clamp(st.cumulativeFatigue - (eff.fatigueRelief || 0), 0, 100);
+  }
+  if (eff.roleLearning) for (const sl of lineup || team.lineup || []) {
+    const p = sl.p || sl, st = ensurePlayer(cup, p, sid), rk = roleKey(sl);
+    st.roleFamiliarity[rk] = clamp((st.roleFamiliarity[rk] == null ? .35 : st.roleFamiliarity[rk]) + eff.roleLearning, 0, 1);
+  }
+  const record = {
+    choice, label:def.label, selectedAtMatch:ts.matches,
+    forMatch:ts.matches + 1, effects:eff,
+    automatic:!!(meta && meta.automatic)
+  };
+  ts.activePreparation = record;
+  ts.lastPreparation = choice;
+  ts.pendingPreparation = false;
+  ts.preparationHistory.push(record);
+  if (ts.preparationHistory.length > 12) ts.preparationHistory.shift();
+  cup.persistence.history.push({ type:'preparation', sid, ...record });
+  return record;
+}
+function pressureForStage(stage) {
+  return ({groups:.05,r16:.35,qf:.55,sf:.75,third:.35,final:1})[stage] || 0;
+}
+function autoPreparationChoice(cup, sid, team) {
+  const roster=allRoster(team), avg=roster.length?roster.reduce((s,p)=>s+ensurePlayer(cup,p,sid).condition,0)/roster.length:100;
+  if (avg < 74) return 'recovery';
+  const ts=ensureTeam(cup,sid);
+  return ['tactical','defensive','setpieces','finishing'][ts.matches % 4];
+}
+function scoreReplacement(C0, p, sl) {
+  const pos=sl.pos || (sl.p && sl.p.slot) || 'CM';
+  let s=(p.r || 60);
+  if (C0.canPlay && Array.isArray(p.elig) && C0.canPlay(p,pos)) s+=35;
+  if ((C0.LINE_OF && C0.LINE_OF[p.slot]) === (C0.LINE_OF && C0.LINE_OF[pos])) s+=12;
+  if (p.slot===pos) s+=15;
+  return s;
+}
+function attachPlayer(cup, sid, p, sl, prep, ts) {
+  const st=ensurePlayer(cup,p,sid), rk=roleKey(sl || p);
+  const familiarity=st.roleFamiliarity[rk] == null ? .35 : st.roleFamiliarity[rk];
+  const conf=st.confidence || {finishing:0,defending:0,decision:0};
+  const effects=(prep && prep.effects) || {};
+  const persistence={
+    condition:st.condition, cumulativeFatigue:st.cumulativeFatigue,
+    roleFamiliarity:familiarity,
+    executionBonus:clamp((familiarity-.5)*.03 + (effects.execution||0) + (conf.decision||0),-.035,.035),
+    shotBonus:clamp((effects.shot||0)+(conf.finishing||0),-.03,.04),
+    setPieceBonus:clamp(effects.setPiece||0,0,.04),
+    defensiveBonus:clamp((effects.defend||0)+(conf.defending||0),-.03,.04),
+    importanceExtra:clamp(ts.knockoutPressure*.025,0,.025),
+    injuryRisk:clamp(.85 + st.cumulativeFatigue/100*.55, .80, 1.40),
+    scoringStreak:st.scoringStreak
+  };
+  const cp=Object.assign({},p,{_phase10Sid:sid,_phase10InitialStamina:clamp(st.condition,35,100),_phase10Persistence:persistence});
+  return { player:cp, persistence, status:st };
+}
+function prepareTeam(cup, team, sid, opts) {
+  opts=opts||{};
+  registerTeam(cup, team.squad, sid);
+  const ts=ensureTeam(cup,sid);
+  /* A pressão pertence à partida que será jogada, não à fase anterior.
+     Assim a estreia no mata-mata já recebe o contexto de oitavas/quartas/etc. */
+  if (opts.stage) ts.knockoutPressure=pressureForStage(opts.stage);
+  if (ts.pendingPreparation && !ts.activePreparation) {
+    const choice=opts.user ? 'recovery' : autoPreparationChoice(cup,sid,team);
+    choosePreparation(cup,sid,choice,team.lineup,team,{automatic:true});
+  } else applyBaseRecovery(cup,sid,team);
+  const prep=ts.activePreparation;
+  const lineup=(team.lineup||[]).map(sl=>Object.assign({},sl));
+  let bench=(team.bench||[]).slice();
+  /* Todo indisponível do elenco precisa cumprir a duração da lesão/suspensão,
+     mesmo quando era reserva. Antes apenas titulares bloqueados entravam no
+     snapshot e um reserva lesionado podia ficar congelado para sempre. */
+  const unavailable=allRoster(team).map(p=>({p,st:ensurePlayer(cup,p,sid)}))
+    .filter(x=>x.st.injuryMatches>0||x.st.suspensionMatches>0)
+    .map(x=>({id:x.st.key,name:x.p.n,reason:x.st.injuryMatches>0?'injury':'suspension',matches:Math.max(x.st.injuryMatches,x.st.suspensionMatches),starter:false}));
+  const replacements=[];
+  const used=new Set(lineup.map(sl=>playerKey(sl.p)));
+  for(let i=0;i<lineup.length;i++){
+    const sl=lineup[i], st=ensurePlayer(cup,sl.p,sid);
+    if(st.injuryMatches<=0 && st.suspensionMatches<=0) continue;
+    const listed=unavailable.find(x=>x.id===st.key); if(listed) listed.starter=true;
+    const candidates=bench.filter(p=>{const ps=ensurePlayer(cup,p,sid);return ps.injuryMatches<=0&&ps.suspensionMatches<=0&&!used.has(playerKey(p));});
+    candidates.sort((a,b)=>scoreReplacement(C,b,sl)-scoreReplacement(C,a,sl));
+    const rep=candidates[0];
+    if(rep){
+      replacements.push({out:sl.p.n,in:rep.n,pos:sl.pos});
+      used.delete(playerKey(sl.p)); used.add(playerKey(rep));
+      bench=bench.filter(p=>playerKey(p)!==playerKey(rep));
+      sl.p=rep;
+    }
+  }
+  for(const sl of lineup){
+    const a=attachPlayer(cup,sid,sl.p,sl,prep,ts);
+    sl.p=a.player; sl.initialStamina=a.player._phase10InitialStamina; sl.persistence=a.persistence;
+  }
+  bench=bench.filter(p=>{const st=ensurePlayer(cup,p,sid);return st.injuryMatches<=0&&st.suspensionMatches<=0;}).map(p=>attachPlayer(cup,sid,p,p,prep,ts).player);
+  ts.lastUnavailable=unavailable; ts.lastReplacements=replacements;
+  ts._matchSnapshot={unavailable:unavailable.map(x=>x.id),preparation:prep,originalLineup:(team.lineup||[]).map(sl=>playerKey(sl.p)),stage:opts.stage||null};
+  return Object.assign({},team,{lineup,bench,phase10:{sid,preparation:prep,unavailable,replacements}});
+}
+function captureMatch(sim, side, originalTeam, stage) {
+  const total=Math.max(90,Math.min(120,Math.round(sim.minute||90)));
+  const participants={};
+  const add=(p,started,entry)=>{if(!p)return;const ref=p.ref||p,k=playerKey(ref);if(!participants[k])participants[k]={id:k,ref,started:!!started,entry:entry||0,exit:total,minutes:0,rating:p.rating||6,finalStamina:p.stamina==null?100:p.stamina,goals:0,yellow:0,red:0,injured:false,role:p.role||null,focus:p.focus||'bal',position:p.slotPos||ref.slot};};
+  for(const sl of (originalTeam&&originalTeam.lineup)||[]) add({ref:sl.p,role:sl.role,focus:sl.focus,slotPos:sl.pos,stamina:sl.initialStamina||100,rating:6},true,0);
+  for(const ev of sim.events||[]){
+    if(ev.type==='sub'&&ev.team===side){
+      const ko=playerKey(ev.out&&ev.out.ref),ki=playerKey(ev.inP&&ev.inP.ref);
+      if(ko&&participants[ko]){const q=participants[ko];q.exit=Math.min(total,ev.minute||0);q.rating=ev.out.rating||6;q.finalStamina=ev.out.stamina==null?q.finalStamina:ev.out.stamina;q.yellow=Math.max(q.yellow,ev.out.yellow||0);q.red=Math.max(q.red,ev.out.red?1:0);q.injured=q.injured||!!ev.out._injured;}
+      add(ev.inP,false,ev.minute||0); if(ki&&participants[ki]) participants[ki].entry=ev.minute||0;
+    } else if(ev.type==='goal'&&ev.by&&ev.by.team===side){add(ev.by,false,0);participants[playerKey(ev.by.ref)].goals++;}
+    else if(ev.type==='yellow'&&ev.p&&ev.p.team===side){add(ev.p,false,0);participants[playerKey(ev.p.ref)].yellow++;}
+    else if(ev.type==='red'&&ev.p&&ev.p.team===side){add(ev.p,false,0);participants[playerKey(ev.p.ref)].red++;}
+    else if(ev.type==='injury'&&ev.by&&ev.by.team===side){add(ev.by,false,0);participants[playerKey(ev.by.ref)].injured=true;}
+  }
+  for(const p of (sim.teams[side]&&sim.teams[side].players)||[]){add(p,false,0);const q=participants[playerKey(p.ref)];q.rating=p.rating||q.rating;q.finalStamina=p.stamina==null?q.finalStamina:p.stamina;q.yellow=Math.max(q.yellow,p.yellow||0);q.red=Math.max(q.red,p.red?1:0);q.injured=q.injured||!!p._injured;}
+  for(const q of Object.values(participants)) q.minutes=clamp(q.exit-q.entry,0,total);
+  return {sid:(originalTeam&&originalTeam.squad&&originalTeam.squad.sid)||null,totalMinutes:total,extraTime:total>95,stage:stage||null,score:[sim.score[side],sim.score[1-side]],players:Object.values(participants)};
+}
+function injuryDuration(q,teamMatches) {
+  let h=2166136261>>>0;const s=String(q.id)+'#'+teamMatches;
+  for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}
+  return 1+(h%3)+(q.finalStamina<35?1:0);
+}
+function recordTeamMatch(cup, sid, summary, squad) {
+  const ts=ensureTeam(cup,sid), snap=ts._matchSnapshot||{unavailable:[]};
+  for(const id of snap.unavailable||[]){const st=cup.persistence.players[id];if(!st)continue;if(st.injuryMatches>0)st.injuryMatches--;if(st.suspensionMatches>0)st.suspensionMatches--;if(st.injuryMatches<=0)st.injuryType=null;}
+  const played=new Set();
+  for(const q of summary.players||[]){
+    const st=ensurePlayer(cup,q.ref,sid);played.add(st.key);
+    const extra=Math.max(0,q.minutes-90);
+    const load=clamp((q.minutes/90)*18 + Math.max(0,100-q.finalStamina)*.70 + extra*.22,0,65);
+    st.cumulativeFatigue=clamp(st.cumulativeFatigue*.45+load,0,100);
+    st.condition=clamp(100-st.cumulativeFatigue,35,100);
+    st.appearances++;if(q.started)st.starts++;else if(q.minutes>0)st.benchAppearances++;
+    st.minutes+=q.minutes;st.lastMinutes=q.minutes;st.lastStarted=!!q.started;st.lastRating=+q.rating.toFixed(2);st.lastGoals=q.goals;st.lastMatchIndex=ts.matches+1;
+    st.recentForm.push(st.lastRating);if(st.recentForm.length>5)st.recentForm.shift();
+    st.scoringStreak=q.goals>0?st.scoringStreak+1:(q.minutes>=45?0:st.scoringStreak);
+    const role=[q.position||'CM',q.role||'default',q.focus||'bal'].join('|');st.lastRole=role;
+    st.roleFamiliarity[role]=clamp((st.roleFamiliarity[role]==null?.35:st.roleFamiliarity[role])+q.minutes/90*.045,0,1);
+    const line=C.LINE_OF&&C.LINE_OF[q.position||q.ref.slot];
+    st.confidence.decision=clamp(st.confidence.decision*.65+(q.rating-6.2)*.007,-.025,.025);
+    st.confidence.finishing=clamp(st.confidence.finishing*.65+q.goals*.012-(line==='FWD'&&q.minutes>=60&&q.goals===0?.003:0),-.025,.03);
+    st.confidence.defending=clamp(st.confidence.defending*.65+(summary.score[1]===0?.008:-summary.score[1]*.003),-.025,.025);
+    if(q.injured){st.injuryMatches=Math.max(st.injuryMatches,injuryDuration(q,ts.matches+1));st.injuryType=q.finalStamina<35?'muscular':'impact';}
+    st.yellowCards+=q.yellow||0;
+    if(st.yellowCards>=2){st.suspensionMatches=Math.max(st.suspensionMatches,1);st.yellowCards=0;}
+    if(q.red)st.suspensionMatches=Math.max(st.suspensionMatches,1);
+  }
+  for(const p of (squad&&squad.pl)||[]){const st=ensurePlayer(cup,p,sid);if(!played.has(st.key)){st.condition=clamp(st.condition+3,35,100);st.cumulativeFatigue=clamp(st.cumulativeFatigue-3,0,100);st.lastMinutes=0;st.lastStarted=false;}}
+  ts.matches++;ts.lastExtraTime=!!summary.extraTime;ts.pendingPreparation=true;ts.activePreparation=null;ts.recoveryAppliedFor=-1;ts._matchSnapshot=null;
+  ts.knockoutPressure=pressureForStage(summary.stage);
+  cup.persistence.history.push({type:'match',sid,match:ts.matches,stage:summary.stage,score:summary.score,extraTime:summary.extraTime});
+  return ts;
+}
+function recordSimulation(cup, sim, teams, opts) {
+  opts=opts||{};
+  const out=[];
+  for(let side=0;side<2;side++){
+    const team=teams[side], sid=team&&team.squad&&team.squad.sid;
+    if(sid==null)continue;
+    const summary=captureMatch(sim,side,team,opts.stage);
+    recordTeamMatch(cup,sid,summary,team.squad);
+    out.push(summary);
+  }
+  return out;
+}
+function teamOverview(cup, sid, squad) {
+  const ts=ensureTeam(cup,sid), players=[];
+  for(const p of (squad&&squad.pl)||[]){const st=ensurePlayer(cup,p,sid);players.push({p,state:st,status:status(cup,p,sid)});}
+  const avg=players.length?players.reduce((s,x)=>s+x.state.condition,0)/players.length:100;
+  return {team:ts,averageCondition:+avg.toFixed(1),players};
+}
+function needsPreparation(cup,sid){return !!ensureTeam(cup,sid).pendingPreparation;}
+function preparationOptions(){return Object.values(PREPARATIONS).map(x=>({key:x.key,label:x.label,icon:x.icon,description:x.description,effects:Object.assign({},x.effects)}));}
+
+const API={VERSION,ENGINE_VERSION,STATE_VERSION,PREPARATIONS,pressureForStage,ensureCup,ensureTeam,ensurePlayer,registerTeam,status,recentFormValue,choosePreparation,autoPreparationChoice,prepareTeam,captureMatch,recordTeamMatch,recordSimulation,teamOverview,needsPreparation,preparationOptions,playerKey,stateKey,roleKey};
+root.CDS_PHASE10=API;
+if(typeof module!=='undefined'&&module.exports)module.exports=API;
+})(typeof window!=='undefined'?window:globalThis);
+
 /* ═══════════ tournament.js ═══════════ */
 /* =========================================================================
    COPA DOS SONHOS — tournament.js
@@ -7827,7 +8586,7 @@ SCREENS.home = function () {
       </header>
       <main class="home-main-v2">
         <section class="home-copy-v2">
-          <span class="home-status"><i></i> Motor 3.0 · futebol simulado lance a lance</span>
+          <span class="home-status"><i></i> Motor 5.3.0 · persistência de Copa ativa</span>
           <h1 class="display home-title-v2">Copa dos<span>Sonhos</span></h1>
           <p class="home-lead-v2">Escolha um craque de cada seleção histórica, construa um time impossível e leve suas lendas por uma Copa completa. Aqui, nome não ganha jogo: posição, atributos e decisões táticas aparecem dentro de campo.</p>
           <div class="home-facts"><span class="home-fact">369 seleções históricas</span><span class="home-fact">1934 → 2026</span><span class="home-fact">Momentos decisivos jogáveis</span></div>
@@ -8327,8 +9086,8 @@ function paintActions() {
    nação + posição), o banco, os ajustes (estilo/eixos/formação) e a Copa inteira
    (G.cup é serializável — guarda times por SID, não objetos pesados). NÃO salva
    G.db (é reconstruída no boot a partir dos dados fixos). No load, recria o time
-   "ME" com os mesmos picks (registerPlayerTeam) e restaura a Copa. Tudo blindado:
-   qualquer erro no save/load é engolido e o jogo segue normal.
+   "ME" com os mesmos picks (registerPlayerTeam) e restaura a Copa. Erros são
+   recuperáveis, registrados em `G.lastSaveError` e exibidos ao usuário no load.
    Obs.: alguns previews de app não persistem localStorage — no Safari funciona. */
 const SAVE_KEY = 'copa_save';
 function saveGame() {
@@ -8349,8 +9108,14 @@ function saveGame() {
       benchPicks: d.benchPicks,
       cup: G.cup,
     };
-    localStorage.setItem(SAVE_KEY, JSON.stringify(save));
-  } catch (_) {}
+    const encoded = SC ? SC.encodeSave(save) : JSON.stringify(save);
+    if (!encoded) throw new Error('O contrato recusou o estado atual do save.');
+    localStorage.setItem(SAVE_KEY, encoded);
+    G.lastSaveError = null;
+  } catch (e) {
+    G.lastSaveError = String(e && e.message || e);
+    console.error('[Copa dos Sonhos] Falha ao salvar a Copa:', e);
+  }
 }
 window._saveCopa = saveGame;                       // pra o game.js chamar após cada partida
 function hasSave() { try { return !!localStorage.getItem(SAVE_KEY); } catch (_) { return false; } }
@@ -8362,8 +9127,15 @@ function loadGame() {
     // contrato versionado: migra saves antigos (v1→v2), rejeita corrompidos
     // e versões futuras com segurança — sem crash, sem progresso inventado.
     save = SC ? SC.decodeSave(raw) : JSON.parse(raw);
-  } catch (_) { return false; }
-  if (!save || !save.cup || !Array.isArray(save.picks) || save.picks.length < 11) return false;
+  } catch (e) {
+    G.lastSaveError = String(e && e.message || e);
+    console.warn('[Copa dos Sonhos] Save ilegível:', e);
+    return false;
+  }
+  if (!save || !save.cup || !Array.isArray(save.picks) || save.picks.length < 11) {
+    G.lastSaveError = 'Save ausente, corrompido ou incompatível.';
+    return false;
+  }
   try {
     G.modo = save.modo; G.style = save.style; G.axes = save.axes; G.formKey = save.formKey; G.varIdx = save.varIdx;
     if (save.instructions) G.instructions = save.instructions;
@@ -8376,8 +9148,13 @@ function loadGame() {
     G.cup = save.cup;
     if (save.phase10 && !G.cup.persistence) G.cup.persistence = save.phase10;
     if (window.CDS_PHASE10) window.CDS_PHASE10.ensureCup(G.cup, G.db);
+    G.lastSaveError = null;
     return true;
-  } catch (e) { return false; }
+  } catch (e) {
+    G.lastSaveError = String(e && e.message || e);
+    console.warn('[Copa dos Sonhos] Não foi possível restaurar o save:', e);
+    return false;
+  }
 }
 
 function finishDraft() {

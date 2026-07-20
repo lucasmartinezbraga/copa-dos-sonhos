@@ -150,7 +150,7 @@ SCREENS.home = function () {
       </header>
       <main class="home-main-v2">
         <section class="home-copy-v2">
-          <span class="home-status"><i></i> Motor 3.0 · futebol simulado lance a lance</span>
+          <span class="home-status"><i></i> Motor 5.3.0 · persistência de Copa ativa</span>
           <h1 class="display home-title-v2">Copa dos<span>Sonhos</span></h1>
           <p class="home-lead-v2">Escolha um craque de cada seleção histórica, construa um time impossível e leve suas lendas por uma Copa completa. Aqui, nome não ganha jogo: posição, atributos e decisões táticas aparecem dentro de campo.</p>
           <div class="home-facts"><span class="home-fact">369 seleções históricas</span><span class="home-fact">1934 → 2026</span><span class="home-fact">Momentos decisivos jogáveis</span></div>
@@ -650,8 +650,8 @@ function paintActions() {
    nação + posição), o banco, os ajustes (estilo/eixos/formação) e a Copa inteira
    (G.cup é serializável — guarda times por SID, não objetos pesados). NÃO salva
    G.db (é reconstruída no boot a partir dos dados fixos). No load, recria o time
-   "ME" com os mesmos picks (registerPlayerTeam) e restaura a Copa. Tudo blindado:
-   qualquer erro no save/load é engolido e o jogo segue normal.
+   "ME" com os mesmos picks (registerPlayerTeam) e restaura a Copa. Erros são
+   recuperáveis, registrados em `G.lastSaveError` e exibidos ao usuário no load.
    Obs.: alguns previews de app não persistem localStorage — no Safari funciona. */
 const SAVE_KEY = 'copa_save';
 function saveGame() {
@@ -661,17 +661,25 @@ function saveGame() {
     const SC = window.CDS_SAVE_CONTRACT;
     const save = {
       v: SC ? SC.SAVE_VERSION : 2,
-      engineVersion: (typeof ENGINE_CALIBRATION !== 'undefined' && ENGINE_CALIBRATION.version) || 'unknown',
+      engineVersion: (window.CDS_PHASE10 && window.CDS_PHASE10.ENGINE_VERSION) || (typeof ENGINE_CALIBRATION !== 'undefined' && ENGINE_CALIBRATION.version) || 'unknown',
       savedAt: { phase: G.cup.phase, round: G.cup.round },
       instructions: G.instructions || null, instructionPreset: G.instructionPreset || null,
       phaseRoles: G.phaseRoles || null, manager: G.manager || null,
+      phase10: (G.cup && G.cup.persistence) || null,
+      preparationSelection: (G.cup && G.cup.persistence && G.cup.persistence.teams && G.cup.persistence.teams.ME && G.cup.persistence.teams.ME.lastPreparation) || null,
       modo: G.modo, style: G.style, axes: G.axes, formKey: G.formKey, varIdx: G.varIdx,
       picks: d.slots.map(sl => ({ p: sl.p, from: sl.from, x: sl.x, y: sl.y, pos: sl.pos })),
       benchPicks: d.benchPicks,
       cup: G.cup,
     };
-    localStorage.setItem(SAVE_KEY, JSON.stringify(save));
-  } catch (_) {}
+    const encoded = SC ? SC.encodeSave(save) : JSON.stringify(save);
+    if (!encoded) throw new Error('O contrato recusou o estado atual do save.');
+    localStorage.setItem(SAVE_KEY, encoded);
+    G.lastSaveError = null;
+  } catch (e) {
+    G.lastSaveError = String(e && e.message || e);
+    console.error('[Copa dos Sonhos] Falha ao salvar a Copa:', e);
+  }
 }
 window._saveCopa = saveGame;                       // pra o game.js chamar após cada partida
 function hasSave() { try { return !!localStorage.getItem(SAVE_KEY); } catch (_) { return false; } }
@@ -683,8 +691,15 @@ function loadGame() {
     // contrato versionado: migra saves antigos (v1→v2), rejeita corrompidos
     // e versões futuras com segurança — sem crash, sem progresso inventado.
     save = SC ? SC.decodeSave(raw) : JSON.parse(raw);
-  } catch (_) { return false; }
-  if (!save || !save.cup || !Array.isArray(save.picks) || save.picks.length < 11) return false;
+  } catch (e) {
+    G.lastSaveError = String(e && e.message || e);
+    console.warn('[Copa dos Sonhos] Save ilegível:', e);
+    return false;
+  }
+  if (!save || !save.cup || !Array.isArray(save.picks) || save.picks.length < 11) {
+    G.lastSaveError = 'Save ausente, corrompido ou incompatível.';
+    return false;
+  }
   try {
     G.modo = save.modo; G.style = save.style; G.axes = save.axes; G.formKey = save.formKey; G.varIdx = save.varIdx;
     if (save.instructions) G.instructions = save.instructions;
@@ -695,8 +710,15 @@ function loadGame() {
     G.lineup = save.picks.map((pk, i) => ({ p: me.pl[i], x: pk.x, y: pk.y, pos: pk.pos, from: pk.from }));
     G.bench = me.pl.slice(11);
     G.cup = save.cup;
+    if (save.phase10 && !G.cup.persistence) G.cup.persistence = save.phase10;
+    if (window.CDS_PHASE10) window.CDS_PHASE10.ensureCup(G.cup, G.db);
+    G.lastSaveError = null;
     return true;
-  } catch (e) { return false; }
+  } catch (e) {
+    G.lastSaveError = String(e && e.message || e);
+    console.warn('[Copa dos Sonhos] Não foi possível restaurar o save:', e);
+    return false;
+  }
 }
 
 function finishDraft() {
@@ -715,8 +737,31 @@ function finishDraft() {
 let cupTab = 'rodada';
 SCREENS.cup = function () {
   const cup = G.cup, db = G.db;
+  const P10 = window.CDS_PHASE10 || null;
+  if (P10) P10.ensureCup(cup, db);
   const phaseName = { groups: ['1ª rodada', '2ª rodada', '3ª rodada'][cup.round] || 'Grupos',
     r16: 'Oitavas de final', qf: 'Quartas de final', sf: 'Semifinal', third: 'Disputa de 3º', final: 'FINAL', done: 'Fim da Copa' };
+
+  function preparationHtml() {
+    if (!P10 || !P10.needsPreparation(cup, cup.playerSid)) return '';
+    const ov = P10.teamOverview(cup, cup.playerSid, db.byId.ME);
+    const unavailable = ov.players.filter(x => !x.status.available);
+    return `<div class="card phase10-prep">
+      <div class="eyebrow">Preparação para a próxima partida</div>
+      <div class="display" style="font-size:21px;margin:5px 0 2px">Escolha uma prioridade</div>
+      <div class="mut" style="font-size:12px;margin-bottom:10px">Condição média ${Math.round(ov.averageCondition)}%${unavailable.length ? ` · ${unavailable.length} indisponível(is)` : ''}. Cada efeito vale apenas o próximo jogo e aparece no cálculo real.</div>
+      <div class="phase10-options">${P10.preparationOptions().map(o => `<button class="phase10-option" data-prep="${o.key}"><span class="ico">${o.icon}</span><span><b>${o.label}</b><small>${o.description}</small></span></button>`).join('')}</div>
+    </div>`;
+  }
+  function phase10StatusLine(p) {
+    if (!P10) return '';
+    const st = P10.status(cup,p,cup.playerSid);
+    if (st.injured) return `🩹 Lesionado · ${st.injuryMatches} jogo(s)`;
+    if (st.suspended) return `⛔ Suspenso · ${st.suspensionMatches} jogo(s)`;
+    const form = st.form >= 6.8 ? 'boa forma' : st.form < 5.9 ? 'má fase' : 'forma estável';
+    const streak = st.scoringStreak ? ` · ${st.scoringStreak} jogo(s) marcando` : '';
+    return `${st.condition}% condição · ${form}${streak}`;
+  }
 
   function nextMatchCard() {
     if (cup.phase === 'done') return champCard();
@@ -727,14 +772,15 @@ SCREENS.cup = function () {
     const m = CUP.playerMatchOfRound(cup);
     if (!m) return elimCard();
     const H = db.byId[m.h], A = db.byId[m.a];
-    return `<div class="card">
+    const pendingPrep = P10 && P10.needsPreparation(cup, cup.playerSid);
+    return `${preparationHtml()}<div class="card">
       <div class="eyebrow">${phaseName[cup.phase]}</div>
       <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;margin-top:8px;text-align:center">
         <div><div style="font-size:34px">${window.flagSvg(H.f, 30)}</div><div class="cond" style="font-size:13px">${esc(H.c)} ${H.y === 2026 && H.sid === 'ME' ? '' : H.y}</div></div>
         <div class="display" style="font-size:22px;color:var(--mut)">VS</div>
         <div><div style="font-size:34px">${window.flagSvg(A.f, 30)}</div><div class="cond" style="font-size:13px">${esc(A.c)} ${A.y === 2026 && A.sid === 'ME' ? '' : A.y}</div></div>
       </div>
-      <div style="margin-top:12px"><button class="btn btn-gold" id="bt-play">Jogar partida</button></div>
+      <div style="margin-top:12px"><button class="btn btn-gold" id="bt-play" ${pendingPrep?'disabled':''}>${pendingPrep?'Escolha a preparação acima':'Jogar partida'}</button></div>
     </div>`;
   }
   function elimCard() {
@@ -809,12 +855,12 @@ SCREENS.cup = function () {
       <div class="eyebrow" style="margin:6px 2px">Titulares · OVR ${teamOvr(G.lineup)} · toque para ver atributos</div>
       ${G.lineup.map((l, i) => `<div class="row" data-exp="${i}">
         <span class="posb ${GRP_OF_LINE[LINE_OF[l.pos]] || 'mid'}">${SLOT_PT[l.pos]}</span>
-        <div class="grow"><div class="nm">${esc(l.p.n)}</div><div class="sb">${window.flagSvg(l.p.origin.f, 12)} ${esc(l.p.origin.c)} ${l.p.origin.y}</div></div>
+        <div class="grow"><div class="nm">${esc(l.p.n)}</div><div class="sb">${window.flagSvg(l.p.origin.f, 12)} ${esc(l.p.origin.c)} ${l.p.origin.y}${P10?' · '+phase10StatusLine(l.p):''}</div></div>
         <div class="ovr ${ovrClass(l.p.r)}">${l.p.r}</div>
       </div>${squadExp === i ? a8Panel(l.p, false) : ''}`).join('')}
       ${G.bench.length ? `<div class="eyebrow" style="margin:12px 2px 6px">Banco</div>` + G.bench.map(b => `<div class="row" style="cursor:default">
         <span class="posb ${GRP_OF_LINE[LINE_OF[b.slot]] || 'mid'}">${SLOT_PT[b.slot] || ''}</span>
-        <div class="grow"><div class="nm">${esc(b.n)}</div><div class="sb">${window.flagSvg(b.origin.f, 12)} ${esc(b.origin.c)} ${b.origin.y}</div></div>
+        <div class="grow"><div class="nm">${esc(b.n)}</div><div class="sb">${window.flagSvg(b.origin.f, 12)} ${esc(b.origin.c)} ${b.origin.y}${P10?' · '+phase10StatusLine(b):''}</div></div>
         <div class="ovr ${ovrClass(b.r)}">${b.r}</div>
       </div>`).join('') : ''}
     </div>`;
@@ -841,6 +887,13 @@ SCREENS.cup = function () {
     document.querySelectorAll('.tabs [data-t]').forEach(b => b.onclick = () => { cupTab = b.dataset.t; render(); });
     document.querySelectorAll('[data-exp]').forEach(r => r.onclick = () => {
       squadExp = squadExp === +r.dataset.exp ? -1 : +r.dataset.exp; render();
+    });
+    document.querySelectorAll('[data-prep]').forEach(b => b.onclick = () => {
+      if (!P10) return;
+      P10.choosePreparation(cup, cup.playerSid, b.dataset.prep, G.lineup, { squad:db.byId.ME, lineup:G.lineup, bench:G.bench });
+      saveGame();
+      toast('Preparação aplicada: ' + (P10.PREPARATIONS[b.dataset.prep]||{}).label);
+      render();
     });
     const play = $('#bt-play');
     if (play) play.onclick = () => go('match');

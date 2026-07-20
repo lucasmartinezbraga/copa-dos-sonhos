@@ -245,10 +245,13 @@ class MatchSim {
         // Leitura espacial afeta o tempo de reação ao desenho coletivo. Antes,
         // esse atraso era quase todo aleatório: um jogador inteligente podia se
         // mover pior que um jogador comum sem qualquer relação com atributos.
-        react: clamp(lerp(0.255, 0.075,
+        react: clamp((lerp(0.255, 0.075,
           (getAttr(p,'posicionamento') * 0.45 + getAttr(p,'antecipacao') * 0.35 +
-           getAttr(p,'trabalho_equipe') * 0.20) / 100) + R(-0.018, 0.018), 0.065, 0.27),
-        stamina: 100, rating: 6.0, settle: 0,
+           getAttr(p,'trabalho_equipe') * 0.20) / 100) + R(-0.018, 0.018)) *
+          (1 - ((sl.persistence || p._phase10Persistence || {}).roleFamiliarity || 0) * .03), 0.062, 0.27),
+        stamina: clamp(Number(sl.initialStamina != null ? sl.initialStamina : (p._phase10InitialStamina != null ? p._phase10InitialStamina : 100)), 35, 100),
+        persistence: sl.persistence || p._phase10Persistence || null,
+        rating: 6.0, settle: 0,
         yellow: 0, red: false, isGK: (sl.pos || p.slot) === 'GK',
         runT: R(0, 2)
       };
@@ -567,9 +570,16 @@ class MatchSim {
       + (this.minute >= 80 ? 0.05 : 0)
       + (Math.abs(this.score[p.team] - this.score[1-p.team]) <= 1 && this.minute >= 72 ? 0.035 : 0);
     const comp = getAttr(p,'compostura') / 100;
+    const persist = p && p.persistence ? p.persistence : null;
+    const importanceExtra = persist ? (persist.importanceExtra || 0) : 0;
     let execution = 1 - pressure * ADV4.context.pressureExecution * (1.08 - comp * .48)
       - fatigue * ADV4.context.fatigueExecution
-      - importance * (1 - comp) * .55;
+      - (importance + importanceExtra) * (1 - comp) * .55;
+    if (persist) {
+      execution += persist.executionBonus || 0;
+      if (action === 'shot') execution += persist.shotBonus || 0;
+      if (action === 'press' || action === 'defend') execution += persist.defensiveBonus || 0;
+    }
     if (action === 'press') execution *= 0.88 + getAttr(p,'resistencia')/100 * .18;
     if (action === 'shot' && p.ref && p.ref.traits && p.ref.traits.includes('CLUTCH_PLAYER') && this.minute >= 75) execution += .055;
     return { pressure, fatigue, importance, execution:clamp(execution,.62,1.10) };
@@ -864,7 +874,8 @@ class MatchSim {
     const lowPool = tm.players.filter(p=>p!==o&&!p.red&&!p.isGK&&D(p.x,p.y,g.x,g.y)<44 && (C.LINE_OF[p.slotPos]==='FWD' || C.SLOT_CLASS[p.slotPos]==='AM' || p._breaking || p._runDeep || D(p.x,p.y,g.x,g.y)<27));
     const defs = this.teams[1-o.team].players.filter(p=>!p.isGK&&!p.red);
     const nearByline = Math.abs(o.x-g.x)<18 && Math.abs(o.y-FW/2)>11;
-    const crossSkill = setPiece ? facet(o,'setpiece') : facet(o,'low_cross');
+    const p10SetPiece = setPiece && o.persistence ? (o.persistence.setPieceBonus || 0) : 0;
+    const crossSkill = setPiece ? facet(o,'setpiece') * (1 + p10SetPiece) : facet(o,'low_cross');
     const lowTargets = lowPool.slice().sort((a,b)=>
       (facet(b,'offball')*.34+facet(b,'one_on_one')*.38+getAttr(b,'ritmo')*.28)
       -(facet(a,'offball')*.34+facet(a,'one_on_one')*.38+getAttr(a,'ritmo')*.28));
@@ -915,7 +926,7 @@ class MatchSim {
     }
     const def=defs.slice().sort((a,b)=>D(a.x,a.y,atk.x,atk.y)-D(b.x,b.y,atk.x,atk.y))[0];
     this._startTravel(o,{x:atk.x,y:atk.y},'pass',()=>{
-      const setBoost=setPiece?ADV4.crossing.aerialSetPieceBoost*100:0;
+      const setBoost=setPiece?(ADV4.crossing.aerialSetPieceBoost+p10SetPiece)*100:0;
       const sw=(o._deliverySwingUntil||0)>this.t?o._deliverySwing:null;
       const pWin=duelProb(facet(atk,'head_atk')+setBoost+(sw==='in'?2.5:0),(def?facet(def,'head_def'):40)+5);
       if(chance(pWin)){
@@ -1761,7 +1772,8 @@ class MatchSim {
     // Resistência do jogado atenua. Marca o jogador e força troca se houver banco.
     if (!victim.isGK && !victim._injured) {
       const resist = (victim.a8 || (victim.ref && victim.ref.a8)) ? ((victim.ref?victim.ref.a8:victim.a8)[6]) : 65;   // físico
-      const pInj = (hard ? 0.05 : 0.012) * clamp(1.3 - resist / 100, 0.5, 1.15);
+      const persistenceRisk = victim.persistence ? (victim.persistence.injuryRisk || 1) : 1;
+      const pInj = (hard ? 0.05 : 0.012) * clamp(1.3 - resist / 100, 0.5, 1.15) * persistenceRisk;
       if (chance(pInj)) this._injure(victim);
     }
     const vg = this.teams[victim.team].oppGoal;
@@ -1827,7 +1839,7 @@ class MatchSim {
     this.stats[team].shots++;
     this.stats[team].setPieceShots++;
     this.beat = 0.5;
-    const takerSkill = facet(taker,'setpiece');
+    const takerSkill = facet(taker,'setpiece') * (1 + ((taker.persistence && taker.persistence.setPieceBonus) || 0));
     const keeperSkill = gk ? facet(gk,'gk') : 40;
     const resolved = C.resolveFreeKickPhysics(takerSkill, keeperSkill, dtg, input);
     const { result, pGoal, visual } = resolved;
@@ -1849,7 +1861,7 @@ class MatchSim {
     this.stats[team].shots++;
     this.stats[team].penaltiesTaken++;
     this.beat = 0.7;
-    const takerSkill = facet(taker,'pen');
+    const takerSkill = facet(taker,'pen') * (1 + ((taker.persistence && taker.persistence.setPieceBonus) || 0));
     const keeperSkill = gk ? facet(gk,'pen_gk') : 40;
     const manual = input && !input.assisted;
     const aimX = clamp(input && input.aimX != null ? input.aimX : .5 + R(-.38,.38), -.2,1.2);
@@ -2659,10 +2671,13 @@ class MatchSim {
       maxSpd: speedOf(inPlayer), acc: accelOf(inPlayer), turn: turnOf(inPlayer),
       oopRole: deriveOopRole(outP.oopPos || outP.slotPos, outP.role || C.defaultRoleFor(outP.ipPos || outP.slotPos), outP.focus || 'bal'),
       heatmap: new Float32Array(ADV4.analytics.cols * ADV4.analytics.rows), passLinks:Object.create(null),
-      react: clamp(lerp(0.255, 0.075,
+      react: clamp((lerp(0.255, 0.075,
         (getAttr(inPlayer,'posicionamento') * 0.45 + getAttr(inPlayer,'antecipacao') * 0.35 +
-         getAttr(inPlayer,'trabalho_equipe') * 0.20) / 100) + R(-0.018, 0.018), 0.065, 0.27),
-      stamina: 100, rating: 6.0, settle: 0, yellow: 0, red: false, isGK: outP.isGK, runT: 0
+         getAttr(inPlayer,'trabalho_equipe') * 0.20) / 100) + R(-0.018, 0.018)) *
+        (1 - (((inPlayer._phase10Persistence || {}).roleFamiliarity) || 0) * .03), 0.062, 0.27),
+      stamina: clamp(Number(inPlayer._phase10InitialStamina != null ? inPlayer._phase10InitialStamina : 100),35,100),
+      persistence: inPlayer._phase10Persistence || null,
+      rating: 6.0, settle: 0, yellow: 0, red: false, isGK: outP.isGK, runT: 0
     };
     tm.players[outIdx] = np;
     if (this.ball.owner === outP) this.ball.owner = np;
