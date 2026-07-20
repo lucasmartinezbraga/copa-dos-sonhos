@@ -2853,6 +2853,44 @@ function paintField() {
   const bz = b.z || 0;
   const bx=cx(b.x), by=cy(b.y)-bz*22;
   const br = 7 * (1 + Math.min(bz, 4.5) * 0.10);
+  /* LEITURA DE ALTURA — o sistema completo, não só o lift:
+     · RASTRO EM ARCO: a trilha recente (com lift) desenha a parábola do voo;
+     · ANEL DE QUEDA: marca onde a bola VAI cair, encolhendo ao chegar —
+       altura e tempo legíveis de relance (o clássico do gênero);
+     · FIO VERTICAL: liga bola à sombra quando está alta. */
+  if (!window.__cdsBallTrail) window.__cdsBallTrail = [];
+  const _tr = window.__cdsBallTrail;
+  if (b.traveling || bz > 0.15) { _tr.push({ x: bx, y: by }); if (_tr.length > 14) _tr.shift(); }
+  else if (_tr.length) _tr.splice(0, 2);
+  if (_tr.length > 2) {
+    ctx.save();
+    for (let i = 1; i < _tr.length; i++) {
+      const a = i / _tr.length;
+      ctx.strokeStyle = 'rgba(255,255,255,' + (a * .30).toFixed(3) + ')';
+      ctx.lineWidth = 1 + a * 1.6;
+      ctx.beginPath(); ctx.moveTo(_tr[i-1].x, _tr[i-1].y); ctx.lineTo(_tr[i].x, _tr[i].y); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  if (b.traveling && b.target && bz > 0.5) {
+    const lx = cx(b.target.x), ly = cy(b.target.y);
+    const fx0 = cx(b.from ? b.from.x : b.x), fy0 = cy(b.from ? b.from.y : b.y);
+    const totd = Math.hypot(fx0 - lx, fy0 - ly) || 1;
+    const rem = Math.min(Math.hypot(cx(b.x) - lx, cy(b.y) - ly) / totd, 1);
+    const ringR = 6 + 18 * rem;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,238,140,.75)'; ctx.lineWidth = 1.6; ctx.setLineDash([5, 4]);
+    ctx.beginPath(); ctx.ellipse(lx, ly, ringR, ringR * .62, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = .5; ctx.fillStyle = '#ffee8c';
+    ctx.beginPath(); ctx.ellipse(lx, ly, 2.4, 1.6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+  if (bz > 0.9) {
+    ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,.28)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(bx, by + br); ctx.lineTo(cx(b.x), cy(b.y) + 1); ctx.stroke();
+    ctx.restore();
+  }
   // #brilho da bola — halo suave que facilita seguir a jogada
   ctx.save();
   const _bhalo = ctx.createRadialGradient(bx, by, 0, bx, by, 15 + bz * 3);
