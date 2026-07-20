@@ -599,11 +599,11 @@ const ENGINE_CALIBRATION = Object.freeze({
        fundo, como no futebol real (~10/jogo). Validado por bateria de 100
        partidas antes do commit. */
     lowCrossSaveCorner: 0.55,
-    failedCrossCorner: 0.72,
+    failedCrossCorner: 0.76,
     aerialSaveCorner: 0.58,
-    aerialBlockCorner: 0.66,
+    aerialBlockCorner: 0.70,
     shotSaveCorner: 0.68,
-    shotBlockCorner: 0.62,
+    shotBlockCorner: 0.66,
     postCorner: 0.64,
     freeKickSaveCorner: 0.68,
   }),

@@ -1021,6 +1021,12 @@ class MatchSim {
   _clearBall(o) {
     const tm = this.teams[o.team];
     const dir = tm.attackDir;
+    // CALIBRAÇÃO · corte afobado: pressionado e colado na própria meta,
+    // parte dos cortes morre atrás da linha de fundo — escanteio contra
+    if (D(o.x, o.y, tm.goal.x, tm.goal.y) < 20 && this._nearestOpponent(o).dist < 3.2 && chance(.16)) {
+      this._emit('clear_behind', { by: o });
+      this._setCorner(1 - o.team); return;
+    }
     const tx = clamp(o.x + dir * (26 + R(0, 14)), 2, FL - 2);
     const ty = clamp(o.y + (R() < 0.5 ? -1 : 1) * (12 + R(0, 14)), 2, FW - 2);
     this._startTravel(o, { x: tx, y: ty }, 'pass', () => this._contestLoose());
@@ -2061,6 +2067,8 @@ class MatchSim {
       this._emit('gk_claim',{gk:p,by:rival,kind:'catch'});return true;
     }
     this.stats[tm.side].gkPunches++;
+    // soco sob pressão pode morrer atrás da linha de fundo → escanteio
+    if(chance(.30)){this._emit('gk_punch',{gk:p,by:rival,corner:true});this._setCorner(1-tm.side);return true;}
     const awayX=clamp(p.x+tm.attackDir*R(7,14),2,FL-2),awayY=clamp(p.y+(chance(.5)?-1:1)*R(6,15),2,FW-2);
     this._emit('gk_punch',{gk:p,by:rival,x:awayX,y:awayY});
     this._looseBall(awayX,awayY);return true;
