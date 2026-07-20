@@ -1,47 +1,67 @@
-/* Copa dos Sonhos — Fase 12 — Análise pós-jogo — v5.5.0
+/* Copa dos Sonhos — Fases 12/13 — Análise pós-jogo VISUAL — v5.6.0
    Explicações táticas derivadas EXCLUSIVAMENTE de eventos e métricas reais
-   da partida (regra do plano mestre: nada de texto genérico desconectado da
-   simulação). Cada manchete só é emitida quando o padrão realmente ocorreu,
-   e sempre carrega os números que a sustentam. */
+   (Fase 12) + apresentação 2D em SVG (Fase 13): mapa de finalizações no
+   campo, linha do tempo de xG e barras comparativas. A posição de cada
+   chute é capturada NO MOMENTO do lance via gancho no fluxo de eventos. */
 (function (root) {
 'use strict';
 const NODE = typeof module !== 'undefined' && module.exports;
-const V = '5.5.0';
+const V = '5.6.0';
 if (root.CDS_POST_MATCH && root.CDS_POST_MATCH.VERSION === V) return;
 
 const N = x => Number.isFinite(x) ? x : 0;
 const pct = (a, b) => b > 0 ? Math.round(a / b * 100) : 0;
+const FL = 105, FW = 68;
+const SHOT_KIND = { shot_taken: 'jogada', low_cross_shot: 'cruzamento rasteiro',
+  header_shot: 'cabeceio', freekick: 'falta', penalty: 'pênalti' };
 
-/* Mapa de finalizações a partir dos eventos reais retidos pelo motor. */
+/* Gancho: no instante do evento de chute, fotografa posição e direção de
+   ataque — depois da partida o objeto do jogador já andou pelo campo. */
+const M = root.MatchSim;
+if (M && !M.prototype.__P13_EMIT__) {
+  M.prototype.__P13_EMIT__ = true;
+  const oe = M.prototype._emit;
+  M.prototype._emit = function (type, data) {
+    if (SHOT_KIND[type] && data && data.by && Number.isFinite(data.by.x)) {
+      data.sx = data.by.x; data.sy = data.by.y;
+      const tm = this.teams && this.teams[data.by.team];
+      data.satk = tm ? tm.attackDir : 1;
+    }
+    return oe.call(this, type, data);
+  };
+}
+
 function shotMap(sim, team) {
   const shots = [];
-  const KIND = { shot_taken: 'jogada', low_cross_shot: 'cruzamento rasteiro',
-    header_shot: 'cabeceio', freekick: 'falta', penalty: 'pênalti' };
   for (const ev of (sim.events || [])) {
-    if (KIND[ev.type] && ev.by && ev.by.team === team)
-      shots.push({ minute: ev.minute, xg: +(N(ev.xg)).toFixed(3), kind: KIND[ev.type],
+    if (SHOT_KIND[ev.type] && ev.by && ev.by.team === team) {
+      let x = null, y = null;
+      if (Number.isFinite(ev.sx)) { // normaliza: todos atacando para a direita
+        x = ev.satk < 0 ? FL - ev.sx : ev.sx;
+        y = ev.satk < 0 ? FW - ev.sy : ev.sy;
+      }
+      shots.push({ minute: ev.minute, xg: +(N(ev.xg)).toFixed(3), kind: SHOT_KIND[ev.type],
         longshot: !!ev.longshot, oneOnOne: !!ev.oneOnOne, volley: !!ev.volley,
-        dist: ev.dtg != null ? Math.round(ev.dtg) : null,
+        dist: ev.dtg != null ? Math.round(ev.dtg) : null, x, y,
         by: ev.by.ref ? ev.by.ref.n : null, result: 'em jogo' });
-    if ((ev.type === 'goal') && ev.by && ev.by.team === team && shots.length) shots[shots.length - 1].result = 'gol';
-    if (ev.type === 'save' && shots.length && shots[shots.length - 1].result === 'em jogo') {
-      const last = shots[shots.length - 1];
-      last.result = ev.kind === 'deflect_corner' ? 'defesa (escanteio)'
-        : ev.rebound ? 'defesa (rebote vivo)' : 'defesa';
     }
-    if (ev.type === 'blocked' && shots.length && shots[shots.length - 1].result === 'em jogo') shots[shots.length - 1].result = 'bloqueado';
-    if (ev.type === 'post' && shots.length && shots[shots.length - 1].result === 'em jogo') shots[shots.length - 1].result = 'trave';
-    if (ev.type === 'miss' && shots.length && shots[shots.length - 1].result === 'em jogo') shots[shots.length - 1].result = 'para fora';
+    const last = shots[shots.length - 1];
+    if (ev.type === 'goal' && ev.by && ev.by.team === team && last) last.result = 'gol';
+    if (last && last.result === 'em jogo') {
+      if (ev.type === 'save') last.result = ev.kind === 'deflect_corner' ? 'defesa (escanteio)'
+        : ev.rebound ? 'defesa (rebote vivo)' : 'defesa';
+      else if (ev.type === 'blocked') last.result = 'bloqueado';
+      else if (ev.type === 'post') last.result = 'trave';
+      else if (ev.type === 'miss') last.result = 'para fora';
+    }
   }
   return shots;
 }
 
-/* Manchetes táticas: cada uma nasce de um padrão numérico real. */
 function headlines(sim, team) {
   const my = sim.stats[team], op = sim.stats[1 - team];
   const H = [];
   const add = (tag, msg) => H.push({ tag, msg });
-
   if (N(op.throughOk) >= 3)
     add('linha-alta', 'O adversário completou ' + op.throughOk + ' passes nas costas da sua linha' +
       (N(op.oneOnOnes) ? ', gerando ' + op.oneOnOnes + ' cara(s) a cara' : '') + '. Considere baixar a linha ou proteger a profundidade.');
@@ -103,29 +123,100 @@ function analyze(sim, team) {
   };
 }
 
+/* ------------------------------ SVG (Fase 13) ------------------------------ */
+const COLORS = { 'gol': '#ffcb45', 'defesa': '#7ab8ff', 'defesa (escanteio)': '#7ab8ff',
+  'defesa (rebote vivo)': '#9ad0ff', 'bloqueado': '#93a6bd', 'trave': '#ff9d4a',
+  'para fora': '#5a6b80', 'em jogo': '#5a6b80' };
+
+function fieldSVG(shots) {
+  const W = 360, H = 234, X = x => (x / FL * W).toFixed(1), Y = y => (y / FW * H).toFixed(1);
+  const L = 'stroke="#e8f5ec55" stroke-width="1.2" fill="none"';
+  const dots = shots.filter(s => s.x != null).map(s => {
+    const r = (3 + Math.min(s.xg, 0.75) * 15).toFixed(1);
+    const c = COLORS[s.result] || '#5a6b80';
+    return '<circle cx="' + X(s.x) + '" cy="' + Y(s.y) + '" r="' + r + '" fill="' + c +
+      '" fill-opacity=".85" stroke="#04120a" stroke-width="1"><title>' + s.minute + "' " +
+      (s.by || '') + ' · ' + s.kind + ' · xG ' + s.xg + ' → ' + s.result + '</title></circle>';
+  }).join('');
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;background:linear-gradient(90deg,#0d3a22,#11532f);border-radius:12px;display:block">' +
+    '<rect x="4" y="4" width="' + (W - 8) + '" height="' + (H - 8) + '" ' + L + ' rx="4"/>' +
+    '<line x1="' + W / 2 + '" y1="4" x2="' + W / 2 + '" y2="' + (H - 4) + '" ' + L + '/>' +
+    '<circle cx="' + W / 2 + '" cy="' + H / 2 + '" r="26" ' + L + '/>' +
+    '<rect x="' + (W - 4 - 56) + '" y="' + (H / 2 - 62) + '" width="56" height="124" ' + L + '/>' +
+    '<rect x="' + (W - 4 - 20) + '" y="' + (H / 2 - 30) + '" width="20" height="60" ' + L + '/>' +
+    '<rect x="4" y="' + (H / 2 - 62) + '" width="56" height="124" ' + L + '/>' +
+    '<rect x="4" y="' + (H / 2 - 30) + '" width="20" height="60" ' + L + '/>' +
+    dots + '</svg>' +
+    '<div style="font-size:10px;color:#9fb6d4;margin:4px 0 10px">Atacando para a direita · tamanho = xG · ' +
+    '<span style="color:#ffcb45">●</span> gol <span style="color:#7ab8ff">●</span> defesa ' +
+    '<span style="color:#ff9d4a">●</span> trave <span style="color:#93a6bd">●</span> bloqueio ' +
+    '<span style="color:#5a6b80">●</span> fora</div>';
+}
+
+function xgTimelineSVG(mine, theirs, names) {
+  const W = 360, H = 120, PAD = 6, maxT = 95;
+  const cum = shots => {
+    let acc = 0; const pts = [[0, 0]];
+    shots.slice().sort((a, b) => a.minute - b.minute).forEach(s => { acc += s.xg; pts.push([s.minute, acc]); });
+    pts.push([maxT, acc]); return pts;
+  };
+  const A = cum(mine), B = cum(theirs);
+  const maxXg = Math.max(A[A.length - 1][1], B[B.length - 1][1], 1);
+  const px = t => PAD + t / maxT * (W - 2 * PAD), py = v => H - PAD - v / maxXg * (H - 2 * PAD - 14);
+  const line = (pts, color) => {
+    let d = '', last = null;
+    for (const [t, v] of pts) { const x = px(t).toFixed(1), y = py(v).toFixed(1);
+      d += (d ? ' L' : 'M') + x + ' ' + (last == null ? y : last) + ' L' + x + ' ' + y; last = y; }
+    return '<path d="' + d + '" stroke="' + color + '" stroke-width="2" fill="none"/>';
+  };
+  const goals = (shots, color) => shots.filter(s => s.result === 'gol').map(s =>
+    '<circle cx="' + px(s.minute).toFixed(1) + '" cy="12" r="4" fill="' + color + '"><title>' +
+    s.minute + "' gol</title></circle>").join('');
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;background:#0b1220;border:1px solid #24344d;border-radius:12px;display:block">' +
+    line(A, '#6ee7a0') + line(B, '#ff8a8a') + goals(mine, '#6ee7a0') + goals(theirs, '#ff8a8a') +
+    '<text x="' + PAD + '" y="' + (H - 10) + '" fill="#9fb6d4" font-size="9">xG acumulado · <tspan fill="#6ee7a0">' +
+    names[0] + '</tspan> × <tspan fill="#ff8a8a">' + names[1] + '</tspan> · ● = gol</text></svg>';
+}
+
+function barsHTML(k, names) {
+  const row = (label, a, b, fmt) => {
+    const tot = (a + b) || 1, wa = Math.round(a / tot * 100);
+    return '<div style="margin:6px 0"><div style="display:flex;justify-content:space-between;font-size:11px;color:#cfe0f4">' +
+      '<b>' + (fmt ? fmt(a) : a) + '</b><span style="color:#9fb6d4">' + label + '</span><b>' + (fmt ? fmt(b) : b) + '</b></div>' +
+      '<div style="display:flex;height:7px;border-radius:4px;overflow:hidden;background:#1a2740">' +
+      '<div style="width:' + wa + '%;background:#6ee7a0"></div><div style="flex:1;background:#ff8a8a"></div></div></div>';
+  };
+  return row('xG', k.xg[0], k.xg[1]) + row('Finalizações', k.shots[0], k.shots[1]) +
+    row('No alvo', k.onTarget[0], k.onTarget[1]) +
+    row('Precisão de passe', k.passAccuracy[0], k.passAccuracy[1], v => v + '%') +
+    row('Escanteios', k.corners[0], k.corners[1]);
+}
+
 /* ------------------------- painel no jogo (DOM) ------------------------- */
 if (!NODE && typeof document !== 'undefined') {
   const boot = () => {
     if (document.getElementById('p12btn')) return;
     const css = document.createElement('style');
-    css.textContent = '#p12btn{position:fixed;left:12px;bottom:56px;z-index:999999;border:1px solid #7ab8ff;border-radius:999px;background:#0d1626;color:#7ab8ff;padding:9px 12px;font:700 11px system-ui;display:none}#p12box{position:fixed;inset:0;z-index:1000000;background:#020712dd;display:none;place-items:end center;padding:12px;color:#fff;font-family:system-ui}#p12box.on{display:grid}#p12box>div{width:min(720px,100%);max-height:86vh;overflow:auto;background:#0b1220;border:1px solid #2b4468;border-radius:18px;padding:15px}.p12h{border-left:3px solid #7ab8ff;background:#101c30;margin:7px 0;padding:8px;font-size:12px}.p12h b{color:#7ab8ff}.p12s{font-size:11px;color:#9fb6d4;margin:3px 0}';
+    css.textContent = '#p12btn{position:fixed;left:12px;bottom:56px;z-index:999999;border:1px solid #7ab8ff;border-radius:999px;background:#0d1626;color:#7ab8ff;padding:9px 12px;font:700 11px system-ui;display:none}#p12box{position:fixed;inset:0;z-index:1000000;background:#020712dd;display:none;place-items:end center;padding:12px;color:#fff;font-family:system-ui}#p12box.on{display:grid}#p12box>div{width:min(740px,100%);max-height:88vh;overflow:auto;background:#0b1220;border:1px solid #2b4468;border-radius:18px;padding:16px}.p12h{border-left:3px solid #7ab8ff;background:#101c30;margin:7px 0;padding:8px;font-size:12px;border-radius:0 8px 8px 0}.p12h b{color:#7ab8ff}.p12sc{font:800 22px system-ui;text-align:center;margin:2px 0 10px}';
     document.head.appendChild(css);
     const b = document.createElement('button'); b.id = 'p12btn'; b.textContent = 'ANÁLISE PÓS-JOGO';
     const x = document.createElement('div'); x.id = 'p12box';
-    x.innerHTML = '<div><button id="p12close" style="float:right">×</button><h3>Análise Pós-Jogo · Fase 12</h3><main></main></div>';
+    x.innerHTML = '<div><button id="p12close" style="float:right;background:none;border:none;color:#7ab8ff;font-size:18px">×</button><h3 style="margin:0 0 8px">Análise Pós-Jogo</h3><main></main></div>';
     document.body.append(b, x);
     const paint = () => {
       const sim = root.__CDS_ACTIVE_SIM, m = x.querySelector('main');
       if (!sim || !sim.isOver || !sim.isOver()) { m.innerHTML = '<p>Disponível após o fim da partida.</p>'; return; }
       const side = sim.interactiveTeam === 1 ? 1 : 0;
-      const a = analyze(sim, side), k = a.keyNumbers;
-      m.innerHTML = '<p><b>' + a.score[side] + ' × ' + a.score[1 - side] + '</b> · xG ' + k.xg[0] + ' × ' + k.xg[1] +
-        ' · chutes ' + k.shots[0] + ' × ' + k.shots[1] + ' · passes ' + k.passAccuracy[0] + '% × ' + k.passAccuracy[1] + '%</p>' +
-        (a.headlines.length ? a.headlines.map(h => '<div class="p12h"><b>' + h.tag + '</b> · ' + h.msg + '</div>').join('')
-          : '<p>Partida equilibrada, sem padrões táticos dominantes.</p>') +
-        '<h4>Finalizações (' + a.shotMap.length + ')</h4>' +
-        a.shotMap.map(s => '<div class="p12s">' + s.minute + "' " + (s.by || '?') + ' — xG ' + s.xg +
-          (s.oneOnOne ? ' · cara a cara' : s.longshot ? ' · de longe' : '') + ' → ' + s.result + '</div>').join('');
+      const a = analyze(sim, side), opp = analyze(sim, 1 - side);
+      const names = [sim.teams[side].name || 'Você', sim.teams[1 - side].name || 'Adversário'];
+      m.innerHTML =
+        '<div class="p12sc">' + names[0] + ' <span style="color:#ffcb45">' + a.score[side] + ' × ' +
+          a.score[1 - side] + '</span> ' + names[1] + '</div>' +
+        barsHTML(a.keyNumbers, names) +
+        '<h4 style="margin:14px 0 6px">Mapa de finalizações — ' + names[0] + '</h4>' + fieldSVG(a.shotMap) +
+        '<h4 style="margin:10px 0 6px">Domínio da partida</h4>' + xgTimelineSVG(a.shotMap, opp.shotMap, names) +
+        (a.headlines.length ? '<h4 style="margin:14px 0 6px">Leitura tática</h4>' +
+          a.headlines.map(h => '<div class="p12h"><b>' + h.tag + '</b> · ' + h.msg + '</div>').join('') : '');
     };
     b.onclick = () => { x.classList.add('on'); paint(); };
     x.querySelector('#p12close').onclick = () => x.classList.remove('on');
@@ -137,7 +228,7 @@ if (!NODE && typeof document !== 'undefined') {
   document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', boot) : boot();
 }
 
-const API = { VERSION: V, analyze, shotMap, headlines, installed: true };
+const API = { VERSION: V, analyze, shotMap, headlines, fieldSVG, xgTimelineSVG, installed: true };
 root.CDS_POST_MATCH = API;
 if (NODE) module.exports = API;
 })(typeof window !== 'undefined' ? window : globalThis);

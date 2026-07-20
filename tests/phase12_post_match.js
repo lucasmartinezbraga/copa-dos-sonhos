@@ -40,6 +40,19 @@ for (const team of [0, 1]) {
   if (goals !== sim.score[team]) throw new Error('gols do mapa != placar');
   for (const s of a.shotMap) if (!(s.xg >= 0 && s.xg <= 1) || !Number.isFinite(s.minute))
     throw new Error('finalização inválida no mapa');
+  // Fase 13: posição capturada no momento do lance, normalizada atacando à direita
+  const positioned = a.shotMap.filter(s => s.x != null);
+  if (positioned.length !== a.shotMap.length) throw new Error('chute sem posição capturada');
+  for (const s of positioned) {
+    if (!(s.x >= 0 && s.x <= 105 && s.y >= 0 && s.y <= 68)) throw new Error('posição fora do campo');
+    if (s.kind !== 'falta' && s.kind !== 'pênalti' && s.x < 30)
+      throw new Error('chute de jogada no campo de defesa após normalização: x=' + s.x);
+  }
+  // SVGs renderizam sem erro e contêm os pontos
+  const svg = sb.CDS_POST_MATCH.fieldSVG(a.shotMap);
+  if ((svg.match(/<circle/g) || []).length < positioned.length) throw new Error('mapa SVG sem todos os pontos');
+  if (!sb.CDS_POST_MATCH.xgTimelineSVG(a.shotMap, P.analyze(sim, 1 - team).shotMap, ['A', 'B']).includes('<path'))
+    throw new Error('timeline SVG sem linhas');
   // manchetes: só padrões reais, sempre com números
   for (const h of a.headlines) {
     if (!/\d/.test(h.msg)) throw new Error('manchete sem número real: ' + h.msg);
