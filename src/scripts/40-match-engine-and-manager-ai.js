@@ -1524,8 +1524,11 @@ class MatchSim {
      (12 m/s de scramble, 1.6m de alcance corporal). Sem RNG. */
   _gkReachable(gk, sx, sy, g) {
     if (!gk) return false;
-    const ballTime = D(sx, sy, g.x, g.y) / 40 + 0.05;
-    const gkTime = Math.max(0, D(gk.x, gk.y, g.x, g.y) - 1.6) / 12;
+    // Calibrado pela física da convergência real (scramble 10.5-14 m/s +
+    // alcance corporal): só nega a defesa verdadeiramente impossível
+    // (déficits de ~9m+, ex.: goleiro-líbero batido por cobertura).
+    const ballTime = D(sx, sy, g.x, g.y) / 36 + 0.20;
+    const gkTime = Math.max(0, D(gk.x, gk.y, g.x, g.y) - 2.6) / 14;
     return gkTime <= ballTime;
   }
 

@@ -56,7 +56,9 @@ function run(seed) {
       pendingCheck = null;
     }
     // invariante de voo: deslocamento por frame limitado pela velocidade real
-    if (wasTraveling && b.traveling && px != null) {
+    // (primeiro frame de cada voo é isento — deflexões emendam voos novos
+    // a partir do ponto de contato ancorado)
+    if (wasTraveling && b.traveling && px != null && b.travelT > dt * 1.5) {
       const step = D(b.x, b.y, px, py);
       findings.maxFlightStep = Math.max(findings.maxFlightStep, step);
       if (step > (pspeed + 20) * dt) findings.flightViolations++;
