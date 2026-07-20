@@ -2845,24 +2845,33 @@ function paintField() {
 
   /* bola */
   const b = rframe ? rframe.ball : st.ball;
-  const bx=cx(b.x), by=cy(b.y)-(b.z||0)*22;
+  /* SENSAÇÃO DE ALTURA — as três pistas clássicas do top-down:
+     1. a bola SOBE na tela (lift z*22px) e CRESCE com a altura;
+     2. a sombra fica no CHÃO, encolhe e clareia conforme a bola sobe —
+        o vão bola↔sombra é o que o olho lê como altura;
+     3. no alto a bola ganha contorno mais forte (recorte contra o gramado). */
+  const bz = b.z || 0;
+  const bx=cx(b.x), by=cy(b.y)-bz*22;
+  const br = 7 * (1 + Math.min(bz, 4.5) * 0.10);
   // #brilho da bola — halo suave que facilita seguir a jogada
   ctx.save();
-  const _bhalo = ctx.createRadialGradient(bx, by, 0, bx, by, 15);
+  const _bhalo = ctx.createRadialGradient(bx, by, 0, bx, by, 15 + bz * 3);
   _bhalo.addColorStop(0, 'rgba(255,238,140,.5)'); _bhalo.addColorStop(1, 'rgba(255,238,140,0)');
-  ctx.fillStyle = _bhalo; ctx.beginPath(); ctx.arc(bx, by, 15, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = _bhalo; ctx.beginPath(); ctx.arc(bx, by, 15 + bz * 3, 0, Math.PI*2); ctx.fill();
   ctx.restore();
-  ctx.save(); ctx.globalAlpha=.28;
-  ctx.beginPath(); ctx.arc(cx(b.x),cy(b.y)+3,5,0,Math.PI*2);
+  // sombra no chão: separa, encolhe e esmaece com a altura
+  ctx.save(); ctx.globalAlpha = .30 / (1 + bz * 0.55);
+  const shR = Math.max(2.2, 5 - bz * 0.7);
+  ctx.beginPath(); ctx.ellipse(cx(b.x), cy(b.y)+3, shR*1.25, shR*0.8, 0, 0, Math.PI*2);
   ctx.fillStyle='#000'; ctx.fill(); ctx.restore();
-  ctx.beginPath(); ctx.arc(bx,by,7,0,Math.PI*2);
-  const bg=ctx.createRadialGradient(bx-2.5,by-2.5,0,bx,by,7);
+  ctx.beginPath(); ctx.arc(bx,by,br,0,Math.PI*2);
+  const bg=ctx.createRadialGradient(bx-br*.36,by-br*.36,0,bx,by,br);
   bg.addColorStop(0,'#ffffff'); bg.addColorStop(1,'#c8c8c8');
   ctx.fillStyle=bg; ctx.fill();
-  ctx.strokeStyle='#444'; ctx.lineWidth=.8; ctx.stroke();
+  ctx.strokeStyle=bz>0.8?'#2a3242':'#444'; ctx.lineWidth=.8+Math.min(bz,3)*.14; ctx.stroke();
   // costura
   ctx.strokeStyle='rgba(80,80,80,.5)'; ctx.lineWidth=.5;
-  ctx.beginPath(); ctx.arc(bx,by,4,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(bx,by,br*.57,0,Math.PI*2); ctx.stroke();
 
   ctx.restore();   // fim do mundo com câmera
 

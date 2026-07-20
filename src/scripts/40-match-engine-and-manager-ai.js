@@ -1622,8 +1622,10 @@ class MatchSim {
     const fang = ang + angErr;
     b.vx = Math.cos(fang) * spd; b.vy = Math.sin(fang) * spd;
     // ARCO baixo no passe rasteiro (bola no pé, não lob) — só lançamento sobe de verdade
+    /* ALTURA REAL (Motor Visual): lançamentos e cruzamentos sobem de verdade
+       (apex ~3-4m) — z é puramente visual, nenhuma lógica de disputa o lê. */
     b.z = passKind === 'launch' ? 0.3 : 0.12;
-    b.vz = (kind === 'shot') ? 1.0 : (passKind === 'launch' ? 7 : passKind === 'through' ? 1.2 : 0.4);
+    b.vz = (kind === 'shot') ? 1.2 : (passKind === 'launch' ? 11.5 : passKind === 'through' ? 2.4 : 0.6);
     b._timeout = dist / spd + 0.35;    // timeout de segurança generoso para chutes longos
   }
 
@@ -1707,7 +1709,7 @@ class MatchSim {
     const d = Math.max(D(b.x, b.y, x, y), 0.1);
     const v = spd || 11;
     b.vx = (x - b.x) / d * v; b.vy = (y - b.y) / d * v;
-    b.z = Math.max(b.z, 0.2); b.vz = 1.5; b.speed = v;
+    b.z = Math.max(b.z, 0.2); b.vz = 4.2; b.speed = v;   // espalmada pipoca alto
     b._timeout = d / v + 0.3;
     b.onArrive = () => this._looseBall(x, y);
     b.receiver = null;
