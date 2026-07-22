@@ -4,7 +4,7 @@
   "status": "FAIL",
   "prioridade": "P1",
   "sha256_r14": "205170caa29271f5b550818991102937c45394c98f960a54ee65e113528eb80f",
-  "data": "2026-07-22T20:59:35.608196+00:00",
+  "data": "2026-07-22T21:17:04.499573+00:00",
   "procedimento": "Agregação dos sub-gates de observedFootball (getR13Audit) em 200 partidas, antes e depois.",
   "resultado_observado": {
     "partidas_com_sub_gate_reprovado": {
@@ -162,5 +162,12 @@
     },
     "veredito": "FALHOU — nenhum ganho na marcação e gols caíram 15%. Revertido."
   },
-  "conclusao_apos_3_tentativas": "Três hipóteses testadas em 200 seeds cada, todas revertidas: rastreio do marcador, velocidade de recomposição da linha e amortecimento da âncora. NENHUMA moveu a cobertura (0,704 -> 0,709 / 0,702 / 0,703) e todas custaram gols. O padrão é consistente e informativo: a cobertura NÃO responde a ajuste defensivo. Isso sugere que a queda não é defeito de calibração da defesa, e sim consequência estrutural de o jogo passar a ser jogado — com a bola circulando 68% mais, o atacante ocupa posição ameaçadora com mais frequência do que qualquer bloco recompõe. Se isso se confirmar, o gate `marking` está na mesma situação em que ppgRange estava: um limiar derivado sobre um motor que não decidia. MAS a analogia não basta para afrouxá-lo — em BAL-001 o equilíbrio foi RE-DERIVADO mudando o jogo até atingir o limite intacto; aqui eu estaria mexendo no limite. Não faço isso sem entender."
+  "conclusao_apos_3_tentativas": "Três hipóteses testadas em 200 seeds cada, todas revertidas: rastreio do marcador, velocidade de recomposição da linha e amortecimento da âncora. NENHUMA moveu a cobertura (0,704 -> 0,709 / 0,702 / 0,703) e todas custaram gols. O padrão é consistente e informativo: a cobertura NÃO responde a ajuste defensivo. Isso sugere que a queda não é defeito de calibração da defesa, e sim consequência estrutural de o jogo passar a ser jogado — com a bola circulando 68% mais, o atacante ocupa posição ameaçadora com mais frequência do que qualquer bloco recompõe. Se isso se confirmar, o gate `marking` está na mesma situação em que ppgRange estava: um limiar derivado sobre um motor que não decidia. MAS a analogia não basta para afrouxá-lo — em BAL-001 o equilíbrio foi RE-DERIVADO mudando o jogo até atingir o limite intacto; aqui eu estaria mexendo no limite. Não faço isso sem entender.",
+  "experimento_diagnostico": {
+    "objetivo": "Testar se a queda de cobertura é consequência da cadência ou defeito da defesa.",
+    "mudanca": "teto de decideT em build_up 0,44 -> 0,80",
+    "resultado": "INERTE — todas as métricas idênticas (marking 124, cobertura 0,704, passes 188,3, gols 1,820, travas 237)",
+    "achado": "O experimento não testou o que eu queria, e o resultado nulo prova por quê: o TETO de 0,44 nunca é atingido. O intervalo de decisão base (CAL.timing.decisionInterval ajustado por fadiga/QI/ritmo) já é menor que 0,44, então Math.min(x,0.44)==Math.min(x,0.80)==x. O conserto da Fase 1 funcionou removendo o PISO de 0,10, não alterando o teto. Para variar a cadência de verdade seria preciso escalar CAL.timing.decisionInterval.",
+    "proximo_experimento_correto": "multiplicar CAL.timing.decisionInterval por 1,6 e medir cobertura"
+  }
 }
