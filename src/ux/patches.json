@@ -138,5 +138,55 @@
   "id": "draft-reroll-bias",
   "from": "  if (!pool.length) { d.used = new Set(); pool = all.slice(); }\n  d.cur = rnd(pool);",
   "to": "  if (!pool.length) { d.used = new Set(); pool = all.slice(); }\n  // UX-031: havendo slots vazios, prioriza times que TÊM peça compatível (evita travar)\n  const _need = d.slots.filter(s=>!s.p).map(s=>s.pos);\n  if (_need.length) {\n    const _taken = pickedIds();\n    const _good = pool.filter(t => (t.pl||[]).some(p=>!_taken.has(p.id) && _need.some(pos=>canPlay(p,pos))));\n    if (_good.length) pool = _good;\n  }\n  d.cur = rnd(pool);"
+ },
+ {
+  "id": "mob-doctype-top",
+  "from": "<!-- MOTOR VISUAL 2.0 · ENGINE 5.7.3 -->\n<!DOCTYPE html>\n",
+  "to": "<!DOCTYPE html>\n<!-- MOTOR VISUAL 2.0 · ENGINE 5.7.3 -->\n"
+ },
+ {
+  "id": "mob-inline-fonts-open",
+  "from": "<!-- TIPOGRAFIA: preconnects do Google Fonts removidos — as fontes agora são\n     100% embutidas no <style>\n",
+  "to": "<!-- TIPOGRAFIA: fontes 100% embutidas; nenhum request externo participa do boot. -->\n<style id=\"cds-inline-fonts\">\n"
+ },
+ {
+  "id": "mob-inline-fonts-close",
+  "from": " (ver bloco FONTES EMBUTIDAS), então não existe\n     mais NENHUM request externo neste arquivo. -->\n",
+  "to": "\n</style>\n"
+ },
+ {
+  "id": "mob-touch-action",
+  "from": "  touch-action:none;\n",
+  "to": "  touch-action:manipulation;\n"
+ },
+ {
+  "id": "mob-button-type-home",
+  "from": "<button aria-label=\"Abrir o Desafio de Faltas\" class=\"home-mode-v2\" data-go=\"freekick\">\n",
+  "to": "<button type=\"button\" aria-label=\"Abrir o Desafio de Faltas\" class=\"home-mode-v2\" data-go=\"freekick\">\n"
+ },
+ {
+  "id": "mob-boot-bridge",
+  "from": "</div></div>\n<script>\n",
+  "to": "</div></div>\n<script id=\"cds-mobile-boot-bridge\">\n/* Ponte mínima carregada ANTES do bundle pesado.\n   Garante resposta imediata aos botões da home e memoriza a tela solicitada\n   enquanto banco/motor terminam o boot. Não decide futebol. */\n(function (root) {\n  'use strict';\n  var lastTouchAt = -1e9;\n  function closestAction(target) {\n    return target && target.closest ? target.closest('#bt-start,#bt-about,[data-go]') : null;\n  }\n  function routeFor(el) {\n    if (!el) return null;\n    if (el.id === 'bt-start') return 'setup';\n    if (el.id === 'bt-about') return 'howto';\n    return el.getAttribute('data-go');\n  }\n  function paintPending(route) {\n    root.__CDS_PENDING_ROUTE = route || 'home';\n    var app = document.getElementById('app');\n    if (app) {\n      app.innerHTML = '<div id=\"boot-loading\" role=\"status\" aria-live=\"polite\" style=\"min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:28px;background:#070b14;color:#fff;font:16px/1.5 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;text-align:center\"><div><b style=\"display:block;color:#ffcb45;font-size:19px;margin-bottom:8px\">Iniciando Copa dos Sonhos…</b><span style=\"color:#aebbd0\">Preparando a tela solicitada. Não é necessário tocar novamente.</span></div></div>';\n    }\n    try { if (typeof root.__CDS_BOOT_NOW === 'function') root.__CDS_BOOT_NOW(); } catch (_) {}\n  }\n  function intercept(ev) {\n    var el = closestAction(ev.target);\n    if (!el) return;\n    /* Com o jogo pronto, deixa o listener funcional normal executar. */\n    if (root.UI && typeof root.UI.go === 'function' && root.G && root.G.db) return;\n    var route = routeFor(el);\n    if (!route) return;\n    ev.preventDefault();\n    ev.stopPropagation();\n    paintPending(route);\n  }\n  document.addEventListener('touchend', function (ev) {\n    lastTouchAt = Date.now();\n    intercept(ev);\n  }, { capture: true, passive: false });\n  document.addEventListener('click', function (ev) {\n    if (Date.now() - lastTouchAt < 700) {\n      var el = closestAction(ev.target);\n      if (el && !(root.UI && root.G && root.G.db)) { ev.preventDefault(); ev.stopPropagation(); }\n      return;\n    }\n    intercept(ev);\n  }, true);\n})(window);\n</script>\n<style id=\"cds-mobile-input-fix\">\nbutton,.btn,[role=\"button\"],[data-go]{touch-action:manipulation;-webkit-touch-callout:none}\nbutton:disabled,[aria-disabled=\"true\"]{touch-action:auto}\n</style>\n<script>\n"
+ },
+ {
+  "id": "mob-tap-and-click",
+  "from": "  const b = e.target.closest('[data-go]');\n  if (b) go(b.dataset.go);\n});\n\n/* Tap móvel tolerante: o botão dispara no pointerup mesmo quando o WebView\n   deixa de sintetizar o click. Um deslocamento maior que 14px cancela a ação. */\nfunction bindMobileTap(el, action) {\n  if (!el) return;\n  let pid = null, x0 = 0, y0 = 0, moved = false, firedAt = -1e9;\n  el.addEventListener('pointerdown', ev => {\n    if (ev.pointerType === 'mouse') return;\n    pid = ev.pointerId; x0 = ev.clientX; y0 = ev.clientY; moved = false;\n    try { el.setPointerCapture(pid); } catch (_) {}\n  }, { passive: true });\n  el.addEventListener('pointermove', ev => {\n    if (ev.pointerId !== pid) return;\n    if (Math.hypot(ev.clientX - x0, ev.clientY - y0) > 14) moved = true;\n  }, { passive: true });\n  const end = ev => {\n    if (ev.pointerId !== pid) return;\n    const fire = !moved;\n    pid = null;\n    if (fire) { firedAt = performance.now(); action(ev); }\n  };\n  el.addEventListener('pointerup', end, { passive: true });\n  el.addEventListener('pointercancel', ev => { if (ev.pointerId === pid) pid = null; }, { passive: true });\n  el.addEventListener('click', ev => {\n    if (performance.now() - firedAt < 600) { ev.preventDefault(); return; }\n    action(ev);\n",
+  "to": "  const target = e.target && e.target.closest ? e.target : null;\n  const b = target ? target.closest('[data-go]') : null;\n  if (b) { e.preventDefault(); go(b.dataset.go); }\n});\n\n/* Tap móvel robusto: CLICK é a fonte principal. touchend existe apenas como\n   fallback para WebViews que não sintetizam click. Sem pointer capture e sem\n   cancelar a ação por microdeslocamentos naturais do dedo. */\nfunction bindMobileTap(el, action) {\n  if (!el || el.__cdsTapBound) return;\n  el.__cdsTapBound = true;\n  let touchFiredAt = -1e9;\n  const invoke = ev => {\n    if (el.disabled || el.getAttribute('aria-disabled') === 'true') return;\n    action(ev);\n  };\n  el.addEventListener('touchend', ev => {\n    if (ev.changedTouches && ev.changedTouches.length !== 1) return;\n    touchFiredAt = performance.now();\n    ev.preventDefault();\n    invoke(ev);\n  }, { passive: false });\n  el.addEventListener('click', ev => {\n    if (performance.now() - touchFiredAt < 700) {\n      ev.preventDefault();\n      return;\n    }\n    invoke(ev);\n"
+ },
+ {
+  "id": "mob-button-type-screen",
+  "from": "            <button class=\"home-mode-v2\" data-go=\"freekick\" aria-label=\"Abrir o Desafio de Faltas\">\n",
+  "to": "            <button type=\"button\" class=\"home-mode-v2\" data-go=\"freekick\" aria-label=\"Abrir o Desafio de Faltas\">\n"
+ },
+ {
+  "id": "mob-boot-ready-route",
+  "from": "      go('home');\n",
+  "to": "      document.documentElement.dataset.cdsBoot = 'ready';\n      const requestedRoute = window.__CDS_PENDING_ROUTE;\n      window.__CDS_PENDING_ROUTE = null;\n      if (requestedRoute === 'freekick' || SCREENS[requestedRoute]) go(requestedRoute);\n      else go('home');\n"
+ },
+ {
+  "id": "mob-boot-now-export",
+  "from": "}\n/* Gatilhos redundantes — todos idempotentes graças ao _bootStarted: */\n",
+  "to": "}\nwindow.__CDS_BOOT_NOW = bootGame;\n/* Gatilhos redundantes — todos idempotentes graças ao _bootStarted: */\n"
  }
 ]

@@ -241,6 +241,27 @@ for p in patches:
 if not ok:
     sys.exit("ERRO: patch não-único — ajuste os marcadores")
 
+# ── camada MOBILE/BOOT (R14): patches que tocam HTML e CSS, não só JS.
+# Vêm de src/ux/patches-mobile.json (fonte versionada, autoria humana) e são
+# validados contra o HTML base R13 JÁ com os patches acima aplicados — que é
+# exatamente o estado sobre o qual build_ux.py os aplicará.
+_base = (ROOT / _MAN['template']).read_bytes().decode('utf-8')
+for b in _MAN['blocks']:
+    _base = _base.replace(b['placeholder'], (ROOT / b['module']).read_bytes().decode('utf-8'), 1)
+_staged = _base
+for p in patches:
+    _staged = _staged.replace(p['from'], p['to'], 1)
+
+mobile_path = ROOT / 'src/ux/patches-mobile.json'
+mobile = json.loads(mobile_path.read_bytes().decode('utf-8')) if mobile_path.exists() else []
+for p in mobile:
+    n = _staged.count(p['from'])
+    print(f"  {p['id']:<26} ocorrências: {n} [MOBILE]")
+    if n != 1:
+        sys.exit(f"ERRO: patch mobile {p['id']} ocorre {n}x (esperado 1)")
+    _staged = _staged.replace(p['from'], p['to'], 1)
+patches += mobile
+
 out = ROOT / 'src/ux/patches.json'
-out.write_text(json.dumps(patches, ensure_ascii=False, indent=1), encoding='utf-8')
+out.write_bytes(json.dumps(patches, ensure_ascii=False, indent=1).encode('utf-8'))
 print(f"\n{out} gravado com {len(patches)} patches")
