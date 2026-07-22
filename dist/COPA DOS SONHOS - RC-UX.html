@@ -11901,15 +11901,15 @@ function advancePenScene(dt) {
 function drawSpBackdrop(ctx,scene,view){
   const p=view||spPerspective(scene);
   const sky=ctx.createLinearGradient(0,0,0,p.horizon+72);
-  sky.addColorStop(0,'#020711');sky.addColorStop(.55,'#0b1b31');sky.addColorStop(1,'#1b4a67');
+  sky.addColorStop(0,'#050b16');sky.addColorStop(.55,'#081120');sky.addColorStop(1,'#123049');
   ctx.fillStyle=sky;ctx.fillRect(0,0,CW,p.horizon+80);
 
   // Arquibancada e luzes em planos separados para dar profundidade à câmera.
-  ctx.fillStyle='#07101d';ctx.fillRect(0,p.horizon-116,CW,105);
+  ctx.fillStyle='#0b1524';ctx.fillRect(0,p.horizon-116,CW,105);
   ctx.fillStyle='rgba(7,13,24,.82)';ctx.fillRect(0,p.horizon-50,CW,44);
   for(let i=0;i<128;i++){
     const x=(i*79)%CW,y=p.horizon-104+((i*43)%86);
-    ctx.fillStyle=i%11===0?'rgba(255,220,132,.70)':i%5===0?'rgba(111,185,230,.42)':'rgba(172,193,220,.22)';
+    ctx.fillStyle=i%11===0?'rgba(255,203,69,.60)':i%5===0?'rgba(56,189,248,.42)':'rgba(172,193,220,.24)';
     ctx.fillRect(x,y,i%9===0?3:2,i%7===0?3:2);
   }
   const flood=ctx.createRadialGradient(CW*.5,p.horizon-95,8,CW*.5,p.horizon-95,CW*.52);
@@ -11917,7 +11917,7 @@ function drawSpBackdrop(ctx,scene,view){
   ctx.fillStyle=flood;ctx.fillRect(0,0,CW,p.horizon+120);
 
   const grass=ctx.createLinearGradient(0,p.horizon,0,CH);
-  grass.addColorStop(0,'#17683a');grass.addColorStop(.42,'#105c32');grass.addColorStop(1,'#07391f');
+  grass.addColorStop(0,'#209150');grass.addColorStop(.42,'#17773f');grass.addColorStop(1,'#0c4f29');
   ctx.fillStyle=grass;ctx.fillRect(0,p.horizon,CW,CH-p.horizon);
   for(let i=0;i<12;i++){
     ctx.fillStyle=i%2?'rgba(255,255,255,.026)':'rgba(0,0,0,.055)';

@@ -166,6 +166,22 @@ patches.append({"id": "pose-pass",
     "from": "  if (e.type === 'pass') {\n    if (passNarrCd <= 0 && vrand() < 0.6) {",
     "to":   "  if (e.type === 'pass') {\n    if (e.by) motionAt(e.by, 'kick', 0.32);\n    if (passNarrCd <= 0 && vrand() < 0.6) {"})
 
+# ── UNIFICAR CENAS DE BOLA PARADA (PRO-031..035): a câmera atrás-do-gol das cobranças
+# é necessária p/ mirar, mas a PALETA (céu/arquibancada/gramado) destoava do palco 2.5D.
+# Harmoniza as cores de drawSpBackdrop com buildStage() → mesma identidade visual.
+patches.append({"id": "sp-sky",
+    "from": "  sky.addColorStop(0,'#020711');sky.addColorStop(.55,'#0b1b31');sky.addColorStop(1,'#1b4a67');",
+    "to":   "  sky.addColorStop(0,'#050b16');sky.addColorStop(.55,'#081120');sky.addColorStop(1,'#123049');"})
+patches.append({"id": "sp-grass",
+    "from": "  grass.addColorStop(0,'#17683a');grass.addColorStop(.42,'#105c32');grass.addColorStop(1,'#07391f');",
+    "to":   "  grass.addColorStop(0,'#209150');grass.addColorStop(.42,'#17773f');grass.addColorStop(1,'#0c4f29');"})
+patches.append({"id": "sp-crowd",
+    "from": "    ctx.fillStyle=i%11===0?'rgba(255,220,132,.70)':i%5===0?'rgba(111,185,230,.42)':'rgba(172,193,220,.22)';",
+    "to":   "    ctx.fillStyle=i%11===0?'rgba(255,203,69,.60)':i%5===0?'rgba(56,189,248,.42)':'rgba(172,193,220,.24)';"})
+patches.append({"id": "sp-stands",
+    "from": "  ctx.fillStyle='#07101d';ctx.fillRect(0,p.horizon-116,CW,105);",
+    "to":   "  ctx.fillStyle='#0b1524';ctx.fillRect(0,p.horizon-116,CW,105);"})
+
 # ═══ (SEM PATCH DE MOTOR) — o dwell é CARGA do balanço da R13.0, provado 2x ═══════════
 # A "bola presa entre dois jogadores" (dwell) é REAL e pré-existente (207/284 travas de
 # 2 jogadores, até 45s de jogo em estilos), mas é INTRÍNSECA ao equilíbrio validado:
