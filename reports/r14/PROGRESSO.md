@@ -140,3 +140,46 @@ o conserto do P0 não foi desfeito.
   controles de navegador/mobile automatizado seguem `PENDENTE`.
 - **Aparelhos físicos** (Android/iOS) e **3 observadores humanos** → `PENDENTE`
   por definição; emulação de viewport não substitui.
+
+---
+
+## FASE 2 — contrato de ação (sincronização motor↔render) — **CONCLUÍDA**
+
+**problema** · `_startTravel` fazia `b.owner=null; b.traveling=true` no **mesmo
+tick da decisão**. A bola partia no instante da escolha; não havia preparação,
+então nenhuma pose podia tocá-la — quando o evento chegava ao render, a bola já
+tinha saído.
+
+**correção** · `src/r14/10-action-contract.js` separa **decidir** de
+**executar**. `_pass`/`_cross`/`_shoot` agendam um contrato
+(`preparação → contato → continuidade → recuperação`) e a bola só sai no
+**contato**. Durante o preparo o portador mantém a bola e pode ser desarmado,
+produzindo `interrupted` em vez de ação fantasma. Cobranças e reinícios saem na
+hora, para não reintroduzir estado preso.
+
+**arquivos** · `src/r14/10-action-contract.js` (novo), `tools/build_ux.py`
+(nova camada de motor `src/r14/*.js`), `tools/ux/probe_balllock.js`
+
+**resultado (1 partida)** · 199 preparadas · 198 com contato · 1 interrompida ·
+**0 forçadas** · conforme `action-contract.schema.json`
+
+| gate | resultado |
+|---|---|
+| cenários dirigidos | 25/25 |
+| smoke estático | 13/13 |
+| `ppgRange` | 0,500 PASS |
+| `maxAbsGoalDiff` | 0,500 PASS |
+| `parkIdentity` / `tikiIdentity` | PASS |
+| R13.0 byte-idêntica | OK |
+
+**troca medida (`SYN-001`)** · travas 168 → 237 em 200 seeds: o preparo segura a
+bola ~0,2 s a mais por ação e infla o tempo dentro do raio de 4 m. A patologia,
+porém, **cai**: `dwellMax` médio 2,91 → 2,58 s e a composição migra de `dwell`
+puro para `misto`/`pingpong` — a bola troca de pé dentro da janela em vez de
+congelar. Zero travas ≥10 s antes e depois.
+
+**candidata** · `7dc258d5e030d59d908b20ec00e445fdd721b9981bb02f17febd44d66d6b3904`
+
+**próxima fase** · Fase 3 — máquina de estados de animação, que agora tem
+`prepareDuration`, `contactTime`, `followThroughDuration` e `recoveryDuration`
+reais para consumir.
