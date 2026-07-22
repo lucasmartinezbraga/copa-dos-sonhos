@@ -1,13 +1,58 @@
 [
  {
+  "id": "cam-target-replay",
+  "from": "      const tx = cx(rframe.ball.x), ty = cy(rframe.ball.y);",
+  "to": "      let tx = cx(rframe.ball.x), ty = cy(rframe.ball.y);\n      if (window.CDS_F25D) { const _pj = window.CDS_F25D.project(tx, ty); tx = _pj.x; ty = _pj.y; }"
+ },
+ {
+  "id": "cam-target-live",
+  "from": "      const tx = cx(sb.x), ty = cy(sb.y);",
+  "to": "      let tx = cx(sb.x), ty = cy(sb.y);\n      if (window.CDS_F25D) { const _pj = window.CDS_F25D.project(tx, ty); tx = _pj.x; ty = _pj.y; }"
+ },
+ {
   "id": "grass",
   "from": "  /* gramado listrado */\n  const nS = 8, sw = fW/nS;\n  for (let i=0;i<nS;i++) {\n    ctx.fillStyle = i%2===0 ? '#1b7a36' : '#177030';\n    ctx.fillRect(M+i*sw, M, sw, fH);\n  }",
-  "to": "  /* gramado listrado (delegado ao kit 2.5D quando presente) */\n  if (window.CDS_F25D) { window.CDS_F25D.grass(ctx, M, fW, fH); } else {\n  const nS = 8, sw = fW/nS;\n  for (let i=0;i<nS;i++) {\n    ctx.fillStyle = i%2===0 ? '#1b7a36' : '#177030';\n    ctx.fillRect(M+i*sw, M, sw, fH);\n  } }"
+  "to": "  /* gramado listrado (delegado ao palco 2.5D quando presente) */\n  if (window.CDS_F25D) { window.CDS_F25D.grass(ctx, M, fW, fH); } else {\n  const nS = 8, sw = fW/nS;\n  for (let i=0;i<nS;i++) {\n    ctx.fillStyle = i%2===0 ? '#1b7a36' : '#177030';\n    ctx.fillRect(M+i*sw, M, sw, fH);\n  } }"
+ },
+ {
+  "id": "pitch-markings",
+  "from": "  /* marcações */\n  ctx.strokeStyle = 'rgba(255,255,255,.62)'; ctx.lineWidth = 1.5;\n  ctx.strokeRect(M, M, fW, fH);\n  ctx.beginPath(); ctx.moveTo(CW/2,M); ctx.lineTo(CW/2,CH-M); ctx.stroke();\n  // círculo central\n  ctx.beginPath(); ctx.arc(CW/2, CH/2, (9.15/68)*fH, 0, Math.PI*2); ctx.stroke();\n  ctx.fillStyle='rgba(255,255,255,.7)'; ctx.beginPath(); ctx.arc(CW/2,CH/2,2.5,0,Math.PI*2); ctx.fill();\n  // áreas de penalti\n  const paW=(16.5/105)*fW, paH=(40.32/68)*fH;\n  ctx.strokeRect(M,(CH-paH)/2,paW,paH);\n  ctx.strokeRect(CW-M-paW,(CH-paH)/2,paW,paH);\n  // áreas pequenas\n  const gaW=(5.5/105)*fW, gaH=(18.32/68)*fH;\n  ctx.strokeRect(M,(CH-gaH)/2,gaW,gaH);\n  ctx.strokeRect(CW-M-gaW,(CH-gaH)/2,gaW,gaH);\n  // pênaltis\n  const psW=(11/105)*fW;\n  ctx.fillStyle='rgba(255,255,255,.7)';\n  ctx.beginPath(); ctx.arc(M+psW,CH/2,2.5,0,Math.PI*2); ctx.fill();\n  ctx.beginPath(); ctx.arc(CW-M-psW,CH/2,2.5,0,Math.PI*2); ctx.fill();\n  // arcos de canto\n  const ca=5;\n  ctx.beginPath(); ctx.arc(M,M,ca,0,Math.PI/2); ctx.stroke();\n  ctx.beginPath(); ctx.arc(CW-M,M,ca,Math.PI/2,Math.PI); ctx.stroke();\n  ctx.beginPath(); ctx.arc(M,CH-M,ca,-Math.PI/2,0); ctx.stroke();\n  ctx.beginPath(); ctx.arc(CW-M,CH-M,ca,Math.PI,3*Math.PI/2); ctx.stroke();\n  // goleiras\n  const goalH=(7.32/68)*fH;\n  ctx.fillStyle='rgba(255,255,255,.9)';\n  ctx.fillRect(M-7,(CH-goalH)/2,7,goalH);\n  ctx.fillRect(CW-M,(CH-goalH)/2,7,goalH);\n  ctx.strokeStyle='rgba(255,255,255,.4)'; ctx.lineWidth=.8;\n  ctx.strokeRect(M-7,(CH-goalH)/2,7,goalH);\n  ctx.strokeRect(CW-M,(CH-goalH)/2,7,goalH);",
+  "to": "  if (!window.CDS_F25D) {\n  /* marcações */\n  ctx.strokeStyle = 'rgba(255,255,255,.62)'; ctx.lineWidth = 1.5;\n  ctx.strokeRect(M, M, fW, fH);\n  ctx.beginPath(); ctx.moveTo(CW/2,M); ctx.lineTo(CW/2,CH-M); ctx.stroke();\n  // círculo central\n  ctx.beginPath(); ctx.arc(CW/2, CH/2, (9.15/68)*fH, 0, Math.PI*2); ctx.stroke();\n  ctx.fillStyle='rgba(255,255,255,.7)'; ctx.beginPath(); ctx.arc(CW/2,CH/2,2.5,0,Math.PI*2); ctx.fill();\n  // áreas de penalti\n  const paW=(16.5/105)*fW, paH=(40.32/68)*fH;\n  ctx.strokeRect(M,(CH-paH)/2,paW,paH);\n  ctx.strokeRect(CW-M-paW,(CH-paH)/2,paW,paH);\n  // áreas pequenas\n  const gaW=(5.5/105)*fW, gaH=(18.32/68)*fH;\n  ctx.strokeRect(M,(CH-gaH)/2,gaW,gaH);\n  ctx.strokeRect(CW-M-gaW,(CH-gaH)/2,gaW,gaH);\n  // pênaltis\n  const psW=(11/105)*fW;\n  ctx.fillStyle='rgba(255,255,255,.7)';\n  ctx.beginPath(); ctx.arc(M+psW,CH/2,2.5,0,Math.PI*2); ctx.fill();\n  ctx.beginPath(); ctx.arc(CW-M-psW,CH/2,2.5,0,Math.PI*2); ctx.fill();\n  // arcos de canto\n  const ca=5;\n  ctx.beginPath(); ctx.arc(M,M,ca,0,Math.PI/2); ctx.stroke();\n  ctx.beginPath(); ctx.arc(CW-M,M,ca,Math.PI/2,Math.PI); ctx.stroke();\n  ctx.beginPath(); ctx.arc(M,CH-M,ca,-Math.PI/2,0); ctx.stroke();\n  ctx.beginPath(); ctx.arc(CW-M,CH-M,ca,Math.PI,3*Math.PI/2); ctx.stroke();\n  // goleiras\n  const goalH=(7.32/68)*fH;\n  ctx.fillStyle='rgba(255,255,255,.9)';\n  ctx.fillRect(M-7,(CH-goalH)/2,7,goalH);\n  ctx.fillRect(CW-M,(CH-goalH)/2,7,goalH);\n  ctx.strokeStyle='rgba(255,255,255,.4)'; ctx.lineWidth=.8;\n  ctx.strokeRect(M-7,(CH-goalH)/2,7,goalH);\n  ctx.strokeRect(CW-M,(CH-goalH)/2,7,goalH);\n  }"
+ },
+ {
+  "id": "depth-sort",
+  "from": "  const groups = playersToDraw\n    ? [{ color: null, players: playersToDraw }]\n    : st.teams.map(t => ({ color: t.color, players: t.players }));",
+  "to": "  let groups = playersToDraw\n    ? [{ color: null, players: playersToDraw }]\n    : st.teams.map(t => ({ color: t.color, players: t.players }));\n  if (window.CDS_F25D) {\n    const _all = [];\n    for (const g of groups) for (const pl of g.players) { if (g.color && pl.color == null) pl.color = g.color; _all.push(pl); }\n    _all.sort((a, b) => a.y - b.y);\n    groups = [{ color: null, players: _all }];\n  }"
+ },
+ {
+  "id": "player-project",
+  "from": "      const groundX=_rx, groundY=_ry;\n      let x=groundX, y=groundY, r=13, divePose=false, actionWave=0;",
+  "to": "      let groundX=_rx, groundY=_ry, _ps=1;\n      if (window.CDS_F25D) { const _pj=window.CDS_F25D.project(_rx,_ry); groundX=_pj.x; groundY=_pj.y; _ps=_pj.s; }\n      let x=groundX, y=groundY, r=13*_ps, divePose=false, actionWave=0;"
+ },
+ {
+  "id": "player-shadow",
+  "from": "      ctx.beginPath(); ctx.ellipse(groundX,groundY+5,r*(1+actionWave*.18),r*.72,0,0,Math.PI*2);",
+  "to": "      ctx.beginPath();\n      if (window.CDS_F25D) ctx.ellipse(groundX,groundY+r*.98,r*.82*(1+actionWave*.18),r*.34,0,0,Math.PI*2);\n      else ctx.ellipse(groundX,groundY+5,r*(1+actionWave*.18),r*.72,0,0,Math.PI*2);"
  },
  {
   "id": "player-body",
   "from": "      // corpo: no mergulho do goleiro vira uma elipse lateral, deixando o pulo\n      // legível sem alterar a posição física usada pelo motor.\n      ctx.beginPath();\n      if (divePose) ctx.ellipse(x,y,r*1.42,r*.72,Math.PI/2,0,Math.PI*2);\n      else ctx.arc(x,y,r,0,Math.PI*2);\n      ctx.fillStyle = p.slot==='GK' ? gkC : pc; ctx.fill();\n\n      // borda\n      ctx.lineWidth = p.hasBall ? 2.5 : 1.5;\n      ctx.strokeStyle = p.hasBall ? '#fff' : 'rgba(255,255,255,.42)';\n      ctx.stroke();",
-  "to": "      // corpo: delegado ao mini-atleta 2.5D quando presente (apresentação)\n      if (window.CDS_F25D) { window.CDS_F25D.body(ctx, { x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall, key: (p.ref&&p.ref.n)||p.n||('#'+(p.num||0)) }); } else {\n      // corpo: no mergulho do goleiro vira uma elipse lateral, deixando o pulo\n      // legível sem alterar a posição física usada pelo motor.\n      ctx.beginPath();\n      if (divePose) ctx.ellipse(x,y,r*1.42,r*.72,Math.PI/2,0,Math.PI*2);\n      else ctx.arc(x,y,r,0,Math.PI*2);\n      ctx.fillStyle = p.slot==='GK' ? gkC : pc; ctx.fill();\n\n      // borda\n      ctx.lineWidth = p.hasBall ? 2.5 : 1.5;\n      ctx.strokeStyle = p.hasBall ? '#fff' : 'rgba(255,255,255,.42)';\n      ctx.stroke(); }"
+  "to": "      // corpo: delegado ao atleta em pé 2.5D quando presente (apresentação)\n      if (window.CDS_F25D) { window.CDS_F25D.body(ctx, { x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall, key: (p.ref&&p.ref.n)||p.n||('#'+(p.num||0)) }); } else {\n      // corpo: no mergulho do goleiro vira uma elipse lateral, deixando o pulo\n      // legível sem alterar a posição física usada pelo motor.\n      ctx.beginPath();\n      if (divePose) ctx.ellipse(x,y,r*1.42,r*.72,Math.PI/2,0,Math.PI*2);\n      else ctx.arc(x,y,r,0,Math.PI*2);\n      ctx.fillStyle = p.slot==='GK' ? gkC : pc; ctx.fill();\n\n      // borda\n      ctx.lineWidth = p.hasBall ? 2.5 : 1.5;\n      ctx.strokeStyle = p.hasBall ? '#fff' : 'rgba(255,255,255,.42)';\n      ctx.stroke(); }"
+ },
+ {
+  "id": "pill-dist-project",
+  "from": "      const _bs = st.ball;\n      const _bd = Math.hypot(x - cx(_bs.x), y - cy(_bs.y));",
+  "to": "      const _bs = st.ball;\n      let _bpx = cx(_bs.x), _bpy = cy(_bs.y);\n      if (window.CDS_F25D) { const _bp = window.CDS_F25D.project(_bpx, _bpy); _bpx = _bp.x; _bpy = _bp.y; }\n      const _bd = Math.hypot(x - _bpx, y - _bpy);"
+ },
+ {
+  "id": "traj-project",
+  "from": "    const x1=cx(bT.from.x), y1=cy(bT.from.y), x2=cx(bT.target.x), y2=cy(bT.target.y);\n    ctx.save();\n    if (bT.kind === 'shot') {\n      ctx.strokeStyle='rgba(255,255,255,.75)'; ctx.lineWidth=2; ctx.setLineDash([]);\n    } else {\n      ctx.strokeStyle='rgba(255,220,40,.9)'; ctx.lineWidth=2; ctx.setLineDash([7,6]);\n    }\n    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();\n    // ponta de seta\n    const ang=Math.atan2(y2-y1,x2-x1);\n    ctx.setLineDash([]);\n    ctx.fillStyle = bT.kind==='shot' ? 'rgba(255,255,255,.85)' : 'rgba(255,220,40,.95)';\n    ctx.beginPath();\n    ctx.moveTo(x2,y2);\n    ctx.lineTo(x2-9*Math.cos(ang-0.42), y2-9*Math.sin(ang-0.42));\n    ctx.lineTo(x2-9*Math.cos(ang+0.42), y2-9*Math.sin(ang+0.42));\n    ctx.closePath(); ctx.fill();\n    ctx.restore();",
+  "to": "    let x1=cx(bT.from.x), y1=cy(bT.from.y), x2=cx(bT.target.x), y2=cy(bT.target.y);\n    if (window.CDS_F25D) { const _a=window.CDS_F25D.project(x1,y1), _b=window.CDS_F25D.project(x2,y2); x1=_a.x; y1=_a.y; x2=_b.x; y2=_b.y; }\n    ctx.save();\n    if (bT.kind === 'shot') {\n      ctx.strokeStyle='rgba(255,255,255,.75)'; ctx.lineWidth=2; ctx.setLineDash([]);\n    } else {\n      ctx.strokeStyle='rgba(255,220,40,.9)'; ctx.lineWidth=2; ctx.setLineDash([7,6]);\n    }\n    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();\n    // ponta de seta\n    const ang=Math.atan2(y2-y1,x2-x1);\n    ctx.setLineDash([]);\n    ctx.fillStyle = bT.kind==='shot' ? 'rgba(255,255,255,.85)' : 'rgba(255,220,40,.95)';\n    ctx.beginPath();\n    ctx.moveTo(x2,y2);\n    ctx.lineTo(x2-9*Math.cos(ang-0.42), y2-9*Math.sin(ang-0.42));\n    ctx.lineTo(x2-9*Math.cos(ang+0.42), y2-9*Math.sin(ang+0.42));\n    ctx.closePath(); ctx.fill();\n    ctx.restore();"
+ },
+ {
+  "id": "vfx-project",
+  "from": "    const x = cx(v.x), y = cy(v.y);",
+  "to": "    let x = cx(v.x), y = cy(v.y);\n    if (window.CDS_F25D) { const _pj = window.CDS_F25D.project(x, y); x = _pj.x; y = _pj.y; }"
  },
  {
   "id": "trail-arc",
@@ -17,7 +62,7 @@
  {
   "id": "ball-pro",
   "from": "  // #brilho da bola — halo suave que facilita seguir a jogada\n  ctx.save();\n  const _bhalo = ctx.createRadialGradient(bx, by, 0, bx, by, 15);\n  _bhalo.addColorStop(0, 'rgba(255,238,140,.5)'); _bhalo.addColorStop(1, 'rgba(255,238,140,0)');\n  ctx.fillStyle = _bhalo; ctx.beginPath(); ctx.arc(bx, by, 15, 0, Math.PI*2); ctx.fill();\n  ctx.restore();\n  ctx.save(); ctx.globalAlpha=.28;\n  ctx.beginPath(); ctx.arc(cx(b.x),cy(b.y)+3,5,0,Math.PI*2);\n  ctx.fillStyle='#000'; ctx.fill(); ctx.restore();\n  ctx.beginPath(); ctx.arc(bx,by,7,0,Math.PI*2);\n  const bg=ctx.createRadialGradient(bx-2.5,by-2.5,0,bx,by,7);\n  bg.addColorStop(0,'#ffffff'); bg.addColorStop(1,'#c8c8c8');\n  ctx.fillStyle=bg; ctx.fill();\n  ctx.strokeStyle='#444'; ctx.lineWidth=.8; ctx.stroke();\n  // costura\n  ctx.strokeStyle='rgba(80,80,80,.5)'; ctx.lineWidth=.5;\n  ctx.beginPath(); ctx.arc(bx,by,4,0,Math.PI*2); ctx.stroke();",
-  "to": "  if (window.CDS_F25D) {\n    const _tv = (!rframe && bT && bT.traveling && bT.target) ? { tx: cx(bT.target.x), ty: cy(bT.target.y), kind: bT.kind } : null;\n    window.CDS_F25D.ball(ctx, { bx, by, gx: cx(b.x), gy: cy(b.y), z: b.z || 0, tv: _tv });\n  } else {\n  // #brilho da bola — halo suave que facilita seguir a jogada\n  ctx.save();\n  const _bhalo = ctx.createRadialGradient(bx, by, 0, bx, by, 15);\n  _bhalo.addColorStop(0, 'rgba(255,238,140,.5)'); _bhalo.addColorStop(1, 'rgba(255,238,140,0)');\n  ctx.fillStyle = _bhalo; ctx.beginPath(); ctx.arc(bx, by, 15, 0, Math.PI*2); ctx.fill();\n  ctx.restore();\n  ctx.save(); ctx.globalAlpha=.28;\n  ctx.beginPath(); ctx.arc(cx(b.x),cy(b.y)+3,5,0,Math.PI*2);\n  ctx.fillStyle='#000'; ctx.fill(); ctx.restore();\n  ctx.beginPath(); ctx.arc(bx,by,7,0,Math.PI*2);\n  const bg=ctx.createRadialGradient(bx-2.5,by-2.5,0,bx,by,7);\n  bg.addColorStop(0,'#ffffff'); bg.addColorStop(1,'#c8c8c8');\n  ctx.fillStyle=bg; ctx.fill();\n  ctx.strokeStyle='#444'; ctx.lineWidth=.8; ctx.stroke();\n  // costura\n  ctx.strokeStyle='rgba(80,80,80,.5)'; ctx.lineWidth=.5;\n  ctx.beginPath(); ctx.arc(bx,by,4,0,Math.PI*2); ctx.stroke(); }"
+  "to": "  if (window.CDS_F25D) {\n    const _tv = (!rframe && bT && bT.traveling && bT.target) ? { tx: cx(bT.target.x), ty: cy(bT.target.y), kind: bT.kind } : null;\n    window.CDS_F25D.ball(ctx, { gx: cx(b.x), gy: cy(b.y), z: b.z || 0, tv: _tv });\n  } else {\n  // #brilho da bola — halo suave que facilita seguir a jogada\n  ctx.save();\n  const _bhalo = ctx.createRadialGradient(bx, by, 0, bx, by, 15);\n  _bhalo.addColorStop(0, 'rgba(255,238,140,.5)'); _bhalo.addColorStop(1, 'rgba(255,238,140,0)');\n  ctx.fillStyle = _bhalo; ctx.beginPath(); ctx.arc(bx, by, 15, 0, Math.PI*2); ctx.fill();\n  ctx.restore();\n  ctx.save(); ctx.globalAlpha=.28;\n  ctx.beginPath(); ctx.arc(cx(b.x),cy(b.y)+3,5,0,Math.PI*2);\n  ctx.fillStyle='#000'; ctx.fill(); ctx.restore();\n  ctx.beginPath(); ctx.arc(bx,by,7,0,Math.PI*2);\n  const bg=ctx.createRadialGradient(bx-2.5,by-2.5,0,bx,by,7);\n  bg.addColorStop(0,'#ffffff'); bg.addColorStop(1,'#c8c8c8');\n  ctx.fillStyle=bg; ctx.fill();\n  ctx.strokeStyle='#444'; ctx.lineWidth=.8; ctx.stroke();\n  // costura\n  ctx.strokeStyle='rgba(80,80,80,.5)'; ctx.lineWidth=.5;\n  ctx.beginPath(); ctx.arc(bx,by,4,0,Math.PI*2); ctx.stroke(); }"
  },
  {
   "id": "trail-z",

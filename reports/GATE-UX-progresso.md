@@ -92,3 +92,28 @@ motor `[0,1]` ↔ header `"0–1"` após gol em TURBO.
 Regressão de motor no RC-UX patchado: smoke 13/13, cenários 25/25,
 **40/40 golden** — motor inalterado (patches são apresentação pura).
 Evidências: `reports/ux/after/field25d__*.png`.
+
+## Increment 7 — 2.5D REAL: perspectiva, estádio e atletas em pé (PASS)
+
+Feedback do proprietário: o top-down com dicas de altura "não é 2.5D".
+Resposta: perspectiva de verdade no Canvas 2D (referência Canvas 2D Pro),
+via projeção de plano de chão exata (largura ∝ 1/profundidade) em
+`window.CDS_F25D.project` + 18 patches de delegação (build RC-UX).
+
+- **Pitch trapezoidal** com faixas convergentes, luz e vinheta; avental de
+  gramado; **arquibancada pontilhada** e placas "COPA DOS SONHOS" ao fundo
+  (palco pré-renderizado, 1 drawImage/frame).
+- **Gols de pé em 3D**: moldura branca vertical + travessão + rede;
+  bandeirinhas de escanteio.
+- **Jogadores EM PÉ**: camisa com luz/mangas/shorts/meias/cabeça, número na
+  camisa, inclinação sutil na direção da corrida, **escala por profundidade**
+  e **ordenação por worldY** (patch depth-sort); sombra elíptica nos pés.
+- **Bola**: gomos, cresce com a altura; fio bola↔sombra; anel de queda no
+  destino projetado; **rastro em arco projetado**.
+- Câmera mobile segue a **bola projetada** (patches cam-target-*); pass/chute
+  e vfx projetados; pill de nome sob os pés, clampada ao campo.
+
+Validação em jogo real: momento aéreo capturado; TURBO até gol **sem nenhum
+pageerror**; placar sincronizado (motor 0–2 ↔ header 0–2). Regressão:
+smoke 13/13, cenários 25/25, **40/40 golden** — motor inalterado.
+Evidências: `reports/ux/after/persp__*.png`.

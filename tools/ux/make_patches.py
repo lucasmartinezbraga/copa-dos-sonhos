@@ -4,6 +4,10 @@ Gera src/ux/patches.json — patches de APRESENTAÇÃO aplicados pelo build_ux.p
 sobre a base R13 (precedente: inject_r13.js). Extrai os trechos 'from' do
 próprio módulo para garantir correspondência exata, e valida unicidade.
 Rode após qualquer mudança na base: python3 tools/ux/make_patches.py
+
+Camada 2.5D: o campo é reprojetado em perspectiva (window.CDS_F25D.project),
+com pitch/gols/arquibancada pré-renderizados, jogadores em pé com escala por
+profundidade e ordenação por worldY. Tudo apresentação — o motor não muda.
 """
 import json, sys
 from pathlib import Path
@@ -18,43 +22,109 @@ def block(start_marker, end_marker):
 
 patches = []
 
-# gramado rico (offscreen cache no layer)
+# ── câmera: alvo de pan segue a BOLA PROJETADA (senão o zoom mobile erra o centro)
+patches.append({"id": "cam-target-replay",
+    "from": "      const tx = cx(rframe.ball.x), ty = cy(rframe.ball.y);",
+    "to":   "      let tx = cx(rframe.ball.x), ty = cy(rframe.ball.y);\n"
+            "      if (window.CDS_F25D) { const _pj = window.CDS_F25D.project(tx, ty); tx = _pj.x; ty = _pj.y; }"})
+patches.append({"id": "cam-target-live",
+    "from": "      const tx = cx(sb.x), ty = cy(sb.y);",
+    "to":   "      let tx = cx(sb.x), ty = cy(sb.y);\n"
+            "      if (window.CDS_F25D) { const _pj = window.CDS_F25D.project(tx, ty); tx = _pj.x; ty = _pj.y; }"})
+
+# ── gramado + estádio (pré-renderizado; cobre o canvas todo)
 p_from = block("  /* gramado listrado */", "ctx.fillRect(M+i*sw, M, sw, fH);\n  }")
 patches.append({"id": "grass", "from": p_from, "to":
-    "  /* gramado listrado (delegado ao kit 2.5D quando presente) */\n"
+    "  /* gramado listrado (delegado ao palco 2.5D quando presente) */\n"
     "  if (window.CDS_F25D) { window.CDS_F25D.grass(ctx, M, fW, fH); } else {\n"
     + p_from.replace("  /* gramado listrado */\n", "") + " }"})
 
-# mini-atleta top-down
+# ── marcações + gols: no 2.5D já estão no palco pré-renderizado
+p_from = block("  /* marcações */", "  ctx.strokeRect(CW-M,(CH-goalH)/2,7,goalH);")
+patches.append({"id": "pitch-markings", "from": p_from, "to":
+    "  if (!window.CDS_F25D) {\n" + p_from + "\n  }"})
+
+# ── profundidade: um único grupo ordenado por worldY (quem está atrás desenha antes)
+p_from = ("  const groups = playersToDraw\n"
+          "    ? [{ color: null, players: playersToDraw }]\n"
+          "    : st.teams.map(t => ({ color: t.color, players: t.players }));")
+patches.append({"id": "depth-sort", "from": p_from, "to":
+    p_from.replace("  const groups", "  let groups") + "\n"
+    "  if (window.CDS_F25D) {\n"
+    "    const _all = [];\n"
+    "    for (const g of groups) for (const pl of g.players) { if (g.color && pl.color == null) pl.color = g.color; _all.push(pl); }\n"
+    "    _all.sort((a, b) => a.y - b.y);\n"
+    "    groups = [{ color: null, players: _all }];\n"
+    "  }"})
+
+# ── coordenadas do jogador: projeta o ponto de chão e escala o raio
+patches.append({"id": "player-project",
+    "from": "      const groundX=_rx, groundY=_ry;\n"
+            "      let x=groundX, y=groundY, r=13, divePose=false, actionWave=0;",
+    "to":   "      let groundX=_rx, groundY=_ry, _ps=1;\n"
+            "      if (window.CDS_F25D) { const _pj=window.CDS_F25D.project(_rx,_ry); groundX=_pj.x; groundY=_pj.y; _ps=_pj.s; }\n"
+            "      let x=groundX, y=groundY, r=13*_ps, divePose=false, actionWave=0;"})
+
+# ── sombra do atleta em pé: elipse fina nos PÉS (o corpo sobe a partir dela)
+patches.append({"id": "player-shadow",
+    "from": "      ctx.beginPath(); ctx.ellipse(groundX,groundY+5,r*(1+actionWave*.18),r*.72,0,0,Math.PI*2);",
+    "to":   "      ctx.beginPath();\n"
+            "      if (window.CDS_F25D) ctx.ellipse(groundX,groundY+r*.98,r*.82*(1+actionWave*.18),r*.34,0,0,Math.PI*2);\n"
+            "      else ctx.ellipse(groundX,groundY+5,r*(1+actionWave*.18),r*.72,0,0,Math.PI*2);"})
+
+# ── mini-atleta em pé (kit completo) no lugar do círculo
 p_from = block("      // corpo: no mergulho do goleiro",
                "ctx.strokeStyle = p.hasBall ? '#fff' : 'rgba(255,255,255,.42)';\n      ctx.stroke();")
 patches.append({"id": "player-body", "from": p_from, "to":
-    "      // corpo: delegado ao mini-atleta 2.5D quando presente (apresentação)\n"
+    "      // corpo: delegado ao atleta em pé 2.5D quando presente (apresentação)\n"
     "      if (window.CDS_F25D) { window.CDS_F25D.body(ctx, { x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall, key: (p.ref&&p.ref.n)||p.n||('#'+(p.num||0)) }); } else {\n"
     + p_from + " }"})
 
-# rastro em arco (usa z)
+# ── pill perto da bola: a distância usa a bola PROJETADA
+patches.append({"id": "pill-dist-project",
+    "from": "      const _bs = st.ball;\n      const _bd = Math.hypot(x - cx(_bs.x), y - cy(_bs.y));",
+    "to":   "      const _bs = st.ball;\n"
+            "      let _bpx = cx(_bs.x), _bpy = cy(_bs.y);\n"
+            "      if (window.CDS_F25D) { const _bp = window.CDS_F25D.project(_bpx, _bpy); _bpx = _bp.x; _bpy = _bp.y; }\n"
+            "      const _bd = Math.hypot(x - _bpx, y - _bpy);"})
+
+# ── trajetória de passe/chute projetada
+_traj_head = "    const x1=cx(bT.from.x), y1=cy(bT.from.y), x2=cx(bT.target.x), y2=cy(bT.target.y);"
+p_traj = block(_traj_head, "    ctx.closePath(); ctx.fill();\n    ctx.restore();")
+p_traj_body = p_traj[len(_traj_head):]
+patches.append({"id": "traj-project", "from": p_traj, "to":
+    "    let x1=cx(bT.from.x), y1=cy(bT.from.y), x2=cx(bT.target.x), y2=cy(bT.target.y);\n"
+    "    if (window.CDS_F25D) { const _a=window.CDS_F25D.project(x1,y1), _b=window.CDS_F25D.project(x2,y2); x1=_a.x; y1=_a.y; x2=_b.x; y2=_b.y; }"
+    + p_traj_body})
+
+# ── vfx no ponto projetado
+patches.append({"id": "vfx-project",
+    "from": "    const x = cx(v.x), y = cy(v.y);",
+    "to":   "    let x = cx(v.x), y = cy(v.y);\n"
+            "    if (window.CDS_F25D) { const _pj = window.CDS_F25D.project(x, y); x = _pj.x; y = _pj.y; }"})
+
+# ── rastro em arco (projetado + z)
 p_from = block("  if (!rframe) { ctx.save(); ctx.shadowColor = 'rgba(255,215,50,.9)';",
                "ctx.restore();\n  }")
 patches.append({"id": "trail-arc", "from": p_from, "to":
     "  if (!rframe) { if (window.CDS_F25D) { window.CDS_F25D.trail(ctx, trailPts, cx, cy); } else {"
     + p_from[len("  if (!rframe) {"):] + " }"})
 
-# bola pro (fio bola-sombra, anel de queda, gomos, escala por altura)
+# ── bola pro projetada (fio bola-sombra, anel de queda, gomos, escala)
 p_from = block("  // #brilho da bola — halo suave",
                "ctx.beginPath(); ctx.arc(bx,by,4,0,Math.PI*2); ctx.stroke();")
 patches.append({"id": "ball-pro", "from": p_from, "to":
     "  if (window.CDS_F25D) {\n"
     "    const _tv = (!rframe && bT && bT.traveling && bT.target) ? { tx: cx(bT.target.x), ty: cy(bT.target.y), kind: bT.kind } : null;\n"
-    "    window.CDS_F25D.ball(ctx, { bx, by, gx: cx(b.x), gy: cy(b.y), z: b.z || 0, tv: _tv });\n"
+    "    window.CDS_F25D.ball(ctx, { gx: cx(b.x), gy: cy(b.y), z: b.z || 0, tv: _tv });\n"
     "  } else {\n" + p_from + " }"})
 
-# trail guarda z (para o arco aéreo)
+# ── trail guarda z (para o arco aéreo)
 patches.append({"id": "trail-z",
     "from": "  trailPts.unshift({ x: b.x, y: b.y });",
     "to":   "  trailPts.unshift({ x: b.x, y: b.y, z: b.z || 0 });"})
 
-# pill de nome clampada ao campo (não corta na borda da câmera)
+# ── pill de nome clampada ao campo (não corta na borda da câmera)
 patches.append({"id": "pill-clamp-decl",
     "from": "      const pw = tw + 8, ph2 = 11, py2 = y + r + 2;",
     "to":   "      const pw = tw + 8, ph2 = 11, py2 = y + r + 2, pxc = Math.max(M + pw/2 + 2, Math.min(CW - M - pw/2 - 2, x));"})
@@ -65,9 +135,7 @@ patches.append({"id": "pill-clamp-text",
     "from": "      ctx.fillText(nm, x, py2 + ph2/2 + 0.5);",
     "to":   "      ctx.fillText(nm, pxc, py2 + ph2/2 + 0.5);"})
 
-# FIX pré-existente da R13.0: o placar do header não atualizava após gol
-# (motor [0,1] x header "0–0", confirmado no build autoritativo puro em
-# navegador real). O tick de UI de 0,35s re-sincroniza o placar com o motor.
+# ── FIX pré-existente da R13.0: placar do header não atualizava após gol
 patches.append({"id": "score-resync",
     "from": "  el.textContent=`${ph} ${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;",
     "to":   "  el.textContent=`${ph} ${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;\n"
@@ -77,7 +145,7 @@ patches.append({"id": "score-resync",
 ok = True
 for p in patches:
     n = mod.count(p["from"])
-    print(f"  {p['id']:<18} ocorrências: {n}")
+    print(f"  {p['id']:<20} ocorrências: {n}")
     if n != 1: ok = False
 if not ok:
     sys.exit("ERRO: patch não-único — ajuste os marcadores")
