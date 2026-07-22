@@ -8,6 +8,7 @@ REPORT = Path("reports/AUDITORIA-650-STATIC-VERIFY.json")
 
 REQUIRED = {
     "fixpack marker": "AUDIT650-RCUX-FIXPACK-2",
+    "followup marker": "AUDIT650-RCUX-FOLLOWUP-1",
     "auditable 2.5D version": "2.2.0-audit650",
     "aerial projector": "function elevatedY(p, z)",
     "articulated athlete": "function body650(ctx, o)",
@@ -18,6 +19,7 @@ REQUIRED = {
     "unified set-piece stage": "function spStage25D(scene)",
     "stage identity": "stage:'CDS_F25D'",
     "draft rescue": "Reroll de emergência liberado",
+    "speed-aware landing pulse": "const visualSpeed = clamp((root.G && root.G.speed) || 1, 1, 3.6);",
     "touch targets": "min-height:44px",
     "portrait context": "orientation:portrait",
     "safe area": "safe-area-inset-left",
@@ -34,6 +36,7 @@ REQUIRED = {
 FORBIDDEN_REGEX = {
     "legacy set-piece perspective": r"\bspPerspective\b",
     "shot arcs disabled": r"const\s+aerial\s*=\s*!isShot\s*&&",
+    "fixed-time landing pulse": r"performance\.now\(\)\s*/\s*130",
     "raw ball lift": r"const\s+bx\s*=\s*g0\.x\s*,\s*by\s*=\s*g0\.y\s*-\s*z\s*\*\s*22\s*\*\s*s\s*;",
     "raw trail lift": r"p\.y\s*-\s*\(tp\.z\s*\|\|\s*0\)\s*\*\s*22\s*\*\s*p\.s",
     "raw guide lift": r"g\.y\s*-\s*z\s*\*\s*22\s*\*\s*g\.s",
