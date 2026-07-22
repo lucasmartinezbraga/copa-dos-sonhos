@@ -37,7 +37,7 @@
   background: rgba(7,12,22,.6); border-bottom: 1px solid var(--linha);
 }
 .spd {
-  min-width: 46px; min-height: 34px; padding: 6px 12px; border-radius: 10px;
+  min-width: 46px; min-height: 40px; padding: 6px 12px; border-radius: 10px;   /* UX-041: alvo ≥40px */
   border: 1px solid var(--glass-brd); background: rgba(20,34,60,.5); color: var(--txt);
   font: 800 12px var(--f-cond); letter-spacing: 1px; cursor: pointer;
   transition: all var(--dur-fast) var(--ease);
@@ -84,7 +84,7 @@
     justify-content: center; gap: 6px; padding: 6px 10px;
     background: rgba(6,11,22,.72); border-bottom: 1px solid var(--linha);
   }
-  #app:has(#fieldcv) .spd { min-width: 42px; min-height: 32px; padding: 5px 10px; font-size: 11px; }
+  #app:has(#fieldcv) .spd { min-width: 42px; min-height: 40px; padding: 5px 10px; font-size: 11px; }   /* UX-041: ≥40px mesmo no field-first */
 
   /* stats: faixa fina no fluxo (posse + números); momentum vai pro painel */
   #app:has(#fieldcv) .statsb {
@@ -96,4 +96,15 @@
   #app:has(#fieldcv) .quick-stat, #app:has(#fieldcv) .sb-nums { display: flex; gap: 6px; flex: 0 0 auto; }
   #app:has(#fieldcv) .quick-stat .sbn:nth-child(2) { display: none; } /* economiza espaço: só chutes+escanteios */
   #app:has(#fieldcv) .momentum-strip { display: none; }               /* momentum fica na aba/painel */
+}
+
+/* UX-041..045: em telas de toque, controles com alvo confortável (≥44px) */
+@media (pointer: coarse) {
+  .spd, .spdbtn, .rrbtn, #bt-pause { min-height: 44px; min-width: 44px; }
+}
+
+/* UX-041: garante o alvo ≥40px vencendo o estilo base (.spd.spdbtn = 0,2,0) */
+.spd.spdbtn, .spd-row .spd { min-height: 40px !important; }
+@media (pointer: coarse) {
+  .spd.spdbtn, .spd-row .spd, .rrbtn, #bt-pause { min-height: 44px !important; min-width: 44px !important; }
 }

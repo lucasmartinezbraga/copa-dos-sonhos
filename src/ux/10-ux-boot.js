@@ -20,6 +20,7 @@
  * Grande parte da partida é canvas; este é o canal textual acessível. */
 (function () {
   'use strict';
+  if (typeof document === 'undefined') return;   // headless/VM (runner do golden): sem DOM
   function inject() {
     if (!document.body || document.getElementById('cds-a11y-live')) return;
     var mk = function (id, mode) {
