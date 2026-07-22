@@ -7,9 +7,9 @@ e injeta, imediatamente antes de </body></html>:
   - <style id="cds-ux-system">  = concatenação de src/ux/*.css
   - <script id="cds-ux-boot">   = concatenação de src/ux/*.js
 
-Como é aditivo e a camada UX não altera o motor, a regressão de engine
-(verify_ux.py) deve permanecer idêntica ao golden R13. Gera um novo SHA
-(candidato versionado) — a R13.0 continua congelada e verificável.
+Os patches de apresentação são carregados de todos os arquivos
+src/ux/patches*.json em ordem lexical. Cada substituição é fail-closed:
+precisa ocorrer exatamente uma vez na base/resultado anterior.
 """
 import json, hashlib, sys
 from pathlib import Path
@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 MAN = json.loads((ROOT / "manifests/r13-build-manifest.json").read_text(encoding="utf-8"))
 OUT_DEFAULT = "dist/COPA DOS SONHOS - RC-UX.html"
 
+
 def build_r13_html():
     html = (ROOT / MAN["template"]).read_text(encoding="utf-8")
     for b in MAN["blocks"]:
@@ -25,10 +26,28 @@ def build_r13_html():
         html = html.replace(b["placeholder"], content, 1)
     return html
 
-def read_layer(subdir, ext):
+
+def read_layer(ext):
     d = ROOT / "src/ux"
     files = sorted(p for p in d.glob(f"*.{ext}"))
     return files, "\n".join(p.read_text(encoding="utf-8") for p in files)
+
+
+def apply_presentation_patches(html):
+    patched = []
+    for patches_path in sorted((ROOT / "src/ux").glob("patches*.json")):
+        rows = json.loads(patches_path.read_text(encoding="utf-8"))
+        for p in rows:
+            n = html.count(p["from"])
+            if n != 1:
+                sys.exit(
+                    f"ERRO: patch '{p['id']}' de {patches_path.name} ocorre {n}x "
+                    "na entrada (esperado 1)"
+                )
+            html = html.replace(p["from"], p["to"], 1)
+            patched.append(f"{patches_path.name}:{p['id']}")
+    return html, patched
+
 
 def main():
     out_arg = None
@@ -36,30 +55,20 @@ def main():
         out_arg = sys.argv[sys.argv.index("--out") + 1]
 
     html = build_r13_html()
-    # confere que a base R13 está intacta antes de injetar
     base_sha = hashlib.sha256(html.encode("utf-8")).hexdigest()
     if base_sha != MAN["target_sha256"]:
         sys.exit(f"ERRO: base R13 divergiu ({base_sha[:12]} != alvo). Rode verify_r13 antes.")
 
-    # patches de APRESENTAÇÃO no candidato (precedente: inject_r13.js).
-    # Cada 'from' precisa ocorrer exatamente 1x — se a base mudar, o build grita.
-    patches_path = ROOT / "src/ux/patches.json"
-    patched = []
-    if patches_path.exists():
-        for p in json.loads(patches_path.read_text(encoding="utf-8")):
-            n = html.count(p["from"])
-            if n != 1:
-                sys.exit(f"ERRO: patch '{p['id']}' ocorre {n}x na base (esperado 1)")
-            html = html.replace(p["from"], p["to"], 1)
-            patched.append(p["id"])
-
-    css_files, css = read_layer("ux", "css")
-    js_files, js = read_layer("ux", "js")
+    html, patched = apply_presentation_patches(html)
+    css_files, css = read_layer("css")
+    js_files, js = read_layer("js")
     end = "</body></html>"
     if end not in html:
         sys.exit("ERRO: </body></html> não encontrado")
-    inject = (f'<style id="cds-ux-system">\n{css}\n</style>\n'
-              f'<script id="cds-ux-boot">\n{js}\n</script>')
+    inject = (
+        f'<style id="cds-ux-system">\n{css}\n</style>\n'
+        f'<script id="cds-ux-boot">\n{js}\n</script>'
+    )
     html = html.replace(end, inject + end)
 
     out = ROOT / (out_arg or OUT_DEFAULT)
@@ -70,10 +79,11 @@ def main():
     print(out)
     print("base R13 (intacta):", base_sha[:16], "…")
     print("patches aplicados:", patched or "nenhum")
-    print("camada UX: ", [p.name for p in css_files + js_files])
-    print("bytes :", len(data))
+    print("camada UX:", [p.name for p in css_files + js_files])
+    print("bytes:", len(data))
     print("sha256:", sha)
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
