@@ -1,0 +1,58 @@
+{
+  "id": "IA-REG-001",
+  "titulo": "Regressão de marcação após liberar a decisão",
+  "status": "FAIL",
+  "prioridade": "P1",
+  "sha256_r14": "205170caa29271f5b550818991102937c45394c98f960a54ee65e113528eb80f",
+  "data": "2026-07-22T19:02:40.502267+00:00",
+  "procedimento": "Agregação dos sub-gates de observedFootball (getR13Audit) em 200 partidas, antes e depois.",
+  "resultado_observado": {
+    "partidas_com_sub_gate_reprovado": {
+      "marking": {
+        "candidata": 99,
+        "r14": 124,
+        "delta": 25,
+        "veredito": "PIOROU"
+      },
+      "spatialOverload": {
+        "candidata": 75,
+        "r14": 77,
+        "delta": 2,
+        "veredito": "estável"
+      },
+      "restarts": {
+        "candidata": 19,
+        "r14": 2,
+        "delta": -17,
+        "veredito": "MELHOROU"
+      },
+      "corners": {
+        "candidata": 1,
+        "r14": 4,
+        "delta": 3,
+        "veredito": "piorou pouco"
+      }
+    },
+    "status_global": {
+      "candidata": {
+        "PASS": 72,
+        "REVIEW": 128
+      },
+      "r14": {
+        "PASS": 70,
+        "REVIEW": 130
+      }
+    },
+    "metricas": {
+      "markerCloseRate": 0.661,
+      "uncoveredThreatRate": 0.296,
+      "markerMeanDistance": 8.22,
+      "disconnectedLineRate": 0,
+      "bodyOrientationMismatchRate": 0
+    }
+  },
+  "causa_provavel": "Com a decisão liberada em build_up a bola circula ~68% mais. O marcador perde a referência com mais frequência porque há mais trocas de portador por minuto; a lógica de marcação não foi ajustada para essa cadência. Não é efeito do contrato de ação: a piora já aparece antes dele.",
+  "impacto": "Não bloqueia os gates de balanço (ppgRange/maxAbsGoalDiff seguem dentro do limite) nem o P0 da trava.",
+  "nao_corrigido": true,
+  "recomendacao": "Recalibrar a marcação para a nova cadência — provavelmente raio de referência e taxa de reaquisição do marcador. É trabalho de Fase 4, do mesmo tipo da recalibração de estilos, e exige nova bateria de 200 seeds para validar."
+}

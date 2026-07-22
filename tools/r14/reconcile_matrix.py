@@ -32,19 +32,19 @@ EV = {}
 def ev(nome, ok, arquivo, detalhe):
     EV[nome] = {"ok": bool(ok), "arquivo": arquivo, "detalhe": detalhe}
 
-lock = jload("reports/r14/ball-lock/r14-contrato.json")
+lock = jload("reports/r14/ball-lock/r14-final.json") or jload("reports/r14/ball-lock/r14-contrato.json")
 if lock:
     res = lock["results"]
     tot = sum(r["lockCount"] for r in res)
     piores = max(r["lockMaxSec"] for r in res)
     dez = sum(1 for r in res for l in r.get("worstLocks", []) if l["gameSec"] >= 10)
-    ev("antitrava", dez == 0 and piores < 10, "reports/r14/ball-lock/r14-contrato.json",
+    ev("antitrava", dez == 0 and piores < 10, "reports/r14/ball-lock/r14-final.json",
        f"200 partidas, {tot} travas, pior {piores}s, zero >=10s")
     amostra = next((r for r in res if r.get("actionAudit")), None)
     if amostra:
         a = amostra["actionAudit"]
         ev("contrato_acao", a["contacted"] > 0 and a["forced"] == 0,
-           "reports/r14/ball-lock/r14-contrato.json",
+           "reports/r14/ball-lock/r14-final.json",
            f"preparadas {a['prepared']}, contato {a['contacted']}, forcadas {a['forced']}")
 
 anim = jload("reports/r14/anim/states.json")
