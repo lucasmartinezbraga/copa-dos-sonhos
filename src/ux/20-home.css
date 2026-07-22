@@ -105,6 +105,58 @@
 .dream-caption { border-color: rgba(255,203,69,.16); background: rgba(6,14,26,.9); }
 .dream-caption b { color: var(--ouro); }
 
+/* ─── OUSAR MAIS: identidade HUD + juice ──────────────────────────────── */
+
+/* Título metálico vivo (varredura sutil do brilho) */
+.home-title-v2 { background-size: 100% 320%; animation: cdsTitleSheen 7s ease-in-out infinite; }
+.home-title-v2 span { background-size: 100% 320%; animation: cdsTitleSheen 7s ease-in-out infinite .4s; }
+@keyframes cdsTitleSheen { 0%, 100% { background-position: 50% 8%; } 50% { background-position: 50% 92%; } }
+
+/* Eyebrow com traço neon */
+.home-copy-v2::before {
+  border-color: var(--hud-line); background: rgba(56,225,255,.06); color: #bff0ff;
+  box-shadow: 0 0 22px rgba(56,225,255,.14), inset 0 0 0 1px rgba(56,225,255,.08);
+}
+
+/* Card-campo: moldura neon + cantos HUD */
+.dream-card {
+  box-shadow: 0 54px 120px rgba(0,0,0,.62), 0 0 0 1px rgba(56,225,255,.12),
+              0 0 40px rgba(56,225,255,.08), inset 0 1px 0 rgba(255,255,255,.07);
+}
+.dream-card::after {
+  content: ''; position: absolute; inset: 6px; z-index: 6; pointer-events: none; --b: 2px; --l: 20px; --c: var(--neon);
+  background:
+    linear-gradient(var(--c), var(--c)) left 8px top 8px / var(--l) var(--b) no-repeat,
+    linear-gradient(var(--c), var(--c)) left 8px top 8px / var(--b) var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) right 8px top 8px / var(--l) var(--b) no-repeat,
+    linear-gradient(var(--c), var(--c)) right 8px top 8px / var(--b) var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) left 8px bottom 8px / var(--l) var(--b) no-repeat,
+    linear-gradient(var(--c), var(--c)) left 8px bottom 8px / var(--b) var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) right 8px bottom 8px / var(--l) var(--b) no-repeat,
+    linear-gradient(var(--c), var(--c)) right 8px bottom 8px / var(--b) var(--l) no-repeat;
+  filter: drop-shadow(0 0 5px var(--neon-dim)); opacity: .9;
+}
+
+/* Jogadores top-down: cabeça + camisa + sombra (prévia da identidade nova) */
+.legend-chip i::before {
+  content: ''; position: absolute; left: 50%; top: -7px; transform: translateX(-50%);
+  width: 15px; height: 15px; border-radius: 50%;
+  background: radial-gradient(circle at 42% 34%, #ffe3c2, #c98d5e 78%);
+  box-shadow: 0 2px 4px rgba(0,0,0,.45), inset 0 1px 1px rgba(255,255,255,.5);
+}
+.lc7 i::before { background: radial-gradient(circle at 42% 34%, #ffe3c2, #b97f52 78%); }
+
+/* Mode card com acento neon e seta que desliza */
+.home-mode-v2 { border-color: var(--hud-line); }
+.home-mode-v2:hover { box-shadow: 0 0 30px rgba(56,225,255,.14); }
+.home-mode-v2 .hm-copy small { color: var(--neon); }
+.home-mode-v2 .hm-go { transition: transform var(--dur-fast) var(--ease); }
+.home-mode-v2:hover .hm-go { transform: translateX(4px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .home-title-v2, .home-title-v2 span { animation: none; }
+}
+
 /* ─── MOBILE ──────────────────────────────────────────────────────────── */
 @media (max-width: 720px) {
   .home-copy-v2::before { font-size: 9px; letter-spacing: 1.1px; }
