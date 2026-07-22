@@ -56,12 +56,32 @@ zero chamadas a `_decide`. Evidência: `reports/r14/ball-lock/trace-seed0.json`.
 | travas de 2 jogadores | 23 | **0** |
 | pior trava | 24,3 s | 3,9 s |
 
-**baseline 200 seeds (candidata)** · 1.415 travas · 7,08/partida · 1.048 de 2 jogadores · pior **47,8 s**
+**resultado (200 seeds, medição final)**
 
-**commits** · `328229b` (sonda), `0e6699d` (motor), `e0067a8` (harness)
+| | candidata | R14 | delta |
+|---|---:|---:|---:|
+| travas totais | 1.415 | 167 | −88,2% |
+| travas de 2 jogadores | 1.048 | 20 | −98,1% |
+| pior trava | 47,8 s | 6,0 s | −87,4% |
+| travas ≥10 s | 400 | **0** | −100% |
+| travas ≥20 s | 51 | **0** | −100% |
+| gols/partida | 1,975 | 1,840 | −6,8% |
+| chutes/partida | 12,61 | 12,97 | +2,9% |
 
-**próximo passo** · fechar as 200 seeds da R14, gerar
-`reports/r14/differences/` e defender a diferença estatística intencional.
+**BLOQUEIO — `BAL-001`** · O gate de balanço de estilos **reprova**:
+`ppgRange` 0,571 → **0,821** (limite ≤ 0,75). `wings` +0,536 ppg,
+`balanced` −0,500, `direct` −0,393; `parkIdentity` reprova por 0,7 passe.
+`maxAbsGoalDiffPerMatch` 0,464 → 0,536 segue dentro do limite.
+
+O golden R13.0 foi calibrado **com o defeito presente** — era o equilíbrio de um
+jogo cujo portador congelava em `build_up`. Re-derivar os pesos de estilo sobre
+o motor consertado é trabalho de Fase 4, e é o próximo passo.
+
+**commits** · `328229b` (sonda), `0e6699d` (motor), `e0067a8` (harness),
+`6fede3c` (diagnóstico), `ba71d2b` (medição + bloqueio)
+
+**veredito da fase** · trava da bola **RESOLVIDA e provada**; liberação
+**BLOQUEADA** por `BAL-001`. Nenhum item recebe `PASS` de release neste estado.
 
 ---
 
