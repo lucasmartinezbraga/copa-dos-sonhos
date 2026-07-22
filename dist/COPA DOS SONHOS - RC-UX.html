@@ -17266,6 +17266,20 @@ body::before {
    * Centrado em (x,y) como o círculo antigo: número (desenhado pela base) cai
    * na camisa; pill de nome fica sob os pés; sombra nos pés (patch próprio). */
   const dirCache = new Map();
+  // gradiente do torso é local (só depende de r e da cor) → cacheia por cor|raio
+  // em vez de recriar 22×/frame (jank). Gradientes são reutilizáveis entre fills.
+  const gradCache = new Map();
+  function torsoGrad(ctx, jersey, lite, dark, r) {
+    const key = jersey + '|' + (r | 0);
+    let g = gradCache.get(key);
+    if (!g) {
+      g = ctx.createLinearGradient(0, -r * .56, 0, r * .34);
+      g.addColorStop(0, lite); g.addColorStop(.58, jersey); g.addColorStop(1, dark);
+      gradCache.set(key, g);
+      if (gradCache.size > 96) gradCache.clear();       // teto de segurança
+    }
+    return g;
+  }
   function shade(hex, f) {
     if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return hex;
     const n = parseInt(hex.slice(1), 16);
@@ -17282,30 +17296,38 @@ body::before {
     const jersey = o.isGK ? o.gkC : o.pc;
     const dark = shade(jersey, -0.36), lite = shade(jersey, 0.26);
 
-    // inclinação sutil na direção do deslocamento (vida, sem esqueleto)
+    // inclinação + PASSADA (vida sem esqueleto): a passada anima as pernas ao
+    // deslocar (frequência ∝ distância andada, realista em qualquer velocidade);
+    // parado, as pernas descansam na pose original. Corrige o "boneco deslizando".
     let d = dirCache.get(o.key);
-    if (!d) { d = { x, y, lean: 0 }; dirCache.set(o.key, d); }
-    const lean = clamp((x - d.x) * .55 + d.lean * .72, -2.4, 2.4);
+    if (!d) { d = { x, y, lean: 0, gait: 0, spd: 0 }; dirCache.set(o.key, d); }
+    const mvx = x - d.x, mvy = y - d.y, mv = Math.hypot(mvx, mvy);
+    const lean = clamp(mvx * .55 + d.lean * .72, -2.4, 2.4);
+    d.spd = d.spd * .6 + mv * .4;                       // velocidade de tela suavizada
+    d.gait += Math.min(mv, r * 1.2) / Math.max(4, r * .5);   // passada ∝ distância (cap anti-teleporte)
     d.lean = lean; d.x = x; d.y = y;
+    const amp = o.divePose ? 0 : clamp(d.spd / 1.5, 0, 1);   // 0 parado … 1 correndo
+    const sw = Math.sin(d.gait) * amp;                  // -1..1 alterna as pernas
+    const bob = Math.abs(sw) * r * .05;                 // leve sobe-desce do corpo
 
     ctx.save();
-    ctx.translate(x, y);
+    ctx.translate(x, y - bob);
     if (o.divePose) ctx.rotate(Math.PI / 2);
 
-    // pernas + meias
+    // pernas + meias (passada: eleva alternadamente cada perna)
+    const llY = r * .40 - Math.max(0, sw) * r * .20;
+    const rlY = r * .40 - Math.max(0, -sw) * r * .20;
     ctx.fillStyle = '#17202e';
-    ctx.fillRect(-r * .34, r * .40, r * .26, r * .46);
-    ctx.fillRect(r * .08, r * .40, r * .26, r * .46);
+    ctx.fillRect(-r * .34, llY, r * .26, r * .46);
+    ctx.fillRect(r * .08, rlY, r * .26, r * .46);
     ctx.fillStyle = '#0b0f16';
-    ctx.fillRect(-r * .36, r * .78, r * .30, r * .22);
-    ctx.fillRect(r * .06, r * .78, r * .30, r * .22);
+    ctx.fillRect(-r * .36, llY + r * .38, r * .30, r * .22);
+    ctx.fillRect(r * .06, rlY + r * .38, r * .30, r * .22);
     // shorts
     ctx.fillStyle = dark;
     rr(ctx, -r * .5, r * .12, r, r * .38, r * .1); ctx.fill();
     // torso (camisa) com luz
-    const tg = ctx.createLinearGradient(0, -r * .56, 0, r * .34);
-    tg.addColorStop(0, lite); tg.addColorStop(.58, jersey); tg.addColorStop(1, dark);
-    ctx.fillStyle = tg;
+    ctx.fillStyle = torsoGrad(ctx, jersey, lite, dark, r);
     rr(ctx, -r * .56, -r * .52, r * 1.12, r * .92, r * .26); ctx.fill();
     ctx.lineWidth = o.hasBall ? 2 : 1;
     ctx.strokeStyle = o.hasBall ? '#ffffff' : 'rgba(255,255,255,.34)';
@@ -17326,13 +17348,17 @@ body::before {
   function trail(ctx, pts, cx, cy) {
     if (!pts.length) return;
     ctx.save();
+    // glow barato: halo em alfa + núcleo (sem shadowBlur, que é caminho lento no
+    // canvas e era refeito por ponto/frame — principal fonte de jank do render).
     for (let i = pts.length - 1; i >= 0; i--) {
       const tp = pts[i], f = 1 - i / pts.length;
       const p = project(cx(tp.x), cy(tp.y));
       const py = p.y - (tp.z || 0) * 22 * p.s;
-      ctx.shadowColor = 'rgba(255,215,50,.9)'; ctx.shadowBlur = 10 * f;
-      ctx.fillStyle = 'rgba(255,224,90,' + (f * 0.7).toFixed(3) + ')';
-      ctx.beginPath(); ctx.arc(p.x, py, Math.max(0.6, (4.4 - i * .5)) * p.s, 0, TAU); ctx.fill();
+      const rad = Math.max(0.6, (4.4 - i * .5)) * p.s;
+      ctx.fillStyle = 'rgba(255,224,90,' + (f * 0.20).toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(p.x, py, rad * 2.1, 0, TAU); ctx.fill();
+      ctx.fillStyle = 'rgba(255,238,150,' + (f * 0.78).toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(p.x, py, rad, 0, TAU); ctx.fill();
     }
     ctx.restore();
   }

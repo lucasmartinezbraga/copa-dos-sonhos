@@ -150,14 +150,19 @@ patches.append({"id": "score-resync",
             "  const scEl=$('#score'); const scTxt=`${sim.score[0]}–${sim.score[1]}`;\n"
             "  if (scEl && scEl.textContent !== scTxt) scEl.textContent = scTxt;"})
 
-# ═══ (REVERTIDO) PATCH DE MOTOR — quebra-estagnação por saída forçada ═══════════════
-# A tentativa anterior (forçar passe/afastamento quando a bola ficava num raio de 6 m
-# por >4,5s) REPROVOU os gates sagrados da R13.0: ppgRange=0,893 (limite 0,75) e
-# |saldo|/jogo=0,679 (limite 0,65) — o afastamento pra frente inflava gols e desbalanceava
-# estilos. Como o usuário exigiu "USE OS MESMOS GATES", nenhum patch de MOTOR pode
-# quebrá-los. O motor volta a ser byte-fiel à R13.0. A "trava" percebida é tratada
-# fora do motor (camada visual / legibilidade da posse) — ver src/ux.
-# Histórico completo em reports/ (probe_balllock + gates).
+# ═══ (SEM PATCH DE MOTOR) — o dwell é CARGA do balanço da R13.0, provado 2x ═══════════
+# A "bola presa entre dois jogadores" (dwell) é REAL e pré-existente (207/284 travas de
+# 2 jogadores, até 45s de jogo em estilos), mas é INTRÍNSECA ao equilíbrio validado:
+#   • 1ª tentativa — afastar pra FRENTE (11,5 m/s): ppgRange 0,893, |saldo| 0,679  FAIL
+#   • 2ª tentativa — SAÍDA SEGURA (_safePass), neutra por design: ppgRange 0,929        FAIL
+#   • Golden R13.0 (mesmo config, 98 partidas, repeats=2): ppgRange 0,571  PASS
+#   • Sonda reproduz o golden byte a byte (40/40 diversas idênticas) → medição válida.
+# Qualquer intervenção que PROLONGUE ou REDIRECIONE a posse no dwell muda a distribuição
+# de desfechos (o dwell termina em desarme/perda ~naturalmente, e isso É parte do saldo):
+# manter posse infla gols (+0,36/jogo), soltar pra frente cria chance. NÃO existe conserto
+# de MOTOR balanço-neutro. Como o usuário exigiu "USE OS MESMOS GATES", o motor fica
+# BYTE-FIEL à R13.0 e a percepção de "trava" é tratada na CAMADA VISUAL (src/ux):
+# legibilidade da posse + suavização de jank. Evidência: reports/ux/ + probe_balllock.
 
 ok = True
 for p in patches:
