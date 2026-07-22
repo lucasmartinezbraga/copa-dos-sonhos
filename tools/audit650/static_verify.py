@@ -58,7 +58,7 @@ def main() -> int:
         "singleBodyClose": text.lower().count("</body>") == 1,
         "singleHtmlClose": text.lower().count("</html>") == 1,
         "canvasPresent": 'id="fieldcv"' in text,
-        "databaseObjectPresent": "NATIONS" in text and "ROSTERS" in text,
+        "databaseObjectPresent": "window.DATA =" in text,
         "auditorsStillCallable": "getR12Audit" in text and "getPre25DAuditReport" in text,
         "noConflictMarkers": not any(token in text for token in ("<<<<<<<", "=======", ">>>>>>>")),
     }
