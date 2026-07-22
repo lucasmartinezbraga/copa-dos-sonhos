@@ -92,11 +92,11 @@ Emulação **não** substitui aparelho físico: `PASS TÉCNICO` apenas.
 
 | status | itens | % |
 |---|---:|---:|
-| PASS | 111 | 13,9% |
-| PENDENTE | 689 | 86,1% |
+| PASS | 140 | 17,5% |
+| PENDENTE | 660 | 82,5% |
 
-P0 94/464 · P1 16/309 · P2 1/27.
-Dos 689 pendentes: **582 exigem humano/físico**, 107 sem cobertura ainda.
+P0 120/464 · P1 19/309 · P2 1/27.
+Dos 660 pendentes: **582 exigem humano/físico**, 78 sem cobertura ainda.
 
 `repo_regression` **3/3 PASS** após corrigir dois defeitos de integração do
 pacote (harnesses de node chamados sem argumentos e com `cwd` errado).
@@ -110,6 +110,19 @@ pacote (harnesses de node chamados sem argumentos e com `cwd` errado).
 2. **107 controles sem cobertura automatizada** — sobretudo IA tática (80),
    regras/goleiros, bolas paradas e VFX.
 3. **Fase 5 incompleta**: bolas paradas, câmera, oclusão e replay.
+
+## Regressão registrada e NÃO corrigida — `IA-REG-001`
+
+A **marcação piorou**. Partidas com o sub-gate `marking` do observador R13
+reprovado subiram de **99 para 124** em 200. Causa provável: com a bola
+circulando ~68% mais, o marcador perde a referência com mais frequência e a
+lógica de marcação não foi ajustada para essa cadência. A piora aparece
+**antes** do contrato de ação, então não é efeito dele.
+
+Não bloqueia os gates de balanço nem o P0 da trava, mas é regressão real.
+Corrigi-la é trabalho de Fase 4, do mesmo tipo da recalibração de estilos.
+
+Em contrapartida, `restarts` melhorou muito: **19 → 2** partidas reprovadas.
 
 ## Riscos conhecidos
 
