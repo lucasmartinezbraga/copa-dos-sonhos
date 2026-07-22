@@ -11661,6 +11661,7 @@ function onEvent(e) {
     const nm=e.by&&e.by.ref?lastWord(e.by.ref.n,10):'';
     keyEvents.push(physicalDecorate({min:Math.floor(sim.minute),ic,side,txt:(nm?nm+' ':'')+e.type},e));
     paintTimeline();
+    if(window.__cdsAnnounce)window.__cdsAnnounce((nm?nm+' ':'')+(e.type==='goal'?('gol, '+sim.score[0]+' a '+sim.score[1]):e.type==='yellow'?'cartão amarelo':e.type==='red'?'cartão vermelho':'substituição'), e.type==='goal');
   }
   // narração de construção (throttled) + efeitos visuais por lance
   if (e.type === 'pass') {
@@ -16672,6 +16673,28 @@ html.cds-dev::after {
   pointer-events: none; opacity: .85;
 }
 
+/* ═══ A11: ACESSIBILIDADE ═══════════════════════════════════════════════════ */
+/* Região lida por leitor de tela, visualmente oculta (A11-011..015) */
+.cds-sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+/* Alto contraste / forced-colors do SO (A11-016..020): garante bordas visíveis
+   na cromo da UI (o canvas da partida não é estilizável, mas os controles sim). */
+@media (forced-colors: active) {
+  button, .rrbtn, .spd, .spdbtn, .chip, .home-mode-v2, .row, .bchip {
+    border: 1px solid ButtonText !important;
+    forced-color-adjust: none;
+  }
+  .gold, .ovr-hi, .dot.ovr-hi { color: Highlight !important; }
+  :focus-visible { outline: 2px solid Highlight !important; outline-offset: 2px; }
+}
+@media (prefers-contrast: more) {
+  button, .rrbtn, .spd, .spdbtn, .chip { outline: 1px solid currentColor; outline-offset: 1px; }
+}
+
 /* ============================================================================
  * Copa dos Sonhos · Redesign · IDENTIDADE ELEVADA (compartilhada)
  * Linguagem "HUD esportivo techy" aplicável a todas as telas: grid técnico de
@@ -17076,6 +17099,37 @@ body::before {
     if (flag === '0') { dev = false; try { localStorage.removeItem('cds_dev'); } catch (e) {} }
     if (dev) document.documentElement.classList.add('cds-dev');
   } catch (e) { /* silencioso: UX nunca deve travar o boot do jogo */ }
+})();
+
+/* ── A11-011..015: feed vivo de eventos para leitor de tela ──────────────────
+ * Regiões aria-live persistentes + window.__cdsAnnounce(texto, urgente). O motor
+ * chama isso nos eventos-chave (gol/cartão/substituição) via patch render-side.
+ * Grande parte da partida é canvas; este é o canal textual acessível. */
+(function () {
+  'use strict';
+  function inject() {
+    if (!document.body || document.getElementById('cds-a11y-live')) return;
+    var mk = function (id, mode) {
+      var el = document.createElement('div');
+      el.id = id; el.className = 'cds-sr-only';
+      el.setAttribute('aria-live', mode);
+      el.setAttribute('aria-atomic', 'true');
+      el.setAttribute('role', mode === 'assertive' ? 'alert' : 'status');
+      document.body.appendChild(el);
+      return el;
+    };
+    var polite = mk('cds-a11y-live', 'polite');
+    var urgent = mk('cds-a11y-alert', 'assertive');
+    window.__cdsAnnounce = function (txt, isUrgent) {
+      try {
+        var el = isUrgent ? urgent : polite;
+        el.textContent = '';                       // limpa p/ forçar re-anúncio
+        setTimeout(function () { el.textContent = String(txt || ''); }, 30);
+      } catch (e) {}
+    };
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', inject);
+  else inject();
 })();
 
 /* Copa dos Sonhos · Motor Visual 2.5D (camada de apresentação)

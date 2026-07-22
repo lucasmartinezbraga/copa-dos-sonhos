@@ -81,3 +81,25 @@ html.cds-dev::after {
   color: #04121f; background: var(--ouro); padding: 3px 6px; border-radius: var(--r-pill);
   pointer-events: none; opacity: .85;
 }
+
+/* ═══ A11: ACESSIBILIDADE ═══════════════════════════════════════════════════ */
+/* Região lida por leitor de tela, visualmente oculta (A11-011..015) */
+.cds-sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+/* Alto contraste / forced-colors do SO (A11-016..020): garante bordas visíveis
+   na cromo da UI (o canvas da partida não é estilizável, mas os controles sim). */
+@media (forced-colors: active) {
+  button, .rrbtn, .spd, .spdbtn, .chip, .home-mode-v2, .row, .bchip {
+    border: 1px solid ButtonText !important;
+    forced-color-adjust: none;
+  }
+  .gold, .ovr-hi, .dot.ovr-hi { color: Highlight !important; }
+  :focus-visible { outline: 2px solid Highlight !important; outline-offset: 2px; }
+}
+@media (prefers-contrast: more) {
+  button, .rrbtn, .spd, .spdbtn, .chip { outline: 1px solid currentColor; outline-offset: 1px; }
+}

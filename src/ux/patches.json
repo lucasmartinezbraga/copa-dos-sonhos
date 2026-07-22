@@ -115,6 +115,11 @@
   "to": "  if (e.type === 'legend' && e.by) fxAt(e.by, 'fire', 1.6);\n  if (e.type === 'freekick' && e.by) motionAt(e.by, 'kick', 0.46);   // pose de cobrança de falta no 2.5D"
  },
  {
+  "id": "a11y-announce",
+  "from": "    keyEvents.push(physicalDecorate({min:Math.floor(sim.minute),ic,side,txt:(nm?nm+' ':'')+e.type},e));\n    paintTimeline();",
+  "to": "    keyEvents.push(physicalDecorate({min:Math.floor(sim.minute),ic,side,txt:(nm?nm+' ':'')+e.type},e));\n    paintTimeline();\n    if(window.__cdsAnnounce)window.__cdsAnnounce((nm?nm+' ':'')+(e.type==='goal'?('gol, '+sim.score[0]+' a '+sim.score[1]):e.type==='yellow'?'cartão amarelo':e.type==='red'?'cartão vermelho':'substituição'), e.type==='goal');"
+ },
+ {
   "id": "pose-pass",
   "from": "  if (e.type === 'pass') {\n    if (passNarrCd <= 0 && vrand() < 0.6) {",
   "to": "  if (e.type === 'pass') {\n    if (e.by) motionAt(e.by, 'kick', 0.32);\n    if (passNarrCd <= 0 && vrand() < 0.6) {"
