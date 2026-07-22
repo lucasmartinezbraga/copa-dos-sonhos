@@ -11678,6 +11678,7 @@ function onEvent(e) {
   if (e.type === 'yellow' && e.p) fxAt(e.p, 'card', 1.2);
   if (e.type === 'red' && e.p) fxAt(e.p, 'redcard', 1.4);
   if (e.type === 'legend' && e.by) fxAt(e.by, 'fire', 1.6);
+  if (e.type === 'freekick' && e.by) motionAt(e.by, 'kick', 0.46);   // pose de cobrança de falta no 2.5D
 
   // artilharia da copa
   if (e.type === 'goal' && e.by) {

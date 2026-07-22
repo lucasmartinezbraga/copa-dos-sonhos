@@ -167,6 +167,10 @@ patches.append({"id": "pose-shot",
 patches.append({"id": "pose-cross",
     "from": "  if (e.type === 'cross' && e.by) fxAt(e.by, 'arrow', 0.7);",
     "to":   "  if (e.type === 'cross' && e.by) { fxAt(e.by, 'arrow', 0.7); motionAt(e.by, 'kick', 0.42); }"})
+patches.append({"id": "pose-freekick",
+    "from": "  if (e.type === 'legend' && e.by) fxAt(e.by, 'fire', 1.6);",
+    "to":   "  if (e.type === 'legend' && e.by) fxAt(e.by, 'fire', 1.6);\n"
+            "  if (e.type === 'freekick' && e.by) motionAt(e.by, 'kick', 0.46);   // pose de cobrança de falta no 2.5D"})
 patches.append({"id": "pose-pass",
     "from": "  if (e.type === 'pass') {\n    if (passNarrCd <= 0 && vrand() < 0.6) {",
     "to":   "  if (e.type === 'pass') {\n    if (e.by) motionAt(e.by, 'kick', 0.32);\n    if (passNarrCd <= 0 && vrand() < 0.6) {"})
