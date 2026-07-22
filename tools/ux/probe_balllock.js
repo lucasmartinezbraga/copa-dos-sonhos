@@ -70,14 +70,35 @@ function loadBuild(path) {
     const id = (match[1].match(/id="([^"]+)"/) || [])[1] || `script-${scripts.length}`;
     scripts.push({ id, code: match[2] });
   }
+  // Seleção por ID, nunca por posição: a camada de apresentação insere scripts
+  // (cds-mobile-boot-bridge, cds-ux-boot) e deslocaria todos os índices fixos,
+  // fazendo a sonda quebrar ou — pior — pular a camada de motor errada.
+  const SKIP_IDS = new Set([
+    'cds-2_5d-gate-a-contracts-v02',  // contratos de render 2.5D
+    'cds-pre25d-runtime-auditor-v04', // auditor de runtime (exige DOM)
+    'cds-r109-async-cup',             // orquestração assíncrona da copa
+    'cds-mobile-boot-bridge',         // ponte de toque: só DOM
+    'cds-ux-boot',                    // camada UX: só DOM
+  ]);
+  const loaded = [], skipped = [];
   scripts.forEach((script, index) => {
-    if ([4, 5, 10].includes(index)) return;
-    try { vm.runInThisContext(script.code, { filename: `${String(index).padStart(2, '0')}-${script.id}.js` }); }
-    catch (error) {
-      if (index === 1 && /document is not defined/.test(String(error && error.message || error))) return;
+    if (SKIP_IDS.has(script.id)) { skipped.push(script.id); return; }
+    try {
+      vm.runInThisContext(script.code, { filename: `${String(index).padStart(2, '0')}-${script.id}.js` });
+      loaded.push(script.id);
+    } catch (error) {
+      // O bundle base (sem id) registra listeners de DOM no fim do arquivo; o
+      // motor já foi definido nesse ponto. Só ele pode falhar por falta de DOM.
+      if (/^script-\d+$/.test(script.id) &&
+          /document is not defined/.test(String(error && error.message || error))) {
+        loaded.push(script.id + ' (parcial: sem DOM)');
+        return;
+      }
       throw error;
     }
   });
+  module.exports.loadedScripts = loaded;
+  module.exports.skippedScripts = skipped;
   return crypto.createHash('sha256').update(html).digest('hex');
 }
 
@@ -279,12 +300,72 @@ function runOne(db, row, index) {
   sim.teams[1].formKey = row.awayFormation;
   const obs = blankObservation();
 
+  // ── TRACE CAUSAL (--trace): buffer rolante de tudo que troca a posse.
+  // Puramente observacional: nenhuma decisão do motor depende dele. Quando uma
+  // trava fecha, o recorte da janela é anexado como evidência da CAUSA.
+  const TRACE = !!argv.trace;
+  const traceBuf = [];   // {step, t, kind, detail}
+  const TRACE_CAP = 4000;
+  const pname = p => p ? `${p.team}:${(p.ref && p.ref.n) || p.id || p.idx}` : 'null';
+  const rec = (step, kind, detail) => {
+    if (!TRACE) return;
+    traceBuf.push({ step, kind, detail });
+    if (traceBuf.length > TRACE_CAP) traceBuf.shift();
+  };
+
   const originalEmit = sim._emit;
   sim._emit = function(type, data) {
     obs.events[type] = (obs.events[type] || 0) + 1;
     if (type === 'throw_in') obs.throwIns++;
+    if (TRACE) rec(currentStep, 'emit:' + type,
+      data && (data.by || data.on) ? `by=${pname(data.by)} on=${pname(data.on)}${data.source ? ' src=' + data.source : ''}` : '');
     return originalEmit.apply(this, arguments);
   };
+  if (TRACE) {
+    const oContest = sim._contestLoose;
+    sim._contestLoose = function() {
+      const b = this.ball;
+      const near = [];
+      for (const tm of this.teams) for (const p of tm.players) {
+        if (p.red) continue;
+        const dd = Math.hypot(p.x - b.x, p.y - b.y);
+        if (dd < 6) near.push(`${pname(p)}@${dd.toFixed(2)}`);
+      }
+      near.sort();
+      rec(currentStep, 'contestLoose', `ball=(${b.x.toFixed(1)},${b.y.toFixed(1)}) cands=[${near.join(' ')}]`);
+      return oContest.apply(this, arguments);
+    };
+    const oGive = sim._giveBall;
+    sim._giveBall = function(p) {
+      rec(currentStep, 'giveBall', `${pname(p)} settle=${p ? (+p.settle || 0).toFixed(2) : '-'}`);
+      return oGive.apply(this, arguments);
+    };
+    const oTurn = sim._turnover;
+    sim._turnover = function(d) {
+      rec(currentStep, 'turnover', `to=${pname(d)}`);
+      return oTurn.apply(this, arguments);
+    };
+    // Portão de decisão: prova se _decide é sequer alcançado e, quando é, se
+    // termina em ação. Sem isso não dá para distinguir "não decidiu" de
+    // "decidiu e a ação não começou".
+    const oDecide = sim._decide;
+    sim._decide = function(o) {
+      const acted = [];
+      const spy = ['_pass', '_shoot', '_dribble', '_carry', '_cross', '_clearBall'].map(fn => {
+        const orig = this[fn];
+        if (typeof orig !== 'function') return null;
+        this[fn] = function() { acted.push(fn); this[fn] = orig; return orig.apply(this, arguments); };
+        return [fn, orig];
+      }).filter(Boolean);
+      try {
+        return oDecide.apply(this, arguments);
+      } finally {
+        for (const [fn, orig] of spy) this[fn] = orig;
+        rec(currentStep, 'decide', `${pname(o)} -> ${acted.length ? acted.join(',') : 'NENHUMA AÇÃO'}`);
+      }
+    };
+  }
+  let currentStep = 0;
   const originalBallOut = sim._ballOut;
   sim._ballOut = function() {
     const ball = this.ball;
@@ -310,7 +391,15 @@ function runOne(db, row, index) {
   let win = null; // {startStep, x0, y0, owners:Set, minute0}
   let steps = 0;
   while (!sim.isOver() && steps++ < 500000) {
+    currentStep = steps;
     sim.step(DT);
+    if (TRACE && steps % 15 === 0 && sim.ball.owner) {
+      const ow = sim.ball.owner;
+      rec(steps, 'estado',
+        `dono=${pname(ow)} settle=${(+ow.settle || 0).toFixed(2)} decideT=${(+sim.decideT || 0).toFixed(2)}` +
+        ` traveling=${!!sim.ball.traveling} possT=${(+sim.possT || 0).toFixed(1)}` +
+        ` setPieceUntil=${(+ow._setPieceDeliveryUntil || 0).toFixed(2)} t=${(+sim.t || 0).toFixed(2)}`);
+    }
     if (steps % 15 === 0) observe(sim, obs, row);
     if (isAdmin(sim)) { win = null; continue; }   // ignora bola parada / reposições
     const b = sim.ball; const bx = +b.x, by = +b.y, own = aidBall(b);
@@ -324,10 +413,17 @@ function runOne(db, row, index) {
         const distinct = [...win.owners].filter(Boolean);
         win.maxDwell = Math.max(win.maxDwell, win.dwell);
         if (durSec >= 3.0 && distinct.length <= 2 && distinct.length >= 1) {
-          locks.push({ startMin: +win.min0.toFixed(2), gameSec: +durSec.toFixed(1), ticks: steps - win.s0,
+          const lock = { startMin: +win.min0.toFixed(2), gameSec: +durSec.toFixed(1), ticks: steps - win.s0,
             owners: distinct, twoPlayers: distinct.length === 2, x: +win.x0.toFixed(1), y: +win.y0.toFixed(1),
             ownerChanges: win.changes, maxDwellSec: +(win.maxDwell * DT).toFixed(1),
-            kind: win.changes >= 6 ? 'pingpong' : (win.maxDwell * DT >= durSec * 0.55 ? 'dwell' : 'misto') });
+            kind: win.changes >= 6 ? 'pingpong' : (win.maxDwell * DT >= durSec * 0.55 ? 'dwell' : 'misto') };
+          if (TRACE) {
+            // recorte da janela + 1s antes e depois (eventos anteriores/posteriores)
+            const from = win.s0 - 30, to = steps + 30;
+            lock.trace = traceBuf.filter(e => e.step >= from && e.step <= to)
+              .map(e => `${((e.step - win.s0) * DT).toFixed(2)}s ${e.kind} ${e.detail}`);
+          }
+          locks.push(lock);
         }
         win = { s0: steps, x0: bx, y0: by, owners: new Set([own]), min0: sim.minute, changes: 0, lastOwn: own, dwell: 0, maxDwell: 0 };
       } else { win.owners.add(own); }
