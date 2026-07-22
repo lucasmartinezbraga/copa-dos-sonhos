@@ -4,7 +4,7 @@
   "status": "FAIL",
   "prioridade": "P1",
   "sha256_r14": "205170caa29271f5b550818991102937c45394c98f960a54ee65e113528eb80f",
-  "data": "2026-07-22T19:02:40.502267+00:00",
+  "data": "2026-07-22T19:34:01.681855+00:00",
   "procedimento": "Agregação dos sub-gates de observedFootball (getR13Audit) em 200 partidas, antes e depois.",
   "resultado_observado": {
     "partidas_com_sub_gate_reprovado": {
@@ -54,5 +54,35 @@
   "causa_provavel": "Com a decisão liberada em build_up a bola circula ~68% mais. O marcador perde a referência com mais frequência porque há mais trocas de portador por minuto; a lógica de marcação não foi ajustada para essa cadência. Não é efeito do contrato de ação: a piora já aparece antes dele.",
   "impacto": "Não bloqueia os gates de balanço (ppgRange/maxAbsGoalDiff seguem dentro do limite) nem o P0 da trava.",
   "nao_corrigido": true,
-  "recomendacao": "Recalibrar a marcação para a nova cadência — provavelmente raio de referência e taxa de reaquisição do marcador. É trabalho de Fase 4, do mesmo tipo da recalibração de estilos, e exige nova bateria de 200 seeds para validar."
+  "recomendacao": "Recalibrar a marcação para a nova cadência — provavelmente raio de referência e taxa de reaquisição do marcador. É trabalho de Fase 4, do mesmo tipo da recalibração de estilos, e exige nova bateria de 200 seeds para validar.",
+  "tentativa_de_correcao": {
+    "patch": "r14-marking-tracking (REVERTIDO)",
+    "hipotese": "Em _assignDefRoles.bind() o marcador só recebia convergência ativa (_smx/_smy) QUANDO havia sobrecarga; fora dela era largado para assentar sozinho. Supus que, com o jogo mais rápido, faltava rastreio contínuo.",
+    "mudanca": "convergência aplicada fora da sobrecarga (fator 0,26) e _react 0,08 -> 0,065",
+    "resultado": {
+      "marking_reprovado": {
+        "antes": 124,
+        "depois": 127
+      },
+      "observer_pass": {
+        "antes": 70,
+        "depois": 64
+      },
+      "markerMeanDistance": {
+        "antes": 8.22,
+        "depois": 8.23
+      },
+      "threatCoverage": {
+        "antes": 0.704,
+        "depois": 0.703
+      },
+      "gols_por_partida": {
+        "antes": 1.82,
+        "depois": 1.75
+      }
+    },
+    "veredito": "FALHOU — piorou de leve. Revertido; a candidata voltou a 205170ca… byte a byte.",
+    "aprendizado": "A hipótese estava errada e a medição prova por quê: markerMeanDistance ficou INERTE (8,22 -> 8,23), ou seja, a fidelidade do rastreio não era o gargalo. O que caiu de verdade entre a candidata e a R14 foi threatCoverage: 0,753 -> 0,704. O gate é `threatCoverage>=0,65 && markerMeanDistance<=8,5` — e é a COBERTURA que reprova, não a distância. Ou seja, há mais atacantes SEM marcador, não marcadores mal posicionados."
+  },
+  "proximo_passo": "Atacar cobertura, não rastreio: quantos defensores ficam elegíveis (eligible exclui FWD e o presser), o critério de threats13() e a detecção de overload — que decide se sobra defensor. Com a bola circulando mais, provavelmente há mais ameaças simultâneas classificadas do que defensores elegíveis para assumi-las."
 }
