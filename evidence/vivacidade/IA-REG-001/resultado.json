@@ -4,7 +4,7 @@
   "status": "FAIL",
   "prioridade": "P1",
   "sha256_r14": "205170caa29271f5b550818991102937c45394c98f960a54ee65e113528eb80f",
-  "data": "2026-07-22T19:34:01.681855+00:00",
+  "data": "2026-07-22T20:16:56.020167+00:00",
   "procedimento": "Agregação dos sub-gates de observedFootball (getR13Audit) em 200 partidas, antes e depois.",
   "resultado_observado": {
     "partidas_com_sub_gate_reprovado": {
@@ -84,5 +84,54 @@
     "veredito": "FALHOU — piorou de leve. Revertido; a candidata voltou a 205170ca… byte a byte.",
     "aprendizado": "A hipótese estava errada e a medição prova por quê: markerMeanDistance ficou INERTE (8,22 -> 8,23), ou seja, a fidelidade do rastreio não era o gargalo. O que caiu de verdade entre a candidata e a R14 foi threatCoverage: 0,753 -> 0,704. O gate é `threatCoverage>=0,65 && markerMeanDistance<=8,5` — e é a COBERTURA que reprova, não a distância. Ou seja, há mais atacantes SEM marcador, não marcadores mal posicionados."
   },
-  "proximo_passo": "Atacar cobertura, não rastreio: quantos defensores ficam elegíveis (eligible exclui FWD e o presser), o critério de threats13() e a detecção de overload — que decide se sobra defensor. Com a bola circulando mais, provavelmente há mais ameaças simultâneas classificadas do que defensores elegíveis para assumi-las."
+  "proximo_passo": "Atacar cobertura, não rastreio: quantos defensores ficam elegíveis (eligible exclui FWD e o presser), o critério de threats13() e a detecção de overload — que decide se sobra defensor. Com a bola circulando mais, provavelmente há mais ameaças simultâneas classificadas do que defensores elegíveis para assumi-las.",
+  "decomposicao_decisiva": {
+    "por_amostra": {
+      "ameacas_perigosas": {
+        "candidata": 1.876,
+        "r14": 1.789,
+        "delta": "-4,6%"
+      },
+      "ameacas_descobertas": {
+        "candidata": 0.464,
+        "r14": 0.529,
+        "delta": "+14%"
+      },
+      "marcadores_atribuidos": {
+        "candidata": 2.564,
+        "r14": 2.582,
+        "delta": "igual"
+      }
+    },
+    "conclusao": "NÃO há mais ameaças nem menos marcadores: mesmo número de atribuições e 14% mais atacantes descobertos. O teste de cobertura do observador é ESPACIAL (defensor perto E do lado do gol) e nem consulta _markRef. O problema é geometria do bloco, não escolha de quem marca."
+  },
+  "tentativa_2": {
+    "patch": "r14-line-recompaction (REVERTIDO)",
+    "hipotese": "Em desiredLine13 a linha recua a 0,72 e sobe a 0,47. Com a bola circulando mais, desired oscila mais e a linha passaria mais tempo em recomposição lenta, esticando o bloco.",
+    "mudanca": "subida 0,47 -> 0,62 (recuo intacto)",
+    "resultado": {
+      "marking_reprovado": {
+        "antes": 124,
+        "depois": 115
+      },
+      "observer_pass": {
+        "antes": 70,
+        "depois": 71
+      },
+      "cobertura": {
+        "antes": 0.704,
+        "depois": 0.709
+      },
+      "espalhamento_linha": {
+        "antes": 1.307,
+        "depois": 1.343
+      },
+      "gols_por_partida": {
+        "antes": 1.82,
+        "depois": 1.73
+      }
+    },
+    "veredito": "PARCIAL, NÃO EMBARCADO. Recuperou ~36% do buraco de marcação, mas o ESPALHAMENTO PIOROU (1,307 -> 1,343) — o oposto do que a hipótese previa — e custou 5% dos gols. Ganho real porém mal explicado, com custo mensurável: embarcar seria trocar um número por outro sem entender o mecanismo. Revertido; candidata volta a 205170ca… byte a byte."
+  },
+  "estado": "FAIL — 2 tentativas medidas e revertidas; diagnóstico refinado, causa ainda não isolada"
 }
