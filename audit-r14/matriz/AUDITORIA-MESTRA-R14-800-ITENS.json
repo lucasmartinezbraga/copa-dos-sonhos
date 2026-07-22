@@ -11647,12 +11647,12 @@
    "initial_state": "PENDENTE 2.5D",
    "source": "AUDITORIA 650",
    "required_run": true,
-   "result": "PENDENTE",
-   "owner": "",
-   "executed_at": "",
-   "evidence_path": "evidence/13_Acessibilidade/A11Y-011/",
-   "notes": "Exige observação humana, aparelho físico ou execução dirigida — não automatizável.",
-   "bug_or_commit": ""
+   "result": "FAIL",
+   "owner": "claude/r14",
+   "executed_at": "2026-07-22T23:49:07.270588+00:00",
+   "evidence_path": "reports/r14/pixel/result.json",
+   "notes": "5 de 15 abaixo de 4,5:1 medido no pixel renderizado. Rótulos de ano: 1970 (3,65:1), 2026 (3,71:1), 1994 (3,75:1), 1998 (3,81:1), 1986 (4,30:1).",
+   "bug_or_commit": "205170caa292"
   },
   {
    "id": "A11Y-012",
