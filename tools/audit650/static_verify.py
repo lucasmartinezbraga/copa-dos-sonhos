@@ -53,10 +53,10 @@ def main() -> int:
         checks.append({"name": name, "ok": ok, "type": "forbidden-regex"})
         if not ok:
             failed.append(name)
-    stripped = text.lstrip("\ufeff\r\n\t ")
+    doctype_pattern = re.compile(r"^\ufeff?\s*(?:<!--.*?-->\s*)*<!DOCTYPE\s+html\s*>", re.I | re.S)
     conflict_pattern = re.compile(r"(?m)^<<<<<<<\s+.+$|^=======$|^>>>>>>>\s+.+$")
     structural = {
-        "standardsDoctypeAtStart": stripped.lower().startswith("<!doctype html>"),
+        "standardsDoctypeBeforeMarkup": doctype_pattern.search(text) is not None,
         "singleBodyClose": text.lower().count("</body>") == 1,
         "singleHtmlClose": text.lower().count("</html>") == 1,
         "canvasPresent": 'id="fieldcv"' in text,
