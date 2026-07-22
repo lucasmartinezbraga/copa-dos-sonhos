@@ -1,19 +1,20 @@
 {
  "build": "dist/COPA DOS SONHOS - RC-UX.html",
  "label": "audit650",
- "at": "2026-07-22T10:48:22.265Z",
+ "at": "2026-07-22T11:19:27.860Z",
  "matches": [
   {
    "index": 0,
    "fps1x": 60.2,
    "invariants": {
-    "samples": 37,
+    "samples": 39,
     "ballOffPitch": 0,
     "ballAboveStands": 0,
     "nonFiniteVisual": 0,
-    "aerialFrames": 6,
+    "aerialFrames": 4,
     "crossKinds": {
-     "pass": 6
+     "shot": 2,
+     "pass": 2
     },
     "stallMax": 1,
     "goalChecks": [
@@ -51,24 +52,24 @@
      "nonFinite": 0,
      "ownerNoContact": 0,
      "invalidTimelines": 0,
-     "frames": 23749
+     "frames": 23958
     },
     "stats": [
      {
-      "shots": 9,
+      "shots": 14,
       "corners": 5,
-      "throwIns": 5,
-      "goalKicks": 2,
-      "offsides": 0,
-      "fouls": 2
+      "throwIns": 6,
+      "goalKicks": 4,
+      "offsides": 1,
+      "fouls": 1
      },
      {
-      "shots": 3,
+      "shots": 4,
       "corners": 1,
-      "throwIns": 5,
-      "goalKicks": 6,
-      "offsides": 0,
-      "fouls": 2
+      "throwIns": 2,
+      "goalKicks": 8,
+      "offsides": 2,
+      "fouls": 7
      }
     ]
    }
@@ -77,23 +78,54 @@
    "index": 1,
    "fps1x": 60.2,
    "invariants": {
-    "samples": 40,
+    "samples": 27,
     "ballOffPitch": 0,
     "ballAboveStands": 0,
     "nonFiniteVisual": 0,
-    "aerialFrames": 2,
+    "aerialFrames": 4,
     "crossKinds": {
-     "pass": 1,
-     "shot": 1
+     "pass": 4
     },
-    "stallMax": 0,
+    "stallMax": 1,
     "goalChecks": [
      {
       "sim": [
-       1,
+       2,
        0
       ],
-      "dom": "1–0",
+      "dom": "2–0",
+      "sync": true
+     },
+     {
+      "sim": [
+       2,
+       0
+      ],
+      "dom": "2–0",
+      "sync": true
+     },
+     {
+      "sim": [
+       3,
+       0
+      ],
+      "dom": "3–0",
+      "sync": true
+     },
+     {
+      "sim": [
+       4,
+       0
+      ],
+      "dom": "4–0",
+      "sync": true
+     },
+     {
+      "sim": [
+       4,
+       1
+      ],
+      "dom": "4–1",
       "sync": true
      }
     ]
@@ -102,10 +134,10 @@
     "over": true,
     "minute": 90,
     "score": [
-     1,
-     0
+     4,
+     1
     ],
-    "dom": "1–0",
+    "dom": "4–1",
     "canonical": "CONSISTENT",
     "preStatus": "READY_FOR_EXTENDED_REGRESSION",
     "hard": {
@@ -114,24 +146,24 @@
      "nonFinite": 0,
      "ownerNoContact": 0,
      "invalidTimelines": 0,
-     "frames": 23874
+     "frames": 24072
     },
     "stats": [
      {
-      "shots": 8,
+      "shots": 10,
       "corners": 7,
-      "throwIns": 8,
-      "goalKicks": 2,
-      "offsides": 1,
+      "throwIns": 2,
+      "goalKicks": 3,
+      "offsides": 0,
       "fouls": 4
      },
      {
-      "shots": 2,
-      "corners": 1,
-      "throwIns": 2,
-      "goalKicks": 5,
+      "shots": 5,
+      "corners": 3,
+      "throwIns": 3,
+      "goalKicks": 2,
       "offsides": 0,
-      "fouls": 1
+      "fouls": 3
      }
     ]
    }
