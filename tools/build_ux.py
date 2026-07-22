@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Build do candidato RC-UX = R13.0 (byte-idêntica) + camada UX aditiva.
+Build do candidato RC-UX = baseline R13.0 verificada + camada UX aditiva.
 
-Reconstrói o HTML R13 a partir de src/r13/ (sem tocar no arquivo autoritativo)
-e injeta, imediatamente antes de </body></html>:
-  - <style id="cds-ux-system">  = concatenação de src/ux/*.css
-  - <script id="cds-ux-boot">   = concatenação de src/ux/*.js
+Quando o template modular está disponível, reconstrói o HTML pelos blocos do
+manifesto. Em cópias do repositório onde o template não foi versionado, usa o
+artefato R13 congelado indicado pelo próprio manifesto, aceitando-o somente se
+a SHA-256 for exatamente a autoritativa.
 
 Patches exatos são carregados de src/ux/patches*.json. Substituições globais
 controladas são carregadas de src/ux/token-patches*.json. Todos os patches são
@@ -20,11 +20,24 @@ OUT_DEFAULT = "dist/COPA DOS SONHOS - RC-UX.html"
 
 
 def build_r13_html():
-    html = (ROOT / MAN["template"]).read_text(encoding="utf-8")
-    for b in MAN["blocks"]:
-        content = (ROOT / b["module"]).read_text(encoding="utf-8")
-        html = html.replace(b["placeholder"], content, 1)
-    return html
+    template = ROOT / MAN["template"]
+    if template.exists():
+        html = template.read_text(encoding="utf-8")
+        for b in MAN["blocks"]:
+            content = (ROOT / b["module"]).read_text(encoding="utf-8")
+            n = html.count(b["placeholder"])
+            if n != 1:
+                sys.exit(f"ERRO: placeholder {b['placeholder']} ocorre {n}x no template")
+            html = html.replace(b["placeholder"], content, 1)
+        return html, "template-modular"
+
+    frozen = ROOT / MAN["target_output"]
+    if not frozen.exists():
+        sys.exit(
+            f"ERRO: template ausente ({template.relative_to(ROOT)}) e baseline congelada "
+            f"ausente ({frozen.relative_to(ROOT)})"
+        )
+    return frozen.read_text(encoding="utf-8"), "artefato-r13-congelado"
 
 
 def read_layer(ext):
@@ -72,7 +85,7 @@ def main():
     if "--out" in sys.argv:
         out_arg = sys.argv[sys.argv.index("--out") + 1]
 
-    html = build_r13_html()
+    html, base_source = build_r13_html()
     base_sha = hashlib.sha256(html.encode("utf-8")).hexdigest()
     if base_sha != MAN["target_sha256"]:
         sys.exit(f"ERRO: base R13 divergiu ({base_sha[:12]} != alvo). Rode verify_r13 antes.")
@@ -96,7 +109,8 @@ def main():
     out.write_bytes(data)
     sha = hashlib.sha256(data).hexdigest()
     print(out)
-    print("base R13 (intacta):", base_sha[:16], "…")
+    print("origem da baseline:", base_source)
+    print("base R13 verificada:", base_sha[:16], "…")
     print("patches exatos:", exact_patches or "nenhum")
     print("token patches:", token_patches or "nenhum")
     print("camada UX:", [p.name for p in css_files + js_files])
