@@ -1,21 +1,21 @@
 {
  "build": "dist/COPA DOS SONHOS - RC-UX.html",
  "label": "audit650",
- "at": "2026-07-22T10:43:09.277Z",
+ "at": "2026-07-22T10:48:22.265Z",
  "matches": [
   {
    "index": 0,
    "fps1x": 60.2,
    "invariants": {
-    "samples": 38,
+    "samples": 37,
     "ballOffPitch": 0,
     "ballAboveStands": 0,
     "nonFiniteVisual": 0,
-    "aerialFrames": 2,
+    "aerialFrames": 6,
     "crossKinds": {
-     "pass": 2
+     "pass": 6
     },
-    "stallMax": 0,
+    "stallMax": 1,
     "goalChecks": [
      {
       "sim": [
@@ -51,24 +51,24 @@
      "nonFinite": 0,
      "ownerNoContact": 0,
      "invalidTimelines": 0,
-     "frames": 24082
+     "frames": 23749
     },
     "stats": [
      {
       "shots": 9,
-      "corners": 1,
-      "throwIns": 7,
-      "goalKicks": 4,
-      "offsides": 1,
-      "fouls": 7
+      "corners": 5,
+      "throwIns": 5,
+      "goalKicks": 2,
+      "offsides": 0,
+      "fouls": 2
      },
      {
-      "shots": 2,
-      "corners": 0,
-      "throwIns": 3,
+      "shots": 3,
+      "corners": 1,
+      "throwIns": 5,
       "goalKicks": 6,
       "offsides": 0,
-      "fouls": 5
+      "fouls": 2
      }
     ]
    }
@@ -77,25 +77,35 @@
    "index": 1,
    "fps1x": 60.2,
    "invariants": {
-    "samples": 44,
+    "samples": 40,
     "ballOffPitch": 0,
     "ballAboveStands": 0,
     "nonFiniteVisual": 0,
     "aerialFrames": 2,
     "crossKinds": {
-     "pass": 2
+     "pass": 1,
+     "shot": 1
     },
-    "stallMax": 1,
-    "goalChecks": []
+    "stallMax": 0,
+    "goalChecks": [
+     {
+      "sim": [
+       1,
+       0
+      ],
+      "dom": "1–0",
+      "sync": true
+     }
+    ]
    },
    "end": {
     "over": true,
     "minute": 90,
     "score": [
-     0,
+     1,
      0
     ],
-    "dom": "0–0",
+    "dom": "1–0",
     "canonical": "CONSISTENT",
     "preStatus": "READY_FOR_EXTENDED_REGRESSION",
     "hard": {
@@ -104,24 +114,24 @@
      "nonFinite": 0,
      "ownerNoContact": 0,
      "invalidTimelines": 0,
-     "frames": 23768
+     "frames": 23874
     },
     "stats": [
      {
       "shots": 8,
-      "corners": 1,
-      "throwIns": 3,
+      "corners": 7,
+      "throwIns": 8,
       "goalKicks": 2,
-      "offsides": 2,
-      "fouls": 3
+      "offsides": 1,
+      "fouls": 4
      },
      {
       "shots": 2,
-      "corners": 3,
-      "throwIns": 6,
+      "corners": 1,
+      "throwIns": 2,
       "goalKicks": 5,
-      "offsides": 1,
-      "fouls": 6
+      "offsides": 0,
+      "fouls": 1
      }
     ]
    }
