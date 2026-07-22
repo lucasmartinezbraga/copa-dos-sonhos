@@ -70,6 +70,11 @@
   "to": "  trailPts.unshift({ x: b.x, y: b.y, z: b.z || 0 });"
  },
  {
+  "id": "num-depth-scale",
+  "from": "      ctx.font = `bold 10px Arial,sans-serif`;\n      ctx.textAlign='center'; ctx.textBaseline='middle';\n      ctx.fillText(p.num||'', x, y);",
+  "to": "      ctx.font = `bold ${Math.max(7, Math.min(12, 10 * r / 13)).toFixed(1)}px Arial,sans-serif`;\n      ctx.textAlign='center'; ctx.textBaseline='middle';\n      ctx.fillText(p.num||'', x, y);"
+ },
+ {
   "id": "pill-clamp-decl",
   "from": "      const pw = tw + 8, ph2 = 11, py2 = y + r + 2;",
   "to": "      const pw = tw + 8, ph2 = 11, py2 = y + r + 2, pxc = Math.max(M + pw/2 + 2, Math.min(CW - M - pw/2 - 2, x));"

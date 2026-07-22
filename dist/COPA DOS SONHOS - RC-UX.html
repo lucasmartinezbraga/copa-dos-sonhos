@@ -13123,7 +13123,7 @@ function paintField() {
 
       // número da camisa
       ctx.fillStyle = numCol;
-      ctx.font = `bold 10px Arial,sans-serif`;
+      ctx.font = `bold ${Math.max(7, Math.min(12, 10 * r / 13)).toFixed(1)}px Arial,sans-serif`;
       ctx.textAlign='center'; ctx.textBaseline='middle';
       ctx.fillText(p.num||'', x, y);
 

@@ -132,6 +132,11 @@ patches.append({"id": "trail-z",
     "from": "  trailPts.unshift({ x: b.x, y: b.y });",
     "to":   "  trailPts.unshift({ x: b.x, y: b.y, z: b.z || 0 });"})
 
+# ── ATL-037: número da camisa ESCALA com a profundidade (fonte ∝ s = r/13)
+patches.append({"id": "num-depth-scale",
+    "from": "      ctx.font = `bold 10px Arial,sans-serif`;\n      ctx.textAlign='center'; ctx.textBaseline='middle';\n      ctx.fillText(p.num||'', x, y);",
+    "to":   "      ctx.font = `bold ${Math.max(7, Math.min(12, 10 * r / 13)).toFixed(1)}px Arial,sans-serif`;\n      ctx.textAlign='center'; ctx.textBaseline='middle';\n      ctx.fillText(p.num||'', x, y);"})
+
 # ── pill de nome clampada ao campo (não corta na borda da câmera)
 patches.append({"id": "pill-clamp-decl",
     "from": "      const pw = tw + 8, ph2 = 11, py2 = y + r + 2;",
