@@ -23,7 +23,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref || github.ref_name }}
-          fetch-depth: 0
+          fetch-depth: 1
+          show-progress: false
 
       - name: Identidade antes da alteração
         run: |
@@ -31,7 +32,35 @@ jobs:
           git rev-parse HEAD
 
       - name: Aplicar correções da auditoria 650
-        run: python3 tools/audit650/apply_fixpack.py
+        run: |
+          set +e
+          python3 tools/audit650/apply_fixpack.py > /tmp/audit650-patch.log 2>&1
+          status=$?
+          cat /tmp/audit650-patch.log
+          if [ $status -ne 0 ]; then
+            echo "--- diagnóstico de padrões ---"
+            python3 - <<'PY'
+          from pathlib import Path
+          t=Path('dist/COPA DOS SONHOS - RC-UX.html').read_text(encoding='utf-8')
+          pats={
+            'geometry':'const G = { CW:1024, CH:500, M:12, R0:0.72, topY:46, bottomY:497, ready:false };',
+            'topY':'G.topY=M+34;',
+            'dirCache':'  const dirCache = new Map();',
+            'ballLift':'const bx = g0.x, by = g0.y - z * 22 * s;',
+            'trailLift':'p.y - z*22*p.s',
+            'aerial':'const aerial=!isShot && z>0.45;',
+            'body':'  function body(ctx, o) {',
+            'caller':"x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall",
+            'stage':'spPerspective',
+            'export':"root.CDS_F25D = Object.freeze({ version: '2.1.0', project, grass, pitch, body, trail, ball, traj });",
+            'onEvent':'function onEvent(e) {\n  const __phys=physicalTag(e);',
+            'draft':'function renderDraft(keepList) {\n  const d = G.draft; if (!d) return;',
+            'title':'<title>Copa dos Sonhos — Núcleo Autoritativo Transacional R12.3</title>'
+          }
+          for k,v in pats.items(): print(k,t.count(v))
+          PY
+            exit $status
+          fi
 
       - name: Validar bloqueadores por inspeção estática
         run: |
@@ -45,8 +74,6 @@ jobs:
           npx playwright install --with-deps chromium
 
       - name: Executar partidas em navegador real
-        env:
-          CDS_CHROMIUM: ${{ runner.temp }}/chromium-path-placeholder
         run: |
           export CDS_CHROMIUM="$(node -e "console.log(require('playwright').chromium.executablePath())")"
           node tools/ux/audit_match.js \
@@ -74,8 +101,7 @@ jobs:
               hard=end.get('hard') or {}
               for k in ('ballTeleports','playerTeleports','nonFinite','ownerNoContact','invalidTimelines'):
                   if hard.get(k,0)!=0: failures.append(f'match {i}: {k}={hard.get(k)}')
-          if failures:
-              raise SystemExit('\n'.join(failures))
+          if failures: raise SystemExit('\n'.join(failures))
           print(json.dumps({'verdict':'PASS_DYNAMIC_FIXPACK','matches':len(data.get('matches',[]))},ensure_ascii=False))
           PY
 
