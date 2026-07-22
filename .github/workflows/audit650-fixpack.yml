@@ -39,6 +39,10 @@ jobs:
           set +e
           python3 tools/audit650/apply_fixpack_v2.py > reports/AUDITORIA-650-PATCH-DIAGNOSTICO.txt 2>&1
           status=$?
+          if [ $status -eq 0 ]; then
+            python3 tools/audit650/apply_followup.py >> reports/AUDITORIA-650-PATCH-DIAGNOSTICO.txt 2>&1
+            status=$?
+          fi
           if [ $status -ne 0 ]; then
             echo "" >> reports/AUDITORIA-650-PATCH-DIAGNOSTICO.txt
             echo "--- contagem de padrões ---" >> reports/AUDITORIA-650-PATCH-DIAGNOSTICO.txt
@@ -46,6 +50,10 @@ jobs:
           from pathlib import Path
           t=Path('dist/COPA DOS SONHOS - RC-UX.html').read_text(encoding='utf-8')
           pats={
+            'fixpack_marker':'AUDIT650-RCUX-FIXPACK-2',
+            'followup_marker':'AUDIT650-RCUX-FOLLOWUP-1',
+            'fixed_pulse':'performance.now() / 130',
+            'speed_pulse':'130 * visualSpeed',
             'geometry_start':'const G = {',
             'topY':'G.topY = M + 34;',
             'dirCache':'  const dirCache = new Map();',
@@ -53,17 +61,8 @@ jobs:
             'trailLift':'p.y - (tp.z || 0) * 22 * p.s',
             'guideLift':'g.y - z * 22 * g.s',
             'aerial':'const aerial = !isShot && z > 0.45;',
-            'body':'  function body(ctx, o) {',
-            'bodyEnd':'  /* ── RASTRO',
-            'caller':"x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall",
-            'font10':'ctx.font = `bold 10px Arial,sans-serif`;',
-            'font75':'ctx.font = `bold 7.5px Arial,sans-serif`;',
             'stage':'spPerspective',
-            'export':"root.CDS_F25D = Object.freeze({ version: '2.1.0', project, grass, pitch, body, trail, ball, traj });",
-            'onEvent':'function onEvent(e) {\n  const __phys=physicalTag(e);',
-            'draft':'function renderDraft(keepList) {\n  const d = G.draft; if (!d) return;',
-            'bodyClose':'</body>',
-            'title':'<title>Copa dos Sonhos — Núcleo Autoritativo Transacional R12.3</title>'
+            'bodyClose':'</body>'
           }
           for k,v in pats.items(): print(k,t.count(v))
           PY
@@ -88,7 +87,7 @@ jobs:
         if: steps.patch.outcome == 'success'
         continue-on-error: true
         run: |
-          python3 -m py_compile tools/audit650/apply_fixpack_v2.py tools/audit650/static_verify.py
+          python3 -m py_compile tools/audit650/apply_fixpack_v2.py tools/audit650/apply_followup.py tools/audit650/static_verify.py
           python3 tools/audit650/static_verify.py
           node --check tools/ux/audit_match.js
 
@@ -158,7 +157,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "Nenhuma alteração nova para publicar."
           else
-            git commit -m "fix: fecha bloqueadores P0 da auditoria 650 [audit650-applied]"
+            git commit -m "fix: fecha bloqueadores da auditoria 650 [audit650-applied]"
             git push origin HEAD:${{ github.head_ref || github.ref_name }}
           fi
 
