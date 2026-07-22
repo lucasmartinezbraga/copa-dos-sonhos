@@ -1,12 +1,17 @@
 {
   "target": "dist/COPA DOS SONHOS - RC-UX.html",
-  "sha256": "45b3493751b5fdc9df522a2bf5b6ccf760785d0afde68af31ff93fca8c161729",
-  "passed": 34,
-  "total": 34,
+  "sha256": "438df2ce4a1a695935171d197d291735e0ccaba9755718f6c0f3c496bf20886c",
+  "passed": 37,
+  "total": 37,
   "failed": [],
   "checks": [
     {
       "name": "fixpack marker",
+      "ok": true,
+      "type": "required"
+    },
+    {
+      "name": "followup marker",
       "ok": true,
       "type": "required"
     },
@@ -57,6 +62,11 @@
     },
     {
       "name": "draft rescue",
+      "ok": true,
+      "type": "required"
+    },
+    {
+      "name": "speed-aware landing pulse",
       "ok": true,
       "type": "required"
     },
@@ -122,6 +132,11 @@
     },
     {
       "name": "shot arcs disabled",
+      "ok": true,
+      "type": "forbidden-regex"
+    },
+    {
+      "name": "fixed-time landing pulse",
       "ok": true,
       "type": "forbidden-regex"
     },
