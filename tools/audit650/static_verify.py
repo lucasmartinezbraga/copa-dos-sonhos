@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+import hashlib, json, re
+from pathlib import Path
+
+TARGET = Path("dist/COPA DOS SONHOS - RC-UX.html")
+REPORT = Path("reports/AUDITORIA-650-STATIC-VERIFY.json")
+
+REQUIRED = {
+    "fixpack marker": "AUDIT650-RCUX-FIXPACK-1",
+    "auditable 2.5D version": "2.2.0-audit650",
+    "aerial projector": "function elevatedY(p, z)",
+    "articulated stride": "const stride=pose==='run'",
+    "event poses": "window.__cdsVisualEvent",
+    "goalkeeper punch": "pose==='punch'",
+    "unified set-piece stage": "function spStage25D(scene)",
+    "stage identity": "stage:'CDS_F25D'",
+    "draft rescue": "Reroll de emergência liberado",
+    "touch targets": "min-height:44px",
+    "portrait context": "orientation:portrait",
+    "safe area": "safe-area-inset-left",
+    "reduced motion": "prefers-reduced-motion:reduce",
+    "forced colors": "forced-colors:active",
+    "live region": "aria-live','polite'",
+    "keyboard escape": "e.key==='Escape'",
+    "cache reset": "reset:resetVisualCaches",
+    "R12 auditor preserved": "getR12Audit",
+    "pre-2.5D auditor preserved": "getPre25DAuditReport",
+}
+FORBIDDEN = {
+    "legacy set-piece perspective": "spPerspective",
+    "shot arcs disabled": "const aerial=!isShot && z>0.45;",
+    "raw ball lift": "const bx = g0.x, by = g0.y - z * 22 * s;",
+}
+
+def main() -> int:
+    text = TARGET.read_text(encoding="utf-8")
+    checks, failed = [], []
+    for name, needle in REQUIRED.items():
+        ok = needle in text
+        checks.append({"name": name, "ok": ok, "type": "required"})
+        if not ok: failed.append(name)
+    for name, needle in FORBIDDEN.items():
+        ok = needle not in text
+        checks.append({"name": name, "ok": ok, "type": "forbidden"})
+        if not ok: failed.append(name)
+    structural = {
+        "singleDoctype": len(re.findall(r"<!DOCTYPE html>", text, re.I)) == 1,
+        "singleBodyClose": text.lower().count("</body>") == 1,
+        "singleHtmlClose": text.lower().count("</html>") == 1,
+        "canvasPresent": 'id="fieldcv"' in text,
+        "databaseScalePreserved": all(token in text for token in ("369", "7739", "777")),
+        "noConflictMarkers": not any(token in text for token in ("<<<<<<<", "=======", ">>>>>>>")),
+    }
+    for name, ok in structural.items():
+        checks.append({"name": name, "ok": ok, "type": "structural"})
+        if not ok: failed.append(name)
+    result = {
+        "target": str(TARGET),
+        "sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+        "passed": len(checks) - len(failed),
+        "total": len(checks),
+        "failed": failed,
+        "checks": checks,
+        "verdict": "PASS_STATIC_FIXPACK" if not failed else "FAIL_STATIC_FIXPACK",
+        "note": "Static PASS validates safeguards, not final perceptual release."
+    }
+    REPORT.parent.mkdir(parents=True, exist_ok=True)
+    REPORT.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    print(json.dumps(result, ensure_ascii=False))
+    return 1 if failed else 0
+
+if __name__ == "__main__":
+    raise SystemExit(main())
