@@ -1,0 +1,107 @@
+name: Auditoria 650 — aplicar e validar fixpack
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: audit650-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fix-and-audit:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout da branch candidata
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          fetch-depth: 0
+
+      - name: Identidade antes da alteração
+        run: |
+          sha256sum "dist/COPA DOS SONHOS - RC-UX.html"
+          git rev-parse HEAD
+
+      - name: Aplicar correções da auditoria 650
+        run: python3 tools/audit650/apply_fixpack.py
+
+      - name: Validar bloqueadores por inspeção estática
+        run: |
+          python3 -m py_compile tools/audit650/apply_fixpack.py tools/audit650/static_verify.py
+          python3 tools/audit650/static_verify.py
+          node --check tools/ux/audit_match.js
+
+      - name: Instalar Chromium de auditoria
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Executar partidas em navegador real
+        env:
+          CDS_CHROMIUM: ${{ runner.temp }}/chromium-path-placeholder
+        run: |
+          export CDS_CHROMIUM="$(node -e "console.log(require('playwright').chromium.executablePath())")"
+          node tools/ux/audit_match.js \
+            --build="dist/COPA DOS SONHOS - RC-UX.html" \
+            --matches=2 \
+            --label=audit650 \
+            --out=reports/ux/audit-match-audit650
+
+      - name: Gate dinâmico duro
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('reports/ux/audit-match-audit650/match-audit.json')
+          data=json.loads(p.read_text())
+          failures=[]
+          if data.get('errors'): failures.append(f"page/console errors={data['errors']}")
+          for m in data.get('matches',[]):
+              i=m.get('index'); inv=m.get('invariants') or {}; end=m.get('end') or {}
+              if not end.get('over'): failures.append(f'match {i}: did not finish')
+              if end.get('canonical')!='CONSISTENT': failures.append(f"match {i}: canonical={end.get('canonical')}")
+              if inv.get('ballAboveStands',0)!=0: failures.append(f"match {i}: ballAboveStands={inv.get('ballAboveStands')}")
+              if inv.get('nonFiniteVisual',0)!=0: failures.append(f"match {i}: nonFiniteVisual={inv.get('nonFiniteVisual')}")
+              if any(not g.get('sync') for g in inv.get('goalChecks',[])): failures.append(f'match {i}: score DOM mismatch')
+              hard=end.get('hard') or {}
+              for k in ('ballTeleports','playerTeleports','nonFinite','ownerNoContact','invalidTimelines'):
+                  if hard.get(k,0)!=0: failures.append(f'match {i}: {k}={hard.get(k)}')
+          if failures:
+              raise SystemExit('\n'.join(failures))
+          print(json.dumps({'verdict':'PASS_DYNAMIC_FIXPACK','matches':len(data.get('matches',[]))},ensure_ascii=False))
+          PY
+
+      - name: Consolidar evidência e hash final
+        run: |
+          sha256sum "dist/COPA DOS SONHOS - RC-UX.html" | tee reports/AUDITORIA-650-FINAL-SHA256.txt
+          git status --short
+
+      - name: Publicar resultado na branch
+        run: |
+          git config user.name "audit650-bot"
+          git config user.email "audit650-bot@users.noreply.github.com"
+          git add "dist/COPA DOS SONHOS - RC-UX.html" reports tools/ux/audit_match.js
+          if git diff --cached --quiet; then
+            echo "Nenhuma alteração nova para publicar."
+          else
+            git commit -m "fix: fecha bloqueadores P0 da auditoria 650 [audit650-applied]"
+            git push origin HEAD:${{ github.head_ref || github.ref_name }}
+          fi
+
+      - name: Anexar evidências da execução
+        uses: actions/upload-artifact@v4
+        with:
+          name: auditoria-650-evidencias
+          path: |
+            reports/AUDITORIA-650-*.json
+            reports/AUDITORIA-650-FINAL-SHA256.txt
+            reports/ux/audit-match-audit650/
+          retention-days: 30
