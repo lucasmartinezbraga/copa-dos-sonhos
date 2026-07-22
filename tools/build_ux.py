@@ -19,9 +19,10 @@ MAN = json.loads((ROOT / "manifests/r13-build-manifest.json").read_text(encoding
 OUT_DEFAULT = "dist/COPA DOS SONHOS - RC-UX.html"
 
 def build_r13_html():
-    html = (ROOT / MAN["template"]).read_text(encoding="utf-8")
+    # read_bytes por simetria com build_r13.py: sem normalização de fim de linha.
+    html = (ROOT / MAN["template"]).read_bytes().decode("utf-8")
     for b in MAN["blocks"]:
-        content = (ROOT / b["module"]).read_text(encoding="utf-8")
+        content = (ROOT / b["module"]).read_bytes().decode("utf-8")
         html = html.replace(b["placeholder"], content, 1)
     return html
 

@@ -86,7 +86,9 @@ def main():
         _, kind, open_tag, content, close_tag = s
         subdir, fname = MODULE_NAMES[bi]
         rel = f"src/r13/{subdir}/{fname}"
-        (ROOT / rel).write_text(content, encoding="utf-8")
+        # write_bytes: nunca traduzir fim de linha. write_text() converte \n em
+        # \r\n no Windows e o módulo deixa de bater com o sha do manifesto.
+        (ROOT / rel).write_bytes(content.encode("utf-8"))
         placeholder = f"/*__CDS_R13_BLOCK_{bi}__*/"
         if placeholder in html:
             sys.exit(f"ERRO: placeholder {placeholder} colide com conteúdo")
@@ -103,9 +105,9 @@ def main():
         bi += 1
 
     template = "".join(template_parts)
-    (ROOT / "src/r13/index.template.html").write_text(template, encoding="utf-8")
-    (ROOT / "manifests/r13-build-manifest.json").write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+    (ROOT / "src/r13/index.template.html").write_bytes(template.encode("utf-8"))
+    (ROOT / "manifests/r13-build-manifest.json").write_bytes(
+        json.dumps(manifest, ensure_ascii=False, indent=2).encode("utf-8"))
 
     print(f"Extraídos {bi} blocos para src/r13/")
     print(f"Template: src/r13/index.template.html ({len(template.encode('utf-8'))} B)")

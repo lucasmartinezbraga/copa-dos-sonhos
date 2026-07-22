@@ -1,0 +1,93 @@
+<!-- MOTOR VISUAL 2.0 · ENGINE 5.7.3 -->
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     PONTO 3 · CORREÇÃO CRÍTICA DE BOOT MOBILE — ORDEM DO <head>
+     ═══════════════════════════════════════════════════════════════════════════
+     (a) <!DOCTYPE html> RESTAURADO. O arquivo estava SEM doctype, o que joga
+         todos os navegadores em "quirks mode". No desktop o jogo sobrevivia,
+         mas no mobile o quirks mode quebra a cadeia de alturas (100%/dvh),
+         o cálculo de viewport e vários seletores modernos — resultado típico:
+         tela de carregamento congelada ou layout colapsado em 0px.
+     (b) <meta charset="UTF-8"> MOVIDO PARA O TOPO. A especificação HTML exige
+         que a declaração de charset apareça nos PRIMEIROS 1024 BYTES do
+         documento. O bloco de diagnóstico iOS abaixo tem ~1,3 KB; com o meta
+         DEPOIS dele, navegadores móveis caíam no "sniffing" de codificação e
+         podiam decodificar os ~850 KB de JS/dados como windows-1252 —
+         corrompendo strings do banco de jogadores durante o parse.
+     (c) O viewport acompanha o charset para garantir escala 1:1 já no primeiro
+         layout, antes de qualquer CSS ser avaliado.
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport"/>
+<script>/*__CDS_R13_BLOCK_0__*/</script>
+<!-- PONTO 3: charset/viewport foram promovidos para o topo do <head>; as
+     cópias que existiam aqui foram removidas para não haver declaração dupla. -->
+<title>Copa dos Sonhos — Núcleo Autoritativo Transacional R12.3</title>
+<!-- TIPOGRAFIA: preconnects do Google Fonts removidos — as fontes agora são
+     100% embutidas no <style>/*__CDS_R13_BLOCK_1__*/</style>
+</head>
+<body>
+<div id="app">
+<div class="home-v2">
+<header class="home-nav-v2">
+<div class="home-brand-v2"><span class="home-monogram">CDS</span><span class="home-wordmark">Copa dos <b>Sonhos</b></span></div>
+<span class="home-edition">Simulador histórico · edição 2026</span>
+</header>
+<main class="home-main-v2">
+<section class="home-copy-v2">
+<span class="home-status"><i></i> Motor 4.1 · banco V3 validado e jogadores com identidade própria</span>
+<h1 class="display home-title-v2">Copa dos<span>Sonhos</span></h1>
+<p class="home-lead-v2">Escolha um craque de cada seleção histórica, construa um time impossível e leve suas lendas por uma Copa completa. Aqui, nome não ganha jogo: posição, atributos e decisões táticas aparecem dentro de campo.</p>
+<div class="home-facts"><span class="home-fact">369 seleções históricas</span><span class="home-fact">1934 → 2026</span><span class="home-fact">Momentos decisivos jogáveis</span></div>
+<div class="home-cta-v2">
+<button class="btn btn-gold" id="bt-start" type="button">Montar meu time</button>
+<button class="btn btn-ghost" id="bt-about" type="button">Como funciona</button>
+<button aria-label="Abrir o Desafio de Faltas" class="home-mode-v2" data-go="freekick">
+<span class="hm-icon">↗</span><span class="hm-copy"><small>Novo modo de habilidade</small><b>Desafio de Faltas</b><span>Cinco cobranças com a mesma física usada na Copa.</span></span><span class="hm-go">›</span>
+</button>
+</div>
+</section>
+<aside aria-hidden="true" class="dream-stage">
+<div class="dream-card">
+<div class="dream-card-head"><span>Onze épocas · um time</span><b>Seleção dos sonhos</b></div>
+<div class="dream-pitch">
+<div class="legend-chip lc1"><i>10</i><b>Pelé</b><span>1970</span></div>
+<div class="legend-chip lc2"><i>10</i><b>Maradona</b><span>1986</span></div>
+<div class="legend-chip lc3"><i>10</i><b>Messi</b><span>2026</span></div>
+<div class="legend-chip lc4"><i>8</i><b>Zidane</b><span>1998</span></div>
+<div class="legend-chip lc5"><i>3</i><b>Maldini</b><span>1994</span></div>
+<div class="legend-chip lc6"><i>4</i><b>Beckenbauer</b><span>1974</span></div>
+<div class="legend-chip lc7"><i>1</i><b>Yashin</b><span>1966</span></div>
+</div>
+<div class="dream-caption"><b>Não basta juntar os maiores.</b> Monte o time que melhor joga junto.</div>
+</div>
+</aside>
+</main>
+</div></div>
+<script>/*__CDS_R13_BLOCK_2__*/</script>
+<script id="cds-physics-timeline-581">/*__CDS_R13_BLOCK_3__*/</script>
+<!-- PONTO 3: script de "challenge" da Cloudflare + iframe oculto REMOVIDOS.
+     Eram resíduo do salvamento da página hospedada: criavam um iframe 1x1 e
+     buscavam /cdn-cgi/challenge-platform/scripts/jsd/main.js — request que,
+     fora do domínio original, fica pendente/falha e atrapalha o boot em
+     dispositivos móveis. Zero função dentro do jogo. -->
+<script id="cds-p04-physical-reception-584-r6">/*__CDS_R13_BLOCK_4__*/</script>
+<script id="cds-2_5d-gate-a-contracts-v02">/*__CDS_R13_BLOCK_5__*/</script>
+<script id="cds-pre25d-runtime-auditor-v04">/*__CDS_R13_BLOCK_6__*/</script>
+<script id="cds-pre25d-build-meta-584-r6">/*__CDS_R13_BLOCK_7__*/</script>
+<script id="cds-r7-pass-flow-calibration">/*__CDS_R13_BLOCK_8__*/</script>
+<script id="cds-r9-pass-natural-calibration">/*__CDS_R13_BLOCK_9__*/</script>
+<script id="cds-r10-engine-closure">/*__CDS_R13_BLOCK_10__*/</script>
+<script id="cds-r109-async-cup">/*__CDS_R13_BLOCK_11__*/</script>
+
+
+
+
+
+
+
+
+
+<script id="cds-r12-transactional-core-r123">/*__CDS_R13_BLOCK_12__*/</script><script id="cds-r13-football-observer-cadence">/*__CDS_R13_BLOCK_13__*/</script></body></html>

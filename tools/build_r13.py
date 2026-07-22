@@ -18,9 +18,11 @@ def main():
     if "--out" in sys.argv:
         out_arg = sys.argv[sys.argv.index("--out") + 1]
 
-    html = (ROOT / MAN["template"]).read_text(encoding="utf-8")
+    # read_bytes: read_text() normaliza \r\n em \n e esconderia um módulo
+    # corrompido por fim de linha. Aqui a divergência precisa ser barulhenta.
+    html = (ROOT / MAN["template"]).read_bytes().decode("utf-8")
     for b in MAN["blocks"]:
-        content = (ROOT / b["module"]).read_text(encoding="utf-8")
+        content = (ROOT / b["module"]).read_bytes().decode("utf-8")
         got = hashlib.sha256(content.encode("utf-8")).hexdigest()
         if got != b["sha256"]:
             print(f"[aviso] módulo {b['module']} mudou (sha {got[:12]} != manifesto {b['sha256'][:12]})")
