@@ -21,10 +21,15 @@ const realConsole=console;global.console={log:noop,warn:noop,error:realConsole.e
 function load(path){
   const html=fs.readFileSync(path,'utf8'),scripts=[],re=/<script([^>]*)>([\s\S]*?)<\/script>/gi;
   let m;while((m=re.exec(html)))scripts.push({id:(m[1].match(/id="([^"]+)"/)||[])[1]||'script-'+scripts.length,code:m[2]});
+  // Seleção por ID, nunca por posição: a camada de apresentação (RC-UX, ponte
+  // de boot mobile) insere scripts e deslocaria todos os índices — o harness
+  // quebrava ao rodar contra a candidata em vez da R13 pura.
+  const SKIP_IDS=new Set(['cds-2_5d-gate-a-contracts-v02','cds-pre25d-runtime-auditor-v04',
+    'cds-r109-async-cup','cds-mobile-boot-bridge','cds-ux-boot']);
   scripts.forEach((s,i)=>{
-    if([4,5,10].includes(i))return;
+    if(SKIP_IDS.has(s.id))return;
     try{vm.runInThisContext(s.code,{filename:String(i).padStart(2,'0')+'-'+s.id+'.js'});}
-    catch(e){if(i===1&&/document is not defined/.test(String(e&&e.message||e)))return;throw e;}
+    catch(e){if(/^script-\d+$/.test(s.id)&&/document is not defined/.test(String(e&&e.message||e)))return;throw e;}
   });
   return{html,sha256:crypto.createHash('sha256').update(html).digest('hex')};
 }
