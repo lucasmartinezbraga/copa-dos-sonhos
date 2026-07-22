@@ -241,6 +241,22 @@
     if (ctx.roundRect) ctx.roundRect(x, y, w, h, rad);
     else ctx.rect(x, y, w, h);
   }
+  /* Envelope de amplitude por FASE da ação (R14). O antigo `wave` era uma rampa
+     única 0..1 que não sabia onde ficava o contato; aqui a preparação sobe até o
+     pico, o CONTATO é o pico (é o tick em que a bola sai), a continuidade desce
+     e a recuperação volta a zero. É o que faz o pé encontrar a bola. */
+  function animWave(state, phase) {
+    const p = clamp(phase || 0, 0, 1);
+    if (/_prepare$/.test(state)) return p;                 // carrega o movimento
+    if (/_contact$/.test(state)) return 1;                 // pico: bola sai aqui
+    if (/followthrough$/.test(state) || state === 'cross') return 1 - p * 0.6;
+    if (/_recover$/.test(state)) return 0.4 * (1 - p);
+    if (/tackle$/.test(state) || state === 'header' || state === 'block') return Math.sin(p * Math.PI);
+    if (/^gk_(low_dive|high_dive|catch|parry|punch|smother|foot_save)$/.test(state)) return Math.sin(p * Math.PI);
+    if (state === 'lose_control' || state === 'heavy_touch') return 0.5 * (1 - p);
+    return 0;
+  }
+
   function body(ctx, o) {
     const { x, y, r } = o;
     const jersey = o.isGK ? o.gkC : o.pc;
@@ -258,12 +274,21 @@
     d.gait += Math.min(mv, r * 1.2) / Math.max(4, r * .5);   // passada ∝ distância (cap anti-teleporte)
     if (Math.abs(mvx) > 0.4) d.face = Math.sign(mvx);  // direção que o atleta encara (persistida)
     d.lean = lean; d.x = x; d.y = y;
-    const face = d.face || 1, w = o.divePose ? 0 : (o.wave || 0);
+    const face = d.face || 1;
+    // R14 · a máquina de estados (Fase 3) manda quando existe: ela é dirigida
+    // pelo CONTRATO do motor, então a fase de contato cai no tick em que a bola
+    // sai. O caminho antigo (o.pose/o.act/o.wave) fica como queda para builds
+    // sem a camada de animação.
+    const A = (root.__CDS_ANIM_BY_KEY && root.__CDS_ANIM_BY_KEY[o.key]) || null;
+    const st = A ? A.state : '';
+    const w = o.divePose ? 0 : (A ? animWave(st, A.phase) : (o.wave || 0));
     const act = o.act || '', pose = o.pose || '';
-    const kicking = (pose === 'kick' || act === 'shoot') && w > 0.02;   // chute/passe/cruzamento
-    const tackling = pose === 'tackle' && w > 0.02;                     // carrinho
-    const heading = pose === 'jump' && w > 0.02;                        // cabeceio (corpo já sobe)
-    const dribbling = act === 'dribble' && !kicking && !tackling;       // conduzindo em drible
+    const kicking = A ? /^(pass|shot)_(prepare|contact|followthrough)$|^cross$/.test(st)
+                      : ((pose === 'kick' || act === 'shoot') && w > 0.02);
+    const tackling = A ? /tackle$/.test(st) : (pose === 'tackle' && w > 0.02);
+    const heading = A ? (st === 'header') : (pose === 'jump' && w > 0.02);
+    const dribbling = A ? /^(carry|dribble_|body_feint|inside_cut|outside_cut|burst_touch)/.test(st)
+                        : (act === 'dribble' && !kicking && !tackling);
     const amp = (o.divePose || kicking || tackling) ? 0 : clamp(d.spd / 1.5, 0, 1);   // 0 parado … 1 correndo
     const sw = Math.sin(d.gait) * amp;                  // -1..1 alterna as pernas
     const bob = Math.abs(sw) * r * .05 - (tackling ? r * .16 : 0) + (dribbling ? r * .10 : 0);

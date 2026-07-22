@@ -77,6 +77,18 @@
             }
           }
           this.__animState = this.__anim.update(Number(dt) || 0, Number(this.t) || 0, ctx);
+          // Publica também pela CHAVE DE DESENHO (a mesma que CDS_F25D.body e o
+          // dirCache já usam), para o desenhista consultar o estado sem precisar
+          // do objeto do jogador nem da instância da partida.
+          const byKey = Object.create(null);
+          for (const tm of this.teams) {
+            for (const p of tm.players) {
+              if (p.red) continue;
+              const s = this.__animState[idOf(p)];
+              if (s) byKey[(p.ref && p.ref.n) || p.n || ('#' + (p.num || 0))] = s;
+            }
+          }
+          root.__CDS_ANIM_BY_KEY = byKey;
         }
       } catch (_) { }
       return r;
