@@ -73,7 +73,11 @@
     const hipY = r * .05, shoulderY = -r * .52, headY = -r * .88;
     let lf = { x: -r * .20 - stride, y: r * .70 }, rf = { x: r * .20 + stride, y: r * .70 };
     let lh = { x: -r * .48, y: -r * .12 }, rh = { x: r * .48, y: -r * .12 };
-    if (pose === 'shoot') {
+    if (pose === 'pass') {
+      rf = { x: facing * r * (.56 + .12 * wave), y: r * (.38 - .10 * wave) };
+      lf = { x: -facing * r * .18, y: r * .70 };
+      lh = { x: -facing * r * .42, y: -r * .18 }; rh = { x: facing * r * .34, y: -r * .02 };
+    } else if (pose === 'shoot') {
       rf = { x: facing * r * (.78 + .20 * wave), y: r * (.20 - .20 * wave) };
       lf = { x: -facing * r * .20, y: r * .70 };
       lh = { x: -facing * r * .58, y: -r * .28 }; rh = { x: facing * r * .40, y: -r * .04 };
@@ -139,7 +143,7 @@
     if (aerial) {
       const B = { x: g.x, y: elevatedY(g, z) };
       const du = Math.hypot(D.x - A.x, D.y - A.y) || 1;
-      let u = clamp(Math.hypot(g.x - A.x, g.y - A.y) / du, .08, .92);
+      const u = clamp(Math.hypot(g.x - A.x, g.y - A.y) / du, .08, .92);
       const w = 2 * u * (1 - u);
       const C = { x: (B.x - (1 - u) ** 2 * A.x - u ** 2 * D.x) / w, y: (B.y - (1 - u) ** 2 * A.y - u ** 2 * D.y) / w };
       const AC = { x: A.x + (C.x - A.x) * u, y: A.y + (C.y - A.y) * u };
@@ -201,7 +205,7 @@
   const nameOf = p => p && ((p.ref && p.ref.n) || p.n || p.name);
   root.__cdsVisualEvent = function (e) {
     const t = String(e && e.type || '').toLowerCase();
-    const type = /header|head/.test(t) ? 'header' : /tackle|slide/.test(t) ? 'tackle' : /punch/.test(t) ? 'punch' : /parry/.test(t) ? 'parry' : /save|claim|catch/.test(t) ? 'claim' : /shot|goal|penalty|free.?kick/.test(t) ? 'shoot' : null;
+    const type = /header|head/.test(t) ? 'header' : /tackle|slide/.test(t) ? 'tackle' : /punch/.test(t) ? 'punch' : /parry/.test(t) ? 'parry' : /save|claim|catch/.test(t) ? 'claim' : /pass|cross|launch|through/.test(t) ? 'pass' : /shot|goal|penalty|free.?kick/.test(t) ? 'shoot' : null;
     if (!type) return;
     [e.by, e.player, e.shooter, e.gk, e.keeper, e.winner].filter(Boolean).forEach(p => { const k = nameOf(p); if (k) root.__CDS_ACTIONS[k] = { type, until: performance.now() + 720 }; });
   };
