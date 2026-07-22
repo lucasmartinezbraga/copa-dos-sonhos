@@ -1,0 +1,64 @@
+{
+ "candidate_sha256": "205170caa29271f5b550818991102937c45394c98f960a54ee65e113528eb80f",
+ "generated_at": "2026-07-22T18:48:28.365255+00:00",
+ "evidence": {
+  "antitrava": {
+   "ok": true,
+   "arquivo": "reports/r14/ball-lock/r14-contrato.json",
+   "detalhe": "200 partidas, 237 travas, pior 6.6s, zero >=10s"
+  },
+  "anim_cenarios": {
+   "ok": true,
+   "arquivo": "reports/r14/anim/states.json",
+   "detalhe": "29/29 cenários dirigidos"
+  },
+  "anim_navegador": {
+   "ok": true,
+   "arquivo": "reports/r14/anim/browser.json",
+   "detalhe": "22 atletas, 20 estados, fases ['pass_prepare', 'pass_contact', 'pass_followthrough', 'pass_recover']"
+  },
+  "projecao": {
+   "ok": true,
+   "arquivo": "reports/r14/anim/projection.json",
+   "detalhe": "9/9 invariantes"
+  },
+  "performance": {
+   "ok": true,
+   "arquivo": "reports/r14/ux/perf.json",
+   "detalhe": "p95 16.7ms, 59.9fps, 0 long tasks"
+  },
+  "mobile_emulado": {
+   "ok": true,
+   "arquivo": "reports/r14/ux/perf.json",
+   "detalhe": "toque/rolagem/multitoque/rotação em 4 viewports (EMULADO)"
+  },
+  "balanco_estilos": {
+   "ok": true,
+   "arquivo": "reports/r14/differences/",
+   "detalhe": "ppgRange 0.500, maxAbsGoalDiff 0.500"
+  },
+  "identidade": {
+   "ok": true,
+   "arquivo": "dist\\COPA DOS SONHOS - R14 - MOTOR VIVO.html",
+   "detalhe": "SHA 205170caa29271f5…"
+  },
+  "r13_congelada": {
+   "ok": true,
+   "arquivo": "tools/verify_r13.py",
+   "detalhe": "rebuild byte-idêntico 363d9a91…, smoke 13/13, cenários 25/25"
+  }
+ },
+ "stats": {
+  "PASS": 111,
+  "PENDENTE": 689,
+  "BLOCKED": 0
+ },
+ "by_priority": {
+  "P0/PENDENTE": 370,
+  "P0/PASS": 94,
+  "P1/PASS": 16,
+  "P1/PENDENTE": 293,
+  "P2/PENDENTE": 26,
+  "P2/PASS": 1
+ }
+}
