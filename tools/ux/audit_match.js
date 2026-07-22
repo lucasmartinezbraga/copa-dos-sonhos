@@ -44,14 +44,12 @@ const URL = 'file://' + path.join(ROOT, BUILD);
     await page.evaluate(i => window.__quickMatch(30 + i * 17, 110 + i * 13), mi);
     await page.waitForTimeout(600);
 
-    // FPS em 1X por 5s (percepção real do jogador)
     const fps = await page.evaluate(() => new Promise(res => {
       let n = 0; const t0 = performance.now();
       const tick = () => { n++; if (performance.now() - t0 < 5000) requestAnimationFrame(tick); else res(+(n / 5).toFixed(1)); };
       requestAnimationFrame(tick);
     }));
 
-    // TURBO e monitor até o fim
     await page.evaluate(() => { const bt = [...document.querySelectorAll('.spd')].find(x => /TURBO/i.test(x.textContent)); if (bt) bt.click(); });
     const inv = { samples: 0, ballOffPitch: 0, ballAboveStands: 0, nonFiniteVisual: 0, aerialFrames: 0, crossKinds: {}, stallMax: 0, goalChecks: [] };
     let lastMin = -1, stall = 0, lastScore = '0,0', crossShotTaken = fs.existsSync(path.join(OUTDIR, 'evid-aerial.png'));
@@ -62,7 +60,11 @@ const URL = 'file://' + path.join(ROOT, BUILD);
         const st = sim.getState(); const bl = st.ball;
         const F = window.CDS_F25D;
         let projOk = true, projY = null;
-        if (F) { const pj = F.project(bl.x * (1024 - 24) / 105 + 12, bl.y * (500 - 24) / 68 + 12); projOk = Number.isFinite(pj.x) && Number.isFinite(pj.y); projY = pj.y - (bl.z || 0) * 22 * pj.s; }
+        if (F) {
+          const pj = F.project(bl.x * (1024 - 24) / 105 + 12, bl.y * (500 - 24) / 68 + 12);
+          projOk = Number.isFinite(pj.x) && Number.isFinite(pj.y);
+          projY = typeof F.elevatedY === 'function' ? F.elevatedY(pj, bl.z || 0) : pj.y - (bl.z || 0) * 22 * pj.s;
+        }
         return {
           over: sim.isOver(), minute: +sim.minute.toFixed(2), score: sim.score.slice(),
           dom: ((document.querySelector('#score') || {}).textContent || '').trim(),
@@ -87,7 +89,6 @@ const URL = 'file://' + path.join(ROOT, BUILD);
       const sc = s.score.join(',');
       if (sc !== lastScore) {
         lastScore = sc;
-        // valida sincronização pós-comemoração (~7s depois)
         setTimeout(() => {}, 0);
         const later = Date.now() + 7500;
         while (Date.now() < later) { await page.waitForTimeout(500); }
