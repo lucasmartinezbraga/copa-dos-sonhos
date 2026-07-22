@@ -32,14 +32,17 @@ jobs:
           git rev-parse HEAD
 
       - name: Aplicar correções da auditoria 650
+        id: patch
+        continue-on-error: true
         run: |
+          mkdir -p reports
           set +e
-          python3 tools/audit650/apply_fixpack.py > /tmp/audit650-patch.log 2>&1
+          python3 tools/audit650/apply_fixpack.py > reports/AUDITORIA-650-PATCH-DIAGNOSTICO.txt 2>&1
           status=$?
-          cat /tmp/audit650-patch.log
           if [ $status -ne 0 ]; then
-            echo "--- diagnóstico de padrões ---"
-            python3 - <<'PY'
+            echo "" >> reports/AUDITORIA-650-PATCH-DIAGNOSTICO.txt
+            echo "--- contagem de padrões ---" >> reports/AUDITORIA-650-PATCH-DIAGNOSTICO.txt
+            python3 - <<'PY' >> reports/AUDITORIA-650-PATCH-DIAGNOSTICO.txt
           from pathlib import Path
           t=Path('dist/COPA DOS SONHOS - RC-UX.html').read_text(encoding='utf-8')
           pats={
@@ -50,30 +53,50 @@ jobs:
             'trailLift':'p.y - z*22*p.s',
             'aerial':'const aerial=!isShot && z>0.45;',
             'body':'  function body(ctx, o) {',
+            'bodyEnd':'  /* ── RASTRO',
             'caller':"x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall",
+            'font10':"ctx.font = 'bold 10px system-ui,Arial';",
+            'font75':"ctx.font = 'bold 7.5px system-ui,Arial';",
             'stage':'spPerspective',
             'export':"root.CDS_F25D = Object.freeze({ version: '2.1.0', project, grass, pitch, body, trail, ball, traj });",
             'onEvent':'function onEvent(e) {\n  const __phys=physicalTag(e);',
             'draft':'function renderDraft(keepList) {\n  const d = G.draft; if (!d) return;',
+            'bodyClose':'</body>',
             'title':'<title>Copa dos Sonhos — Núcleo Autoritativo Transacional R12.3</title>'
           }
           for k,v in pats.items(): print(k,t.count(v))
           PY
-            exit $status
           fi
+          cat reports/AUDITORIA-650-PATCH-DIAGNOSTICO.txt
+          exit $status
+
+      - name: Publicar diagnóstico do aplicador
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit650-patch-diagnostico-${{ github.run_number }}
+          path: reports/AUDITORIA-650-PATCH-DIAGNOSTICO.txt
+          retention-days: 7
+
+      - name: Interromper após recusa segura
+        if: steps.patch.outcome == 'failure'
+        run: exit 1
 
       - name: Validar bloqueadores por inspeção estática
+        if: steps.patch.outcome == 'success'
         run: |
           python3 -m py_compile tools/audit650/apply_fixpack.py tools/audit650/static_verify.py
           python3 tools/audit650/static_verify.py
           node --check tools/ux/audit_match.js
 
       - name: Instalar Chromium de auditoria
+        if: steps.patch.outcome == 'success'
         run: |
           npm install --no-save playwright@1.55.0
           npx playwright install --with-deps chromium
 
       - name: Executar partidas em navegador real
+        if: steps.patch.outcome == 'success'
         run: |
           export CDS_CHROMIUM="$(node -e "console.log(require('playwright').chromium.executablePath())")"
           node tools/ux/audit_match.js \
@@ -83,12 +106,12 @@ jobs:
             --out=reports/ux/audit-match-audit650
 
       - name: Gate dinâmico duro
+        if: steps.patch.outcome == 'success'
         run: |
           python3 - <<'PY'
           import json
           from pathlib import Path
-          p=Path('reports/ux/audit-match-audit650/match-audit.json')
-          data=json.loads(p.read_text())
+          data=json.loads(Path('reports/ux/audit-match-audit650/match-audit.json').read_text())
           failures=[]
           if data.get('errors'): failures.append(f"page/console errors={data['errors']}")
           for m in data.get('matches',[]):
@@ -106,11 +129,13 @@ jobs:
           PY
 
       - name: Consolidar evidência e hash final
+        if: steps.patch.outcome == 'success'
         run: |
           sha256sum "dist/COPA DOS SONHOS - RC-UX.html" | tee reports/AUDITORIA-650-FINAL-SHA256.txt
           git status --short
 
       - name: Publicar resultado na branch
+        if: steps.patch.outcome == 'success'
         run: |
           git config user.name "audit650-bot"
           git config user.email "audit650-bot@users.noreply.github.com"
@@ -123,6 +148,7 @@ jobs:
           fi
 
       - name: Anexar evidências da execução
+        if: steps.patch.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: auditoria-650-evidencias
