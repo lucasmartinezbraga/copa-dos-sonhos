@@ -44,6 +44,13 @@
     };
   }
 
+  /* altura (bola/rastro/trajetória) em Y de tela COM TETO no horizonte: uma bola
+   * muito alta (tiro de meta, lançamento, cruzamento) nunca é desenhada dentro da
+   * arquibancada — corrige o P0 "bola alta invadindo o estádio". */
+  function liftY(baseY, z, s) {
+    return Math.max(G.topY + 3, baseY - (z || 0) * 22 * s);
+  }
+
   /* ── PALCO ESTÁTICO (estádio + gramado + linhas + gols) ─────────────────
    * Pré-renderizado uma vez; 1 drawImage por frame. */
   const stage = { key: '', cv: null };
@@ -293,7 +300,7 @@
     for (let i = pts.length - 1; i >= 0; i--) {
       const tp = pts[i], f = 1 - i / pts.length;
       const p = project(cx(tp.x), cy(tp.y));
-      const py = p.y - (tp.z || 0) * 22 * p.s;
+      const py = liftY(p.y, tp.z, p.s);
       const rad = Math.max(0.6, (4.4 - i * .5)) * p.s;
       ctx.fillStyle = 'rgba(255,224,90,' + (f * 0.20).toFixed(3) + ')';
       ctx.beginPath(); ctx.arc(p.x, py, rad * 2.1, 0, TAU); ctx.fill();
@@ -316,7 +323,7 @@
     const aerial = !isShot && z > 0.45;
     ctx.save();
     if (aerial) {
-      const B = { x: g.x, y: g.y - z * 22 * g.s };
+      const B = { x: g.x, y: liftY(g.y, z, g.s) };
       const du = Math.hypot(D.x - A.x, D.y - A.y) || 1;
       let u = Math.hypot(g.x - A.x, g.y - A.y) / du;
       u = clamp(u, .08, .92);
@@ -359,7 +366,7 @@
   function ball(ctx, o) {
     const g0 = project(o.gx, o.gy);
     const s = g0.s, z = o.z || 0, air = clamp(z / 3.2, 0, 1);
-    const bx = g0.x, by = g0.y - z * 22 * s;
+    const bx = g0.x, by = liftY(g0.y, z, s);
 
     // anel de queda no destino (não para chutes)
     if (o.tv && o.tv.kind !== 'shot' && z > 0.35) {
