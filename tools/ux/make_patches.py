@@ -13,7 +13,12 @@ import json, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-mod = (ROOT / 'src/r13/scripts/10-base-bundle.js').read_text(encoding='utf-8')
+# 'mod' = TODO o JS embutido (base + camadas R7..R13), na ordem do manifesto.
+# É contra isso que o build_ux aplica os patches — então _turnover ativo (R13),
+# desarme ativo (R12) etc. são encontrados aqui, não só a função-base morta.
+_MAN = json.loads((ROOT / 'manifests/r13-build-manifest.json').read_text(encoding='utf-8'))
+mod = "\n".join((ROOT / b['module']).read_text(encoding='utf-8')
+                for b in _MAN['blocks'] if b['module'].endswith('.js'))
 
 def block(start_marker, end_marker):
     i = mod.index(start_marker)
@@ -145,10 +150,20 @@ patches.append({"id": "score-resync",
             "  const scEl=$('#score'); const scTxt=`${sim.score[0]}–${sim.score[1]}`;\n"
             "  if (scEl && scEl.textContent !== scTxt) scEl.textContent = scTxt;"})
 
+# ═══ (REVERTIDO) PATCH DE MOTOR — quebra-estagnação por saída forçada ═══════════════
+# A tentativa anterior (forçar passe/afastamento quando a bola ficava num raio de 6 m
+# por >4,5s) REPROVOU os gates sagrados da R13.0: ppgRange=0,893 (limite 0,75) e
+# |saldo|/jogo=0,679 (limite 0,65) — o afastamento pra frente inflava gols e desbalanceava
+# estilos. Como o usuário exigiu "USE OS MESMOS GATES", nenhum patch de MOTOR pode
+# quebrá-los. O motor volta a ser byte-fiel à R13.0. A "trava" percebida é tratada
+# fora do motor (camada visual / legibilidade da posse) — ver src/ux.
+# Histórico completo em reports/ (probe_balllock + gates).
+
 ok = True
 for p in patches:
     n = mod.count(p["from"])
-    print(f"  {p['id']:<20} ocorrências: {n}")
+    tag = ' [MOTOR]' if p.get('engine') else ''
+    print(f"  {p['id']:<26} ocorrências: {n}{tag}")
     if n != 1: ok = False
 if not ok:
     sys.exit("ERRO: patch não-único — ajuste os marcadores")
