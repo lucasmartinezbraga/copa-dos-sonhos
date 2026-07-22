@@ -1,0 +1,85 @@
+{
+  "id": "BAL-001",
+  "titulo": "Balanço de estilos após liberar a decisão em build_up",
+  "status": "FAIL",
+  "prioridade": "P0",
+  "sha256_r14": "cc4bc9115825bf02448a3a4f7270ac1ccf0df6da67b99e913b636ea9a25a3fb4",
+  "commit": "0e6699d",
+  "data": "2026-07-22T15:27:55.513778+00:00",
+  "procedimento": "node tools/ux/probe_balllock.js --styleMatrix=1 --repeats=2 (98 partidas por build)",
+  "resultado_esperado": "ppgRange <= 0,75 e maxAbsGoalDiffPerMatch <= 0,65 (mesma tabela do golden R13.0)",
+  "resultado_observado": {
+    "ppgRange": {
+      "golden_r13": 0.571,
+      "candidata": 0.571,
+      "r14": 0.821,
+      "limite": 0.75,
+      "veredito": "FAIL"
+    },
+    "maxAbsGoalDiffPerMatch": {
+      "golden_r13": 0.464,
+      "candidata": 0.464,
+      "r14": 0.536,
+      "limite": 0.65,
+      "veredito": "PASS"
+    },
+    "noDominantStyle": {
+      "candidata": true,
+      "r14": false
+    },
+    "parkIdentity": {
+      "candidata": true,
+      "r14": false,
+      "detalhe": "park passa 109,4/jogo vs mediana 108,7 — reprova por 0,7 passe"
+    },
+    "tikiIdentity": {
+      "candidata": true,
+      "r14": true
+    }
+  },
+  "por_estilo_ppg": {
+    "wings": {
+      "antes": 1.25,
+      "depois": 1.786,
+      "delta": 0.536
+    },
+    "park": {
+      "antes": 1.286,
+      "depois": 1.679,
+      "delta": 0.393
+    },
+    "press": {
+      "antes": 1.5,
+      "depois": 1.5,
+      "delta": 0.0
+    },
+    "counter": {
+      "antes": 1.357,
+      "depois": 1.286,
+      "delta": -0.071
+    },
+    "balanced": {
+      "antes": 1.714,
+      "depois": 1.214,
+      "delta": -0.5
+    },
+    "tiki": {
+      "antes": 1.143,
+      "depois": 1.179,
+      "delta": 0.036
+    },
+    "direct": {
+      "antes": 1.357,
+      "depois": 0.964,
+      "delta": -0.393
+    }
+  },
+  "causa": "Com a decisão liberada em build_up, todos os estilos passam 50-90% mais. O ganho não é uniforme: wings converte o volume extra em cruzamentos e finalizações (gols 1,43->2,04), enquanto balanced e direct perdem. ppgRange = 1,786 (wings) - 0,964 (direct) = 0,821.",
+  "observacao_critica": "O golden R13.0 (ppgRange 0,571) foi calibrado COM o defeito presente: era o balanço de um jogo em que o portador congelava em build_up. Esse equilíbrio não é sagrado — foi derivado em cima de um motor que não decidia. A recalibração dos pesos de estilo sobre o motor consertado é trabalho de Fase 4.",
+  "bloqueia_liberacao": true,
+  "arquivos_associados": [
+    "reports/r14/differences/styles-candidata.json",
+    "reports/r14/differences/styles-r14.json",
+    "reports/r14/differences/R13-R14-200-seeds.md"
+  ]
+}
