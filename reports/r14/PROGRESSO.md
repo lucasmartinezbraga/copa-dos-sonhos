@@ -227,3 +227,52 @@ as equipes, porque `p.idx` é numerado por time — 22 atletas viravam 17 estado
 
 **pendente** · legibilidade **visual** de cada estado exige olho humano —
 `PENDENTE` por definição (3 observadores).
+
+---
+
+## FASE 5 — projeção e apresentação 2.5D — **PARCIAL**
+
+### 5a · corpo dirigido pela máquina de estados — **CONCLUÍDA**
+
+**problema** · A máquina da Fase 3 rodava, mas `CDS_F25D.body` ainda derivava a
+pose de `o.pose`/`o.act`/`o.wave` — o sistema antigo. A Fase 3 era
+instrumentação **sem efeito visual**.
+
+**correção** · A ponte publica o estado em `__CDS_ANIM_BY_KEY` com a mesma chave
+de desenho que `body()` e o `dirCache` já usam; `body()` deriva
+`kicking`/`tackling`/`heading`/`dribbling` do estado. `animWave()` dá o envelope
+por **fase**: preparação sobe até o pico, **contato é o pico** (tick em que a
+bola sai), continuidade desce, recuperação zera.
+
+### 5b · invariantes de projeção — **9/9**
+
+Malha de 21×21 pontos do campo inteiro, no navegador:
+finitude · escala decrescente com a profundidade · ordenação monotônica ·
+eixo de fuga · convergência trapezoidal · razão de perspectiva ·
+continuidade · API completa · imutabilidade.
+
+**nota** · A primeira versão reprovou o eixo por 2,81 px. A álgebra é
+`x(fx,v) = C + (fx−C)·s(v)`, logo existe **exatamente um** `fx` invariante; o
+teste assumia canvas de 1000 px e amostrava colunas não simétricas. Resolvendo
+`C` numericamente: desvio **zero**, eixo em x=512 (canvas de 1024). **O defeito
+era do teste** — a projeção estava correta. Registrado em `PRO-001`.
+
+**arquivos** · `src/ux/50-field25d.js`, `src/ux/61-anim-bridge.js`,
+`tools/r14/browser_projection_probe.py`
+
+**candidata** · `205170caa29271f5b550818991102937c45394c98f960a54ee65e113528eb80f`
+
+| gate | resultado |
+|---|---|
+| cenários de animação | 29/29 |
+| cenários dirigidos R13 | 25/25 |
+| smoke estático | 13/13 |
+| invariantes de projeção | 9/9 |
+| browser smoke | 4/4, 0 erros |
+| R13.0 byte-idêntica | OK |
+
+### NÃO feito nesta fase
+
+Bolas paradas com preparação visual convincente (barreira, cobrança, pênalti),
+câmera, oclusão, replay, nomes/números em profundidade e estádio **não foram
+tratados**. Legibilidade visual de cada estado segue `PENDENTE` (olho humano).
