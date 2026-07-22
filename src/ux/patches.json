@@ -37,7 +37,7 @@
  {
   "id": "player-body",
   "from": "      // corpo: no mergulho do goleiro vira uma elipse lateral, deixando o pulo\n      // legível sem alterar a posição física usada pelo motor.\n      ctx.beginPath();\n      if (divePose) ctx.ellipse(x,y,r*1.42,r*.72,Math.PI/2,0,Math.PI*2);\n      else ctx.arc(x,y,r,0,Math.PI*2);\n      ctx.fillStyle = p.slot==='GK' ? gkC : pc; ctx.fill();\n\n      // borda\n      ctx.lineWidth = p.hasBall ? 2.5 : 1.5;\n      ctx.strokeStyle = p.hasBall ? '#fff' : 'rgba(255,255,255,.42)';\n      ctx.stroke();",
-  "to": "      // corpo: delegado ao atleta em pé 2.5D quando presente (apresentação)\n      if (window.CDS_F25D) { window.CDS_F25D.body(ctx, { x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall, key: (p.ref&&p.ref.n)||p.n||('#'+(p.num||0)) }); } else {\n      // corpo: no mergulho do goleiro vira uma elipse lateral, deixando o pulo\n      // legível sem alterar a posição física usada pelo motor.\n      ctx.beginPath();\n      if (divePose) ctx.ellipse(x,y,r*1.42,r*.72,Math.PI/2,0,Math.PI*2);\n      else ctx.arc(x,y,r,0,Math.PI*2);\n      ctx.fillStyle = p.slot==='GK' ? gkC : pc; ctx.fill();\n\n      // borda\n      ctx.lineWidth = p.hasBall ? 2.5 : 1.5;\n      ctx.strokeStyle = p.hasBall ? '#fff' : 'rgba(255,255,255,.42)';\n      ctx.stroke(); }"
+  "to": "      // corpo: delegado ao atleta em pé 2.5D quando presente (apresentação)\n      if (window.CDS_F25D) { window.CDS_F25D.body(ctx, { x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall, key: (p.ref&&p.ref.n)||p.n||('#'+(p.num||0)), act: p._act||'', pose: (motion&&motion.type)||'', wave: actionWave }); } else {\n      // corpo: no mergulho do goleiro vira uma elipse lateral, deixando o pulo\n      // legível sem alterar a posição física usada pelo motor.\n      ctx.beginPath();\n      if (divePose) ctx.ellipse(x,y,r*1.42,r*.72,Math.PI/2,0,Math.PI*2);\n      else ctx.arc(x,y,r,0,Math.PI*2);\n      ctx.fillStyle = p.slot==='GK' ? gkC : pc; ctx.fill();\n\n      // borda\n      ctx.lineWidth = p.hasBall ? 2.5 : 1.5;\n      ctx.strokeStyle = p.hasBall ? '#fff' : 'rgba(255,255,255,.42)';\n      ctx.stroke(); }"
  },
  {
   "id": "pill-dist-project",
@@ -88,5 +88,25 @@
   "id": "score-resync",
   "from": "  el.textContent=`${ph} ${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;",
   "to": "  el.textContent=`${ph} ${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;\n  const scEl=$('#score'); const scTxt=`${sim.score[0]}–${sim.score[1]}`;\n  if (scEl && scEl.textContent !== scTxt) scEl.textContent = scTxt;"
+ },
+ {
+  "id": "pose-tackle",
+  "from": "  if (e.type === 'tackle' && e.by) fxAt(e.by, 'star', 0.7);",
+  "to": "  if (e.type === 'tackle' && e.by) { fxAt(e.by, 'star', 0.7); motionAt(e.by, 'tackle', 0.5); }"
+ },
+ {
+  "id": "pose-shot",
+  "from": "  if (e.type === 'shot_taken' && e.by) fxAt(e.by, 'ring', 0.5);   // #impacto: anel de força no chute",
+  "to": "  if (e.type === 'shot_taken' && e.by) { fxAt(e.by, 'ring', 0.5); motionAt(e.by, 'kick', 0.42); }   // #impacto: anel + pose de chute"
+ },
+ {
+  "id": "pose-cross",
+  "from": "  if (e.type === 'cross' && e.by) fxAt(e.by, 'arrow', 0.7);",
+  "to": "  if (e.type === 'cross' && e.by) { fxAt(e.by, 'arrow', 0.7); motionAt(e.by, 'kick', 0.42); }"
+ },
+ {
+  "id": "pose-pass",
+  "from": "  if (e.type === 'pass') {\n    if (passNarrCd <= 0 && vrand() < 0.6) {",
+  "to": "  if (e.type === 'pass') {\n    if (e.by) motionAt(e.by, 'kick', 0.32);\n    if (passNarrCd <= 0 && vrand() < 0.6) {"
  }
 ]

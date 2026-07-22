@@ -82,7 +82,7 @@ p_from = block("      // corpo: no mergulho do goleiro",
                "ctx.strokeStyle = p.hasBall ? '#fff' : 'rgba(255,255,255,.42)';\n      ctx.stroke();")
 patches.append({"id": "player-body", "from": p_from, "to":
     "      // corpo: delegado ao atleta em pé 2.5D quando presente (apresentação)\n"
-    "      if (window.CDS_F25D) { window.CDS_F25D.body(ctx, { x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall, key: (p.ref&&p.ref.n)||p.n||('#'+(p.num||0)) }); } else {\n"
+    "      if (window.CDS_F25D) { window.CDS_F25D.body(ctx, { x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall, key: (p.ref&&p.ref.n)||p.n||('#'+(p.num||0)), act: p._act||'', pose: (motion&&motion.type)||'', wave: actionWave }); } else {\n"
     + p_from + " }"})
 
 # ── pill perto da bola: a distância usa a bola PROJETADA
@@ -149,6 +149,22 @@ patches.append({"id": "score-resync",
     "to":   "  el.textContent=`${ph} ${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;\n"
             "  const scEl=$('#score'); const scTxt=`${sim.score[0]}–${sim.score[1]}`;\n"
             "  if (scEl && scEl.textContent !== scTxt) scEl.textContent = scTxt;"})
+
+# ── POSES DE AÇÃO (ATL-021): dispara motions visuais 'kick'/'tackle' nos eventos do
+# motor. É o MESMO consumidor render-side que já chama motionAt('dive'/'claim'/'jump');
+# roda só no navegador (nunca no runner headless do golden) e não usa RNG → balanço-neutro.
+patches.append({"id": "pose-tackle",
+    "from": "  if (e.type === 'tackle' && e.by) fxAt(e.by, 'star', 0.7);",
+    "to":   "  if (e.type === 'tackle' && e.by) { fxAt(e.by, 'star', 0.7); motionAt(e.by, 'tackle', 0.5); }"})
+patches.append({"id": "pose-shot",
+    "from": "  if (e.type === 'shot_taken' && e.by) fxAt(e.by, 'ring', 0.5);   // #impacto: anel de força no chute",
+    "to":   "  if (e.type === 'shot_taken' && e.by) { fxAt(e.by, 'ring', 0.5); motionAt(e.by, 'kick', 0.42); }   // #impacto: anel + pose de chute"})
+patches.append({"id": "pose-cross",
+    "from": "  if (e.type === 'cross' && e.by) fxAt(e.by, 'arrow', 0.7);",
+    "to":   "  if (e.type === 'cross' && e.by) { fxAt(e.by, 'arrow', 0.7); motionAt(e.by, 'kick', 0.42); }"})
+patches.append({"id": "pose-pass",
+    "from": "  if (e.type === 'pass') {\n    if (passNarrCd <= 0 && vrand() < 0.6) {",
+    "to":   "  if (e.type === 'pass') {\n    if (e.by) motionAt(e.by, 'kick', 0.32);\n    if (passNarrCd <= 0 && vrand() < 0.6) {"})
 
 # ═══ (SEM PATCH DE MOTOR) — o dwell é CARGA do balanço da R13.0, provado 2x ═══════════
 # A "bola presa entre dois jogadores" (dwell) é REAL e pré-existente (207/284 travas de

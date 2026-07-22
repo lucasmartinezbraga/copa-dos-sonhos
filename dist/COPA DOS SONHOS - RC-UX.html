@@ -11646,6 +11646,7 @@ function onEvent(e) {
   }
   // narração de construção (throttled) + efeitos visuais por lance
   if (e.type === 'pass') {
+    if (e.by) motionAt(e.by, 'kick', 0.32);
     if (passNarrCd <= 0 && vrand() < 0.6) {
       passNarrCd = 6.5;
       const a = esc(lastWord(e.by.ref.n, 12)), b = esc(lastWord(e.to.ref.n, 12));
@@ -11657,7 +11658,7 @@ function onEvent(e) {
   if (e.type === 'dribble' && e.by) { fxAt(e.by, 'ring', 0.7); fxAt(e.by, 'dust', 0.6);
     if (e.flair && e.move) { const nm = e.by.ref ? lastWord(e.by.ref.n, 12) : ''; latestEvent = { txt: `✨ <b>${esc(nm)}</b> — ${e.move}!`, min: Math.floor(sim.minute) }; }
   }
-  if (e.type === 'tackle' && e.by) fxAt(e.by, 'star', 0.7);
+  if (e.type === 'tackle' && e.by) { fxAt(e.by, 'star', 0.7); motionAt(e.by, 'tackle', 0.5); }
   if (e.type === 'intercept' && e.by) fxAt(e.by, 'cut', 0.6);
   if (e.type === 'foul' && e.on) { fxAt(e.on, 'foul', 1.1); playUXSound('foul'); }
   if (e.type === 'save' && e.gk) {
@@ -11668,8 +11669,8 @@ function onEvent(e) {
   if (e.type === 'gk_claim_miss' && e.gk) motionAt(e.gk, 'claim', 0.8);
   if (e.type === 'post') fxAt({ x: sim.ball.x, y: sim.ball.y }, 'post', 0.9);
   if (e.type === 'blocked') fxAt({ x: sim.ball.x, y: sim.ball.y }, 'block', 0.7);
-  if (e.type === 'cross' && e.by) fxAt(e.by, 'arrow', 0.7);
-  if (e.type === 'shot_taken' && e.by) fxAt(e.by, 'ring', 0.5);   // #impacto: anel de força no chute
+  if (e.type === 'cross' && e.by) { fxAt(e.by, 'arrow', 0.7); motionAt(e.by, 'kick', 0.42); }
+  if (e.type === 'shot_taken' && e.by) { fxAt(e.by, 'ring', 0.5); motionAt(e.by, 'kick', 0.42); }   // #impacto: anel + pose de chute
   if (e.type === 'run_break' && e.by) fxAt(e.by, 'arrow', 0.5);   // infiltração: seta de movimento
   if (e.type === 'header_clear' && e.by) { fxAt(e.by, 'head', 0.6); motionAt(e.by, 'jump', 0.68); }
   if (e.type === 'corner' && e.by) fxAt(e.by, 'corner', 1.15);
@@ -13096,7 +13097,7 @@ function paintField() {
         ctx.restore();
       }
       // corpo: delegado ao atleta em pé 2.5D quando presente (apresentação)
-      if (window.CDS_F25D) { window.CDS_F25D.body(ctx, { x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall, key: (p.ref&&p.ref.n)||p.n||('#'+(p.num||0)) }); } else {
+      if (window.CDS_F25D) { window.CDS_F25D.body(ctx, { x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall, key: (p.ref&&p.ref.n)||p.n||('#'+(p.num||0)), act: p._act||'', pose: (motion&&motion.type)||'', wave: actionWave }); } else {
       // corpo: no mergulho do goleiro vira uma elipse lateral, deixando o pulo
       // legível sem alterar a posição física usada pelo motor.
       ctx.beginPath();
@@ -17108,7 +17109,7 @@ body::before {
    * muito alta (tiro de meta, lançamento, cruzamento) nunca é desenhada dentro da
    * arquibancada — corrige o P0 "bola alta invadindo o estádio". */
   function liftY(baseY, z, s) {
-    return Math.max(G.topY + 3, baseY - (z || 0) * 22 * s);
+    return Math.max(G.topY + 8, baseY - (z || 0) * 22 * s);   // piso = base da arquibancada
   }
 
   /* ── PALCO ESTÁTICO (estádio + gramado + linhas + gols) ─────────────────
@@ -17264,7 +17265,10 @@ body::before {
   }
   function grass(ctx, M, fW, fH) {
     const key = M + ':' + fW + 'x' + fH;
-    if (stage.key !== key) { setGeom(M, fW, fH); stage.cv = buildStage(); stage.key = key; }
+    if (stage.key !== key) {
+      setGeom(M, fW, fH); stage.cv = buildStage(); stage.key = key;
+      dirCache.clear(); gradCache.clear();   // PRF-031: caches limpos na fronteira de layout
+    }
     ctx.drawImage(stage.cv, 0, 0);
   }
   function pitch() { /* marcações já estão no palco pré-renderizado */ }
@@ -17303,50 +17307,87 @@ body::before {
     const jersey = o.isGK ? o.gkC : o.pc;
     const dark = shade(jersey, -0.36), lite = shade(jersey, 0.26);
 
-    // inclinação + PASSADA (vida sem esqueleto): a passada anima as pernas ao
-    // deslocar (frequência ∝ distância andada, realista em qualquer velocidade);
-    // parado, as pernas descansam na pose original. Corrige o "boneco deslizando".
+    // inclinação + PASSADA + POSES DE AÇÃO (ATL-021): a passada anima as pernas ao
+    // deslocar; chute/passe/cruzamento (kick), carrinho (tackle) e cabeceio (jump)
+    // ganham pose PRÓPRIA dirigida pelos eventos do motor (o.pose/o.act/o.wave). Parado
+    // e sem ação, descansa. Corrige "boneco deslizando" e "ação sem causa visual".
     let d = dirCache.get(o.key);
-    if (!d) { d = { x, y, lean: 0, gait: 0, spd: 0 }; dirCache.set(o.key, d); }
+    if (!d) { if (dirCache.size > 48) dirCache.clear(); d = { x, y, lean: 0, gait: 0, spd: 0, face: 1 }; dirCache.set(o.key, d); }
     const mvx = x - d.x, mvy = y - d.y, mv = Math.hypot(mvx, mvy);
     const lean = clamp(mvx * .55 + d.lean * .72, -2.4, 2.4);
     d.spd = d.spd * .6 + mv * .4;                       // velocidade de tela suavizada
     d.gait += Math.min(mv, r * 1.2) / Math.max(4, r * .5);   // passada ∝ distância (cap anti-teleporte)
+    if (Math.abs(mvx) > 0.4) d.face = Math.sign(mvx);  // direção que o atleta encara (persistida)
     d.lean = lean; d.x = x; d.y = y;
-    const amp = o.divePose ? 0 : clamp(d.spd / 1.5, 0, 1);   // 0 parado … 1 correndo
+    const face = d.face || 1, w = o.divePose ? 0 : (o.wave || 0);
+    const act = o.act || '', pose = o.pose || '';
+    const kicking = (pose === 'kick' || act === 'shoot') && w > 0.02;   // chute/passe/cruzamento
+    const tackling = pose === 'tackle' && w > 0.02;                     // carrinho
+    const heading = pose === 'jump' && w > 0.02;                        // cabeceio (corpo já sobe)
+    const dribbling = act === 'dribble' && !kicking && !tackling;       // conduzindo em drible
+    const amp = (o.divePose || kicking || tackling) ? 0 : clamp(d.spd / 1.5, 0, 1);   // 0 parado … 1 correndo
     const sw = Math.sin(d.gait) * amp;                  // -1..1 alterna as pernas
-    const bob = Math.abs(sw) * r * .05;                 // leve sobe-desce do corpo
+    const bob = Math.abs(sw) * r * .05 - (tackling ? r * .16 : 0) + (dribbling ? r * .10 : 0);
 
     ctx.save();
     ctx.translate(x, y - bob);
     if (o.divePose) ctx.rotate(Math.PI / 2);
 
-    // pernas + meias (passada: eleva alternadamente cada perna)
-    const llY = r * .40 - Math.max(0, sw) * r * .20;
-    const rlY = r * .40 - Math.max(0, -sw) * r * .20;
+    // ── PERNAS conforme a ação
     ctx.fillStyle = '#17202e';
-    ctx.fillRect(-r * .34, llY, r * .26, r * .46);
-    ctx.fillRect(r * .08, rlY, r * .26, r * .46);
-    ctx.fillStyle = '#0b0f16';
-    ctx.fillRect(-r * .36, llY + r * .38, r * .30, r * .22);
-    ctx.fillRect(r * .06, rlY + r * .38, r * .30, r * .22);
+    if (kicking) {
+      const back = -face * r * .28, front = face * (r * .06 + w * r * .52);
+      ctx.fillRect(back - r * .13, r * .40, r * .26, r * .46);                  // apoio
+      ctx.fillRect(front - r * .13, r * .40 - w * r * .12, r * .26, r * .46);   // perna de chute
+      ctx.fillStyle = '#0b0f16';
+      ctx.fillRect(back - r * .15, r * .78, r * .30, r * .20);
+      ctx.fillRect(front - r * .15, r * .78 - w * r * .12, r * .30, r * .20);
+    } else if (tackling) {
+      const front = face * (r * .22 + w * r * .60);
+      ctx.fillRect(-face * r * .06 - r * .13, r * .50, r * .26, r * .40);       // dobrada sob o corpo
+      ctx.fillRect(Math.min(front, front) - r * .20, r * .62, r * .46, r * .22);// estendida no deslize
+      ctx.fillStyle = '#0b0f16';
+      ctx.fillRect(front + face * r * .20 - r * .14, r * .62, r * .28, r * .20);
+    } else {
+      const llY = r * .40 - Math.max(0, sw) * r * .20;
+      const rlY = r * .40 - Math.max(0, -sw) * r * .20;
+      const spr = dribbling ? r * .06 : 0;                                      // drible: base mais aberta
+      ctx.fillRect(-r * .34 - spr, llY, r * .26, r * .46);
+      ctx.fillRect(r * .08 + spr, rlY, r * .26, r * .46);
+      ctx.fillStyle = '#0b0f16';
+      ctx.fillRect(-r * .36 - spr, llY + r * .38, r * .30, r * .22);
+      ctx.fillRect(r * .06 + spr, rlY + r * .38, r * .30, r * .22);
+    }
     // shorts
     ctx.fillStyle = dark;
     rr(ctx, -r * .5, r * .12, r, r * .38, r * .1); ctx.fill();
-    // torso (camisa) com luz
+    // TORSO (camisa) — leve inclinação à frente no drible; recuo no chute
+    const tl = (dribbling ? face * r * .06 : 0) + (kicking ? -face * r * .05 : 0);
+    ctx.save(); ctx.translate(tl, 0);
     ctx.fillStyle = torsoGrad(ctx, jersey, lite, dark, r);
     rr(ctx, -r * .56, -r * .52, r * 1.12, r * .92, r * .26); ctx.fill();
     ctx.lineWidth = o.hasBall ? 2 : 1;
     ctx.strokeStyle = o.hasBall ? '#ffffff' : 'rgba(255,255,255,.34)';
     rr(ctx, -r * .56, -r * .52, r * 1.12, r * .92, r * .26); ctx.stroke();
-    // mangas
+    ctx.restore();
+    // MANGAS/braços — erguem no cabeceio; abrem à frente no chute (equilíbrio)
     ctx.fillStyle = jersey;
-    rr(ctx, -r * .8, -r * .46, r * .26, r * .58, r * .09); ctx.fill();
-    rr(ctx, r * .54, -r * .46, r * .26, r * .58, r * .09); ctx.fill();
-    // cabeça + cabelo
-    ctx.beginPath(); ctx.arc(lean * .4, -r * .82, r * .34, 0, TAU);
+    if (heading) {
+      rr(ctx, -r * .88, -r * .74 - w * r * .32, r * .24, r * .52, r * .09); ctx.fill();
+      rr(ctx, r * .64, -r * .74 - w * r * .32, r * .24, r * .52, r * .09); ctx.fill();
+    } else if (kicking) {
+      rr(ctx, -r * .86 - face * w * r * .12, -r * .46, r * .24, r * .56, r * .09); ctx.fill();
+      rr(ctx, r * .62 - face * w * r * .12, -r * .46, r * .24, r * .56, r * .09); ctx.fill();
+    } else {
+      rr(ctx, -r * .8 + tl, -r * .46, r * .26, r * .58, r * .09); ctx.fill();
+      rr(ctx, r * .54 + tl, -r * .46, r * .26, r * .58, r * .09); ctx.fill();
+    }
+    // CABEÇA + cabelo — inclina à frente no cabeceio/drible
+    const hx = lean * .4 + tl + (heading ? face * r * .26 : 0) + (dribbling ? face * r * .10 : 0);
+    const hy = -r * .82 + (heading ? w * r * .10 : 0);
+    ctx.beginPath(); ctx.arc(hx, hy, r * .34, 0, TAU);
     ctx.fillStyle = '#e9b98b'; ctx.fill();
-    ctx.beginPath(); ctx.arc(lean * .4, -r * .88, r * .31, Math.PI, TAU);
+    ctx.beginPath(); ctx.arc(hx, hy - r * .06, r * .31, Math.PI, TAU);
     ctx.fillStyle = 'rgba(38,25,14,.85)'; ctx.fill();
     ctx.restore();
   }
@@ -17380,7 +17421,10 @@ body::before {
     const g = project(o.cx(o.gx), o.cy(o.gy));
     const z = o.z || 0;
     const isShot = o.kind === 'shot';
-    const aerial = !isShot && z > 0.45;
+    // VFX-021: chute ALTO (cavadinha/cobertura/chip) também arqueia; chute rasteiro
+    // segue reto. Antes o arco excluía kind=shot mesmo com z alto.
+    const aerial = z > 0.45 && (!isShot || z > 1.1);
+    const col = isShot ? '255,255,255' : '255,220,40';
     ctx.save();
     if (aerial) {
       const B = { x: g.x, y: liftY(g.y, z, g.s) };
@@ -17393,14 +17437,14 @@ body::before {
       const AC = { x: A.x + (C.x - A.x) * u, y: A.y + (C.y - A.y) * u };
       const CD = { x: C.x + (D.x - C.x) * u, y: C.y + (D.y - C.y) * u };
       // percorrido: sólido suave até a bola
-      ctx.strokeStyle = 'rgba(255,220,40,.42)'; ctx.lineWidth = 2; ctx.setLineDash([]);
+      ctx.strokeStyle = 'rgba(' + col + ',.42)'; ctx.lineWidth = 2; ctx.setLineDash([]);
       ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.quadraticCurveTo(AC.x, AC.y, B.x, B.y); ctx.stroke();
       // restante: tracejado vivo da bola ao ponto de queda
-      ctx.strokeStyle = 'rgba(255,220,40,.9)'; ctx.lineWidth = 2; ctx.setLineDash([7, 6]);
+      ctx.strokeStyle = 'rgba(' + col + ',.9)'; ctx.lineWidth = 2; ctx.setLineDash([7, 6]);
       ctx.beginPath(); ctx.moveTo(B.x, B.y); ctx.quadraticCurveTo(CD.x, CD.y, D.x, D.y); ctx.stroke();
       ctx.setLineDash([]);
       const ang = Math.atan2(D.y - CD.y, D.x - CD.x);
-      ctx.fillStyle = 'rgba(255,220,40,.95)';
+      ctx.fillStyle = 'rgba(' + col + ',.95)';
       ctx.beginPath();
       ctx.moveTo(D.x, D.y);
       ctx.lineTo(D.x - 9 * Math.cos(ang - 0.42), D.y - 9 * Math.sin(ang - 0.42));
@@ -17427,11 +17471,15 @@ body::before {
     const g0 = project(o.gx, o.gy);
     const s = g0.s, z = o.z || 0, air = clamp(z / 3.2, 0, 1);
     const bx = g0.x, by = liftY(g0.y, z, s);
+    if (window.__ballProbe) window.__ballProbe(z, by, G.topY, s);   // hook de auditoria (PRO-021)
 
     // anel de queda no destino (não para chutes)
     if (o.tv && o.tv.kind !== 'shot' && z > 0.35) {
       const t = project(o.tv.tx, o.tv.ty);
-      const pulse = 1 + Math.sin(performance.now() / 130) * .18;
+      // VFX-026: pulso ESCALA com a velocidade do jogo — a tempo de parede constante
+      // ele piscava freneticamente em 4X/TURBO. Período cresce com G.speed → calmo.
+      const sp = Math.max(1, (window.G && window.G.speed) || 1);
+      const pulse = 1 + Math.sin(performance.now() / (130 * sp)) * .18;
       ctx.save();
       ctx.strokeStyle = 'rgba(255,214,64,.85)'; ctx.lineWidth = 2 * t.s;
       ctx.beginPath(); ctx.ellipse(t.x, t.y, 8.5 * pulse * t.s, 3.9 * pulse * t.s, 0, 0, TAU); ctx.stroke();
