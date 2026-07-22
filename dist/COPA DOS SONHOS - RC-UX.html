@@ -2287,6 +2287,12 @@ function eligibleSlotsV2(posCode){
   return [...set];
 }
 function canPlay(player, slot){ return player.elig.indexOf(slot) !== -1; }
+function _draftCanProgress(d){
+  if(!d||!d.cur||!d.cur.pl) return true;
+  const taken = pickedIds();
+  const avail = d.cur.pl.filter(p=>!taken.has(p.id));
+  return d.slots.filter(s=>!s.p).every(s=> avail.some(p=>canPlay(p,s.pos)));
+}
 function primaryLine(posCode){
   const t = posCode.split('|')[0];
   return t === 'GK' ? 'GK' : t === 'DF' ? 'DEF' : t === 'FW' ? 'FWD' : 'MID';
@@ -9635,6 +9641,13 @@ function rollTeam(kind) {
     pool = all.filter(t => !d.used.has(keyOf(t)) && !(d.cur && t.c === d.cur.c && t.y === d.cur.y));
   }
   if (!pool.length) { d.used = new Set(); pool = all.slice(); }
+  // UX-031: havendo slots vazios, prioriza times que TÊM peça compatível (evita travar)
+  const _need = d.slots.filter(s=>!s.p).map(s=>s.pos);
+  if (_need.length) {
+    const _taken = pickedIds();
+    const _good = pool.filter(t => (t.pl||[]).some(p=>!_taken.has(p.id) && _need.some(pos=>canPlay(p,pos))));
+    if (_good.length) pool = _good;
+  }
   d.cur = rnd(pool);
   d.used.add(keyOf(d.cur));
   d.selP = null;
@@ -9710,6 +9723,11 @@ function renderDraft(keepList) {
   const d = G.draft; if (!d) return;
   if (d.await || !d.cur) { renderAwait(); return; }
   const team = d.cur;
+  // UX-031: nunca trava — sem peça compatível p/ um slot vazio e sem rerolls,
+  // concede reroll de EMERGÊNCIA (roleta enviesada p/ time compatível em rollTeam).
+  if (d.cur && filled() < 11 && d.rerolls <= 0 && !_draftCanProgress(d)) {
+    d.rerolls = 1; toast('Reroll de emergência: elenco sem peça compatível.');
+  }
   const nPick = Math.min(filled() + 1, 11);
   const benchPhase = filled() >= 11;
   const hideOvr = (G.modo === 'classico') && !benchPhase;   // clássico: às cegas até fechar os 11

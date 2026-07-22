@@ -180,6 +180,38 @@ patches.append({"id": "pose-pass",
 # faltas e pênaltis JÁ resolvem no motor 2.5D (minigame desativado em _requestSetPiece,
 # ret. false). O trabalho aqui é dar uma ANIMAÇÃO de falta no palco 2.5D como o escanteio.
 
+# ── UX-031..035: draft NUNCA trava em 10/11 (UI, fora do motor). Helper de progresso +
+# reroll de emergência + roleta enviesada p/ time com peça compatível.
+patches.append({"id": "draft-canprogress",
+    "from": "function canPlay(player, slot){ return player.elig.indexOf(slot) !== -1; }",
+    "to":   "function canPlay(player, slot){ return player.elig.indexOf(slot) !== -1; }\n"
+            "function _draftCanProgress(d){\n"
+            "  if(!d||!d.cur||!d.cur.pl) return true;\n"
+            "  const taken = pickedIds();\n"
+            "  const avail = d.cur.pl.filter(p=>!taken.has(p.id));\n"
+            "  return d.slots.filter(s=>!s.p).every(s=> avail.some(p=>canPlay(p,s.pos)));\n"
+            "}"})
+patches.append({"id": "draft-emergency",
+    "from": "  const team = d.cur;\n  const nPick = Math.min(filled() + 1, 11);",
+    "to":   "  const team = d.cur;\n"
+            "  // UX-031: nunca trava — sem peça compatível p/ um slot vazio e sem rerolls,\n"
+            "  // concede reroll de EMERGÊNCIA (roleta enviesada p/ time compatível em rollTeam).\n"
+            "  if (d.cur && filled() < 11 && d.rerolls <= 0 && !_draftCanProgress(d)) {\n"
+            "    d.rerolls = 1; toast('Reroll de emergência: elenco sem peça compatível.');\n"
+            "  }\n"
+            "  const nPick = Math.min(filled() + 1, 11);"})
+patches.append({"id": "draft-reroll-bias",
+    "from": "  if (!pool.length) { d.used = new Set(); pool = all.slice(); }\n  d.cur = rnd(pool);",
+    "to":   "  if (!pool.length) { d.used = new Set(); pool = all.slice(); }\n"
+            "  // UX-031: havendo slots vazios, prioriza times que TÊM peça compatível (evita travar)\n"
+            "  const _need = d.slots.filter(s=>!s.p).map(s=>s.pos);\n"
+            "  if (_need.length) {\n"
+            "    const _taken = pickedIds();\n"
+            "    const _good = pool.filter(t => (t.pl||[]).some(p=>!_taken.has(p.id) && _need.some(pos=>canPlay(p,pos))));\n"
+            "    if (_good.length) pool = _good;\n"
+            "  }\n"
+            "  d.cur = rnd(pool);"})
+
 # ═══ (SEM PATCH DE MOTOR) — o dwell é CARGA do balanço da R13.0, provado 2x ═══════════
 # A "bola presa entre dois jogadores" (dwell) é REAL e pré-existente (207/284 travas de
 # 2 jogadores, até 45s de jogo em estilos), mas é INTRÍNSECA ao equilíbrio validado:
