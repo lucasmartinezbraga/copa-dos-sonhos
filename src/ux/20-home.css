@@ -1,0 +1,113 @@
+/* ============================================================================
+ * Copa dos Sonhos · Redesign · HOME (candidato RC-UX)
+ * Salto visível: título metálico, ambiência de estádio, card-campo premium com
+ * jogadores em token top-down (identidade nova, alinhada ao motor 2.5D) e CTAs
+ * com brilho. Não toca o motor.
+ * ========================================================================== */
+
+/* Ambiência de fundo (estádio à noite) atrás de tudo */
+.home-v2 { position: relative; isolation: isolate; }
+.home-v2::before {
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(1200px 540px at 78% -10%, rgba(56,189,248,.18), transparent 60%),
+    radial-gradient(900px 520px at -8% 112%, rgba(255,203,69,.12), transparent 58%),
+    radial-gradient(760px 760px at 50% 128%, rgba(74,222,128,.07), transparent 62%);
+}
+
+/* ─── NAV ─────────────────────────────────────────────────────────────── */
+.home-nav-v2 { padding-block: 18px; }
+.home-monogram {
+  display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px;
+  background: linear-gradient(160deg, #fff3cf, var(--ouro) 55%, var(--ouro2));
+  color: #241a00; font: 900 13px var(--f-cond); letter-spacing: .5px;
+  box-shadow: 0 8px 20px rgba(255,203,69,.28), inset 0 1px 0 rgba(255,255,255,.6);
+}
+.home-wordmark { font: 800 15px var(--f-cond); letter-spacing: .6px; }
+.home-edition { color: var(--mut); font: 700 10px var(--f-cond); letter-spacing: 1.4px; text-transform: uppercase; opacity: .8; }
+
+/* ─── COLUNA DE TEXTO ─────────────────────────────────────────────────── */
+/* troca a linha "Motor visual 5.8.2" (dev) por um eyebrow que vende o jogo */
+#app .home-status { display: none; }
+.home-copy-v2::before {
+  content: 'Draft de lendas · Mundial de 32 · Física real em campo';
+  display: inline-flex; align-items: center; padding: 7px 13px; margin-bottom: 6px;
+  border: 1px solid rgba(255,203,69,.28); border-radius: var(--r-pill);
+  background: rgba(255,203,69,.06); color: #ffdf9a;
+  font: 800 10px var(--f-cond); letter-spacing: 1.5px; text-transform: uppercase;
+}
+
+/* Título metálico: cromado + "Sonhos" em ouro polido */
+.home-title-v2 {
+  margin-top: 16px; font-size: clamp(64px, 7.9vw, 122px); line-height: .82; letter-spacing: -2px;
+  background: linear-gradient(180deg, #ffffff 6%, #dbe7f7 36%, #a7bfe0 54%, #ffffff 74%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 10px 32px rgba(0,0,0,.55));
+}
+.home-title-v2 span {
+  display: block; -webkit-text-stroke: 0; color: transparent;
+  background: linear-gradient(180deg, #fff4d0 8%, #ffcf58 42%, #dc9f14 64%, #fff4d0 86%);
+  -webkit-background-clip: text; background-clip: text;
+  text-shadow: 0 0 48px rgba(255,203,69,.25);
+}
+.home-lead-v2 { color: #aab8cd; }
+
+/* Facts com brilho sutil */
+.home-fact {
+  border-left: 2px solid var(--ouro); border-radius: 0 8px 8px 0;
+  background: linear-gradient(90deg, rgba(255,203,69,.10), rgba(255,255,255,.03));
+}
+
+/* ─── CTAs premium ────────────────────────────────────────────────────── */
+.home-cta-v2 .btn { font: 900 15px var(--f-cond); letter-spacing: 1px; text-transform: uppercase; min-height: 56px; border-radius: 14px; transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), filter var(--dur-fast) var(--ease); }
+.home-cta-v2 .btn-gold {
+  background: linear-gradient(180deg, #ffe38a, var(--ouro) 46%, var(--ouro2));
+  box-shadow: 0 14px 30px rgba(255,203,69,.34), inset 0 1px 0 rgba(255,255,255,.65);
+}
+.home-cta-v2 .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 18px 40px rgba(255,203,69,.44), inset 0 1px 0 rgba(255,255,255,.7); filter: brightness(1.03); }
+.home-cta-v2 .btn-ghost { border: 1px solid rgba(140,170,210,.28); background: rgba(20,34,60,.55); backdrop-filter: blur(6px); }
+.home-cta-v2 .btn-ghost:hover { border-color: rgba(255,203,69,.5); transform: translateY(-1px); }
+
+/* ─── CARD-CAMPO PREMIUM ──────────────────────────────────────────────── */
+.dream-card {
+  border: 1px solid rgba(255,203,69,.32); border-radius: 28px; transform: rotate(2.2deg);
+  box-shadow: 0 54px 120px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.03), inset 0 1px 0 rgba(255,255,255,.07);
+}
+.dream-pitch {
+  border: 1px solid rgba(210,245,225,.28);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.06), transparent 34%),
+    repeating-linear-gradient(90deg, #1e9256 0 12.5%, #178048 12.5% 25%),
+    linear-gradient(180deg, #1c8b51, #0c472f);
+  box-shadow: inset 0 22px 60px rgba(0,0,0,.45), inset 0 -30px 60px rgba(0,0,0,.4);
+}
+.dream-pitch::before { filter: brightness(1.25); opacity: .9; }
+.dream-card-head b { color: var(--ouro); text-shadow: 0 0 18px rgba(255,203,69,.35); }
+
+/* Jogadores como token top-down (jersey + número + sombra no gramado) */
+.legend-chip i {
+  position: relative; width: 42px; height: 42px; border-radius: 50% 50% 47% 47% / 54% 54% 46% 46%;
+  background: radial-gradient(120% 120% at 50% 22%, #fff4cf, var(--ouro) 52%, #d89b16);
+  border: 1.5px solid rgba(255,255,255,.55); color: #211500; font: 900 15px var(--f-cond);
+  box-shadow: 0 11px 16px rgba(0,0,0,.5), inset 0 2px 3px rgba(255,255,255,.6), inset 0 -3px 6px rgba(150,95,0,.35);
+}
+/* sombra elíptica no gramado */
+.legend-chip i::after {
+  content: ''; position: absolute; left: 50%; bottom: -8px; width: 34px; height: 10px;
+  transform: translateX(-50%); border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,.5), transparent 72%); z-index: -1;
+}
+.legend-chip b { font-size: 11px; text-shadow: 0 2px 6px #000, 0 0 2px #000; }
+.legend-chip span { color: #ffd77a; }
+/* Goleiro (Yashin, #1 = lc7) com kit distinto */
+.lc7 i { background: radial-gradient(120% 120% at 50% 22%, #b9ffd8, #2fce7e 52%, #10925a); color: #04231a; border-color: rgba(255,255,255,.6); }
+
+.dream-caption { border-color: rgba(255,203,69,.16); background: rgba(6,14,26,.9); }
+.dream-caption b { color: var(--ouro); }
+
+/* ─── MOBILE ──────────────────────────────────────────────────────────── */
+@media (max-width: 720px) {
+  .home-copy-v2::before { font-size: 9px; letter-spacing: 1.1px; }
+  .home-title-v2 { font-size: clamp(52px, 15vw, 72px); }
+  .home-cta-v2 .btn { min-height: 52px; }
+}
