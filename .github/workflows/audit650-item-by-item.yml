@@ -35,10 +35,26 @@ jobs:
           python3 -m json.tool src/ux/token-patches.audit650.json >/dev/null
 
       - name: Reconstruir RC-UX pela fonte oficial
+        id: build
+        continue-on-error: true
         run: |
-          python3 tools/build_ux.py | tee reports/AUDITORIA-650-BUILD-ITEMIZADO.txt
+          mkdir -p reports
+          set -o pipefail
+          python3 tools/build_ux.py 2>&1 | tee reports/AUDITORIA-650-BUILD-ITEMIZADO.txt
           test "$(grep -o 'function spPerspective' 'dist/COPA DOS SONHOS - RC-UX.html' | wc -l)" -eq 0
           grep -q "2.3.0-audit650-itemized" "dist/COPA DOS SONHOS - RC-UX.html"
+
+      - name: Publicar diagnóstico do build
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: auditoria-650-build-diagnostico-${{ github.run_number }}
+          path: reports/AUDITORIA-650-BUILD-ITEMIZADO.txt
+          retention-days: 7
+
+      - name: Interromper após falha de reconstrução
+        if: steps.build.outcome == 'failure'
+        run: exit 1
 
       - name: Verificar os 60 FAIL individualmente
         run: python3 tools/audit650/itemized_verify.py
