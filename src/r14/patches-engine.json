@@ -1,0 +1,10 @@
+[
+ {
+  "id": "r14-buildup-decide-ceiling",
+  "priority": "P0",
+  "audit_ids": "BLK-001..040",
+  "rationale": "TRAVA DA BOLA / POSSE ATIVA SEM DECISÃO. O portão de decisão do portador é `this.decideT -= dt; if (... && this.decideT <= 0) this._decide(owner)`. A atualização de fase da R13 reescreve decideT a CADA tick. Nas fases transition_attack e final_third ela aplica um TETO (Math.min), que só pode antecipar a decisão. Na fase build_up aplica clamp13(v,.10,.44) — e clamp13=(v,a,b)=>Math.max(a,Math.min(b,v)) impõe um PISO de 0.10. O contador decresce 1/30≈0.033 por tick e é imediatamente devolvido a 0.10, então decideT<=0 nunca ocorre: em build_up o portador NUNCA decide. A posse só termina quando a defesa vence um desarme, dezenas de segundos depois. Reproduzido de forma determinística na seed 870000 (4-1-4-1 press x 4-3-1-2 park), 71.13': dono único por 23.2s com settle<=0, traveling=false e decideT fixo em 0.10, sem uma única chamada a _decide. O conserto restaura a intenção original — a escada de cadência transition_attack .20 < final_third .31 < build_up .44 — trocando o piso por teto, igual aos dois irmãos. Não é teleporte, não força passe e não escolhe o desfecho: apenas devolve ao motor o direito de decidir.",
+  "from": "else if(attacking==='build_up')sim.decideT=clamp13(finite13(sim.decideT,.25),.10,.44);",
+  "to": "else if(attacking==='build_up')sim.decideT=Math.min(finite13(sim.decideT,.25),.44);"
+ }
+]

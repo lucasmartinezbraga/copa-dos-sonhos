@@ -42,12 +42,26 @@ def main():
     if base_sha != MAN["target_sha256"]:
         sys.exit(f"ERRO: base R13 divergiu ({base_sha[:12]} != alvo). Rode verify_r13 antes.")
 
+    # patches de MOTOR da R14 (src/r14/patches-engine.json): mudanças
+    # INTENCIONAIS de comportamento, cada uma com justificativa registrada no
+    # próprio arquivo. A R13.0 permanece congelada e byte-verificável acima; é
+    # aqui que a R14 passa a divergir dela, de forma explícita e auditável.
+    engine_path = ROOT / "src/r14/patches-engine.json"
+    engine_applied = []
+    if engine_path.exists():
+        for p in json.loads(engine_path.read_bytes().decode("utf-8")):
+            n = html.count(p["from"])
+            if n != 1:
+                sys.exit(f"ERRO: patch de MOTOR '{p['id']}' ocorre {n}x na base (esperado 1)")
+            html = html.replace(p["from"], p["to"], 1)
+            engine_applied.append(p["id"])
+
     # patches de APRESENTAÇÃO no candidato (precedente: inject_r13.js).
     # Cada 'from' precisa ocorrer exatamente 1x — se a base mudar, o build grita.
     patches_path = ROOT / "src/ux/patches.json"
     patched = []
     if patches_path.exists():
-        for p in json.loads(patches_path.read_text(encoding="utf-8")):
+        for p in json.loads(patches_path.read_bytes().decode("utf-8")):
             n = html.count(p["from"])
             if n != 1:
                 sys.exit(f"ERRO: patch '{p['id']}' ocorre {n}x na base (esperado 1)")
@@ -70,6 +84,7 @@ def main():
     sha = hashlib.sha256(data).hexdigest()
     print(out)
     print("base R13 (intacta):", base_sha[:16], "…")
+    print("patches de MOTOR (R14):", engine_applied or "nenhum")
     print("patches aplicados:", patched or "nenhum")
     print("camada UX: ", [p.name for p in css_files + js_files])
     print("bytes :", len(data))
