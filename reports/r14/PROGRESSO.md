@@ -68,20 +68,69 @@ zero chamadas a `_decide`. Evidência: `reports/r14/ball-lock/trace-seed0.json`.
 | gols/partida | 1,975 | 1,840 | −6,8% |
 | chutes/partida | 12,61 | 12,97 | +2,9% |
 
-**BLOQUEIO — `BAL-001`** · O gate de balanço de estilos **reprova**:
-`ppgRange` 0,571 → **0,821** (limite ≤ 0,75). `wings` +0,536 ppg,
-`balanced` −0,500, `direct` −0,393; `parkIdentity` reprova por 0,7 passe.
-`maxAbsGoalDiffPerMatch` 0,464 → 0,536 segue dentro do limite.
+**`BAL-001`** · O gate de balanço reprovou primeiro (`ppgRange` 0,571 → 0,821)
+e foi **resolvido por recalibração**, não por afrouxamento do limite. Ver Fase 4.
 
-O golden R13.0 foi calibrado **com o defeito presente** — era o equilíbrio de um
-jogo cujo portador congelava em `build_up`. Re-derivar os pesos de estilo sobre
-o motor consertado é trabalho de Fase 4, e é o próximo passo.
+---
 
-**commits** · `328229b` (sonda), `0e6699d` (motor), `e0067a8` (harness),
-`6fede3c` (diagnóstico), `ba71d2b` (medição + bloqueio)
+## FASE 4 (parcial) — recalibração de estilos — **CONCLUÍDA**
 
-**veredito da fase** · trava da bola **RESOLVIDA e provada**; liberação
-**BLOQUEADA** por `BAL-001`. Nenhum item recebe `PASS` de release neste estado.
+**problema** · Liberada a decisão em `build_up`, os estilos ganharam volume de
+forma desigual: `wings` +0,536 ppg, `balanced` −0,500, `direct` −0,393.
+`ppgRange` 0,821 contra limite 0,75.
+
+**causa** · O golden R13.0 foi calibrado **com o defeito presente**. O
+multiplicador `STYLE_FX.cross` governa a *probabilidade de escolher cruzar*
+(`crossP`), e o cruzamento tem valor esperado baixo neste motor — ou seja,
+`cross` funciona como **handicap**. Com o portador congelado, o handicap quase
+não era exercido; liberada a decisão, passou a incidir em cheio e de forma
+desigual entre os estilos.
+
+**correção** · Três números, todos no mesmo campo:
+
+```
+STYLE_FX.wings.cross   1,55 -> 1,85
+STYLE_FX.direct.cross  1,35 -> 1,05
+STYLE_FX.park.cross    0,95 -> 1,30
+```
+
+**arquivos** · `tools/r14/calibrate_styles.py` (novo), `tools/r14/style-overrides.json` (novo), `src/r14/patches-engine.json`
+
+**resultado**
+
+| gate | limite | golden R13 | R14 sem calibrar | **R14 final** |
+|---|---:|---:|---:|---:|
+| `ppgRange` | ≤ 0,75 | 0,571 | 0,821 FAIL | **0,500 PASS** |
+| `maxAbsGoalDiff` | ≤ 0,65 | 0,464 | 0,536 | **0,429 PASS** |
+| `noDominantStyle` | true | PASS | FAIL | **PASS** |
+| `parkIdentity` | true | PASS | FAIL | **PASS** |
+| `tikiIdentity` | true | PASS | PASS | **PASS** |
+
+Robustez: com 196 partidas (`--repeats=4`), `ppgRange` 0,554 e
+`maxAbsGoalDiff` 0,464 — todos PASS. O range fica folgado nos dois tamanhos de
+amostra.
+
+**travas após recalibrar (200 seeds)** · 168 · 18 de 2 jogadores · pior 6,0 s —
+o conserto do P0 não foi desfeito.
+
+---
+
+## Estado consolidado
+
+**candidata R14** · `0230a6ffe90f3ecda3b731e215216e21a7445b47e644c8882f84ce9eb05605c2`
+(1.720.857 B)
+
+| verificação | resultado |
+|---|---|
+| R13.0 congelada, byte-idêntica | `363d9a91…` OK |
+| smoke estático (R14) | 13/13 |
+| cenários dirigidos (R14) | 25/25 |
+| smoke de navegador (R14) | 4/4 viewports, 0 erros |
+| travas ≥10 s | 400 → **0** |
+| gates de balanço | 5/5 PASS |
+| `BLK-001` / `BAL-001` | **PASS** / **PASS** |
+
+**commits** · `328229b` `0e6699d` `e0067a8` `6fede3c` `ba71d2b` `08075a2` + recalibração
 
 ---
 
