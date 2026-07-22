@@ -53,14 +53,16 @@ def main() -> int:
         checks.append({"name": name, "ok": ok, "type": "forbidden-regex"})
         if not ok:
             failed.append(name)
+    stripped = text.lstrip("\ufeff\r\n\t ")
+    conflict_pattern = re.compile(r"(?m)^<<<<<<<\s+.+$|^=======$|^>>>>>>>\s+.+$")
     structural = {
-        "singleDoctype": len(re.findall(r"<!DOCTYPE html>", text, re.I)) == 1,
+        "standardsDoctypeAtStart": stripped.lower().startswith("<!doctype html>"),
         "singleBodyClose": text.lower().count("</body>") == 1,
         "singleHtmlClose": text.lower().count("</html>") == 1,
         "canvasPresent": 'id="fieldcv"' in text,
         "databaseObjectPresent": "window.DATA =" in text,
         "auditorsStillCallable": "getR12Audit" in text and "getPre25DAuditReport" in text,
-        "noConflictMarkers": not any(token in text for token in ("<<<<<<<", "=======", ">>>>>>>")),
+        "noGitConflictMarkers": conflict_pattern.search(text) is None,
     }
     for name, ok in structural.items():
         checks.append({"name": name, "ok": ok, "type": "structural"})
