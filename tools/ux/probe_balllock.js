@@ -434,6 +434,10 @@ function runOne(db, row, index) {
   const observedFootball = typeof sim.getR13Audit === 'function' ? sim.getR13Audit() : null;
   return {
     index,
+    // contrato de ação da R14 (Fase 2): contagem por fase + amostra para
+    // validação contra templates/action-contract.schema.json
+    actionAudit: typeof sim.getR14ActionAudit === 'function' ? sim.getR14ActionAudit() : null,
+    actionSample: (sim.actionContracts || []).slice(-2),
     stallFires: sim.__stallFire || 0,
     lockCount: locks.length,
     lockMaxSec: locks.reduce((m, l) => Math.max(m, l.gameSec), 0),

@@ -68,13 +68,23 @@ def main():
             html = html.replace(p["from"], p["to"], 1)
             patched.append(p["id"])
 
+    # camada de MOTOR da R14 (src/r14/*.js): módulos novos que estendem o
+    # protótipo do MatchSim. Entram ANTES da apresentação — são motor, não
+    # render, e o runner headless precisa executá-los.
+    r14_dir = ROOT / "src/r14"
+    r14_files = sorted(p for p in r14_dir.glob("*.js")) if r14_dir.exists() else []
+    r14_js = "\n".join(p.read_bytes().decode("utf-8") for p in r14_files)
+
     css_files, css = read_layer("ux", "css")
     js_files, js = read_layer("ux", "js")
     end = "</body></html>"
     if end not in html:
         sys.exit("ERRO: </body></html> não encontrado")
-    inject = (f'<style id="cds-ux-system">\n{css}\n</style>\n'
-              f'<script id="cds-ux-boot">\n{js}\n</script>')
+    inject = ""
+    if r14_js:
+        inject += f'<script id="cds-r14-engine">\n{r14_js}\n</script>\n'
+    inject += (f'<style id="cds-ux-system">\n{css}\n</style>\n'
+               f'<script id="cds-ux-boot">\n{js}\n</script>')
     html = html.replace(end, inject + end)
 
     out = ROOT / (out_arg or OUT_DEFAULT)
@@ -85,6 +95,7 @@ def main():
     print(out)
     print("base R13 (intacta):", base_sha[:16], "…")
     print("patches de MOTOR (R14):", engine_applied or "nenhum")
+    print("camada de MOTOR (R14):", [p.name for p in r14_files] or "nenhuma")
     print("patches aplicados:", patched or "nenhum")
     print("camada UX: ", [p.name for p in css_files + js_files])
     print("bytes :", len(data))
