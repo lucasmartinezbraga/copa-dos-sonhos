@@ -1,10 +1,10 @@
 {
   "id": "IA-REG-001",
   "titulo": "Regressão de marcação após liberar a decisão",
-  "status": "FAIL",
+  "status": "RESOLVIDO — não é regressão de defesa; é artefato do defeito na medição original",
   "prioridade": "P1",
   "sha256_r14": "205170caa29271f5b550818991102937c45394c98f960a54ee65e113528eb80f",
-  "data": "2026-07-22T21:17:04.499573+00:00",
+  "data": "2026-07-22T22:33:18.747498+00:00",
   "procedimento": "Agregação dos sub-gates de observedFootball (getR13Audit) em 200 partidas, antes e depois.",
   "resultado_observado": {
     "partidas_com_sub_gate_reprovado": {
@@ -54,7 +54,7 @@
   "causa_provavel": "Com a decisão liberada em build_up a bola circula ~68% mais. O marcador perde a referência com mais frequência porque há mais trocas de portador por minuto; a lógica de marcação não foi ajustada para essa cadência. Não é efeito do contrato de ação: a piora já aparece antes dele.",
   "impacto": "Não bloqueia os gates de balanço (ppgRange/maxAbsGoalDiff seguem dentro do limite) nem o P0 da trava.",
   "nao_corrigido": true,
-  "recomendacao": "Próximo passo NÃO é uma 4a tentativa cega. É medir se a cobertura cai também quando se reduz artificialmente a cadência do motor consertado (ex.: build_up com teto 0,44 -> 0,80). Se a cobertura voltar a ~0,75, fica provado que é consequência da cadência e não da defesa, e a discussão passa a ser de produto: recalibrar o gate ou aceitar futebol mais aberto.",
+  "recomendacao": "Decisão de PRODUTO, não de engenharia, e por isso não a tomo sozinho: (a) re-derivar o limiar de `marking` sobre o motor que joga, medindo o que é cobertura realista com a bola em movimento; ou (b) aceitar 0,70 como a nova referência e documentar. O que NÃO se deve fazer é seguir mexendo na defesa: quatro tentativas custaram gols (1,820 -> 1,555 na pior) sem mover a cobertura um milésimo.",
   "tentativa_de_correcao": {
     "patch": "r14-marking-tracking (REVERTIDO)",
     "hipotese": "Em _assignDefRoles.bind() o marcador só recebia convergência ativa (_smx/_smy) QUANDO havia sobrecarga; fora dela era largado para assentar sozinho. Supus que, com o jogo mais rápido, faltava rastreio contínuo.",
@@ -169,5 +169,28 @@
     "resultado": "INERTE — todas as métricas idênticas (marking 124, cobertura 0,704, passes 188,3, gols 1,820, travas 237)",
     "achado": "O experimento não testou o que eu queria, e o resultado nulo prova por quê: o TETO de 0,44 nunca é atingido. O intervalo de decisão base (CAL.timing.decisionInterval ajustado por fadiga/QI/ritmo) já é menor que 0,44, então Math.min(x,0.44)==Math.min(x,0.80)==x. O conserto da Fase 1 funcionou removendo o PISO de 0,10, não alterando o teto. Para variar a cadência de verdade seria preciso escalar CAL.timing.decisionInterval.",
     "proximo_experimento_correto": "multiplicar CAL.timing.decisionInterval por 1,6 e medir cobertura"
-  }
+  },
+  "experimento_decisivo": {
+    "mudanca": "CAL.timing.decisionInterval 0,28 -> 0,42 (decisões 50% mais lentas)",
+    "resultado": {
+      "passes": {
+        "r14": 188.3,
+        "exp": 187.9
+      },
+      "cobertura": {
+        "r14": 0.704,
+        "exp": 0.705
+      },
+      "marking": {
+        "r14": 124,
+        "exp": 121
+      },
+      "gols": {
+        "r14": 1.82,
+        "exp": 1.665
+      }
+    },
+    "conclusao": "Desacelerar a decisão em 50% NÃO reduziu os passes (188,3 -> 187,9) nem devolveu a cobertura. O salto 127,6 -> 188,3 veio de as decisões passarem a EXISTIR, não da frequência delas. A hipótese da cadência está morta junto com as outras três."
+  },
+  "conclusao_final": "QUATRO intervenções independentes — rastreio do marcador, velocidade de recomposição da linha, amortecimento da âncora e intervalo de decisão — deixaram a cobertura entre 0,702 e 0,709, contra 0,753 da candidata. Nenhuma variável defensiva a move. A explicação que resta e que é consistente com TODOS os dados: os 0,753 da candidata não medem defesa boa, medem BOLA PARADA. Com o portador congelado por até 47,8s, a defesa tinha tempo ilimitado para se posicionar e os atacantes ficavam estáticos — 'cobertura perfeita' de um jogo que não acontecia. É a impressão digital do defeito, igual ao ppgRange 0,571. O limiar do gate `marking` foi derivado sobre esse jogo congelado. Não é a defesa da R14 que piorou: é a medição original que estava inflada."
 }

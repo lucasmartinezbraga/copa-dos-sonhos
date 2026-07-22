@@ -111,18 +111,38 @@ pacote (harnesses de node chamados sem argumentos e com `cwd` errado).
    regras/goleiros, bolas paradas e VFX.
 3. **Fase 5 incompleta**: bolas paradas, câmera, oclusão e replay.
 
-## Regressão registrada e NÃO corrigida — `IA-REG-001`
+## `IA-REG-001` — investigada até o fim: **não é regressão de defesa**
 
-A **marcação piorou**. Partidas com o sub-gate `marking` do observador R13
-reprovado subiram de **99 para 124** em 200. Causa provável: com a bola
-circulando ~68% mais, o marcador perde a referência com mais frequência e a
-lógica de marcação não foi ajustada para essa cadência. A piora aparece
-**antes** do contrato de ação, então não é efeito dele.
+A marcação parecia ter piorado (sub-gate `marking` reprovado 99 → 124 em 200).
+Investiguei com **quatro intervenções independentes**, 200 seeds cada:
 
-Não bloqueia os gates de balanço nem o P0 da trava, mas é regressão real.
-Corrigi-la é trabalho de Fase 4, do mesmo tipo da recalibração de estilos.
+| intervenção | cobertura | gols |
+|---|---:|---:|
+| — R14 como está | 0,704 | 1,820 |
+| 1 · rastreio do marcador | 0,703 | 1,750 |
+| 2 · recomposição da linha | 0,709 | 1,730 |
+| 3 · amortecimento da âncora | 0,702 | 1,555 |
+| 4 · intervalo de decisão +50% | 0,705 | 1,665 |
 
-Em contrapartida, `restarts` melhorou muito: **19 → 2** partidas reprovadas.
+**Nenhuma variável defensiva move a cobertura.** Todas custam gols. Todas foram
+revertidas.
+
+O experimento 4 é o que fecha a questão: desacelerar a decisão em 50% **não
+reduziu os passes** (188,3 → 187,9). O salto de 127,6 para 188,3 veio de as
+decisões passarem a *existir*, não da frequência delas.
+
+A explicação consistente com todos os dados: os **0,753 da candidata não medem
+defesa boa, medem bola parada**. Com o portador congelado por até 47,8 s, a
+defesa tinha tempo ilimitado para se posicionar e os atacantes ficavam
+estáticos — "cobertura perfeita" de um jogo que não acontecia. É a mesma
+impressão digital do defeito que inflava o `ppgRange` em 0,571.
+
+**O limiar do gate `marking` foi derivado sobre o jogo congelado.** Não é a
+defesa da R14 que piorou; é a medição original que estava inflada.
+
+Isso é decisão de **produto**, não de engenharia, e por isso não a tomo sozinho:
+re-derivar o limiar sobre o motor que joga, ou aceitar 0,70 como nova
+referência e documentar. O que não se deve fazer é seguir mexendo na defesa.
 
 ## Riscos conhecidos
 
