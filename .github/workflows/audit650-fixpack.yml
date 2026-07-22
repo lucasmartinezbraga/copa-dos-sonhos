@@ -84,20 +84,34 @@ jobs:
         run: exit 1
 
       - name: Validar bloqueadores por inspeção estática
+        id: static
         if: steps.patch.outcome == 'success'
+        continue-on-error: true
         run: |
           python3 -m py_compile tools/audit650/apply_fixpack_v2.py tools/audit650/static_verify.py
           python3 tools/audit650/static_verify.py
           node --check tools/ux/audit_match.js
 
+      - name: Publicar relatório estático
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit650-static-${{ github.run_number }}
+          path: reports/AUDITORIA-650-STATIC-VERIFY.json
+          retention-days: 7
+
+      - name: Interromper após falha estática
+        if: steps.static.outcome == 'failure'
+        run: exit 1
+
       - name: Instalar Chromium de auditoria
-        if: steps.patch.outcome == 'success'
+        if: steps.patch.outcome == 'success' && steps.static.outcome == 'success'
         run: |
           npm install --no-save playwright@1.55.0
           npx playwright install --with-deps chromium
 
       - name: Executar partidas em navegador real
-        if: steps.patch.outcome == 'success'
+        if: steps.patch.outcome == 'success' && steps.static.outcome == 'success'
         run: |
           export CDS_CHROMIUM="$(node -e "console.log(require('playwright').chromium.executablePath())")"
           node tools/ux/audit_match.js \
@@ -107,7 +121,7 @@ jobs:
             --out=reports/ux/audit-match-audit650
 
       - name: Gate dinâmico duro
-        if: steps.patch.outcome == 'success'
+        if: steps.patch.outcome == 'success' && steps.static.outcome == 'success'
         run: |
           python3 - <<'PY'
           import json
@@ -130,13 +144,13 @@ jobs:
           PY
 
       - name: Consolidar evidência e hash final
-        if: steps.patch.outcome == 'success'
+        if: steps.patch.outcome == 'success' && steps.static.outcome == 'success'
         run: |
           sha256sum "dist/COPA DOS SONHOS - RC-UX.html" | tee reports/AUDITORIA-650-FINAL-SHA256.txt
           git status --short
 
       - name: Publicar resultado na branch
-        if: steps.patch.outcome == 'success'
+        if: steps.patch.outcome == 'success' && steps.static.outcome == 'success'
         run: |
           git config user.name "audit650-bot"
           git config user.email "audit650-bot@users.noreply.github.com"
@@ -149,7 +163,7 @@ jobs:
           fi
 
       - name: Anexar evidências da execução
-        if: steps.patch.outcome == 'success'
+        if: steps.patch.outcome == 'success' && steps.static.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: auditoria-650-evidencias
