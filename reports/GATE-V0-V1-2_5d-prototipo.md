@@ -62,6 +62,16 @@ a R13.0 continua **byte-idêntica**. A integração como camada versionada só
 ocorre após a aprovação de câmera/projeção/escala (regra explícita do handoff:
 "aprovar câmera, escala e projeção antes de produzir arte em escala").
 
+## DECISÃO DO PROPRIETÁRIO (2026-07-21)
+
+- **Direção visual:** o 2.5D precisa ser uma **novidade real frente ao 2D**. A
+  câmera "top-down comprimida" deste protótipo está próxima demais do 2D atual.
+  Ao retomar o 2.5D, adotar **perspectiva/profundidade de verdade** (pitch com
+  ponto de fuga / câmera mais baixa, escala por profundidade mais forte,
+  sombras e altura mais presentes) — sem quebrar a fronteira "render não decide
+  futebol" nem a reversibilidade necessária ao hit-testing.
+- **Ordem:** **redesign UX de todas as telas primeiro**; retomar o 2.5D depois.
+
 ## Reproduzir
 
 ```bash
