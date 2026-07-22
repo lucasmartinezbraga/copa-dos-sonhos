@@ -183,3 +183,47 @@ congelar. Zero travas ≥10 s antes e depois.
 **próxima fase** · Fase 3 — máquina de estados de animação, que agora tem
 `prepareDuration`, `contactTime`, `followThroughDuration` e `recoveryDuration`
 reais para consumir.
+
+---
+
+## FASE 3 — máquina de estados de animação — **CONCLUÍDA (parte automatizável)**
+
+**problema** · `motionAt()` empurrava poses numa lista **global de no máximo 10
+entradas**, com janela em `performance.now()` e uma única rampa 0..1. Sem
+locomoção, sem prioridade, sem interrupção e sem vínculo com as fases da ação —
+a pose de um atleta podia ser truncada por outro entrar na lista.
+
+**correção** · `src/ux/60-anim-state-machine.js` dá um controlador a **cada**
+atleta: 63 estados em 5 tiers (locomoção < com bola < defesa < ação
+comprometida < goleiro). Um estado só cede a tier igual ou maior, ou a
+interrupção explícita. Os estados de ação são dirigidos pelo **contrato da
+Fase 2**, então o quadro de contato coincide com a saída da bola por
+construção. `src/ux/61-anim-bridge.js` liga os eventos do motor ao controlador.
+
+**arquivos** · `src/ux/60-anim-state-machine.js`, `src/ux/61-anim-bridge.js`,
+`tools/r14/test_anim_states.js`, `tools/r14/browser_anim_probe.py`
+
+**cenários dirigidos** · **29/29** — locomoção, ancoragem no contrato,
+prioridade, interrupção, goleiro, posse, cobertura dos 63 estados,
+independência entre 22 atletas.
+
+**validação por mutação** (para os cenários não passarem por inércia)
+
+| mutante | resultado |
+|---|---|
+| remove a regra de prioridade por tier | 27/29 **FALHA** |
+| `interrupt()` vira no-op | 25/29 **FALHA** |
+| preparo ignora a duração do contrato | 25/29 **FALHA** |
+
+**prova no navegador** · 22 atletas com estado, 20 estados distintos em 12.029
+ticks, quatro fases da ação visitadas
+(`pass_prepare → pass_contact → pass_followthrough → pass_recover`).
+
+**dois defeitos encontrados pelo próprio teste** · o controlador só nascia por
+evento (quem apenas corria ficava sem estado); e `idOf` sem o time colidia entre
+as equipes, porque `p.idx` é numerado por time — 22 atletas viravam 17 estados.
+
+**candidata** · `2191fbfa5721b9874fbf14e4d7e2a77935f141e1199152de37cad01d87524b79`
+
+**pendente** · legibilidade **visual** de cada estado exige olho humano —
+`PENDENTE` por definição (3 observadores).
