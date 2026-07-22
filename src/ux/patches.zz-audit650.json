@@ -13,15 +13,5 @@
     "id": "UX-031-035-draft-emergency-reroll",
     "from": "function renderDraft(keepList) {\n  const d = G.draft; if (!d) return;",
     "to": "function renderDraft(keepList) {\n  const d = G.draft; if (!d) return;\n  const __missing=d.slots&&d.slots.filter(s=>!s.p)||[];\n  const __available=(d.cur&&d.cur.pl)||[];\n  const __canFinish=__missing.some(sl=>__available.some(p=>canPlay(p,sl.pos)));\n  if(filled()===10&&d.rerolls<=0&&!__canFinish&&!d.__emergencyRerollUsed){\n    d.__emergencyRerollUsed=true; d.rerolls=1;\n    setTimeout(()=>toast('Reroll de emergência liberado para completar o 11.'),0);\n  }"
-  },
-  {
-    "id": "ATL-036-040-number-depth-scale",
-    "from": "ctx.font = 'bold 10px system-ui,Arial';",
-    "to": "ctx.font = `bold ${clamp(r*.78,7.2,11.8).toFixed(1)}px system-ui,Arial`;"
-  },
-  {
-    "id": "ATL-036-040-label-depth-scale",
-    "from": "ctx.font = 'bold 7.5px system-ui,Arial';",
-    "to": "ctx.font = `bold ${clamp(r*.58,6.2,9.3).toFixed(1)}px system-ui,Arial`;"
   }
 ]
