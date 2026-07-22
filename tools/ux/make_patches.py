@@ -88,14 +88,17 @@ patches.append({"id": "pill-dist-project",
             "      if (window.CDS_F25D) { const _bp = window.CDS_F25D.project(_bpx, _bpy); _bpx = _bp.x; _bpy = _bp.y; }\n"
             "      const _bd = Math.hypot(x - _bpx, y - _bpy);"})
 
-# ── trajetória de passe/chute projetada
+# ── trajetória de passe/chute: delegação total (arco aéreo passa pela bola)
 _traj_head = "    const x1=cx(bT.from.x), y1=cy(bT.from.y), x2=cx(bT.target.x), y2=cy(bT.target.y);"
 p_traj = block(_traj_head, "    ctx.closePath(); ctx.fill();\n    ctx.restore();")
 p_traj_body = p_traj[len(_traj_head):]
 patches.append({"id": "traj-project", "from": p_traj, "to":
-    "    let x1=cx(bT.from.x), y1=cy(bT.from.y), x2=cx(bT.target.x), y2=cy(bT.target.y);\n"
-    "    if (window.CDS_F25D) { const _a=window.CDS_F25D.project(x1,y1), _b=window.CDS_F25D.project(x2,y2); x1=_a.x; y1=_a.y; x2=_b.x; y2=_b.y; }"
-    + p_traj_body})
+    "    if (window.CDS_F25D) {\n"
+    "      window.CDS_F25D.traj(ctx, { fx: bT.from.x, fy: bT.from.y, tx: bT.target.x, ty: bT.target.y,\n"
+    "        gx: bT.x, gy: bT.y, z: bT.z || 0, kind: bT.kind, cx, cy });\n"
+    "    } else {\n"
+    "    const x1=cx(bT.from.x), y1=cy(bT.from.y), x2=cx(bT.target.x), y2=cy(bT.target.y);"
+    + p_traj_body + " }"})
 
 # ── vfx no ponto projetado
 patches.append({"id": "vfx-project",

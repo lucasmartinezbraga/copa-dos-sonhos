@@ -277,6 +277,58 @@
     ctx.restore();
   }
 
+  /* ── TRAJETÓRIA (cruzamentos/lançamentos em ARCO que passa pela bola) ──
+   * Rasteiro: reta projetada (visual clássico). Aéreo: Bézier quadrática que
+   * passa EXATAMENTE pela posição atual da bola — parte percorrida sólida,
+   * restante tracejado, seta tangente no destino. Só leitura de estado. */
+  function traj(ctx, o) {
+    const A = project(o.cx(o.fx), o.cy(o.fy));
+    const D = project(o.cx(o.tx), o.cy(o.ty));
+    const g = project(o.cx(o.gx), o.cy(o.gy));
+    const z = o.z || 0;
+    const isShot = o.kind === 'shot';
+    const aerial = !isShot && z > 0.45;
+    ctx.save();
+    if (aerial) {
+      const B = { x: g.x, y: g.y - z * 22 * g.s };
+      const du = Math.hypot(D.x - A.x, D.y - A.y) || 1;
+      let u = Math.hypot(g.x - A.x, g.y - A.y) / du;
+      u = clamp(u, .08, .92);
+      const w = 2 * u * (1 - u);
+      const C = { x: (B.x - (1 - u) * (1 - u) * A.x - u * u * D.x) / w,
+                  y: (B.y - (1 - u) * (1 - u) * A.y - u * u * D.y) / w };
+      const AC = { x: A.x + (C.x - A.x) * u, y: A.y + (C.y - A.y) * u };
+      const CD = { x: C.x + (D.x - C.x) * u, y: C.y + (D.y - C.y) * u };
+      // percorrido: sólido suave até a bola
+      ctx.strokeStyle = 'rgba(255,220,40,.42)'; ctx.lineWidth = 2; ctx.setLineDash([]);
+      ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.quadraticCurveTo(AC.x, AC.y, B.x, B.y); ctx.stroke();
+      // restante: tracejado vivo da bola ao ponto de queda
+      ctx.strokeStyle = 'rgba(255,220,40,.9)'; ctx.lineWidth = 2; ctx.setLineDash([7, 6]);
+      ctx.beginPath(); ctx.moveTo(B.x, B.y); ctx.quadraticCurveTo(CD.x, CD.y, D.x, D.y); ctx.stroke();
+      ctx.setLineDash([]);
+      const ang = Math.atan2(D.y - CD.y, D.x - CD.x);
+      ctx.fillStyle = 'rgba(255,220,40,.95)';
+      ctx.beginPath();
+      ctx.moveTo(D.x, D.y);
+      ctx.lineTo(D.x - 9 * Math.cos(ang - 0.42), D.y - 9 * Math.sin(ang - 0.42));
+      ctx.lineTo(D.x - 9 * Math.cos(ang + 0.42), D.y - 9 * Math.sin(ang + 0.42));
+      ctx.closePath(); ctx.fill();
+    } else {
+      if (isShot) { ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 2; ctx.setLineDash([]); }
+      else { ctx.strokeStyle = 'rgba(255,220,40,.9)'; ctx.lineWidth = 2; ctx.setLineDash([7, 6]); }
+      ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(D.x, D.y); ctx.stroke();
+      const ang = Math.atan2(D.y - A.y, D.x - A.x);
+      ctx.setLineDash([]);
+      ctx.fillStyle = isShot ? 'rgba(255,255,255,.85)' : 'rgba(255,220,40,.95)';
+      ctx.beginPath();
+      ctx.moveTo(D.x, D.y);
+      ctx.lineTo(D.x - 9 * Math.cos(ang - 0.42), D.y - 9 * Math.sin(ang - 0.42));
+      ctx.lineTo(D.x - 9 * Math.cos(ang + 0.42), D.y - 9 * Math.sin(ang + 0.42));
+      ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+  }
+
   /* ── BOLA PRO (projetada, altura legível) ───────────────────────────── */
   function ball(ctx, o) {
     const g0 = project(o.gx, o.gy);
@@ -347,5 +399,5 @@
     ctx.restore();
   }
 
-  root.CDS_F25D = Object.freeze({ version: '2.0.0', project, grass, pitch, body, trail, ball });
+  root.CDS_F25D = Object.freeze({ version: '2.1.0', project, grass, pitch, body, trail, ball, traj });
 })(typeof window !== 'undefined' ? window : globalThis);
