@@ -92,11 +92,21 @@ Emulação **não** substitui aparelho físico: `PASS TÉCNICO` apenas.
 
 | status | itens | % |
 |---|---:|---:|
-| PASS | 140 | 17,5% |
-| PENDENTE | 660 | 82,5% |
+| PASS | 152 | 19,0% |
+| PENDENTE | 648 | 81,0% |
 
-P0 120/464 · P1 19/309 · P2 1/27.
-Dos 660 pendentes: **582 exigem humano/físico**, 78 sem cobertura ainda.
+P0 130/464 (28,0%) · P1 21/309 · P2 1/27.
+Dos 648 pendentes: **586 exigem humano/físico**, 35 sem cobertura automatizada.
+
+12 controles foram fechados item a item por `eval_controls.py`, cada um com o
+critério numérico da matriz confrontado à métrica medida — laterais 9,89/jogo
+(exige 5–16), escanteios 3,85% (exige 2–18%), tiros de meta 7,33 (referência
+7,71), impedimentos 1,02 (exige 0,5–4), distância do marcador 8,22 m (exige
+≤8,5), cobertura pelo lado do gol 70,4% (exige ≥70%), zero ação sem trajetória
+válida, desconexão de linha zero, e heap −9,2% em 3 partidas.
+
+**`REL-007` — determinismo** foi provado agora: a mesma seed rodada duas vezes
+produz resultado idêntico em 8 partidas (placar, travas e estatísticas).
 
 `repo_regression` **3/3 PASS** após corrigir dois defeitos de integração do
 pacote (harnesses de node chamados sem argumentos e com `cwd` errado).
