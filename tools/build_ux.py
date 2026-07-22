@@ -41,6 +41,18 @@ def main():
     if base_sha != MAN["target_sha256"]:
         sys.exit(f"ERRO: base R13 divergiu ({base_sha[:12]} != alvo). Rode verify_r13 antes.")
 
+    # patches de APRESENTAÇÃO no candidato (precedente: inject_r13.js).
+    # Cada 'from' precisa ocorrer exatamente 1x — se a base mudar, o build grita.
+    patches_path = ROOT / "src/ux/patches.json"
+    patched = []
+    if patches_path.exists():
+        for p in json.loads(patches_path.read_text(encoding="utf-8")):
+            n = html.count(p["from"])
+            if n != 1:
+                sys.exit(f"ERRO: patch '{p['id']}' ocorre {n}x na base (esperado 1)")
+            html = html.replace(p["from"], p["to"], 1)
+            patched.append(p["id"])
+
     css_files, css = read_layer("ux", "css")
     js_files, js = read_layer("ux", "js")
     end = "</body></html>"
@@ -57,6 +69,7 @@ def main():
     sha = hashlib.sha256(data).hexdigest()
     print(out)
     print("base R13 (intacta):", base_sha[:16], "…")
+    print("patches aplicados:", patched or "nenhum")
     print("camada UX: ", [p.name for p in css_files + js_files])
     print("bytes :", len(data))
     print("sha256:", sha)

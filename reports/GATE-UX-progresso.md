@@ -63,3 +63,32 @@ save/continuar, configurações/ajuda (15 telas do doc 04).
 3. HUD da partida: campo ocupa o máximo; placar/tempo compactos; painéis como
    bottom-sheet (retrato) e rail (paisagem).
 4. Rotação do campo no retrato (liga com o 2.5D).
+
+## Increment 6 — Campo 2.5D "Canvas 2D Pro" + revalidação do placar (PASS)
+
+Seguindo a referência aprovada pelo proprietário ("o salto está na técnica,
+não na troca de tecnologia"): upgrade do campo no Canvas 2D existente, via
+9 patches de apresentação no candidato RC-UX (`src/ux/patches.json`, gerados
+por `tools/ux/make_patches.py` — precedente: inject_r13.js) + camada
+`src/ux/50-field25d.js` (`window.CDS_F25D`).
+
+- **Gramado**: faixas com gradiente, luz central e vinheta (cache offscreen).
+- **Jogadores**: mini-atletas top-down (camisa com luz, ombros, cabeça
+  adiantada indicando direção; número legível no torso; GK distinto).
+- **Bola**: gomos com rotação, cresce com a altura; **fio bola↔sombra**
+  tracejado; **anel de queda** pulsante no destino de bolas aéreas;
+  **rastro em arco** (trail agora guarda z).
+- **Pill de nome** clampada ao campo (fim do chip cortado na borda).
+
+### Revalidação do placar (navegador real, gol de verdade)
+
+**Bug pré-existente da R13.0 encontrado e corrigido**: o placar do header
+(`#score`) não atualizava após gol — confirmado no build autoritativo puro
+(motor `[0,1]` × header `"0–0"`, mesmo depois do intervalo). As auditorias
+headless validavam o estado do motor, não o DOM (item 14 da auditoria mestra).
+Fix `score-resync`: o tick de UI (0,35 s) re-sincroniza o placar. Validado:
+motor `[0,1]` ↔ header `"0–1"` após gol em TURBO.
+
+Regressão de motor no RC-UX patchado: smoke 13/13, cenários 25/25,
+**40/40 golden** — motor inalterado (patches são apresentação pura).
+Evidências: `reports/ux/after/field25d__*.png`.
