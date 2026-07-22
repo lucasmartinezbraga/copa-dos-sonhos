@@ -37,7 +37,7 @@ jobs:
         run: |
           mkdir -p reports
           set +e
-          python3 tools/audit650/apply_fixpack.py > reports/AUDITORIA-650-PATCH-DIAGNOSTICO.txt 2>&1
+          python3 tools/audit650/apply_fixpack_v2.py > reports/AUDITORIA-650-PATCH-DIAGNOSTICO.txt 2>&1
           status=$?
           if [ $status -ne 0 ]; then
             echo "" >> reports/AUDITORIA-650-PATCH-DIAGNOSTICO.txt
@@ -46,17 +46,18 @@ jobs:
           from pathlib import Path
           t=Path('dist/COPA DOS SONHOS - RC-UX.html').read_text(encoding='utf-8')
           pats={
-            'geometry':'const G = { CW:1024, CH:500, M:12, R0:0.72, topY:46, bottomY:497, ready:false };',
-            'topY':'G.topY=M+34;',
+            'geometry_start':'const G = {',
+            'topY':'G.topY = M + 34;',
             'dirCache':'  const dirCache = new Map();',
             'ballLift':'const bx = g0.x, by = g0.y - z * 22 * s;',
-            'trailLift':'p.y - z*22*p.s',
-            'aerial':'const aerial=!isShot && z>0.45;',
+            'trailLift':'p.y - (tp.z || 0) * 22 * p.s',
+            'guideLift':'g.y - z * 22 * g.s',
+            'aerial':'const aerial = !isShot && z > 0.45;',
             'body':'  function body(ctx, o) {',
             'bodyEnd':'  /* ── RASTRO',
             'caller':"x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall",
-            'font10':"ctx.font = 'bold 10px system-ui,Arial';",
-            'font75':"ctx.font = 'bold 7.5px system-ui,Arial';",
+            'font10':'ctx.font = `bold 10px Arial,sans-serif`;',
+            'font75':'ctx.font = `bold 7.5px Arial,sans-serif`;',
             'stage':'spPerspective',
             'export':"root.CDS_F25D = Object.freeze({ version: '2.1.0', project, grass, pitch, body, trail, ball, traj });",
             'onEvent':'function onEvent(e) {\n  const __phys=physicalTag(e);',
@@ -85,7 +86,7 @@ jobs:
       - name: Validar bloqueadores por inspeção estática
         if: steps.patch.outcome == 'success'
         run: |
-          python3 -m py_compile tools/audit650/apply_fixpack.py tools/audit650/static_verify.py
+          python3 -m py_compile tools/audit650/apply_fixpack_v2.py tools/audit650/static_verify.py
           python3 tools/audit650/static_verify.py
           node --check tools/ux/audit_match.js
 
