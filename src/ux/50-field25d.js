@@ -309,9 +309,19 @@
     ctx.strokeStyle = o.hasBall ? '#ffffff' : 'rgba(255,255,255,.34)';
     rr(ctx, -r * .56, -r * .52, r * 1.12, r * .92, r * .26); ctx.stroke();
     ctx.restore();
-    // MANGAS/braços — erguem no cabeceio; abrem à frente no chute (equilíbrio)
+    // MANGAS/braços — GOLEIRO tem prontidão/encaixe + LUVAS (ATL-032); linha de campo
+    // ergue no cabeceio e abre no chute (equilíbrio).
+    const gk = o.isGK;
+    const gkClaim = gk && (pose === 'claim' || pose === 'jump') && w > 0.02;
     ctx.fillStyle = jersey;
-    if (heading) {
+    if (gkClaim) {                                       // goleiro no ENCAIXE: braços ao alto
+      const up = r * (.72 + w * .36);
+      rr(ctx, -r * .48, -up, r * .24, r * .58, r * .09); ctx.fill();
+      rr(ctx, r * .24, -up, r * .24, r * .58, r * .09); ctx.fill();
+    } else if (gk) {                                     // goleiro em PRONTIDÃO: braços abertos
+      rr(ctx, -r * .94, -r * .36, r * .24, r * .52, r * .09); ctx.fill();
+      rr(ctx, r * .70, -r * .36, r * .24, r * .52, r * .09); ctx.fill();
+    } else if (heading) {
       rr(ctx, -r * .88, -r * .74 - w * r * .32, r * .24, r * .52, r * .09); ctx.fill();
       rr(ctx, r * .64, -r * .74 - w * r * .32, r * .24, r * .52, r * .09); ctx.fill();
     } else if (kicking) {
@@ -320,6 +330,17 @@
     } else {
       rr(ctx, -r * .8 + tl, -r * .46, r * .26, r * .58, r * .09); ctx.fill();
       rr(ctx, r * .54 + tl, -r * .46, r * .26, r * .58, r * .09); ctx.fill();
+    }
+    if (gk) {                                            // LUVAS do goleiro nas pontas dos braços
+      ctx.fillStyle = '#eef3ff';
+      if (gkClaim) {
+        const up = r * (.72 + w * .36);
+        ctx.beginPath(); ctx.arc(-r * .36, -up - r * .02, r * .19, 0, TAU); ctx.fill();
+        ctx.beginPath(); ctx.arc(r * .36, -up - r * .02, r * .19, 0, TAU); ctx.fill();
+      } else {
+        ctx.beginPath(); ctx.arc(-r * .82, r * .16, r * .18, 0, TAU); ctx.fill();
+        ctx.beginPath(); ctx.arc(r * .82, r * .16, r * .18, 0, TAU); ctx.fill();
+      }
     }
     // CABEÇA + cabelo — inclina à frente no cabeceio/drible
     const hx = lean * .4 + tl + (heading ? face * r * .26 : 0) + (dribbling ? face * r * .10 : 0);
