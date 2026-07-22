@@ -7,9 +7,9 @@ e injeta, imediatamente antes de </body></html>:
   - <style id="cds-ux-system">  = concatenação de src/ux/*.css
   - <script id="cds-ux-boot">   = concatenação de src/ux/*.js
 
-Os patches de apresentação são carregados de todos os arquivos
-src/ux/patches*.json em ordem lexical. Cada substituição é fail-closed:
-precisa ocorrer exatamente uma vez na base/resultado anterior.
+Patches exatos são carregados de src/ux/patches*.json. Substituições globais
+controladas são carregadas de src/ux/token-patches*.json. Todos os patches são
+fail-closed: contagens fora do intervalo declarado encerram o build.
 """
 import json, hashlib, sys
 from pathlib import Path
@@ -49,6 +49,24 @@ def apply_presentation_patches(html):
     return html, patched
 
 
+def apply_token_patches(html):
+    patched = []
+    for patches_path in sorted((ROOT / "src/ux").glob("token-patches*.json")):
+        rows = json.loads(patches_path.read_text(encoding="utf-8"))
+        for p in rows:
+            n = html.count(p["from"])
+            minimum = int(p.get("min", 1))
+            maximum = int(p.get("max", minimum))
+            if n < minimum or n > maximum:
+                sys.exit(
+                    f"ERRO: token patch '{p['id']}' de {patches_path.name} ocorre {n}x "
+                    f"(esperado {minimum}..{maximum})"
+                )
+            html = html.replace(p["from"], p["to"])
+            patched.append(f"{patches_path.name}:{p['id']}({n})")
+    return html, patched
+
+
 def main():
     out_arg = None
     if "--out" in sys.argv:
@@ -59,7 +77,8 @@ def main():
     if base_sha != MAN["target_sha256"]:
         sys.exit(f"ERRO: base R13 divergiu ({base_sha[:12]} != alvo). Rode verify_r13 antes.")
 
-    html, patched = apply_presentation_patches(html)
+    html, exact_patches = apply_presentation_patches(html)
+    html, token_patches = apply_token_patches(html)
     css_files, css = read_layer("css")
     js_files, js = read_layer("js")
     end = "</body></html>"
@@ -78,7 +97,8 @@ def main():
     sha = hashlib.sha256(data).hexdigest()
     print(out)
     print("base R13 (intacta):", base_sha[:16], "…")
-    print("patches aplicados:", patched or "nenhum")
+    print("patches exatos:", exact_patches or "nenhum")
+    print("token patches:", token_patches or "nenhum")
     print("camada UX:", [p.name for p in css_files + js_files])
     print("bytes:", len(data))
     print("sha256:", sha)
