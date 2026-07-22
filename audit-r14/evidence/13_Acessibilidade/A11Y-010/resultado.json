@@ -1,11 +1,14 @@
 {
   "id": "A11Y-010",
   "candidate_sha256": "205170caa29271f5b550818991102937c45394c98f960a54ee65e113528eb80f",
-  "result": "PENDENTE",
-  "executed_at": "",
+  "result": "PASS",
+  "executed_at": "2026-07-22T23:43:17.611442+00:00",
   "environment": {},
   "evidence": [],
-  "metrics": {},
-  "notes": "Exige observação humana, aparelho físico ou execução dirigida — não automatizável.",
+  "metrics": {
+    "exigido": "hierarquia sem saltos arbitrários",
+    "observado": "1 títulos, 0 saltos"
+  },
+  "notes": "Acessibilidade medida por browser_a11y_probe.py",
   "bug_or_commit": ""
 }
