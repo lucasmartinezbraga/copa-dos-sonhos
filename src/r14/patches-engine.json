@@ -46,5 +46,21 @@
   "rationale": "MEIO-CAMPO FEIO: MAIS DE UM PERSEGUE O PORTADOR. Em _defendTarget três papéis são puxados para a bola por construção: o presser vai EXATAMENTE nela ([b.x,b.y]); o _cover fica a 8,5m dela; e o _shadow — que deveria FECHAR A LINHA DE PASSE — recebe lerp(bola, atacante, 0.35), ou seja 65% do caminho EM DIREÇÃO À BOLA. Somados, três defensores convergem no portador e o meio-campo esvazia. O papel do shadow é cobrir o corredor de passe, o que se faz perto do ATACANTE e não da bola: passa a 0.62, ficando na linha em vez de em cima do portador. presser e cover não mudam — a disputa continua tendo dono.",
   "from": "      return [clamp(lerp(b.x, tgt.x, 0.35), 2, FL - 2), clamp(lerp(b.y, tgt.y, 0.35), 2, FW - 2)];",
   "to": "      return [clamp(lerp(b.x, tgt.x, 0.62), 2, FL - 2), clamp(lerp(b.y, tgt.y, 0.62), 2, FW - 2)];"
+ },
+ {
+  "id": "r14-skill-dribble-spread",
+  "priority": "P0",
+  "audit_ids": "CAL-001",
+  "rationale": "HABILIDADE NÃO FAZ DIFERENÇA. duelProb com duelSpread 10,5 é sensível — 20 pontos de vantagem dão ~87% de vitória. Mas o resultado é cortado por clamp(raw,.20,.72) (.84 para elite): um driblador muito superior nunca passa de 72%, e um ruim nunca cai abaixo de 20%. O clamp achata todo mundo perto do meio. Piso .20->.12 (mais difícil passar pela zaga com pouco drible) e teto .72->.86 / elite .84->.92 (o craque de drible decide). A curva entre os extremos continua a mesma.",
+  "from": "p=clamp(raw,.20,elite?.84:.72)",
+  "to": "p=clamp(raw,.12,elite?.92:.86)"
+ },
+ {
+  "id": "r14-skill-tackle-spread",
+  "priority": "P0",
+  "audit_ids": "CAL-001",
+  "rationale": "Par do anterior, no lado da defesa. winP=clamp(.48+(pd-pa)/180+(desarme-70)/260,.34,.72): os divisores 180 e 260 achatam o atributo — 30 pontos de desarme movem só 0,115 de probabilidade. Divisores para 120 e 170 (atributo pesa ~50% mais) e clamp para [.30,.82], de modo que um zagueiro muito superior de fato rouba e um fraco de fato falha. Base .48 sobe para .52: passar pela zaga fica mais difícil no geral, como pedido.",
+  "from": "winP=clamp(.48+(pd-pa)/180+(attr(d,'desarme')-70)/260,.34,.72)",
+  "to": "winP=clamp(.52+(pd-pa)/120+(attr(d,'desarme')-70)/170,.30,.82)"
  }
 ]
