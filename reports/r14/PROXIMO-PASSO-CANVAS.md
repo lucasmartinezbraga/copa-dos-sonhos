@@ -1,50 +1,58 @@
 # Próximo passo — destravar o bloco visual do canvas
 
 Bloqueia ~156 controles `VIS` (trajetória, oclusão, sombra, número da camisa,
-câmera, VFX) que **são** automatizáveis por amostragem de pixel, mas exigem uma
-partida realmente desenhando.
+câmera, VFX) que **são** automatizáveis por amostragem de pixel. A técnica já
+está provada: `browser_pixel_probe.py` achou o defeito `A11Y-011` com ela.
 
-## O que já funciona
+## RESOLVIDO — como chegar à copa
 
-`tools/r14/browser_pixel_probe.py` amostra pixel renderizado e já encontrou um
-defeito real (`A11Y-011`, contraste). A técnica está provada.
+O bloqueio anterior (`Cannot read properties of null (reading 'phase')`) era
+falta de `G.cup`. Setar `G.lineup` na mão não basta: o time precisa passar por
+`CUP.registerPlayerTeam`, senão a copa não reconhece o elenco.
 
-## O bloqueio exato (medido, não suposto)
-
-Levar a UI até a partida:
+Receita que **funciona** (verificada no navegador):
 
 ```js
-const sq = G.db.squads[0], p = autoLineup(sq, '4-3-3', 0);
-G.lineup = p.lineup; G.bench = p.bench; G.formKey = '4-3-3'; G.style = 'balanced';
-UI.go('match');
+const sq = G.db.squads[0], lu = autoLineup(sq, '4-3-3', 0);
+const picks = lu.lineup.map(s => ({ p: s.p, from: sq.c }));
+const me = CUP.registerPlayerTeam(G.db, picks, (lu.bench||[]).map(p => ({ p, from: sq.c })));
+G.lineup = lu.lineup.map((s,i) => ({ p: me.pl[i], x: s.x, y: s.y, pos: s.pos, from: sq.c }));
+G.bench = me.pl.slice(11);
+G.formKey = '4-3-3'; G.style = 'balanced';
+G.cup = CUP.createCup(G.db, 'ME');
+UI.go('cup');
 ```
 
-Resultado: `G.screen` vira `'match'` e a escalação fica com 11 — **mas o canvas
-continua vazio** (0 amostras em 840x544) e o console acusa:
+Resultado: `G.cup.phase === 'groups'`, `G.screen === 'cup'`, hub da copa
+renderizado com as abas Rodada / Grupos / Mata-mata / Gols / Time.
 
-```
-Cannot read properties of null (reading 'phase')
-```
+Isto é o mesmo caminho de `finishDraft()` no bundle base — não é atalho
+artificial.
 
-Falta **`G.cup`**. A tela de partida lê `G.cup.phase` e aborta o desenho antes
-de pintar o campo. `UI.go` não valida esse pré-requisito, então a tela troca e
-o render morre em silêncio — nenhum erro de página, só canvas em branco.
+## FALTA — iniciar a partida
 
-## O caminho
+Do hub da copa, achar o controle que inicia o jogo. Minha tentativa clicou no
+botão errado: filtrei por `/jogar|iniciar|partida|começar/i` e peguei um card de
+preparação ("Treino tático"). O botão certo provavelmente está na aba **Rodada**
+(`cupTab = 'rodada'`), que é a aba padrão de `SCREENS.cup`.
 
-1. Inicializar `G.cup` (ver `CDS_PHASE10.ensureCup` / `prepareTeam` no bundle
-   base) antes de `UI.go('match')`, ou dirigir o fluxo real de draft pela UI.
-2. Com o campo pintando, estender `browser_pixel_probe.py`:
-   - fração de gramado, presença da bola, sombra sob o atleta;
-   - ordenação por profundidade (quem está atrás desenha antes);
-   - número da camisa legível em profundidade;
-   - ausência de duplicação de jogador;
-   - limpeza de VFX entre partidas (comparar contagem de cores).
+Sugestão: inspecionar `SCREENS.cup` no bundle base a partir da linha ~7961 e
+localizar o handler que chama a simulação, em vez de procurar por texto.
 
-## Nota
+## DEPOIS — o que medir no canvas
 
-O canvas em branco com `G.screen === 'match'` é, em si, um comportamento que
-merece atenção: a navegação aceita ir para uma tela cujo pré-requisito não foi
-satisfeito. Não registrei como defeito porque cheguei nesse estado por caminho
-artificial (setei `G.lineup` na mão); pelo fluxo normal do jogo o `cup` já
-existiria. Vale confirmar antes de tratar como bug.
+Com o campo pintando (canvas 840x544), estender `browser_pixel_probe.py`:
+
+- fração de gramado e presença da bola;
+- sombra sob o atleta (elipse escura abaixo do corpo);
+- ordenação por profundidade — quem está atrás desenha antes;
+- número da camisa legível conforme a profundidade;
+- ausência de duplicação de jogador;
+- limpeza de VFX entre partidas (comparar contagem de cores distintas).
+
+## Observação que merece confirmação
+
+`UI.go('match')` troca a tela mesmo sem `G.cup`, e o render morre em silêncio:
+canvas em branco, nenhum erro de página. Pelo fluxo normal o `cup` sempre
+existe, então não registrei como defeito — mas uma navegação que aceita ir para
+uma tela cujo pré-requisito não foi satisfeito é frágil.
