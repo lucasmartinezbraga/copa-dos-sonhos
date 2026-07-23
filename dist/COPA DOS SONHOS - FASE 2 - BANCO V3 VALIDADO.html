@@ -6143,6 +6143,11 @@ class MatchSim {
       let presser = null;
       if (!attacking) {
         presser = this._selectPresser(tm, b);
+        // MARCAÇÃO REALISTA: apenas UM interceptador salta a linha de passe.
+        // Antes, todos os defensores perto do corredor do passe convergiam para
+        // o mesmo ponto — o "cardume" no meio-campo. Agora um só antecipa; os
+        // demais seguram a zona/linha, como num bloco de verdade.
+        this._selectInterceptor(tm, b, presser);
         this._defRoleT = this._defRoleT || [0, 0];
         this._defRoleT[tm.side] += dt;
         if (this._defRoleT[tm.side] > 0.42) {
@@ -6262,9 +6267,32 @@ class MatchSim {
     if(!old||old.red||old.isGK||!available.includes(old))tm._presser=nearest;
     else{
       const oldScore=D(old.x,old.y,b.x,b.y)-facet(old,'press')*.035+(100-old.stamina)*.055;
-      if(oldScore>14||best+1.6<oldScore)tm._presser=nearest;
+      // Histerese mais firme: o presser COMMITA. Trocar cedo demais fazia dois
+      // jogadores alternarem a perseguição e tremerem lado a lado (feio, irreal).
+      if(oldScore>16||best+2.6<oldScore)tm._presser=nearest;
     }
     return tm._presser;
+  }
+
+  /* MARCAÇÃO REALISTA · UM ÚNICO INTERCEPTADOR POR PASSE
+     Enquanto a bola viaja num passe, escolhe o defensor MELHOR posicionado para
+     saltar a linha (mais perto do corredor do passe, na janela útil do trajeto).
+     Só ele antecipa em _defendTarget; o resto do time mantém zona e marcação.
+     Sem isso, meia dúzia de jogadores caçava o mesmo passe — o "cardume". */
+  _selectInterceptor(tm, b, presser) {
+    if (!(b.traveling && b.kind === 'pass' && b.from && b.target)) { tm._interceptor = null; return; }
+    const fx = b.from.x, fy = b.from.y, ldx = b.target.x - fx, ldy = b.target.y - fy;
+    const len = ldx*ldx + ldy*ldy;
+    if (len < 1) { tm._interceptor = null; return; }
+    let best = null, bd = 4.6;
+    for (const p of tm.players) {
+      if (p.red || p.isGK || p === presser || p === tm._cover) continue;
+      const tpr = ((p.x - fx) * ldx + (p.y - fy) * ldy) / len;
+      if (tpr <= 0.2 || tpr >= 0.68) continue;
+      const px = fx + ldx * tpr, py = fy + ldy * tpr, dd = D(p.x, p.y, px, py);
+      if (dd < bd) { bd = dd; best = p; }
+    }
+    tm._interceptor = best;
   }
 
   _assignAttackRoles(tm, b) {
@@ -6529,8 +6557,9 @@ class MatchSim {
   _defendTarget(tm, p, b, presser) {
     const dir = tm.attackDir;
     if (p === presser) return [b.x, b.y];               // único presser vai à bola
-    // ANTECIPAÇÃO (§6): com a bola em voo, quem está perto da linha ataca o ponto
-    if (b.traveling && b.kind === 'pass' && b.from && b.target && p !== tm._cover) {
+    // ANTECIPAÇÃO (§6): com a bola em voo, SÓ o interceptador designado ataca o
+    // ponto do passe. Um único jogador salta a linha — o resto mantém a marcação.
+    if (b.traveling && b.kind === 'pass' && b.from && b.target && p === tm._interceptor) {
       const fx2 = b.from.x, fy2 = b.from.y, txl = b.target.x, tyl = b.target.y;
       const ldx = txl - fx2, ldy = tyl - fy2;
       const len2 = ldx*ldx + ldy*ldy;
@@ -6548,8 +6577,11 @@ class MatchSim {
       const ang = Math.atan2(tm.goal.y - b.y, tm.goal.x - b.x);
       return [clamp(b.x + Math.cos(ang) * 8.5, 2, FL - 2), clamp(b.y + Math.sin(ang) * 8.5, 2, FW - 2)];
     }
-    // SOMBRA DE PASSE (§7): um médio se posta na linha bola → atacante perigoso
-    if (p === tm._shadow && tm._shadowTgt && ownHalf) {
+    // SOMBRA DE PASSE (§7): um médio se posta na linha bola → atacante perigoso.
+    // Só entra em ação no PRÓPRIO TERÇO defensivo: no meio-campo ele apenas
+    // engrossava o aglomerado ao redor da bola, o que empobrecia a leitura.
+    const ownThird = (tm.attackDir > 0) ? b.x < FL * 0.40 : b.x > FL * 0.60;
+    if (p === tm._shadow && tm._shadowTgt && ownThird) {
       const tgt = tm._shadowTgt;
       return [clamp(lerp(b.x, tgt.x, 0.35), 2, FL - 2), clamp(lerp(b.y, tgt.y, 0.35), 2, FW - 2)];
     }
@@ -9895,59 +9927,160 @@ function advancePenScene(dt) {
   else if (ps.phase==='strike' && ps.t>.82) { ps.phase='result'; ps.t=0; }
 }
 
+/* Converte '#rrggbb' em [r,g,b]; tolera formatos curtos e falha para um azul
+   neutro. Usado para tingir as seções da torcida com as cores das equipes. */
+function spHexRgb(hex){
+  if(typeof hex!=='string')return [90,140,210];
+  let h=hex.replace('#','');
+  if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  const n=parseInt(h,16);
+  if(!isFinite(n))return [90,140,210];
+  return [(n>>16)&255,(n>>8)&255,n&255];
+}
 function drawSpBackdrop(ctx,scene,view){
   const p=view||spPerspective(scene);
-  const sky=ctx.createLinearGradient(0,0,0,p.horizon+72);
-  sky.addColorStop(0,'#020711');sky.addColorStop(.55,'#0b1b31');sky.addColorStop(1,'#1b4a67');
-  ctx.fillStyle=sky;ctx.fillRect(0,0,CW,p.horizon+80);
+  const hz=p.horizon, now=performance.now();
+  const home=(scene&&scene.color)||'#2e9bff', away=(scene&&scene.defColor)||'#e84040';
+  const homeRGB=spHexRgb(home), awayRGB=spHexRgb(away);
 
-  // Arquibancada e luzes em planos separados para dar profundidade à câmera.
-  ctx.fillStyle='#07101d';ctx.fillRect(0,p.horizon-116,CW,105);
-  ctx.fillStyle='rgba(7,13,24,.82)';ctx.fillRect(0,p.horizon-50,CW,44);
-  for(let i=0;i<128;i++){
-    const x=(i*79)%CW,y=p.horizon-104+((i*43)%86);
-    ctx.fillStyle=i%11===0?'rgba(255,220,132,.70)':i%5===0?'rgba(111,185,230,.42)':'rgba(172,193,220,.22)';
-    ctx.fillRect(x,y,i%9===0?3:2,i%7===0?3:2);
-  }
-  const flood=ctx.createRadialGradient(CW*.5,p.horizon-95,8,CW*.5,p.horizon-95,CW*.52);
-  flood.addColorStop(0,'rgba(195,229,255,.20)');flood.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.fillStyle=flood;ctx.fillRect(0,0,CW,p.horizon+120);
+  /* CÉU — noite de estádio: azul profundo com brilho de refletor no alto. */
+  const sky=ctx.createLinearGradient(0,0,0,hz+72);
+  sky.addColorStop(0,'#01040c');sky.addColorStop(.5,'#081627');sky.addColorStop(1,'#153a52');
+  ctx.fillStyle=sky;ctx.fillRect(0,0,CW,hz+80);
+  const halo=ctx.createRadialGradient(CW*.5,hz-92,12,CW*.5,hz-92,CW*.62);
+  halo.addColorStop(0,'rgba(120,168,220,.22)');halo.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=halo;ctx.fillRect(0,0,CW,hz+40);
 
-  const grass=ctx.createLinearGradient(0,p.horizon,0,CH);
-  grass.addColorStop(0,'#17683a');grass.addColorStop(.42,'#105c32');grass.addColorStop(1,'#07391f');
-  ctx.fillStyle=grass;ctx.fillRect(0,p.horizon,CW,CH-p.horizon);
-  for(let i=0;i<12;i++){
-    ctx.fillStyle=i%2?'rgba(255,255,255,.026)':'rgba(0,0,0,.055)';
-    ctx.beginPath();ctx.moveTo(p.vanishX,p.horizon);ctx.lineTo(i*CW/12,CH);ctx.lineTo((i+1)*CW/12,CH);ctx.closePath();ctx.fill();
+  /* ===== ARQUIBANCADA (torcida) — duas bandejas, teto e mureta ===== */
+  const roofY=hz-130, upperY=hz-118, lowerY=hz-58, wallY0=hz-14;
+  ctx.fillStyle='#05090f';ctx.fillRect(0,roofY,CW,10);                 // teto
+  ctx.fillStyle='rgba(140,175,210,.12)';ctx.fillRect(0,roofY+8,CW,2);  // brilho do teto
+  ctx.fillStyle='#0a1420';ctx.fillRect(0,upperY,CW,wallY0-upperY);     // concreto das bandejas
+  ctx.fillStyle='#05090f';ctx.fillRect(0,lowerY-3,CW,4);               // corredor divisório
+  ctx.fillStyle='#0d1a28';ctx.fillRect(0,wallY0,CW,hz-wallY0);         // mureta frontal
+
+  /* Multidão: pontos densos em duas bandejas, seções por cor de equipe
+     (casa à esquerda, visitante à direita) e cintilação leve — tudo
+     determinístico (posições por índice) para não tremer entre quadros. */
+  for(let i=0;i<620;i++){
+    const hxp=((i*61+(i%7)*13)%CW);
+    const band=i%2;                                     // 0 superior · 1 inferior
+    const y0=band?lowerY+2:upperY+3, y1=band?wallY0-3:lowerY-5;
+    const span=Math.max(1,y1-y0), hyp=y0+((i*37)%span);
+    const sec=hxp<CW*.5?homeRGB:awayRGB;
+    const kind=(i*29)%100;
+    let r,g,bl,a;
+    if(kind<24){r=sec[0];g=sec[1];bl=sec[2];a=.52;}     // camisa da equipe
+    else if(kind<32){r=255;g=228;bl=150;a=.5;}          // cachecol claro
+    else{r=150;g=172;bl=200;a=.18;}                     // público neutro
+    if(Math.sin(now/240+i*1.7)>.9){r=255;g=255;bl=255;a=.92;} // flash pontual
+    ctx.fillStyle='rgba('+r+','+g+','+bl+','+a+')';
+    const s=band?2:1.5;ctx.fillRect(hxp,hyp,s,s);
   }
-  // Linhas transversais comprimidas perto do horizonte reforçam os metros.
-  ctx.save();ctx.strokeStyle='rgba(227,242,235,.11)';ctx.lineWidth=1;
-  for(let i=1;i<=5;i++){
-    const t=i/5,y=p.horizon+(CH-p.horizon)*Math.pow(t,1.72);
-    ctx.beginPath();ctx.moveTo(0,y);ctx.quadraticCurveTo(CW*.5,y-4,CW,y);ctx.stroke();
+  /* Refletores nos cantos superiores com feixe suave descendo ao gramado. */
+  for(const fx of [CW*.14,CW*.86]){
+    ctx.fillStyle='#0a1826';ctx.fillRect(fx-13,roofY-30,26,10);
+    for(let r=0;r<3;r++)for(let c=0;c<5;c++){ctx.fillStyle='rgba(220,238,255,'+(.66-r*.07)+')';ctx.fillRect(fx-11+c*4.6,roofY-28+r*3.1,3.1,2.2);}
+    const beam=ctx.createRadialGradient(fx,roofY-24,4,fx,roofY-24,160);
+    beam.addColorStop(0,'rgba(200,226,255,.15)');beam.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=beam;ctx.fillRect(fx-160,roofY-30,320,200);
   }
+
+  /* ===== PLACAS DE LED do perímetro — varredura de cor animada ===== */
+  const ledY=hz-12, ledH=9, sweep=(now/2600)%1;
+  const led=ctx.createLinearGradient(0,0,CW,0);
+  led.addColorStop(clamp(sweep-.22,0,1),'#0a2a4a');
+  led.addColorStop(clamp(sweep,.001,.999),'#3a86d6');
+  led.addColorStop(clamp(sweep+.22,0,1),'#0a2a4a');
+  ctx.fillStyle='#04101d';ctx.fillRect(0,ledY,CW,ledH);
+  ctx.globalAlpha=.85;ctx.fillStyle=led;ctx.fillRect(0,ledY+1,CW,ledH-2);ctx.globalAlpha=1;
+  ctx.fillStyle='rgba(255,255,255,.07)';ctx.fillRect(0,ledY+1,CW,1);
+
+  /* ===== GRAMADO em perspectiva ===== */
+  const grass=ctx.createLinearGradient(0,hz,0,CH);
+  grass.addColorStop(0,'#1d7d46');grass.addColorStop(.4,'#146530');grass.addColorStop(1,'#083b1f');
+  ctx.fillStyle=grass;ctx.fillRect(0,hz,CW,CH-hz);
+  for(let i=0;i<14;i++){                                 // faixas de corte convergindo
+    ctx.fillStyle=i%2?'rgba(255,255,255,.05)':'rgba(0,0,0,.075)';
+    ctx.beginPath();ctx.moveTo(p.vanishX,hz);ctx.lineTo(i*CW/14,CH);ctx.lineTo((i+1)*CW/14,CH);ctx.closePath();ctx.fill();
+  }
+  const lit=ctx.createRadialGradient(CW*.5,hz+(CH-hz)*.5,20,CW*.5,hz+(CH-hz)*.5,CW*.5);
+  lit.addColorStop(0,'rgba(190,255,210,.10)');lit.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=lit;ctx.fillRect(0,hz,CW,CH-hz);
+  ctx.save();ctx.strokeStyle='rgba(230,245,238,.10)';ctx.lineWidth=1;
+  for(let i=1;i<=5;i++){const t=i/5,y=hz+(CH-hz)*Math.pow(t,1.72);ctx.beginPath();ctx.moveTo(0,y);ctx.quadraticCurveTo(CW*.5,y-4,CW,y);ctx.stroke();}
   ctx.restore();
-  const vignette=ctx.createRadialGradient(CW*.5,CH*.56,80,CW*.5,CH*.55,CW*.69);
-  vignette.addColorStop(.58,'rgba(0,0,0,0)');vignette.addColorStop(1,'rgba(0,0,0,.42)');
+
+  /* ===== MARCAÇÕES do campo em perspectiva (giz) ===== */
+  drawSpPitchLines(ctx,p);
+
+  const vignette=ctx.createRadialGradient(CW*.5,CH*.56,80,CW*.5,CH*.55,CW*.72);
+  vignette.addColorStop(.56,'rgba(0,0,0,0)');vignette.addColorStop(1,'rgba(0,0,0,.44)');
   ctx.fillStyle=vignette;ctx.fillRect(0,0,CW,CH);
 }
-function drawSpGoal(ctx,r,ripple){
-  const wave=(ripple||0),post=Math.max(3.2,Math.min(6,r.h*.035));
+/* Marcações da grande área / pequena área / marca do pênalti / meia-lua,
+   desenhadas como trapézios em perspectiva ancorados na linha de fundo (base
+   do gol). Dão leitura imediata de "campo de futebol" sob a cobrança. */
+function drawSpPitchLines(ctx,p){
+  const g=p.goal, gcx=CW*.5, gly=g.y+g.h;               // linha de fundo (base do gol)
+  const bottom=CH+8;
+  // perspectiva: largura cresce ao aproximar da câmera (depth 0 no fundo → 1 na base)
+  const band=(halfW,depth)=>{const y=gly+(bottom-gly)*depth,sc=1+depth*2.35;return {y,l:gcx-g.w*halfW*sc,r:gcx+g.w*halfW*sc};};
+  const trap=(hw,d0,hw2,d1)=>{const a=band(hw,d0),b=band(hw2,d1);ctx.beginPath();ctx.moveTo(a.l,a.y);ctx.lineTo(a.r,a.y);ctx.lineTo(b.r,b.y);ctx.lineTo(b.l,b.y);ctx.closePath();ctx.stroke();};
   ctx.save();
-  ctx.fillStyle='rgba(0,0,0,.18)';ctx.beginPath();ctx.ellipse(r.x+r.w/2,r.y+r.h+8,r.w*.54,8+r.h*.03,0,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='rgba(210,235,246,.025)';ctx.fillRect(r.x,r.y,r.w,r.h);
-  ctx.strokeStyle='rgba(218,235,245,.28)';ctx.lineWidth=Math.max(.75,post*.22);
-  for(let i=1;i<13;i++){
-    const x=r.x+i*r.w/13,offset=Math.sin(i*.9+wave*7)*wave*r.h*.035;
-    ctx.beginPath();ctx.moveTo(x,r.y);ctx.quadraticCurveTo(x+offset,r.y+r.h*.55,x-offset*.35,r.y+r.h);ctx.stroke();
+  ctx.strokeStyle='rgba(232,246,240,.34)';ctx.lineWidth=Math.max(1.1,g.h*.02);ctx.lineJoin='round';
+  // linha de fundo
+  const gl=band(0.95,0);ctx.beginPath();ctx.moveTo(gl.l,gl.y);ctx.lineTo(gl.r,gl.y);ctx.stroke();
+  // grande área
+  trap(0.78,0,1.02,0.34);
+  // pequena área
+  trap(0.5,0,0.6,0.14);
+  // marca do pênalti
+  const pk=band(0,0.2);ctx.fillStyle='rgba(232,246,240,.4)';ctx.beginPath();ctx.arc(pk.l,pk.y,Math.max(1.3,g.h*.02),0,Math.PI*2);ctx.fill();
+  // meia-lua da entrada da área
+  const arc=band(0,0.34);ctx.beginPath();ctx.ellipse(gcx,arc.y,g.w*.34,g.h*.28,0,Math.PI*.16,Math.PI*.84);ctx.stroke();
+  ctx.restore();
+}
+function drawSpGoal(ctx,r,ripple){
+  const wave=(ripple||0),post=Math.max(3.4,Math.min(6.5,r.h*.04));
+  const depth=Math.max(9,r.h*.15);                 // recuo em perspectiva da rede
+  ctx.save();
+  // sombra do gol no gramado
+  ctx.fillStyle='rgba(0,0,0,.20)';ctx.beginPath();ctx.ellipse(r.x+r.w/2,r.y+r.h+8,r.w*.56,8+r.h*.03,0,0,Math.PI*2);ctx.fill();
+  // recesso escuro da boca do gol — faz a rede clara "saltar" contra a torcida
+  const mouth=ctx.createLinearGradient(0,r.y,0,r.y+r.h);
+  mouth.addColorStop(0,'rgba(6,12,20,.42)');mouth.addColorStop(1,'rgba(6,12,20,.24)');
+  ctx.fillStyle=mouth;ctx.fillRect(r.x,r.y,r.w,r.h);
+  const bx=r.x+depth*.5,by=r.y+depth*.5,bw=r.w-depth,bh=r.h-depth*.5;
+  // teto e laterais da rede (linhas de perspectiva ligando frente ao fundo)
+  ctx.lineWidth=Math.max(.55,post*.16);ctx.strokeStyle='rgba(206,226,240,.16)';ctx.beginPath();
+  ctx.moveTo(r.x,r.y);ctx.lineTo(bx,by);ctx.moveTo(r.x+r.w,r.y);ctx.lineTo(bx+bw,by);
+  ctx.moveTo(r.x,r.y+r.h);ctx.lineTo(bx,by+bh);ctx.moveTo(r.x+r.w,r.y+r.h);ctx.lineTo(bx+bw,by+bh);
+  ctx.stroke();
+  // malha do fundo (tênue, ortogonal)
+  const step=Math.max(9,r.w/15);
+  ctx.strokeStyle='rgba(206,226,240,.13)';ctx.beginPath();
+  for(let gx=bx;gx<=bx+bw+.5;gx+=step*.72){ctx.moveTo(gx,by);ctx.lineTo(gx,by+bh);}
+  for(let gy=by;gy<=by+bh+.5;gy+=step*.6){ctx.moveTo(bx,gy);ctx.lineTo(bx+bw,gy);}
+  ctx.stroke();
+  // malha frontal em losango (duas famílias diagonais) com leve ondulação
+  ctx.strokeStyle='rgba(216,236,248,.32)';ctx.beginPath();
+  for(let gx=r.x-r.h;gx<r.x+r.w+r.h;gx+=step){
+    const off=Math.sin((gx-r.x)*.05+wave*7)*wave*r.h*.03;
+    ctx.moveTo(gx,r.y);ctx.lineTo(gx+r.h+off,r.y+r.h);
+    ctx.moveTo(gx+r.h,r.y);ctx.lineTo(gx-off,r.y+r.h);
   }
-  for(let i=1;i<7;i++){
-    const y=r.y+i*r.h/7,offset=Math.sin(i+wave*8)*wave*r.h*.025;
-    ctx.beginPath();ctx.moveTo(r.x,y);ctx.quadraticCurveTo(r.x+r.w*.5,y+offset,r.x+r.w,y);ctx.stroke();
-  }
-  ctx.shadowColor='rgba(255,255,255,.6)';ctx.shadowBlur=7;ctx.strokeStyle='#f5f8fb';ctx.lineWidth=post;
+  ctx.stroke();
+  // POSTES e travessão com volume: sombra externa → corpo branco → aresta lit
+  ctx.lineCap='round';ctx.lineJoin='round';
+  ctx.strokeStyle='rgba(10,20,30,.55)';ctx.lineWidth=post+2;
   ctx.beginPath();ctx.moveTo(r.x,r.y+r.h);ctx.lineTo(r.x,r.y);ctx.lineTo(r.x+r.w,r.y);ctx.lineTo(r.x+r.w,r.y+r.h);ctx.stroke();
-  ctx.shadowBlur=0;ctx.restore();
+  ctx.shadowColor='rgba(180,220,255,.5)';ctx.shadowBlur=6;ctx.strokeStyle='#f6f9fc';ctx.lineWidth=post;
+  ctx.beginPath();ctx.moveTo(r.x,r.y+r.h);ctx.lineTo(r.x,r.y);ctx.lineTo(r.x+r.w,r.y);ctx.lineTo(r.x+r.w,r.y+r.h);ctx.stroke();
+  ctx.shadowBlur=0;
+  ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=Math.max(1,post*.3);
+  ctx.beginPath();ctx.moveTo(r.x+post*.32,r.y+r.h);ctx.lineTo(r.x+post*.32,r.y+post*.32);ctx.lineTo(r.x+r.w-post*.32,r.y+post*.32);ctx.lineTo(r.x+r.w-post*.32,r.y+r.h);ctx.stroke();
+  ctx.restore();
 }
 /* ============================================================================
    MELHORIA (goleiro/barreira) · drawSpFigure COM POSES INTERPOLÁVEIS
@@ -9990,8 +10123,13 @@ function drawSpFigure(ctx,x,y,s,color,pose,flip,t){
   ctx.strokeStyle='#02060c';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(footL-1,footLY);ctx.lineTo(footL+3,footLY);ctx.moveTo(footR-1,footRY);ctx.lineTo(footR+3,footRY);ctx.stroke();
 
   ctx.fillStyle=dark;ctx.beginPath();ctx.moveTo(-5.2,-14);ctx.lineTo(5.2,-14);ctx.lineTo(4.5,-6);ctx.lineTo(.8,-5);ctx.lineTo(0,-8);ctx.lineTo(-.8,-5);ctx.lineTo(-4.5,-6);ctx.closePath();ctx.fill();
-  ctx.fillStyle=kit;ctx.beginPath();ctx.moveTo(-6.7,-30);ctx.quadraticCurveTo(0,-33,6.7,-30);ctx.lineTo(5,-13);ctx.quadraticCurveTo(0,-10,-5,-13);ctx.closePath();ctx.fill();
-  ctx.fillStyle='rgba(255,255,255,.16)';ctx.beginPath();ctx.moveTo(-4.7,-29);ctx.lineTo(-2.2,-30.5);ctx.lineTo(-1.4,-14);ctx.lineTo(-3.7,-14.5);ctx.closePath();ctx.fill();
+  const _kr=spHexRgb(kit);
+  const _jg=ctx.createLinearGradient(0,-31,0,-11);
+  _jg.addColorStop(0,'rgb('+Math.min(255,_kr[0]+40)+','+Math.min(255,_kr[1]+40)+','+Math.min(255,_kr[2]+40)+')');
+  _jg.addColorStop(1,'rgb('+Math.max(0,_kr[0]-24)+','+Math.max(0,_kr[1]-24)+','+Math.max(0,_kr[2]-24)+')');
+  ctx.fillStyle=_jg;ctx.beginPath();ctx.moveTo(-6.7,-30);ctx.quadraticCurveTo(0,-33,6.7,-30);ctx.lineTo(5,-13);ctx.quadraticCurveTo(0,-10,-5,-13);ctx.closePath();ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.22)';ctx.beginPath();ctx.moveTo(-4.7,-29);ctx.lineTo(-2.2,-30.5);ctx.lineTo(-1.4,-14);ctx.lineTo(-3.7,-14.5);ctx.closePath();ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,.14)';ctx.beginPath();ctx.moveTo(4.7,-29.2);ctx.lineTo(2.6,-30.4);ctx.lineTo(1.9,-13.6);ctx.lineTo(4.4,-14.2);ctx.closePath();ctx.fill();
   ctx.strokeStyle='rgba(2,8,16,.38)';ctx.lineWidth=.75;ctx.beginPath();ctx.moveTo(0,-31);ctx.lineTo(0,-13);ctx.stroke();
 
   // Mangas e antebraços têm espessuras diferentes: a pose protege o corpo na
@@ -10028,12 +10166,24 @@ function drawSpFigure(ctx,x,y,s,color,pose,flip,t){
 function drawSpBall(ctx,x,y,r,spin,sx,sy,ang){
   ctx.save();ctx.translate(x,y);
   if((sx!=null&&sx!==1)||(sy!=null&&sy!==1)){ctx.rotate(ang||0);ctx.scale(sx==null?1:sx,sy==null?1:sy);ctx.rotate(-(ang||0));}
-  ctx.rotate(spin||0);ctx.shadowColor='rgba(0,0,0,.5)';ctx.shadowBlur=Math.max(4,r*.8);
-  const g=ctx.createRadialGradient(-r*.32,-r*.38,r*.08,0,0,r);g.addColorStop(0,'#fff');g.addColorStop(.72,'#edf2f7');g.addColorStop(1,'#aeb9c7');
+  // esfera base sombreada + halo de contato
+  ctx.shadowColor='rgba(0,0,0,.5)';ctx.shadowBlur=Math.max(4,r*.8);
+  const g=ctx.createRadialGradient(-r*.34,-r*.4,r*.06,0,0,r*1.05);
+  g.addColorStop(0,'#ffffff');g.addColorStop(.55,'#eef3f8');g.addColorStop(.85,'#ccd5df');g.addColorStop(1,'#98a4b2');
   ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
-  ctx.strokeStyle='#172033';ctx.lineWidth=Math.max(1,r*.11);ctx.stroke();ctx.fillStyle='#243044';
-  ctx.beginPath();for(let i=0;i<5;i++){const a=-Math.PI/2+i*Math.PI*2/5,rr=r*.27;const px=Math.cos(a)*rr,py=Math.sin(a)*rr;if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);}ctx.closePath();ctx.fill();
-  for(let i=0;i<5;i++){const a=i*Math.PI*2/5;ctx.beginPath();ctx.arc(Math.cos(a)*r*.62,Math.sin(a)*r*.62,Math.max(.7,r*.095),0,Math.PI*2);ctx.fill();}
+  // padrão clássico (recortado no círculo e girando com o spin)
+  ctx.save();ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.clip();ctx.rotate(spin||0);
+  ctx.fillStyle='#212a3c';
+  ctx.beginPath();for(let i=0;i<5;i++){const a=-Math.PI/2+i*Math.PI*2/5,rr=r*.30;const px=Math.cos(a)*rr,py=Math.sin(a)*rr;i?ctx.lineTo(px,py):ctx.moveTo(px,py);}ctx.closePath();ctx.fill();
+  ctx.strokeStyle='rgba(24,32,48,.55)';ctx.lineWidth=Math.max(.6,r*.05);
+  for(let i=0;i<5;i++){const a=-Math.PI/2+i*Math.PI*2/5;ctx.beginPath();ctx.moveTo(Math.cos(a)*r*.30,Math.sin(a)*r*.30);ctx.lineTo(Math.cos(a)*r*1.02,Math.sin(a)*r*1.02);ctx.stroke();}
+  for(let i=0;i<5;i++){const a=-Math.PI/2+Math.PI/5+i*Math.PI*2/5;ctx.beginPath();ctx.arc(Math.cos(a)*r*.95,Math.sin(a)*r*.95,r*.22,0,Math.PI*2);ctx.fill();}
+  ctx.restore();
+  // contorno, rim light e brilho especular (luz fixa, não gira)
+  ctx.strokeStyle='rgba(23,32,51,.8)';ctx.lineWidth=Math.max(1,r*.09);ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=Math.max(.6,r*.05);ctx.beginPath();ctx.arc(0,0,r-r*.07,Math.PI*.92,Math.PI*1.52);ctx.stroke();
+  const spec=ctx.createRadialGradient(-r*.34,-r*.42,0,-r*.34,-r*.42,r*.55);spec.addColorStop(0,'rgba(255,255,255,.9)');spec.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=spec;ctx.beginPath();ctx.arc(-r*.34,-r*.42,r*.55,0,Math.PI*2);ctx.fill();
   ctx.restore();
 }
 function drawSpAim(ctx,scene,r){
@@ -10946,12 +11096,18 @@ function paintField() {
     camY = CH / 2;
   }
 
-  /* gramado listrado */
-  const nS = 8, sw = fW/nS;
-  for (let i=0;i<nS;i++) {
-    ctx.fillStyle = i%2===0 ? '#1b7a36' : '#177030';
-    ctx.fillRect(M+i*sw, M, sw, fH);
+  /* gramado — xadrez de corte (mow) com iluminação de holofote */
+  const nSx = 8, nSy = 5, swx = fW/nSx, swy = fH/nSy;
+  for (let i=0;i<nSx;i++) for (let j=0;j<nSy;j++) {
+    ctx.fillStyle = (i+j)%2===0 ? '#1f8a3d' : '#178031';
+    ctx.fillRect(M+i*swx, M+j*swy, swx+0.6, swy+0.6);
   }
+  const _gLight = ctx.createLinearGradient(0, M, 0, M+fH);
+  _gLight.addColorStop(0,'rgba(255,255,255,.055)');_gLight.addColorStop(.5,'rgba(255,255,255,0)');_gLight.addColorStop(1,'rgba(0,0,0,.10)');
+  ctx.fillStyle=_gLight;ctx.fillRect(M,M,fW,fH);
+  const _gCore = ctx.createRadialGradient(CW/2,CH/2,18,CW/2,CH/2,fW*.52);
+  _gCore.addColorStop(0,'rgba(214,255,224,.05)');_gCore.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=_gCore;ctx.fillRect(M,M,fW,fH);
 
   /* marcações */
   ctx.strokeStyle = 'rgba(255,255,255,.62)'; ctx.lineWidth = 1.5;
@@ -11074,15 +11230,24 @@ function paintField() {
       }
       // corpo: no mergulho do goleiro vira uma elipse lateral, deixando o pulo
       // legível sem alterar a posição física usada pelo motor.
+      // corpo com volume: gradiente radial (luz no alto-esquerda) + aresta escura
+      const _bc = p.slot==='GK' ? gkC : pc, _cr = spHexRgb(_bc);
+      const _pg = ctx.createRadialGradient(x-r*.42,y-r*.46,r*.08,x,y,r*1.05);
+      _pg.addColorStop(0,'rgb('+Math.min(255,_cr[0]+58)+','+Math.min(255,_cr[1]+58)+','+Math.min(255,_cr[2]+58)+')');
+      _pg.addColorStop(.62,_bc);
+      _pg.addColorStop(1,'rgb('+Math.max(0,_cr[0]-42)+','+Math.max(0,_cr[1]-42)+','+Math.max(0,_cr[2]-42)+')');
       ctx.beginPath();
       if (divePose) ctx.ellipse(x,y,r*1.42,r*.72,Math.PI/2,0,Math.PI*2);
       else ctx.arc(x,y,r,0,Math.PI*2);
-      ctx.fillStyle = p.slot==='GK' ? gkC : pc; ctx.fill();
+      ctx.fillStyle = _pg; ctx.fill();
 
       // borda
       ctx.lineWidth = p.hasBall ? 2.5 : 1.5;
       ctx.strokeStyle = p.hasBall ? '#fff' : 'rgba(255,255,255,.42)';
       ctx.stroke();
+      // rim light no topo — dá relevo de "botão" à peça
+      if (!divePose) { ctx.save(); ctx.strokeStyle='rgba(255,255,255,.5)'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.arc(x,y,r-1.1,Math.PI*1.02,Math.PI*1.78); ctx.stroke(); ctx.restore(); }
 
       if (motion && (motion.type === 'claim' || motion.type === 'dive')) {
         ctx.save(); ctx.strokeStyle = p.slot==='GK' ? '#ffcb45' : '#fff'; ctx.lineWidth=3;
@@ -11229,13 +11394,17 @@ function paintField() {
   ctx.beginPath(); ctx.arc(cx(b.x),cy(b.y)+3,5,0,Math.PI*2);
   ctx.fillStyle='#000'; ctx.fill(); ctx.restore();
   ctx.beginPath(); ctx.arc(bx,by,7,0,Math.PI*2);
-  const bg=ctx.createRadialGradient(bx-2.5,by-2.5,0,bx,by,7);
-  bg.addColorStop(0,'#ffffff'); bg.addColorStop(1,'#c8c8c8');
+  const bg=ctx.createRadialGradient(bx-2.6,by-2.8,0,bx,by,7.6);
+  bg.addColorStop(0,'#ffffff'); bg.addColorStop(.7,'#eef1f5'); bg.addColorStop(1,'#b7bfca');
   ctx.fillStyle=bg; ctx.fill();
-  ctx.strokeStyle='#444'; ctx.lineWidth=.8; ctx.stroke();
-  // costura
-  ctx.strokeStyle='rgba(80,80,80,.5)'; ctx.lineWidth=.5;
-  ctx.beginPath(); ctx.arc(bx,by,4,0,Math.PI*2); ctx.stroke();
+  ctx.strokeStyle='rgba(40,48,64,.7)'; ctx.lineWidth=.8; ctx.stroke();
+  // padrão de gomos (pentágono central + satélites)
+  ctx.fillStyle='rgba(34,42,60,.92)';
+  ctx.beginPath(); ctx.arc(bx,by,1.7,0,Math.PI*2); ctx.fill();
+  for(let i=0;i<5;i++){ const a=-Math.PI/2+i*Math.PI*2/5; ctx.beginPath(); ctx.arc(bx+Math.cos(a)*3.9,by+Math.sin(a)*3.9,1,0,Math.PI*2); ctx.fill(); }
+  // brilho especular
+  ctx.fillStyle='rgba(255,255,255,.8)';
+  ctx.beginPath(); ctx.arc(bx-2.4,by-2.6,1.6,0,Math.PI*2); ctx.fill();
 
   ctx.restore();   // fim do mundo com câmera
 

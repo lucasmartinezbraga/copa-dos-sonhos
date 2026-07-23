@@ -1901,6 +1901,11 @@ class MatchSim {
       let presser = null;
       if (!attacking) {
         presser = this._selectPresser(tm, b);
+        // MARCAÇÃO REALISTA: apenas UM interceptador salta a linha de passe.
+        // Antes, todos os defensores perto do corredor do passe convergiam para
+        // o mesmo ponto — o "cardume" no meio-campo. Agora um só antecipa; os
+        // demais seguram a zona/linha, como num bloco de verdade.
+        this._selectInterceptor(tm, b, presser);
         this._defRoleT = this._defRoleT || [0, 0];
         this._defRoleT[tm.side] += dt;
         if (this._defRoleT[tm.side] > 0.42) {
@@ -2020,9 +2025,32 @@ class MatchSim {
     if(!old||old.red||old.isGK||!available.includes(old))tm._presser=nearest;
     else{
       const oldScore=D(old.x,old.y,b.x,b.y)-facet(old,'press')*.035+(100-old.stamina)*.055;
-      if(oldScore>14||best+1.6<oldScore)tm._presser=nearest;
+      // Histerese mais firme: o presser COMMITA. Trocar cedo demais fazia dois
+      // jogadores alternarem a perseguição e tremerem lado a lado (feio, irreal).
+      if(oldScore>16||best+2.6<oldScore)tm._presser=nearest;
     }
     return tm._presser;
+  }
+
+  /* MARCAÇÃO REALISTA · UM ÚNICO INTERCEPTADOR POR PASSE
+     Enquanto a bola viaja num passe, escolhe o defensor MELHOR posicionado para
+     saltar a linha (mais perto do corredor do passe, na janela útil do trajeto).
+     Só ele antecipa em _defendTarget; o resto do time mantém zona e marcação.
+     Sem isso, meia dúzia de jogadores caçava o mesmo passe — o "cardume". */
+  _selectInterceptor(tm, b, presser) {
+    if (!(b.traveling && b.kind === 'pass' && b.from && b.target)) { tm._interceptor = null; return; }
+    const fx = b.from.x, fy = b.from.y, ldx = b.target.x - fx, ldy = b.target.y - fy;
+    const len = ldx*ldx + ldy*ldy;
+    if (len < 1) { tm._interceptor = null; return; }
+    let best = null, bd = 4.6;
+    for (const p of tm.players) {
+      if (p.red || p.isGK || p === presser || p === tm._cover) continue;
+      const tpr = ((p.x - fx) * ldx + (p.y - fy) * ldy) / len;
+      if (tpr <= 0.2 || tpr >= 0.68) continue;
+      const px = fx + ldx * tpr, py = fy + ldy * tpr, dd = D(p.x, p.y, px, py);
+      if (dd < bd) { bd = dd; best = p; }
+    }
+    tm._interceptor = best;
   }
 
   _assignAttackRoles(tm, b) {
@@ -2287,8 +2315,9 @@ class MatchSim {
   _defendTarget(tm, p, b, presser) {
     const dir = tm.attackDir;
     if (p === presser) return [b.x, b.y];               // único presser vai à bola
-    // ANTECIPAÇÃO (§6): com a bola em voo, quem está perto da linha ataca o ponto
-    if (b.traveling && b.kind === 'pass' && b.from && b.target && p !== tm._cover) {
+    // ANTECIPAÇÃO (§6): com a bola em voo, SÓ o interceptador designado ataca o
+    // ponto do passe. Um único jogador salta a linha — o resto mantém a marcação.
+    if (b.traveling && b.kind === 'pass' && b.from && b.target && p === tm._interceptor) {
       const fx2 = b.from.x, fy2 = b.from.y, txl = b.target.x, tyl = b.target.y;
       const ldx = txl - fx2, ldy = tyl - fy2;
       const len2 = ldx*ldx + ldy*ldy;
@@ -2306,8 +2335,11 @@ class MatchSim {
       const ang = Math.atan2(tm.goal.y - b.y, tm.goal.x - b.x);
       return [clamp(b.x + Math.cos(ang) * 8.5, 2, FL - 2), clamp(b.y + Math.sin(ang) * 8.5, 2, FW - 2)];
     }
-    // SOMBRA DE PASSE (§7): um médio se posta na linha bola → atacante perigoso
-    if (p === tm._shadow && tm._shadowTgt && ownHalf) {
+    // SOMBRA DE PASSE (§7): um médio se posta na linha bola → atacante perigoso.
+    // Só entra em ação no PRÓPRIO TERÇO defensivo: no meio-campo ele apenas
+    // engrossava o aglomerado ao redor da bola, o que empobrecia a leitura.
+    const ownThird = (tm.attackDir > 0) ? b.x < FL * 0.40 : b.x > FL * 0.60;
+    if (p === tm._shadow && tm._shadowTgt && ownThird) {
       const tgt = tm._shadowTgt;
       return [clamp(lerp(b.x, tgt.x, 0.35), 2, FL - 2), clamp(lerp(b.y, tgt.y, 0.35), 2, FW - 2)];
     }
