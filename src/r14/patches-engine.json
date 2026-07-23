@@ -62,5 +62,13 @@
   "rationale": "LATERAL COBRADO POR NINGUÉM. O cobrador é escolhido e mandado à linha, mas a reposição usava dead=.72 fixo. Primeira correção fez dead acompanhar a distância com teto de 3,2s — insuficiente: o cobrador ANDA (~4,2 m/s), então qualquer um a mais de ~13m ainda não chega e a bola sai sozinha. Agora ele também SPRINTA até a linha (_breaking dá esforço 1 em _integrate) e o teto sobe para 4,5s. A 6,5 m/s, 20m levam 3,1s e cabem na janela.",
   "from": "this.poss=team;this.dead=.72;",
   "to": "this.poss=team;this.dead=.72;if(taker){var _dL=Math.hypot(finite13(taker.x)-x,finite13(taker.y)-boundary);taker._breaking=taker._breaking||{throwInDuty:true};this.dead=clamp13(.72+_dL/6.5,.72,4.5);}"
+ },
+ {
+  "id": "_exp-clock",
+  "priority": "EXPERIMENTO",
+  "audit_ids": "DENS-001",
+  "rationale": "EXPERIMENTO: clockRate 0.24 -> 0.12 dobra o tempo de fisica por partida.",
+  "from": "clockRate: 0.24",
+  "to": "clockRate: 0.20"
  }
 ]
