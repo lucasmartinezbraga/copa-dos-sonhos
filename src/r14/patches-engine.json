@@ -32,14 +32,6 @@
   "to": "desired=Math.min(vmax,d*(p.__chase?9:3.2))"
  },
  {
-  "id": "r14-throwin-walk",
-  "priority": "P1",
-  "audit_ids": "MOV-002",
-  "rationale": "NINGUÉM VAI BATER O LATERAL. O cobrador É escolhido e recebe destino na linha (taker._tx/_ty), mas a reposição usa `this.dead=.72` fixo: a bola volta a jogo em 0,72s. Um cobrador a 10m precisa de ~2,5s andando, então a bola é reposta ANTES dele chegar e não se vê ninguém batendo. O tempo morto passa a acompanhar a distância real do cobrador até a linha, com piso de 0,72s (comportamento atual quando ele já está perto) e teto de 3,2s para não arrastar o jogo.",
-  "from": "this.poss=team;this.dead=.72;",
-  "to": "this.poss=team;this.dead=.72;if(taker){var _dL=Math.hypot(finite13(taker.x)-x,finite13(taker.y)-boundary);this.dead=clamp13(.72+_dL/4.2,.72,3.2);}"
- },
- {
   "id": "r14-shadow-lane",
   "priority": "P0",
   "audit_ids": "MOV-004",
@@ -62,5 +54,13 @@
   "rationale": "Par do anterior, no lado da defesa. winP=clamp(.48+(pd-pa)/180+(desarme-70)/260,.34,.72): os divisores 180 e 260 achatam o atributo — 30 pontos de desarme movem só 0,115 de probabilidade. Divisores para 120 e 170 (atributo pesa ~50% mais) e clamp para [.30,.82], de modo que um zagueiro muito superior de fato rouba e um fraco de fato falha. Base .48 sobe para .52: passar pela zaga fica mais difícil no geral, como pedido.",
   "from": "winP=clamp(.48+(pd-pa)/180+(attr(d,'desarme')-70)/260,.34,.72)",
   "to": "winP=clamp(.52+(pd-pa)/120+(attr(d,'desarme')-70)/170,.30,.82)"
+ },
+ {
+  "id": "r14-throwin-walk",
+  "priority": "P1",
+  "audit_ids": "MOV-002",
+  "rationale": "LATERAL COBRADO POR NINGUÉM. O cobrador é escolhido e mandado à linha, mas a reposição usava dead=.72 fixo. Primeira correção fez dead acompanhar a distância com teto de 3,2s — insuficiente: o cobrador ANDA (~4,2 m/s), então qualquer um a mais de ~13m ainda não chega e a bola sai sozinha. Agora ele também SPRINTA até a linha (_breaking dá esforço 1 em _integrate) e o teto sobe para 4,5s. A 6,5 m/s, 20m levam 3,1s e cabem na janela.",
+  "from": "this.poss=team;this.dead=.72;",
+  "to": "this.poss=team;this.dead=.72;if(taker){var _dL=Math.hypot(finite13(taker.x)-x,finite13(taker.y)-boundary);taker._breaking=taker._breaking||{throwInDuty:true};this.dead=clamp13(.72+_dL/6.5,.72,4.5);}"
  }
 ]

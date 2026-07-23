@@ -48,5 +48,10 @@
   "id": "mob-boot-now-export",
   "from": "}\n/* Gatilhos redundantes — todos idempotentes graças ao _bootStarted: */\n",
   "to": "}\nwindow.__CDS_BOOT_NOW = bootGame;\n/* Gatilhos redundantes — todos idempotentes graças ao _bootStarted: */\n"
+ },
+ {
+  "id": "fix-goalflash-stuck",
+  "from": "  if (goalFlash && goalFlash.alpha > 0.01) {\n    ctx.fillStyle = 'rgba(255,255,255,' + (goalFlash.alpha * 0.5) + ')';\n    ctx.fillRect(0, 0, CW, CH);\n  }",
+  "to": "  if (goalFlash && goalFlash.alpha > 0.01) {\n    // O decaimento vivia no laço da SIMULAÇÃO. Com o jogo pausado —\n    // celebração, replay, intervalo — a simulação para, o alpha congela e o\n    // véu branco fica na tela para sempre, lavando as cores do campo.\n    // Aqui ele decai por tempo REAL, então some mesmo com o jogo parado.\n    const _now = performance.now();\n    if (goalFlash._wt) goalFlash.alpha = Math.max(0, goalFlash.alpha - (_now - goalFlash._wt) / 1000 * 1.6);\n    goalFlash._wt = _now;\n    if (goalFlash.alpha > 0.01) {\n      ctx.fillStyle = 'rgba(255,255,255,' + (goalFlash.alpha * 0.5) + ')';\n      ctx.fillRect(0, 0, CW, CH);\n    }\n  }"
  }
 ]
