@@ -38,5 +38,13 @@
   "rationale": "NINGUÉM VAI BATER O LATERAL. O cobrador É escolhido e recebe destino na linha (taker._tx/_ty), mas a reposição usa `this.dead=.72` fixo: a bola volta a jogo em 0,72s. Um cobrador a 10m precisa de ~2,5s andando, então a bola é reposta ANTES dele chegar e não se vê ninguém batendo. O tempo morto passa a acompanhar a distância real do cobrador até a linha, com piso de 0,72s (comportamento atual quando ele já está perto) e teto de 3,2s para não arrastar o jogo.",
   "from": "this.poss=team;this.dead=.72;",
   "to": "this.poss=team;this.dead=.72;if(taker){var _dL=Math.hypot(finite13(taker.x)-x,finite13(taker.y)-boundary);this.dead=clamp13(.72+_dL/4.2,.72,3.2);}"
+ },
+ {
+  "id": "r14-shadow-lane",
+  "priority": "P0",
+  "audit_ids": "MOV-004",
+  "rationale": "MEIO-CAMPO FEIO: MAIS DE UM PERSEGUE O PORTADOR. Em _defendTarget três papéis são puxados para a bola por construção: o presser vai EXATAMENTE nela ([b.x,b.y]); o _cover fica a 8,5m dela; e o _shadow — que deveria FECHAR A LINHA DE PASSE — recebe lerp(bola, atacante, 0.35), ou seja 65% do caminho EM DIREÇÃO À BOLA. Somados, três defensores convergem no portador e o meio-campo esvazia. O papel do shadow é cobrir o corredor de passe, o que se faz perto do ATACANTE e não da bola: passa a 0.62, ficando na linha em vez de em cima do portador. presser e cover não mudam — a disputa continua tendo dono.",
+  "from": "      return [clamp(lerp(b.x, tgt.x, 0.35), 2, FL - 2), clamp(lerp(b.y, tgt.y, 0.35), 2, FW - 2)];",
+  "to": "      return [clamp(lerp(b.x, tgt.x, 0.62), 2, FL - 2), clamp(lerp(b.y, tgt.y, 0.62), 2, FW - 2)];"
  }
 ]
