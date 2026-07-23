@@ -14,5 +14,29 @@
   "rationale": "Recalibração dos pesos de estilo sobre o motor consertado. O golden R13.0 foi derivado com o portador congelado em build_up; liberada a decisão, os estilos ganharam volume de forma desigual (wings +0,536 ppg, balanced -0,500, direct -0,393) e ppgRange passou de 0,571 para 0,821. Estes overrides re-derivam o equilíbrio no motor que efetivamente decide.",
   "from": "const STYLE_KEYS = Object.keys(STYLE_FX);",
   "to": "STYLE_FX.direct.cross=1.05; STYLE_FX.park.cross=1.3; STYLE_FX.wings.cross=1.85;\nconst STYLE_KEYS = Object.keys(STYLE_FX);"
+ },
+ {
+  "id": "r14-pressing-intent",
+  "priority": "P0",
+  "audit_ids": "MOV-001",
+  "rationale": "MOVIMENTAÇÃO — NINGUÉM DÁ BOTE. Medido em 30 partidas: a velocidade do adversário mais próximo da bola CAI conforme ele se aproxima — 5,15 m/s a 12m+, 4,28 a 7-12m, 3,68 a 4-7m, 3,21 a 2-4m e apenas 2,68 a 0-2m. O defensor chega TROTANDO no desarme. Em _integrate (versão viva da camada R12; a do bundle base é código morto, substituída por P._integrate), `duty` só inclui _breaking, _burst, o portador e o receptor de um passe — quem PRESSIONA não entra e recebe o esforço 'respirado' de 0,5 a 1,0. Aqui quem persegue uma bola que não é do seu time ganha dever de bola. AJUSTE: o raio de perseguição começou em 6m e fazia VÁRIOS defensores irem juntos na bola — o comprimento ocupado pelo time caiu de 44,1m (R13.0) para 32,5m, o amontoamento relatado. Restrito ao pressionador designado mais quem está praticamente em cima da bola (2,5m), que é quem de fato disputa.",
+  "from": "const duty=p._breaking||p._burst||p===this.ball.owner||(this.ball.traveling&&this.ball.receiver===p);let effort;",
+  "to": "const _bb=this.ball,_dB=_bb?Math.hypot(finite(p.x)-finite(_bb.x),finite(p.y)-finite(_bb.y)):1e9;p.__chase=!p.isGK&&!!_bb&&_dB<14&&(!_bb.owner||_bb.owner.team!==p.team)&&(p===this.teams[p.team]._presser||_dB<2.5);const duty=p._breaking||p._burst||p===this.ball.owner||p.__chase||(this.ball.traveling&&this.ball.receiver===p);let effort;"
+ },
+ {
+  "id": "r14-pressing-approach",
+  "priority": "P0",
+  "audit_ids": "MOV-001",
+  "rationale": "Par do r14-pressing-intent. Dar esforço 1 ao perseguidor não muda nada sozinho porque `desired=Math.min(vmax,d*3.2)` limita a 3,2 m/s a um metro do alvo — o freio de aproximação vale mesmo quando o alvo é a BOLA, onde o certo é chegar acelerando. Quem persegue passa a usar d*9: a 1m ainda quer 9 m/s, a 0,3m cai para 2,7, então o freio continua existindo para não ultrapassar. Os demais mantêm d*3.2 intacto.",
+  "from": "desired=Math.min(vmax,d*3.2)",
+  "to": "desired=Math.min(vmax,d*(p.__chase?9:3.2))"
+ },
+ {
+  "id": "r14-throwin-walk",
+  "priority": "P1",
+  "audit_ids": "MOV-002",
+  "rationale": "NINGUÉM VAI BATER O LATERAL. O cobrador É escolhido e recebe destino na linha (taker._tx/_ty), mas a reposição usa `this.dead=.72` fixo: a bola volta a jogo em 0,72s. Um cobrador a 10m precisa de ~2,5s andando, então a bola é reposta ANTES dele chegar e não se vê ninguém batendo. O tempo morto passa a acompanhar a distância real do cobrador até a linha, com piso de 0,72s (comportamento atual quando ele já está perto) e teto de 3,2s para não arrastar o jogo.",
+  "from": "this.poss=team;this.dead=.72;",
+  "to": "this.poss=team;this.dead=.72;if(taker){var _dL=Math.hypot(finite13(taker.x)-x,finite13(taker.y)-boundary);this.dead=clamp13(.72+_dL/4.2,.72,3.2);}"
  }
 ]

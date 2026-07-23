@@ -51,6 +51,15 @@
     return Math.max(G.topY + 8, baseY - (z || 0) * 22 * s);   // piso = base da arquibancada
   }
 
+  /* PLANO DE CHÃO ÚNICO.
+     O atleta é desenhado CENTRADO no ponto projetado: os pés dele caem em
+     groundY + r*0.98, com r = 13*s. A bola era desenhada no próprio ponto
+     projetado, ou seja ~10,7*s pixels ACIMA dos pés — a altura do peito.
+     Por isso a bola parecia colada no peito e nunca no pé. Aqui a bola passa a
+     usar o MESMO plano do atleta. */
+  const FOOT = 13 * 0.98 - 2;          // 10.74 — diferença entre os dois planos
+  const groundY = (py, s) => py + FOOT * s;
+
   /* ── PALCO ESTÁTICO (estádio + gramado + linhas + gols) ─────────────────
    * Pré-renderizado uma vez; 1 drawImage por frame. */
   const stage = { key: '', cv: null };
@@ -455,7 +464,8 @@
   function ball(ctx, o) {
     const g0 = project(o.gx, o.gy);
     const s = g0.s, z = o.z || 0, air = clamp(z / 3.2, 0, 1);
-    const bx = g0.x, by = liftY(g0.y, z, s);
+    const gy = groundY(g0.y, s);          // mesmo plano de chão dos atletas
+    const bx = g0.x, by = liftY(gy, z, s);
     if (window.__ballProbe) window.__ballProbe(z, by, G.topY, s);   // hook de auditoria (PRO-021)
 
     // anel de queda no destino (não para chutes)
@@ -467,16 +477,16 @@
       const pulse = 1 + Math.sin(performance.now() / (130 * sp)) * .18;
       ctx.save();
       ctx.strokeStyle = 'rgba(255,214,64,.85)'; ctx.lineWidth = 2 * t.s;
-      ctx.beginPath(); ctx.ellipse(t.x, t.y, 8.5 * pulse * t.s, 3.9 * pulse * t.s, 0, 0, TAU); ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(t.x, groundY(t.y, t.s), 8.5 * pulse * t.s, 3.9 * pulse * t.s, 0, 0, TAU); ctx.stroke();
       ctx.strokeStyle = 'rgba(255,214,64,.35)'; ctx.lineWidth = 1 * t.s;
-      ctx.beginPath(); ctx.ellipse(t.x, t.y, 13 * pulse * t.s, 6 * pulse * t.s, 0, 0, TAU); ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(t.x, groundY(t.y, t.s), 13 * pulse * t.s, 6 * pulse * t.s, 0, 0, TAU); ctx.stroke();
       ctx.restore();
     }
 
     // sombra ancorada no gramado
     ctx.save();
     ctx.globalAlpha = .32 - air * .14;
-    ctx.beginPath(); ctx.ellipse(bx, g0.y + 2 * s, (5.6 - air * 1.8) * s, (2.6 - air * .9) * s, 0, 0, TAU);
+    ctx.beginPath(); ctx.ellipse(bx, gy + 2 * s, (5.6 - air * 1.8) * s, (2.6 - air * .9) * s, 0, 0, TAU);
     ctx.fillStyle = '#000'; ctx.fill();
     ctx.restore();
 
