@@ -236,5 +236,17 @@
   "rationale": "§redesign: o #tbody agora e o painel lateral que o usuario le/rola. Os repaints automaticos (stats/campo/adv) faziam innerHTML e zeravam o scroll. Salva/restaura scrollTop ao redor.",
   "from": "        if (tab === 'stats' && stTick % 5 === 0) paintTabBody();      // stats ao vivo\n        if ((tab === 'campo' || tab === 'adv') && stTick % 6 === 0) paintTabBody();  // visão geral / adversário ao vivo",
   "to": "        if ((tab === 'stats' && stTick % 5 === 0) || ((tab === 'campo' || tab === 'adv') && stTick % 6 === 0)) {\n          const _tb = document.getElementById('tbody'); const _sy = _tb ? _tb.scrollTop : 0;\n          paintTabBody(); if (_tb) _tb.scrollTop = _sy;   // painel lateral ao vivo, sem pular o scroll\n        }"
+ },
+ {
+  "id": "overview-cut-scoreboard",
+  "rationale": "§redesign Visao geral: remove o bloco ux-team-scoreboard (placar PLACAR AO VIVO gigante + 2 cards de time) — o placar/times ja estao no CABECALHO. Sobram KPIs (posse/chutes/no alvo/momentum) + Destaque + feed: painel vivo enxuto e denso.",
+  "from": "<div class=\"ux-team-scoreboard\">\n        <article class=\"ux-team-card\"><div><div class=\"nm\">${window.flagSvg(sim.teams[own].flag || '⭐', 15)} <span>${nmA}</span></div><div class=\"meta\">${sim.teams[own].atkForm || sim.teams[own].defForm || G.formKey} · ${stA.shots} chutes · ${stA.xg.toFixed(2)} xG</div></div><div class=\"bar\" style=\"background:${teamColors[own]}\"></div></article>\n        <article class=\"ux-score-core\"><div class=\"label\">Placar ao vivo</div><div class=\"score\">${sim.score[own]}<span style=\"color:#596b8d\">–</span>${sim.score[opp]}</div><div class=\"clock\">${timeLabel}</div></article>\n        <article class=\"ux-team-card\"><div><div class=\"nm\">${window.flagSvg(sim.teams[opp].flag || '🏳️', 15)} <span>${nmB}</span></div><div class=\"meta\">${sim.teams[opp].atkForm || sim.teams[opp].defForm || '4-3-3'} · ${stB.shots} chutes · ${stB.xg.toFixed(2)} xG</div></div><div class=\"bar\" style=\"background:${teamColors[opp]}\"></div></article>\n      </div>\n      ",
+  "to": ""
+ },
+ {
+  "id": "stats-cut-hero",
+  "rationale": "§redesign Estatisticas: remove os chips-heroi do topo (ux-stat-hero: placar/posse/xG/precisao) — duplicam os 4 grupos de comparacao logo abaixo. Painel mais denso.",
+  "from": "<div class=\"ux-stat-hero\"><div class=\"ux-stat-chip\"><div class=\"k\">Placar</div><div class=\"v\">${sim.score[0]} <span style=\"color:#5b7090\">×</span> ${sim.score[1]}</div></div><div class=\"ux-stat-chip\"><div class=\"k\">Posse</div><div class=\"v\">${pa}% <span style=\"color:#5b7090\">×</span> ${pb}%</div></div><div class=\"ux-stat-chip\"><div class=\"k\">xG</div><div class=\"v\">${s[own].xg.toFixed(2)} <span style=\"color:#5b7090\">×</span> ${s[opp].xg.toFixed(2)}</div></div><div class=\"ux-stat-chip\"><div class=\"k\">Precisão de passe</div><div class=\"v\">${Math.round(s[own].passOk/Math.max(1,s[own].passes)*100)}%</div><div class=\"hint\">seu time</div></div></div>",
+  "to": ""
  }
 ]

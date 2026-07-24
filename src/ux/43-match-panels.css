@@ -1,0 +1,72 @@
+/* ============================================================================
+ * Copa dos Sonhos · Redesign de partida · PAINEIS DENSOS (estilo FM)
+ *
+ * O conteudo das abas (Visao geral / Estatisticas / Adversario / Tatica) foi
+ * desenhado para a largura cheia da tela; dentro do painel lateral (~440px) os
+ * cards ficavam GIGANTES e empilhados (o usuario reclamou: numeros enormes,
+ * lista de elenco empurrada pra fora). Aqui a densidade e reajustada por CSS,
+ * no escopo do painel — sem reescrever HTML. Nada gigante, nada vazio.
+ *
+ * So vale no desktop (painel existe); no mobile a pilha original continua.
+ * ========================================================================== */
+@media (min-width: 900px) {
+  #app:has(#fieldcv) > #tbody {
+    --pnl: 1;   /* marcador de escopo */
+  }
+  /* atalho de escopo */
+  #app:has(#fieldcv) > #tbody .ux-shell > section { padding: var(--sp-3); }
+
+  /* ── SECTION HEADERS compactos ─────────────────────────────────────────── */
+  #app:has(#fieldcv) > #tbody .ux-section-head { margin-bottom: var(--sp-2); }
+  #app:has(#fieldcv) > #tbody .ux-section-head .ttl { font-size: 12px; letter-spacing: .6px; }
+  #app:has(#fieldcv) > #tbody .ux-section-head .sub { font-size: 10px; }
+  #app:has(#fieldcv) > #tbody .ux-line-sep .ttl { font-size: 11px; }
+  #app:has(#fieldcv) > #tbody .ux-line-sep .sub { font-size: 10px; }
+
+  /* ── STAT-TILES: cards de KPI/resumo/elenco viram tiles pequenos ────────── */
+  #app:has(#fieldcv) > #tbody .ux-kpi-grid,
+  #app:has(#fieldcv) > #tbody .tactic-summary-grid,
+  #app:has(#fieldcv) > #tbody .ux-stat-hero {
+    grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+    gap: var(--sp-2); margin: 0 0 var(--sp-2);
+  }
+  #app:has(#fieldcv) > #tbody .ux-kpi,
+  #app:has(#fieldcv) > #tbody .ux-stat-chip,
+  #app:has(#fieldcv) > #tbody .tactic-summary-card { padding: 8px 9px; border-radius: 10px; }
+  #app:has(#fieldcv) > #tbody .ux-kpi .k,
+  #app:has(#fieldcv) > #tbody .ux-stat-chip .k,
+  #app:has(#fieldcv) > #tbody .tactic-summary-card .k { font-size: 9px; letter-spacing: .8px; }
+  #app:has(#fieldcv) > #tbody .ux-kpi .v,
+  #app:has(#fieldcv) > #tbody .ux-stat-chip .v,
+  #app:has(#fieldcv) > #tbody .tactic-summary-card .big { font-size: 17px !important; margin-top: 2px; }
+  #app:has(#fieldcv) > #tbody .ux-kpi .hint,
+  #app:has(#fieldcv) > #tbody .tactic-summary-card .sub { font-size: 9px; margin-top: 2px; }
+
+  /* ── COMPARACAO A×B mais densa ─────────────────────────────────────────── */
+  #app:has(#fieldcv) > #tbody .stat-group { padding: 10px 11px; border-radius: 12px; }
+  #app:has(#fieldcv) > #tbody .stat-group-title { margin-bottom: 8px; font-size: 11px; }
+  #app:has(#fieldcv) > #tbody .stat-row + .stat-row { margin-top: 7px; }
+  #app:has(#fieldcv) > #tbody .stat-value { font-size: 13px; }
+  #app:has(#fieldcv) > #tbody .stat-track { height: 5px; }
+
+  /* ── DESTAQUE / MVP compacto ───────────────────────────────────────────── */
+  #app:has(#fieldcv) > #tbody .ux-mvp-star { width: 34px; height: 34px; font-size: 16px; }
+  #app:has(#fieldcv) > #tbody .ux-mvp-card .name { font-size: 14px; }
+  #app:has(#fieldcv) > #tbody .ux-mvp-card .sub { font-size: 11px; }
+
+  /* ── LISTAS DE JOGADOR: linha compacta, sem card gigante ───────────────── */
+  #app:has(#fieldcv) > #tbody .ux-list-grid { gap: 6px; }
+  #app:has(#fieldcv) > #tbody .player-pill-card { padding: 7px 9px; border-radius: 10px; display: flex; align-items: center; gap: 9px; }
+  #app:has(#fieldcv) > #tbody .player-pill-card .ovr { font-size: 16px; width: 30px; }
+  #app:has(#fieldcv) > #tbody .player-pill-card .nm { font-size: 12px; }
+  #app:has(#fieldcv) > #tbody .player-pill-card .sb { font-size: 10px; }
+
+  /* ── SELETOR DE ESTILO (tatica) em linhas baixas ───────────────────────── */
+  #app:has(#fieldcv) > #tbody .stylerow { min-height: 0; padding: 9px 11px; gap: 9px; }
+  #app:has(#fieldcv) > #tbody .st-i { width: 30px; height: 30px; font-size: 15px; border-radius: 9px; }
+  #app:has(#fieldcv) > #tbody .st-t { font-size: 15px; }
+  #app:has(#fieldcv) > #tbody .st-d { font-size: 10px; margin-top: 3px; }
+
+  /* score core do resumo (Visao geral): reduz o placar duplicado do cabecalho */
+  #app:has(#fieldcv) > #tbody .ux-score-core .score { font-size: 30px; }
+}

@@ -23,56 +23,66 @@
      painel curto, cortando o conteudo). */
   #app:has(#fieldcv) {
     --side-w: clamp(var(--side-min), var(--side-pref), var(--side-max));
-    /* largura util do campo (coluna 1) e altura derivada da proporcao 2.048,
-       ambas DEFINIDAS — sem aspect-ratio, que criava dependencia circular no
-       grid e deixava a linha do campo (e portanto o painel) curta */
-    --col1-w: calc(100vw - var(--side-w) - var(--shell-gap) - 2 * var(--shell-pad));
-    --field-w: min(var(--col1-w), calc((100dvh - 168px) * 2.048));
-    --field-h: calc(var(--field-w) / 2.048);
     display: grid;
+    /* header (placar | velocidades) em cima; campo 1fr enche a coluna esquerda;
+       eventos+nav embaixo; painel (side) abrange todas as linhas -> altura cheia */
     grid-template-columns: minmax(0, 1fr) var(--side-w);
-    grid-template-rows: auto auto auto auto 1fr;
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
     grid-template-areas:
-      "head   side"
+      "head   speed"
       "field  side"
       "events side"
-      "nav    side"
-      ".      side";
+      "nav    side";
     column-gap: var(--shell-gap);
-    row-gap: var(--sp-3);
+    row-gap: var(--sp-2);
     padding: var(--shell-pad);
     height: 100dvh;
     max-height: 100dvh;
     overflow: hidden;
   }
 
-  /* cabecalho: placar sobre o campo; velocidades na propria faixa, a direita */
-  #app:has(#fieldcv) > .mh      { grid-area: head; border-radius: var(--r-md); border-bottom: 1px solid var(--ui-border); }
-  #app:has(#fieldcv) > .spd-row { grid-area: head; justify-self: end; align-self: center; z-index: 1; border-bottom: 0; border-radius: var(--r-md); background: transparent; }
+  /* cabecalho: placar na coluna do campo; velocidades na propria celula (acima
+     do painel), NUNCA na mesma area que o placar — antes se sobrepunham ao time
+     visitante e os aceleradores sumiam */
+  #app:has(#fieldcv) > .mh      { grid-area: head;  border-radius: var(--r-md); border-bottom: 1px solid var(--ui-border); }
+  #app:has(#fieldcv) > .spd-row { grid-area: speed; align-self: center; justify-content: flex-end; flex-wrap: nowrap; gap: 5px; border-bottom: 0; border-radius: var(--r-md); background: transparent; padding: 0; }
+  /* aceleradores compactos para caberem na largura do painel (a ~1366 os botoes
+     transbordavam para a esquerda e invadiam o time visitante). O !important
+     vence a regra base de touch (pointer:coarse) que forcava min-width:44px. */
+  #app:has(#fieldcv) > .spd-row .spd {
+    min-width: 0 !important; min-height: 36px !important;
+    padding: 6px 9px !important; font-size: 11px;
+    flex: 0 1 auto;
+  }
 
-  /* campo: casa a PROPORCAO do canvas (1024x500) em vez de esticar. Assim a
-     moldura do campo abraca o gramado exatamente — sem bandas escuras de
-     letterbox dentro da borda. O box e o maior retangulo 1024:500 que cabe na
-     celula, alinhado ao topo (o painel usa o resto da altura). */
+  /* campo: ENCHE a celula (coluna 1, linha 1fr) — mais largo e mais alto,
+     sem espaco morto. O canvas usa object-fit contain (pitch inteiro, sem corte);
+     a pequena faixa de letterbox some porque a celula ja fica perto de 2.048. */
   #app:has(#fieldcv) > .field-wrap {
     grid-area: field;
-    align-self: start; justify-self: center;
-    width: var(--field-w); height: var(--field-h);   /* definidas: sem letterbox e sem quebrar o grid */
-    max-width: 100%; min-height: 0;
+    align-self: stretch; justify-self: stretch;
+    width: 100%; height: 100%; min-height: 0;
+    max-height: none; float: none;
     border-radius: var(--r-md); overflow: hidden;
     border: 1px solid var(--ui-border);
+    --cds-narr-h: 30px;   /* banda fina da narracao no rodape do campo */
   }
-  /* o wrap ja tem a proporcao do canvas; o canvas preenche o wrap inteiro
-     (inset 0), object-fit contain = encaixe exato, sem letterbox e sem corte */
   #app:has(#fieldcv) > .field-wrap > #fieldcv {
-    position: absolute; inset: 0;
-    width: 100%; height: 100%;
-    bottom: 0; aspect-ratio: auto; object-fit: contain;
+    position: absolute; top: 0; left: 0; right: 0;
+    bottom: var(--cds-narr-h); height: calc(100% - var(--cds-narr-h));
+    width: 100%; aspect-ratio: auto; object-fit: contain;
   }
-  /* narracao ao vivo dentro do campo e redundante com a faixa de eventos (#tline)
-     logo abaixo; escondida no desktop para o gramado nao ceder 38px nem quebrar
-     a proporcao do wrap */
-  #app:has(#fieldcv) > .field-wrap > .narr { display: none; }
+  /* legenda dos lances: banda fina de 1 linha no rodape do campo (pedido do
+     usuario). Reusa .narr, que ja recebe a narracao corrente via updateNarr(). */
+  #app:has(#fieldcv) > .field-wrap > .narr {
+    display: flex; align-items: center;
+    position: absolute; left: 0; right: 0; bottom: 0;
+    height: var(--cds-narr-h); min-height: var(--cds-narr-h);
+    padding: 0 12px; margin: 0;
+    background: rgba(3, 9, 18, .96);
+    font: 700 12px var(--f-cond); letter-spacing: .3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
 
   /* eventos: faixa unica logo abaixo do campo */
   #app:has(#fieldcv) > #tline { grid-area: events; }
@@ -112,11 +122,12 @@
      desenhadas para a largura cheia da tela; dentro do painel (~560px) elas
      estouravam (o `@media(max-width:900px)` do base nao pega, pois o VIEWPORT e
      largo, so o container e estreito). Aqui elas colapsam pela largura real. */
-  #app:has(#fieldcv) > #tbody .ux-shotmaps,
   #app:has(#fieldcv) > #tbody .split-feed,
   #app:has(#fieldcv) > #tbody .opp-layout,
   #app:has(#fieldcv) > #tbody .ux-team-scoreboard,
   #app:has(#fieldcv) > #tbody .stat-board { grid-template-columns: 1fr; }
+  /* os dois campinhos de finalizacao ficam LADO A LADO (compactos) */
+  #app:has(#fieldcv) > #tbody .ux-shotmaps { grid-template-columns: 1fr 1fr; }
   #app:has(#fieldcv) > #tbody .tactic-style-grid {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
@@ -152,12 +163,19 @@
 
 /* ── TELA ESTATISTICAS: mapa de finalizacoes (2 times lado a lado) ────────── */
 .ux-shotmaps {
-  display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3);
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2);
 }
-.ux-shotmap { margin: 0; }
+.ux-shotmap { margin: 0; min-width: 0; }
 .ux-shotmap figcaption {
-  font: 800 11px var(--f-cond); letter-spacing: .6px; text-transform: uppercase;
-  margin-bottom: var(--sp-2); display: flex; align-items: center; gap: 6px;
+  font: 800 10px var(--f-cond); letter-spacing: .5px; text-transform: uppercase;
+  margin-bottom: var(--sp-1); display: flex; align-items: center; gap: 5px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.ux-shotmap svg { width: 100%; height: auto; }
-@media (max-width: 720px) { .ux-shotmaps { grid-template-columns: 1fr; } }
+/* SO o campinho (filho direto do figure) enche a largura */
+.ux-shotmap > svg { width: 100%; height: auto; display: block; }
+/* a bandeira/estrela da legenda tinha 'width:100%' herdado e inflava a ~350px,
+   estourando a altura do painel — aqui fica pequena e fixa */
+.ux-shotmap figcaption svg,
+.ux-shotmap figcaption img { width: 14px; height: 14px; flex: 0 0 auto; }
+/* legenda verbosa do fieldSVG: compacta, sem quebrar em varias linhas */
+.ux-shotmap > div { font-size: 8.5px !important; line-height: 1.3; margin-top: 3px !important; }

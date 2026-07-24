@@ -1,0 +1,6 @@
+<div class="ux-team-scoreboard">
+        <article class="ux-team-card"><div><div class="nm">${window.flagSvg(sim.teams[own].flag || '⭐', 15)} <span>${nmA}</span></div><div class="meta">${sim.teams[own].atkForm || sim.teams[own].defForm || G.formKey} · ${stA.shots} chutes · ${stA.xg.toFixed(2)} xG</div></div><div class="bar" style="background:${teamColors[own]}"></div></article>
+        <article class="ux-score-core"><div class="label">Placar ao vivo</div><div class="score">${sim.score[own]}<span style="color:#596b8d">–</span>${sim.score[opp]}</div><div class="clock">${timeLabel}</div></article>
+        <article class="ux-team-card"><div><div class="nm">${window.flagSvg(sim.teams[opp].flag || '🏳️', 15)} <span>${nmB}</span></div><div class="meta">${sim.teams[opp].atkForm || sim.teams[opp].defForm || '4-3-3'} · ${stB.shots} chutes · ${stB.xg.toFixed(2)} xG</div></div><div class="bar" style="background:${teamColors[opp]}"></div></article>
+      </div>
+      
