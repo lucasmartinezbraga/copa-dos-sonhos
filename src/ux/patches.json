@@ -190,8 +190,21 @@
   "to": "}\nwindow.__CDS_BOOT_NOW = bootGame;\n/* Gatilhos redundantes — todos idempotentes graças ao _bootStarted: */\n"
  },
  {
+  "id": "fix-goalflash-t0",
+  "rationale": "TELA TINGIDA APOS O PRIMEIRO GOL. `goalFlash.alpha` decaia em DOIS lugares independentes e nenhum deles era fonte unica: o laco da simulacao (10-base-bundle.js:9813, `alpha -= dt*1.6`) e o veu branco do desenho. Com o jogo pausado — comemoracao, replay, intervalo — a simulacao para e o alpha congela. Aqui o flash passa a carregar o instante REAL em que nasceu; os dois sitios de desenho derivam o alpha desse carimbo, entao o decaimento existe uma vez so e acontece mesmo com o jogo parado.",
+  "from": "    goalFlash = { team: e.by.team, alpha: 1.0 };",
+  "to": "    goalFlash = { team: e.by.team, alpha: 1.0, t0: performance.now() };"
+ },
+ {
   "id": "fix-goalflash-stuck",
+  "rationale": "Veu branco do gol: alpha derivado do carimbo real de `fix-goalflash-t0`. 0,625 s e o mesmo tempo do decaimento original (dt*1.6 => 1/1.6 s), agora imune a pausa. Escreve o valor de volta em `goalFlash.alpha` para que o brilho residual (fix-goalflash-residual) leia o mesmo numero no mesmo quadro.",
   "from": "  if (goalFlash && goalFlash.alpha > 0.01) {\n    ctx.fillStyle = 'rgba(255,255,255,' + (goalFlash.alpha * 0.5) + ')';\n    ctx.fillRect(0, 0, CW, CH);\n  }",
-  "to": "  if (goalFlash && goalFlash.alpha > 0.01) {\n    // O decaimento vivia no laço da SIMULAÇÃO. Com o jogo pausado —\n    // celebração, replay, intervalo — a simulação para, o alpha congela e o\n    // véu branco fica na tela para sempre, lavando as cores do campo.\n    // Aqui ele decai por tempo REAL, então some mesmo com o jogo parado.\n    const _now = performance.now();\n    if (goalFlash._wt) goalFlash.alpha = Math.max(0, goalFlash.alpha - (_now - goalFlash._wt) / 1000 * 1.6);\n    goalFlash._wt = _now;\n    if (goalFlash.alpha > 0.01) {\n      ctx.fillStyle = 'rgba(255,255,255,' + (goalFlash.alpha * 0.5) + ')';\n      ctx.fillRect(0, 0, CW, CH);\n    }\n  }"
+  "to": "  if (goalFlash) {\n    /* Fonte unica do decaimento: tempo REAL desde o gol. Sem isto o veu\n       congela com o jogo pausado e lava as cores do campo para sempre. */\n    if (goalFlash.t0 == null) goalFlash.t0 = performance.now();\n    goalFlash.alpha = Math.max(0, 1 - (performance.now() - goalFlash.t0) / 625);\n    if (goalFlash.alpha <= 0.001) goalFlash = null;\n    else {\n      ctx.fillStyle = 'rgba(255,255,255,' + (goalFlash.alpha * 0.5) + ')';\n      ctx.fillRect(0, 0, CW, CH);\n    }\n  }"
+ },
+ {
+  "id": "fix-goalflash-residual",
+  "rationale": "O SITIO QUE FICAVA TINGIDO. Este ramo pinta a tela INTEIRA com a cor do time que marcou (`fillRect(0,0,CW,CH)` a 28% de alpha) e nunca foi corrigido — o patch anterior so tratou o veu branco. Como ele le `goalFlash.alpha` e o decaimento vivia no laco da simulacao, com o jogo parado o campo ficava com um veu permanente da cor do adversario. E exatamente o sintoma relatado: 'depois que acontece o primeiro gol, fica assim dessa cor'. Agora deriva do mesmo carimbo real, e o ramo so pinta enquanto o flash de fato existe.",
+  "from": "  } else if (goalFlash && goalFlash.alpha>0.02) {\n    // brilho residual após a comemoração\n    const alpha = goalFlash.alpha;",
+  "to": "  } else if (goalFlash && (goalFlash.alpha = Math.max(0, 1 - (performance.now() - (goalFlash.t0 || (goalFlash.t0 = performance.now()))) / 625)) > 0.02) {\n    // brilho residual após a comemoração — alpha por tempo REAL (ver fix-goalflash-t0)\n    const alpha = goalFlash.alpha;"
  }
 ]
