@@ -1,0 +1,47 @@
+/* ============================================================================
+ * Copa dos Sonhos · Redesign de partida · TOKENS
+ *
+ * O brief (03_DESIGN_SYSTEM.md) define nomes semanticos: --user, --opponent,
+ * --positive, --info, --surface-1... Este arquivo MAPEIA esses nomes sobre a
+ * paleta que ja existe (src/r13/styles/00-bundle.css), em vez de introduzir uma
+ * segunda fonte de cor. O brief manda exatamente isso: "ajuste os valores a
+ * paleta existente" e "nao copie sem verificar contraste".
+ *
+ * Regra: nenhuma cor nova e inventada aqui a nao ser onde a paleta base nao tem
+ * equivalente (superficies e bordas da casca, disabled). Onde ja existe, e
+ * alias — assim trocar --ouro troca o usuario em todo lugar.
+ * ========================================================================== */
+:root {
+  /* ── semanticos do brief -> paleta existente (alias, nao duplicata) ────── */
+  --user:      var(--ouro);      /* #ffcb45 — usuario, selecao, CTA */
+  --user-2:    var(--ouro2);     /* #e6ae1f — usuario, estado pressionado */
+  --opponent:  var(--rosa);      /* #fb7185 — adversario, perigo */
+  --positive:  var(--verde);     /* #4ade80 — condicao positiva */
+  --info:      var(--azul);      /* #38bdf8 — informacao neutra */
+  --text-1:    var(--txt);       /* #f8fafc */
+  --text-2:    var(--mut);       /* #94a3b8 */
+
+  /* ── superficies e bordas da casca (nao existiam com estes papeis) ─────── */
+  --ui-bg-0:      #06101f;
+  --ui-bg-1:      #0a1629;
+  --ui-surface-1: rgba(16, 31, 55, .72);   /* painel lateral */
+  --ui-surface-2: rgba(23, 40, 66, .85);   /* card dentro do painel */
+  --ui-border:    rgba(38, 59, 89, .9);
+  --ui-disabled:  #56647a;
+  --ui-warning:   #ff9f36;                  /* atencao — laranja do brief */
+
+  /* ── layout da casca de partida ────────────────────────────────────────── */
+  --shell-gap:      var(--sp-4);
+  --shell-pad:      var(--sp-4);
+  --side-min:       300px;
+  --side-max:       400px;
+  --side-pref:      27vw;        /* alvo: painel 26-32% (brief §5) */
+  --bp-shell:       900px;       /* abaixo disto = pilha mobile atual */
+
+  /* ── z-index centralizado (brief §11) ──────────────────────────────────── */
+  --z-field:   1;
+  --z-hud:     10;
+  --z-sheet:   40;
+  --z-modal:   60;
+  --z-toast:   80;
+}

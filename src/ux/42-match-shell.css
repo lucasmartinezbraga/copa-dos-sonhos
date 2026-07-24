@@ -1,0 +1,110 @@
+/* ============================================================================
+ * Copa dos Sonhos · Redesign de partida · CASCA DESKTOP (cockpit)
+ *
+ * Transforma a pilha vertical atual em campo + painel lateral, SEM tocar no
+ * HTML de `render()` nem nos 41 patches de apresentacao. Tudo por CSS Grid
+ * sobre os mesmos nos, com os mesmos `id`s.
+ *
+ * Por que da certo em CSS puro: os filhos de #app (.mh, .spd-row, #statsb,
+ * #tline, .field-wrap, .mtabs, #tbody) sao todos irmaos diretos. O grid os
+ * reposiciona por area sem mover ninguem na arvore — os 11 nos do contrato de
+ * integracao (reports/ui/01-AUDITORIA-UI-ATUAL.md §3) continuam existindo e no
+ * lugar que as funcoes de paint esperam.
+ *
+ * `:has()` ja e dependencia do projeto (o CSS atual usa #app:has(#fieldcv)).
+ * Abaixo de --bp-shell a pilha mobile atual continua valendo, intocada.
+ * ========================================================================== */
+
+@media (min-width: 900px) {
+  /* ── grid de duas colunas: campo protagonista + painel 26-32% ─────────── */
+  #app:has(#fieldcv) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(var(--side-min), var(--side-pref), var(--side-max));
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    column-gap: var(--shell-gap);
+    row-gap: var(--sp-3);
+    align-content: stretch;
+    padding: var(--shell-pad);
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  /* cabecalho: placar sobre o campo, controles de velocidade sobre o painel */
+  #app:has(#fieldcv) > .mh      { grid-column: 1; grid-row: 1; border-radius: var(--r-md); border-bottom: 1px solid var(--ui-border); }
+  #app:has(#fieldcv) > .spd-row { grid-column: 2; grid-row: 1; border-bottom: 0; border-radius: var(--r-md); align-items: center; }
+
+  /* campo: ocupa a coluna 1 inteira e a linha flexivel — sem teto de altura,
+     entao o letterbox lateral (medido em 638px / 33% a 1920) praticamente some */
+  #app:has(#fieldcv) > .field-wrap {
+    grid-column: 1; grid-row: 2;
+    max-height: none; height: 100%; min-height: 0;
+    border-radius: var(--r-md); overflow: hidden;
+    border: 1px solid var(--ui-border);
+  }
+  #app:has(#fieldcv) > .field-wrap > #fieldcv {
+    height: 100%; width: 100%; object-fit: contain;
+  }
+
+  /* eventos: faixa unica logo abaixo do campo */
+  #app:has(#fieldcv) > #tline { grid-column: 1; grid-row: 3; }
+
+  /* navegacao inferior compacta */
+  #app:has(#fieldcv) > .mtabs { grid-column: 1; grid-row: 4; border-radius: var(--r-md); }
+
+  /* corpo de aba: quando uma aba abre, ocupa a coluna 1 sobre eventos+nav,
+     rolando localmente; a aba padrao (Visao geral) deixa isso vazio */
+  #app:has(#fieldcv) > #tbody {
+    grid-column: 1; grid-row: 2 / 5;
+    min-height: 0; overflow: auto;
+    align-self: stretch;
+  }
+  #app:has(#fieldcv) > #tbody:empty { display: none; }
+
+  /* ── PAINEL LATERAL "RESUMO AO VIVO" (o #statsb reaproveitado) ─────────── */
+  #app:has(#fieldcv) > #statsb {
+    grid-column: 2; grid-row: 2 / 5;
+    display: flex; flex-direction: column; gap: var(--sp-4);
+    align-self: stretch; min-height: 0; overflow-y: auto;
+    background: var(--ui-surface-1);
+    border: 1px solid var(--ui-border);
+    border-radius: var(--r-lg);
+    padding: var(--sp-4);
+    border-bottom: 1px solid var(--ui-border);
+  }
+  /* posse: barra cheia no topo do painel */
+  #app:has(#fieldcv) > #statsb > .poss-wrap {
+    display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--sp-2);
+  }
+  #app:has(#fieldcv) > #statsb > .poss-wrap::before {
+    content: "POSSE"; grid-column: 1 / -1;
+    font: 800 9px var(--f-cond); letter-spacing: 1.6px; color: var(--info); text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  /* numeros (chutes / no alvo / escanteios): empilhados como linhas comparativas */
+  #app:has(#fieldcv) > #statsb > .quick-stat {
+    display: flex; flex-direction: column; gap: var(--sp-2);
+  }
+  #app:has(#fieldcv) > #statsb > .quick-stat .sbn {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: var(--sp-2) var(--sp-3); font-variant-numeric: tabular-nums;
+  }
+  /* a casca REVELA o que o field-first escondia: no alvo e momentum voltam */
+  #app:has(#fieldcv) > #statsb > .quick-stat .sbn:nth-child(2) { display: flex; }
+  #app:has(#fieldcv) > #statsb > .momentum-strip {
+    display: block; margin-top: auto;
+  }
+  #app:has(#fieldcv) > #statsb > .momentum-strip > #momcv {
+    width: 100%; height: auto;
+  }
+
+  /* dica de "arraste para cima" nao faz sentido no desktop de duas colunas */
+  #app:has(#fieldcv) > .match-scroll-hint { display: none; }
+
+  /* ultrawide: nao deixa o painel esticar demais nem o campo virar faixa */
+  @media (min-width: 2200px) {
+    #app:has(#fieldcv) {
+      max-width: 2100px; margin-inline: auto;
+    }
+  }
+}
