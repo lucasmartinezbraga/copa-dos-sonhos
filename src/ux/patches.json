@@ -211,7 +211,7 @@
   "id": "stats-shotmap-momentum",
   "rationale": "§tela Estatisticas: adiciona Mapa de finalizacoes (reusa window.CDS_POST_MATCH.shotMap/fieldSVG, ja expostos e usam coordenadas reais dos eventos) e Momento da partida (reusa momHist, ja gravado). Ambos so aparecem com dado real; o momentum mostra aviso ate haver dado. Nenhuma logica de calculo nova.",
   "from": "}).join('')}</section>`).join('')+'</div></section></div>';\n}",
-  "to": "}).join('')}</section>`).join('')+'</div></section>'\n    + ((window.CDS_POST_MATCH && window.CDS_POST_MATCH.shotMap) ? `<section class=\"ux-surface\"><div class=\"ux-section-head\"><div><div class=\"ttl\">Mapa de finalizações</div><div class=\"sub\">Posição real de cada finalização · tamanho = xG</div></div></div><div class=\"ux-shotmaps\"><figure class=\"ux-shotmap\"><figcaption style=\"color:${Ac}\">${f0} ${n0}</figcaption>${window.CDS_POST_MATCH.fieldSVG(window.CDS_POST_MATCH.shotMap(sim,0))}</figure><figure class=\"ux-shotmap\"><figcaption style=\"color:${Bc}\">${f1} ${n1}</figcaption>${window.CDS_POST_MATCH.fieldSVG(window.CDS_POST_MATCH.shotMap(sim,1))}</figure></div></section>` : '')\n    + `<section class=\"ux-surface\"><div class=\"ux-section-head\"><div><div class=\"ttl\">Momento da partida</div><div class=\"sub\">Pressão de cada time ao longo do tempo</div></div></div>${(()=>{const H=64,W=320,mid=H/2,n=momHist.length;if(!n)return '<p class=\\\"mut\\\" style=\\\"font-size:12px;padding:6px 2px\\\">Ainda sem dados de momentum — aparece conforme o jogo anda.</p>';const bw=W/Math.max(70,n);let bars='';for(let i=0;i<n;i++){const m=Math.max(-1,Math.min(1,momHist[i]));const h=Math.abs(m)*(mid-3);const y=m>=0?mid-h:mid;const c=m>=0?Ac:Bc;bars+=`<rect x=\\\"${(i*bw).toFixed(1)}\\\" y=\\\"${y.toFixed(1)}\\\" width=\\\"${Math.max(1,bw-1).toFixed(1)}\\\" height=\\\"${h.toFixed(1)}\\\" fill=\\\"${c}\\\" fill-opacity=\\\".85\\\"/>`;}return `<svg viewBox=\\\"0 0 ${W} ${H}\\\" style=\\\"width:100%;height:auto;background:rgba(5,11,22,.5);border-radius:10px;display:block\\\"><line x1=\\\"0\\\" y1=\\\"${mid}\\\" x2=\\\"${W}\\\" y2=\\\"${mid}\\\" stroke=\\\"rgba(255,255,255,.16)\\\" stroke-width=\\\"1\\\"/>${bars}</svg>`;})()}</section>`\n    + '</div>';\n}"
+  "to": "}).join('')}</section>`).join('')+'</div></section>'\n    + ((window.CDS_POST_MATCH && window.CDS_POST_MATCH.shotMap) ? `<section class=\"ux-surface\"><div class=\"ux-section-head\"><div><div class=\"ttl\">Mapa de finalizações</div><div class=\"sub\">Posição real de cada finalização · tamanho = xG</div></div></div><div class=\"ux-shotmaps\"><figure class=\"ux-shotmap\"><figcaption style=\"color:${Ac}\">${f0} ${n0}</figcaption>${window.CDS_POST_MATCH.fieldSVG(window.CDS_POST_MATCH.shotMap(sim,0))}</figure><figure class=\"ux-shotmap\"><figcaption style=\"color:${Bc}\">${f1} ${n1}</figcaption>${window.CDS_POST_MATCH.fieldSVG(window.CDS_POST_MATCH.shotMap(sim,1))}</figure></div></section>` : '')\n    + `<section class=\"ux-surface\"><div class=\"ux-section-head\"><div><div class=\"ttl\">Momento da partida</div><div class=\"sub\">Pressao de cada time · eixo 0-90 min</div></div></div>${(()=>{const H=84,W=320,PADB=14,mid=(H-PADB)/2,FT=(sim&&sim.half>=3)?120:90,n=momHist.length;const val=e=>(e&&typeof e==='object')?e.v:e;const minu=e=>(e&&typeof e==='object'&&e.m!=null)?e.m:null;if(!n||minu(momHist[0])==null)return '<p class=\\\"mut\\\" style=\\\"font-size:12px;padding:6px 2px\\\">Ainda sem dados de momentum — aparece conforme o jogo anda.</p>';const bw=Math.max(2,W/Math.min(120,Math.max(30,FT)));let bars='';for(let i=0;i<n;i++){const mm=minu(momHist[i]);if(mm==null)continue;const x=Math.max(0,Math.min(W-bw,(mm/FT)*W-bw/2));const m=Math.max(-1,Math.min(1,val(momHist[i])));const h=Math.abs(m)*(mid-2);const y=m>=0?mid-h:mid;const c=m>=0?Ac:Bc;bars+=`<rect x=\\\"${x.toFixed(1)}\\\" y=\\\"${y.toFixed(1)}\\\" width=\\\"${bw.toFixed(1)}\\\" height=\\\"${h.toFixed(1)}\\\" fill=\\\"${c}\\\" fill-opacity=\\\".9\\\"/>`;}let ticks='';const marks=FT>90?[0,30,60,90,120]:[0,15,30,45,60,75,90];for(const t of marks){const x=(t/FT)*W;const anc=t===0?'start':(t===FT?'end':'middle');ticks+=`<line x1=\\\"${x.toFixed(1)}\\\" y1=\\\"2\\\" x2=\\\"${x.toFixed(1)}\\\" y2=\\\"${(H-PADB).toFixed(1)}\\\" stroke=\\\"rgba(255,255,255,.08)\\\" stroke-width=\\\"1\\\"/>`+`<text x=\\\"${x.toFixed(1)}\\\" y=\\\"${(H-2)}\\\" fill=\\\"#7f92b0\\\" font-size=\\\"8.5\\\" text-anchor=\\\"${anc}\\\">${t}'</text>`;}return `<svg viewBox=\\\"0 0 ${W} ${H}\\\" style=\\\"width:100%;height:auto;background:rgba(5,11,22,.5);border-radius:10px;display:block\\\">${ticks}<line x1=\\\"0\\\" y1=\\\"${mid}\\\" x2=\\\"${W}\\\" y2=\\\"${mid}\\\" stroke=\\\"rgba(255,255,255,.18)\\\" stroke-width=\\\"1\\\"/>${bars}</svg>`;})()}</section>`\n    + '</div>';\n}"
  },
  {
   "id": "nav-drop-elenco",
@@ -248,5 +248,29 @@
   "rationale": "§redesign Estatisticas: remove os chips-heroi do topo (ux-stat-hero: placar/posse/xG/precisao) — duplicam os 4 grupos de comparacao logo abaixo. Painel mais denso.",
   "from": "<div class=\"ux-stat-hero\"><div class=\"ux-stat-chip\"><div class=\"k\">Placar</div><div class=\"v\">${sim.score[0]} <span style=\"color:#5b7090\">×</span> ${sim.score[1]}</div></div><div class=\"ux-stat-chip\"><div class=\"k\">Posse</div><div class=\"v\">${pa}% <span style=\"color:#5b7090\">×</span> ${pb}%</div></div><div class=\"ux-stat-chip\"><div class=\"k\">xG</div><div class=\"v\">${s[own].xg.toFixed(2)} <span style=\"color:#5b7090\">×</span> ${s[opp].xg.toFixed(2)}</div></div><div class=\"ux-stat-chip\"><div class=\"k\">Precisão de passe</div><div class=\"v\">${Math.round(s[own].passOk/Math.max(1,s[own].passes)*100)}%</div><div class=\"hint\">seu time</div></div></div>",
   "to": ""
+ },
+ {
+  "id": "momhist-store-minute",
+  "rationale": "§momentum com tempo: cada amostra guarda o minuto (m) alem do valor (v). E render (startLoop), fora do sim headless -> paridade intacta.",
+  "from": "momHist.push(sim.momentum||0)",
+  "to": "momHist.push({m:sim.minute,v:sim.momentum||0})"
+ },
+ {
+  "id": "paintmom-safe-read",
+  "rationale": "§momentum: paintMom le o novo formato {m,v} (compat com numero antigo).",
+  "from": "const m=momHist[i], h=Math.min(H/2-1,Math.abs(m)*(H/2-1))",
+  "to": "const _e=momHist[i], m=(_e&&typeof _e==='object'?_e.v:_e), h=Math.min(H/2-1,Math.abs(m)*(H/2-1))"
+ },
+ {
+  "id": "momhist-cap",
+  "rationale": "§momentum 0-90: sobe o teto do historico de 110 para 320 para o jogo inteiro caber (em 1x um match gera ~270 amostras; com 110 perdia os minutos iniciais). Render-only.",
+  "from": "if (momHist.length>110) momHist.shift()",
+  "to": "if (momHist.length>320) momHist.shift()"
+ },
+ {
+  "id": "paintmom-scale",
+  "rationale": "§momentum: paintMom (#momcv) espaca as barras pelo n real (antes fixo em W/110, quebraria com o teto maior).",
+  "from": "const n=momHist.length; if(!n) return; const bw=W/110;",
+  "to": "const n=momHist.length; if(!n) return; const bw=W/Math.max(110,n);"
  }
 ]

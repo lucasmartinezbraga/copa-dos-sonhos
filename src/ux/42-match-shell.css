@@ -126,8 +126,12 @@
   #app:has(#fieldcv) > #tbody .opp-layout,
   #app:has(#fieldcv) > #tbody .ux-team-scoreboard,
   #app:has(#fieldcv) > #tbody .stat-board { grid-template-columns: 1fr; }
-  /* os dois campinhos de finalizacao ficam LADO A LADO (compactos) */
-  #app:has(#fieldcv) > #tbody .ux-shotmaps { grid-template-columns: 1fr 1fr; }
+  /* os dois campinhos de finalizacao ficam LADO A LADO, um pouco MAIORES:
+     gap menor + a secao usa a largura cheia do painel (compensa o padding) */
+  #app:has(#fieldcv) > #tbody .ux-shotmaps {
+    grid-template-columns: 1fr 1fr; gap: var(--sp-1);
+    margin-inline: calc(-1 * var(--sp-2));
+  }
   #app:has(#fieldcv) > #tbody .tactic-style-grid {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
@@ -149,6 +153,21 @@
     background: linear-gradient(180deg, #ffe38a, var(--user) 55%, var(--user-2));
     color: #241a00; border-color: transparent;
   }
+
+  /* ── FIM DE JOGO ──────────────────────────────────────────────────────────
+     endOfPlay() troca o innerHTML de .spd-row pelo CARD DE RESULTADO (grande).
+     Na casca, .spd-row e uma celula pequena (area "speed") — o card estourava e
+     quebrava a tela. Aqui, quando o card existe, ele ocupa a AREA DO CAMPO
+     (centrado, rolando), e o campo vazio some. */
+  #app:has(#fieldcv):has(.result-card) > .field-wrap { display: none; }
+  #app:has(#fieldcv):has(.result-card) > .spd-row {
+    grid-area: field; align-self: center; justify-self: center;
+    width: min(100%, 560px); max-height: 100%; overflow-y: auto;
+    padding: 0; background: transparent; display: block;
+  }
+  #app:has(#fieldcv):has(.result-card) > .spd-row .result-card { width: 100%; }
+  /* o painel lateral sobe para preencher a coluna (area speed fica livre) */
+  #app:has(#fieldcv):has(.result-card) > #tbody { grid-row: 1 / -1; }
 
   /* dica de "arraste para cima" nao faz sentido no desktop de duas colunas */
   #app:has(#fieldcv) > .match-scroll-hint { display: none; }
