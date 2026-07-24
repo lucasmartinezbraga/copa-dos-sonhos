@@ -31,10 +31,20 @@ def read_layer(subdir, ext):
     files = sorted(p for p in d.glob(f"*.{ext}"))
     return files, "\n".join(p.read_text(encoding="utf-8") for p in files)
 
+def flag_values(name):
+    """Todas as ocorrências de `--name valor` na linha de comando."""
+    out = []
+    for i, a in enumerate(sys.argv):
+        if a == name and i + 1 < len(sys.argv):
+            out.append(sys.argv[i + 1])
+    return out
+
 def main():
     out_arg = None
     if "--out" in sys.argv:
         out_arg = sys.argv[sys.argv.index("--out") + 1]
+    force_on = set(flag_values("--with"))
+    force_off = set(flag_values("--without"))
 
     html = build_r13_html()
     # confere que a base R13 está intacta antes de injetar
@@ -46,15 +56,31 @@ def main():
     # INTENCIONAIS de comportamento, cada uma com justificativa registrada no
     # próprio arquivo. A R13.0 permanece congelada e byte-verificável acima; é
     # aqui que a R14 passa a divergir dela, de forma explícita e auditável.
+    # Um patch com "enabled": false é EXPERIMENTO: fica registrado no arquivo,
+    # com justificativa, mas NÃO embarca. Só entra se pedido explicitamente com
+    # --with <id>. Sem isso o build silenciosamente embarcava experimentos e a
+    # candidata declarada deixava de ser reproduzível a partir da fonte.
     engine_path = ROOT / "src/r14/patches-engine.json"
-    engine_applied = []
+    engine_applied, engine_skipped = [], []
     if engine_path.exists():
         for p in json.loads(engine_path.read_bytes().decode("utf-8")):
+            pid = p["id"]
+            on = p.get("enabled", True)
+            if pid in force_on:
+                on = True
+            if pid in force_off:
+                on = False
+            if not on:
+                engine_skipped.append(pid)
+                continue
             n = html.count(p["from"])
             if n != 1:
-                sys.exit(f"ERRO: patch de MOTOR '{p['id']}' ocorre {n}x na base (esperado 1)")
+                sys.exit(f"ERRO: patch de MOTOR '{pid}' ocorre {n}x na base (esperado 1)")
             html = html.replace(p["from"], p["to"], 1)
-            engine_applied.append(p["id"])
+            engine_applied.append(pid)
+    unknown = (force_on | force_off) - set(engine_applied) - set(engine_skipped)
+    if unknown:
+        sys.exit(f"ERRO: --with/--without citam patch inexistente: {sorted(unknown)}")
 
     # patches de APRESENTAÇÃO no candidato (precedente: inject_r13.js).
     # Cada 'from' precisa ocorrer exatamente 1x — se a base mudar, o build grita.
@@ -95,6 +121,7 @@ def main():
     print(out)
     print("base R13 (intacta):", base_sha[:16], "…")
     print("patches de MOTOR (R14):", engine_applied or "nenhum")
+    print("patches de MOTOR ignorados:", engine_skipped or "nenhum")
     print("camada de MOTOR (R14):", [p.name for p in r14_files] or "nenhuma")
     print("patches aplicados:", patched or "nenhum")
     print("camada UX: ", [p.name for p in css_files + js_files])

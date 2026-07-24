@@ -1,0 +1,163 @@
+{
+ "verdict": "REPROVA",
+ "why": "bloco A falhou: o patch nao entregou o ganho prometido",
+ "candidate": "1e0e8dc36f37ba38cd33cdaa84499eb82a81d71e17f3d788dc45dde4f1e0cedf",
+ "matrix": "reports/r15/real-r161.json",
+ "jitter": "reports/r15/jitter-r161.json",
+ "checks": [
+  {
+   "bloco": "A",
+   "nome": "giros bruscos geral",
+   "valor": 0.0042,
+   "alvo": "<= 0,004",
+   "ok": false
+  },
+  {
+   "bloco": "A",
+   "nome": "giros bruscos perto da bola",
+   "valor": 0.0119,
+   "alvo": "<= 0,012",
+   "ok": true
+  },
+  {
+   "bloco": "A",
+   "nome": "giro medio (nao engessar)",
+   "valor": 2.4,
+   "alvo": ">= 1,9",
+   "ok": true
+  },
+  {
+   "bloco": "B",
+   "nome": "cobertura de ameaca",
+   "valor": 0.5537,
+   "alvo": ">= 0,530",
+   "ok": true
+  },
+  {
+   "bloco": "B",
+   "nome": "distancia do marcador",
+   "valor": 8.5726,
+   "alvo": "<= 8,90",
+   "ok": true
+  },
+  {
+   "bloco": "B",
+   "nome": "sobrecarga coberta",
+   "valor": 0.5407,
+   "alvo": ">= 0,520",
+   "ok": true
+  },
+  {
+   "bloco": "B",
+   "nome": "sub-gate marking",
+   "valor": "1/294",
+   "alvo": ">= 1/294",
+   "ok": true
+  },
+  {
+   "bloco": "C",
+   "nome": "gols/jogo",
+   "valor": 2.912,
+   "alvo": "2.8–3.45",
+   "ok": true
+  },
+  {
+   "bloco": "C",
+   "nome": "chutes/jogo",
+   "valor": 20.296,
+   "alvo": "18.0–23.0",
+   "ok": true
+  },
+  {
+   "bloco": "C",
+   "nome": "passes/jogo",
+   "valor": 181.19,
+   "alvo": "172–190",
+   "ok": true
+  },
+  {
+   "bloco": "C",
+   "nome": "impedimentos/jogo",
+   "valor": 3.34,
+   "alvo": "2.8–4.6",
+   "ok": true
+  },
+  {
+   "bloco": "D",
+   "nome": "transacional CONSISTENT",
+   "valor": "294/294",
+   "alvo": "294/294",
+   "ok": true
+  },
+  {
+   "bloco": "D",
+   "nome": "sha do artefato",
+   "valor": "1e0e8dc36f37",
+   "alvo": "= candidata",
+   "ok": true
+  },
+  {
+   "bloco": "D",
+   "nome": "teleportes/partida",
+   "valor": 16.1,
+   "alvo": "<= 25",
+   "ok": true
+  },
+  {
+   "bloco": "D",
+   "nome": "r13_byte_identical",
+   "valor": true,
+   "alvo": "True",
+   "ok": true
+  },
+  {
+   "bloco": "D",
+   "nome": "candidate_reproducible",
+   "valor": true,
+   "alvo": "True",
+   "ok": true
+  },
+  {
+   "bloco": "D",
+   "nome": "syntax_ok",
+   "valor": true,
+   "alvo": "True",
+   "ok": true
+  },
+  {
+   "bloco": "D",
+   "nome": "smoke_ok",
+   "valor": true,
+   "alvo": "True",
+   "ok": true
+  },
+  {
+   "bloco": "D",
+   "nome": "scenarios_ok",
+   "valor": true,
+   "alvo": "True",
+   "ok": true
+  },
+  {
+   "bloco": "E",
+   "nome": "noDominantStyle",
+   "valor": true,
+   "alvo": "True",
+   "ok": true
+  },
+  {
+   "bloco": "E",
+   "nome": "ppgRange",
+   "valor": 0.6548,
+   "alvo": "<= 0,75",
+   "ok": true
+  },
+  {
+   "bloco": "E",
+   "nome": "maior perda de ppg por estilo (balanced)",
+   "valor": 0.381,
+   "alvo": "<= 0,45",
+   "ok": true
+  }
+ ]
+}

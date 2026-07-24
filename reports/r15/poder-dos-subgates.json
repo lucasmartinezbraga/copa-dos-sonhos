@@ -1,0 +1,220 @@
+{
+ "marking": {
+  "threatCoverage": {
+   "R15.9 (ctl)": {
+    "media": 0.5590703495070368,
+    "p90": 0.6135743519781719,
+    "limiar": 0.65,
+    "op": ">=",
+    "passa": 3,
+    "n": 294,
+    "taxa_de_passagem": 0.01020408163265306,
+    "sem_poder": true,
+    "metrica_constante": false
+   },
+   "R16.0": {
+    "media": 0.5487676791053302,
+    "p90": 0.5991575991575991,
+    "limiar": 0.65,
+    "op": ">=",
+    "passa": 0,
+    "n": 294,
+    "taxa_de_passagem": 0.0,
+    "sem_poder": true,
+    "metrica_constante": false
+   },
+   "R16.2": {
+    "media": 0.5516510053695451,
+    "p90": 0.6043800777110562,
+    "limiar": 0.65,
+    "op": ">=",
+    "passa": 0,
+    "n": 294,
+    "taxa_de_passagem": 0.0,
+    "sem_poder": true,
+    "metrica_constante": false
+   }
+  },
+  "markerMeanDistance": {
+   "R15.9 (ctl)": {
+    "media": 8.475188050567992,
+    "p90": 9.788461431432506,
+    "limiar": 8.5,
+    "op": "<=",
+    "passa": 171,
+    "n": 294,
+    "taxa_de_passagem": 0.5816326530612245,
+    "sem_poder": false,
+    "metrica_constante": false
+   },
+   "R16.0": {
+    "media": 8.663891755679503,
+    "p90": 10.191371249587036,
+    "limiar": 8.5,
+    "op": "<=",
+    "passa": 148,
+    "n": 294,
+    "taxa_de_passagem": 0.5034013605442177,
+    "sem_poder": false,
+    "metrica_constante": false
+   },
+   "R16.2": {
+    "media": 8.607724656848928,
+    "p90": 9.869123751161489,
+    "limiar": 8.5,
+    "op": "<=",
+    "passa": 153,
+    "n": 294,
+    "taxa_de_passagem": 0.5204081632653061,
+    "sem_poder": false,
+    "metrica_constante": false
+   }
+  }
+ },
+ "spatialOverload": {
+  "spatialOverloadCoverage": {
+   "R15.9 (ctl)": {
+    "media": 0.5397237016877856,
+    "p90": 0.6278606965174129,
+    "limiar": 0.62,
+    "op": ">=",
+    "passa": 35,
+    "n": 294,
+    "taxa_de_passagem": 0.11904761904761904,
+    "sem_poder": false,
+    "metrica_constante": false
+   },
+   "R16.0": {
+    "media": 0.5378087829543443,
+    "p90": 0.6082802547770698,
+    "limiar": 0.62,
+    "op": ">=",
+    "passa": 18,
+    "n": 294,
+    "taxa_de_passagem": 0.061224489795918366,
+    "sem_poder": false,
+    "metrica_constante": false
+   },
+   "R16.2": {
+    "media": 0.5392255660815468,
+    "p90": 0.6188118811881188,
+    "limiar": 0.62,
+    "op": ">=",
+    "passa": 28,
+    "n": 294,
+    "taxa_de_passagem": 0.09523809523809523,
+    "sem_poder": false,
+    "metrica_constante": false
+   }
+  }
+ },
+ "lines": {
+  "defensiveLineMeanRange": {
+   "R15.9 (ctl)": {
+    "media": 6.8689334958982196,
+    "p90": 7.996764389929313,
+    "limiar": 10.0,
+    "op": "<=",
+    "passa": 294,
+    "n": 294,
+    "taxa_de_passagem": 1.0,
+    "sem_poder": true,
+    "metrica_constante": false
+   },
+   "R16.0": {
+    "media": 6.950346396804746,
+    "p90": 7.984614484455683,
+    "limiar": 10.0,
+    "op": "<=",
+    "passa": 294,
+    "n": 294,
+    "taxa_de_passagem": 1.0,
+    "sem_poder": true,
+    "metrica_constante": false
+   },
+   "R16.2": {
+    "media": 6.920843762872079,
+    "p90": 8.142791299978828,
+    "limiar": 10.0,
+    "op": "<=",
+    "passa": 294,
+    "n": 294,
+    "taxa_de_passagem": 1.0,
+    "sem_poder": true,
+    "metrica_constante": false
+   }
+  },
+  "disconnectedLineRate": {
+   "R15.9 (ctl)": {
+    "media": 0.39095324137699633,
+    "p90": 0.4715447154471545,
+    "limiar": 0.22,
+    "op": "<=",
+    "passa": 1,
+    "n": 294,
+    "taxa_de_passagem": 0.003401360544217687,
+    "sem_poder": true,
+    "metrica_constante": false
+   },
+   "R16.0": {
+    "media": 0.39665706851159743,
+    "p90": 0.47613504074505236,
+    "limiar": 0.22,
+    "op": "<=",
+    "passa": 0,
+    "n": 294,
+    "taxa_de_passagem": 0.0,
+    "sem_poder": true,
+    "metrica_constante": false
+   },
+   "R16.2": {
+    "media": 0.3943491086219172,
+    "p90": 0.46945701357466063,
+    "limiar": 0.22,
+    "op": "<=",
+    "passa": 1,
+    "n": 294,
+    "taxa_de_passagem": 0.003401360544217687,
+    "sem_poder": true,
+    "metrica_constante": false
+   }
+  }
+ },
+ "ball": {
+  "bodyOrientationMismatch": {
+   "R15.9 (ctl)": {
+    "media": 0,
+    "p90": 0,
+    "limiar": 0.1,
+    "op": "<=",
+    "passa": 294,
+    "n": 294,
+    "taxa_de_passagem": 1.0,
+    "sem_poder": true,
+    "metrica_constante": true
+   },
+   "R16.0": {
+    "media": 0,
+    "p90": 0,
+    "limiar": 0.1,
+    "op": "<=",
+    "passa": 294,
+    "n": 294,
+    "taxa_de_passagem": 1.0,
+    "sem_poder": true,
+    "metrica_constante": true
+   },
+   "R16.2": {
+    "media": 0,
+    "p90": 0,
+    "limiar": 0.1,
+    "op": "<=",
+    "passa": 294,
+    "n": 294,
+    "taxa_de_passagem": 1.0,
+    "sem_poder": true,
+    "metrica_constante": true
+   }
+  }
+ }
+}

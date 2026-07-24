@@ -1,0 +1,27 @@
+{
+ "mutations_run": 1,
+ "detected": 1,
+ "trustworthy": true,
+ "results": [
+  {
+   "id": "mut-hidden-style-bonus",
+   "title": "Bônus oculto de gol para o estilo 'wings'",
+   "why": "§7 — 'formação dominante por regra escondida' e §56 — 'bônus direto de gol por estilo'. Testa a varredura do §41.",
+   "proves": "A varredura estática acusa modificador novo por nome de estilo.",
+   "expect_fail": [
+    "no_hidden_modifiers"
+   ],
+   "mutant_sha256": "72afc8767cf4bbdf51b60463a38ebda2a9989b3b78925de151abe26a321177ef",
+   "detected": true,
+   "gate_states": {
+    "no_hidden_modifiers": {
+     "status": "FAIL",
+     "value": 1,
+     "n": 14,
+     "reason": "1 viola == 0 com n=14"
+    }
+   },
+   "verdict": "REPROVADA"
+  }
+ ]
+}

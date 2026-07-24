@@ -108,3 +108,77 @@
 @media (pointer: coarse) {
   .spd.spdbtn, .spd-row .spd, .rrbtn, #bt-pause { min-height: 44px !important; min-width: 44px !important; }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   CAMPO CORTADO — teto de altura para a faixa do campo.
+
+   Medido em navegador real (tools/r15/browser_match_layout.py, 1440x810):
+     .mh          0 →  58
+     statsb     109 → 189
+     .field-wrap 217 → 920   ← 703px, de `aspect-ratio:1024/500` com width:100%
+     .narr       887 → 919   fora da janela
+     .mtabs      934 → 984   fora da janela
+     canvas visível na janela: 84,3%
+
+   A regra do campo tinha proporção fixa e NENHUM teto de altura. A 1440px de
+   largura a proporção 2,048 exige 703px de altura; com os 217px de cabeçalho e
+   placar acima, o bloco termina em 920px numa janela de 810. E como o documento
+   tem exatamente a altura da janela (docHeight == 810), a página não rola: a
+   narração e as abas não ficavam escondidas, ficavam INALCANÇÁVEIS.
+
+   O teto reserva o espaço de cima (217px) e das abas (~68px): com 275px as
+   abas ainda terminavam 6px abaixo da dobra numa janela de 810. O canvas já usa
+   `object-fit:contain`, então a proporção é preservada por letterbox e o campo
+   aparece INTEIRO, apenas menor — em vez de ser recortado.
+
+   Sem !important e sem altura fixa: apenas o limite que faltava. */
+#app:has(#fieldcv) .field-wrap,
+#app:has(.mh) > .field-wrap {
+  max-height: calc(100dvh - 285px);
+}
+#app:has(#fieldcv) #fieldcv,
+#app:has(.mh) > .field-wrap #fieldcv {
+  height: 100%;
+  object-fit: contain;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   LEGENDA DA JOGADA CORTANDO O CAMPO.
+
+   `.narr` é `position:absolute; bottom:0` DENTRO de `.field-wrap`, com um
+   gradiente escuro sobre o gramado. Medido em navegador (1440x810, R15.3):
+   o campo termina em 752px e a narração ocupa de 709 a 741 — ou seja, os
+   últimos ~43px do gramado ficam sob a tarja. Quanto menor o campo, maior a
+   fração comida.
+
+   Aqui a narração ganha FAIXA PRÓPRIA e o canvas passa a terminar acima dela.
+   O canvas já usa `object-fit:contain`, então reduzir a altura disponível
+   apenas reduz o letterbox — o campo continua INTEIRO, só que sem nada por
+   cima. Nenhuma altura fixa no campo: só a reserva da faixa. */
+#app:has(#fieldcv) .field-wrap,
+#app:has(.mh) > .field-wrap { --cds-narr-h: 38px; }
+
+#app:has(#fieldcv) .field-wrap > .narr,
+#app:has(.mh) > .field-wrap > .narr {
+  height: var(--cds-narr-h);
+  min-height: var(--cds-narr-h);
+  padding-top: 0;
+  padding-bottom: 0;
+  display: flex;
+  align-items: center;
+  background: rgba(3, 9, 18, .94);   /* faixa sólida, não véu sobre o gramado */
+}
+
+/* `height:auto` fazia o canvas voltar a se dimensionar pela propria
+   `aspect-ratio` (703px a 1440 de largura) e estourar o teto do wrap — o
+   recorte pulou para 178px. Altura explicita e `aspect-ratio:auto`: quem
+   preserva a proporcao da imagem e o `object-fit:contain`, nao a caixa. */
+#app:has(#fieldcv) .field-wrap > #fieldcv,
+#app:has(.mh) > .field-wrap > #fieldcv {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  bottom: var(--cds-narr-h);
+  height: calc(100% - var(--cds-narr-h));
+  aspect-ratio: auto;
+  object-fit: contain;
+}

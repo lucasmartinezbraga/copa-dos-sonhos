@@ -1,0 +1,121 @@
+{
+ "build": "reports/r15/mutations/mut-ball-lock/build.html",
+ "sites_scanned": 13,
+ "capability_modifiers_found": 0,
+ "unreviewed_sites": 0,
+ "registry": [
+  {
+   "signature": "hero.maxSpd *= 1.05",
+   "verdict": "CAPABILITY_VIOLATION",
+   "site": "10-base-bundle.js ~2752 (vivo: step)",
+   "why": "Velocidade física concedida por ser lenda + estar empatado/perdendo por 1 + ter passado do minuto 75. Três gatilhos do §41 numa linha; §42 proíbe explicitamente criar velocidade inexistente.",
+   "present_in_build": false,
+   "status": "CORRIGIDO"
+  },
+  {
+   "signature": "hero._onFire = true",
+   "verdict": "CAPABILITY_VIOLATION",
+   "site": "10-base-bundle.js ~2751 (vivo: step)",
+   "why": "Liga o estado que alimenta os bônus de duelo e de xG abaixo.",
+   "present_in_build": false,
+   "status": "CORRIGIDO"
+  },
+  {
+   "signature": "(o._onFire?5:0)",
+   "verdict": "CAPABILITY_VIOLATION",
+   "site": "29-r12-transactional-core.js:125 (vivo: P._dribble)",
+   "why": "+5 na força de drible por estado de roteiro, não por atributo.",
+   "present_in_build": false,
+   "status": "CORRIGIDO"
+  },
+  {
+   "signature": "const fire=o._onFire?1.18:1",
+   "verdict": "CAPABILITY_VIOLATION",
+   "site": "10-base-bundle.js:3822 (vivo: _shoot)",
+   "why": "Multiplica o xG base em 18% — bônus direto de gol (§56).",
+   "present_in_build": false,
+   "status": "CORRIGIDO"
+  },
+  {
+   "signature": "fx.ritmo *= (1 + Math.min(0.08, (_chem - 2) * 0.025))",
+   "verdict": "CAPABILITY_VIOLATION",
+   "site": "10-base-bundle.js:2380 (vivo: aplicação de estilo)",
+   "why": "Química por nacionalidade acelera decideT do time inteiro. §19 proíbe multiplicador global de química; §41 lista nacionalidade e quantidade de jogadores da mesma origem. Agrava: só o time do usuário carrega `from`, então a matriz de gates nunca mediu isso.",
+   "present_in_build": false,
+   "status": "CORRIGIDO"
+  },
+  {
+   "signature": "(o._onFire ? 7 : 0) + legendEdge",
+   "verdict": "REMOVED",
+   "site": "10-base-bundle.js:3573 (CÓDIGO MORTO: _dribble do bundle base)",
+   "why": "Substituído por P._dribble em 29-r12-transactional-core.js. Não executa. Fica registrado para não ser 'redescoberto' como achado.",
+   "present_in_build": true,
+   "status": "CODIGO_MORTO"
+  },
+  {
+   "signature": "const legendPull = (m.ref && m.ref.legend) ? 0.38 : 0",
+   "verdict": "CAPABILITY_VIOLATION",
+   "site": "10-base-bundle.js:3415 (vivo: _bestPass)",
+   "why": "A bola gravita para quem tem `legend` (flag de overall>=92), não para quem está melhor posicionado ou tem melhor atributo. É preferência — mas ancorada num rótulo de fama, o que o §40 proíbe ('não crie exceções por nome'). Deve derivar de atributo percebido.",
+   "present_in_build": false,
+   "status": "CORRIGIDO"
+  },
+  {
+   "signature": "if (action === 'shot' && p.ref && p.ref.traits && p.ref.traits.includes('CLUTCH_PLAYER') && this.minute >= 75) execution += .055;",
+   "verdict": "CAPABILITY_VIOLATION",
+   "site": "10-base-bundle.js ~4918 do HTML (vivo: _actionContext)",
+   "why": "+0,055 em `execution` — o multiplicador de qualidade de execução que entra em TODO cálculo de chute — por trait + minuto. Não estava no handoff. Mesma proibição do §42; agrava por atuar na camada de contexto, que muitos outros sistemas leem.",
+   "present_in_build": false,
+   "status": "CORRIGIDO"
+  },
+  {
+   "signature": "+ hunger + tendB + legendPull + comboB",
+   "verdict": "CONSUMPTION_OF",
+   "site": "10-base-bundle.js ~5564 do HTML (vivo: soma de _bestPass)",
+   "why": "Ponto onde legendPull entra na pontuação do passe. Registrado para rastreabilidade; a violação é contada na definição.",
+   "present_in_build": true,
+   "status": "RASTREIO"
+  },
+  {
+   "signature": "if(this.minute>80 && o.ref.traits.indexOf('CLUTCH_PLAYER')!==-1)pGoal*=1.15;",
+   "verdict": "CAPABILITY_VIOLATION",
+   "site": "10-base-bundle.js ~5925 do HTML (vivo: conversão de chute)",
+   "why": "+15% na PROBABILIDADE DE GOL por ter o trait CLUTCH_PLAYER depois do minuto 80. Não estava no handoff. §42 é literal: traits mentais não podem criar precisão inexistente. §56 proíbe bônus direto de gol e scripting de fim de jogo. Independente do buff de lenda: atinge qualquer jogador com o trait, mesmo sem `legend`.",
+   "present_in_build": false,
+   "status": "CORRIGIDO"
+  },
+  {
+   "signature": "const urgency = this.minute > 72 && scoreDiff < 0 ? .038 : 0",
+   "verdict": "PREFERENCE_OK",
+   "site": "10-base-bundle.js:3108 (vivo: decisão de chute)",
+   "why": "Altera a UTILIDADE de chutar (frequência de tentativa) quando o time perde no fim. Não altera precisão nem xG. §37 permite explicitamente que contexto mude preferência.",
+   "present_in_build": true,
+   "status": "ACEITO"
+  },
+  {
+   "signature": "const restraint = this.minute > 72 && scoreDiff > 0 ? .022 : 0",
+   "verdict": "PREFERENCE_OK",
+   "site": "10-base-bundle.js:3109 (vivo: decisão de chute)",
+   "why": "Simétrico do anterior: quem vence arrisca menos. Preferência.",
+   "present_in_build": true,
+   "status": "ACEITO"
+  },
+  {
+   "signature": "+ (Math.abs(this.score[p.team] - this.score[1-p.team]) <= 1 && this.minute >= 72 ? 0.035 : 0)",
+   "verdict": "PREFERENCE_OK",
+   "site": "10-base-bundle.js:2820 (vivo: _actionContext)",
+   "why": "Aumenta `importance`, que REDUZ `execution` — e a redução é mediada por compostura. É um NERF simétrico sob pressão de momento decisivo, não um buff. §42 proíbe conceder capacidade; não proíbe modelar nervosismo mediado por atributo.",
+   "present_in_build": true,
+   "status": "ACEITO"
+  },
+  {
+   "signature": "const _losingLate = this.minute > 80 && this.score[p.team] < this.score[1 - p.team]",
+   "verdict": "PREFERENCE_OK",
+   "site": "10-base-bundle.js:4957 (vivo: postura coletiva)",
+   "why": "Empurra a POSTURA (linha mais alta) de quem perde no fim. É decisão tática observável, não capacidade. Continua sujeita a ser punida no contra-ataque.",
+   "present_in_build": true,
+   "status": "ACEITO"
+  }
+ ],
+ "unreviewed": []
+}

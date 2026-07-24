@@ -1,0 +1,161 @@
+{
+ "verdict": "AJUSTA_A_CURVA",
+ "why": "bloco B falhou: conceito correto, taxa em baixa velocidade apertada. Ajuste fisico e geral — proibida excecao contextual.",
+ "candidate": "b9a2096797920e523745a7e789af1ae274659db30e4cc8d34a2aac6e49cd1f97",
+ "checks": [
+  {
+   "bloco": "A",
+   "nome": "giros bruscos geral",
+   "valor": 0.0013,
+   "alvo": "<= 0,004",
+   "ok": true
+  },
+  {
+   "bloco": "A",
+   "nome": "giros bruscos perto da bola",
+   "valor": 0.0052,
+   "alvo": "<= 0,012",
+   "ok": true
+  },
+  {
+   "bloco": "A",
+   "nome": "giro medio (nao engessar)",
+   "valor": 2.4,
+   "alvo": ">= 1,9",
+   "ok": true
+  },
+  {
+   "bloco": "B",
+   "nome": "cobertura de ameaca",
+   "valor": 0.5488,
+   "alvo": ">= 0,530",
+   "ok": true
+  },
+  {
+   "bloco": "B",
+   "nome": "distancia do marcador",
+   "valor": 8.6639,
+   "alvo": "<= 8,90",
+   "ok": true
+  },
+  {
+   "bloco": "B",
+   "nome": "sobrecarga coberta",
+   "valor": 0.5378,
+   "alvo": ">= 0,520",
+   "ok": true
+  },
+  {
+   "bloco": "B",
+   "nome": "sub-gate marking",
+   "valor": "0/294",
+   "alvo": ">= 1/294",
+   "ok": false
+  },
+  {
+   "bloco": "C",
+   "nome": "gols/jogo",
+   "valor": 3.082,
+   "alvo": "2.8–3.45",
+   "ok": true
+  },
+  {
+   "bloco": "C",
+   "nome": "chutes/jogo",
+   "valor": 20.837,
+   "alvo": "18.0–23.0",
+   "ok": true
+  },
+  {
+   "bloco": "C",
+   "nome": "passes/jogo",
+   "valor": 180.956,
+   "alvo": "172–190",
+   "ok": true
+  },
+  {
+   "bloco": "C",
+   "nome": "impedimentos/jogo",
+   "valor": 3.378,
+   "alvo": "2.8–4.6",
+   "ok": true
+  },
+  {
+   "bloco": "D",
+   "nome": "transacional CONSISTENT",
+   "valor": "294/294",
+   "alvo": "294/294",
+   "ok": true
+  },
+  {
+   "bloco": "D",
+   "nome": "sha do artefato",
+   "valor": "b9a209679792",
+   "alvo": "= candidata",
+   "ok": true
+  },
+  {
+   "bloco": "D",
+   "nome": "teleportes/partida",
+   "valor": 16.8,
+   "alvo": "<= 25",
+   "ok": true
+  },
+  {
+   "bloco": "D",
+   "nome": "r13_byte_identical",
+   "valor": true,
+   "alvo": "True",
+   "ok": true
+  },
+  {
+   "bloco": "D",
+   "nome": "candidate_reproducible",
+   "valor": true,
+   "alvo": "True",
+   "ok": true
+  },
+  {
+   "bloco": "D",
+   "nome": "syntax_ok",
+   "valor": true,
+   "alvo": "True",
+   "ok": true
+  },
+  {
+   "bloco": "D",
+   "nome": "smoke_ok",
+   "valor": true,
+   "alvo": "True",
+   "ok": true
+  },
+  {
+   "bloco": "D",
+   "nome": "scenarios_ok",
+   "valor": true,
+   "alvo": "True",
+   "ok": true
+  },
+  {
+   "bloco": "E",
+   "nome": "noDominantStyle",
+   "valor": true,
+   "alvo": "True",
+   "ok": true
+  },
+  {
+   "bloco": "E",
+   "nome": "ppgRange",
+   "valor": 0.5833,
+   "alvo": "<= 0,75",
+   "ok": true
+  },
+  {
+   "bloco": "E",
+   "nome": "maior perda de ppg por estilo (balanced)",
+   "valor": 0.512,
+   "alvo": "<= 0,45",
+   "ok": false
+  }
+ ]
+}

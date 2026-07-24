@@ -64,7 +64,137 @@
   "to": "this.poss=team;this.dead=.72;if(taker){var _dL=Math.hypot(finite13(taker.x)-x,finite13(taker.y)-boundary);taker._breaking=taker._breaking||{throwInDuty:true};this.dead=clamp13(.72+_dL/6.5,.72,4.5);}"
  },
  {
+  "id": "r15-drop-legend-speed-buff",
+  "priority": "P0",
+  "audit_ids": "SCRIPT-001",
+  "rationale": "§42 — BUFF DE LENDA REMOVIDO. Aos 75'+, com o jogo empatado ou perdendo por 1, um jogador com `ref.legend` (overall>=92) e trait CLUTCH_PLAYER recebia `maxSpd *= 1.05` — VELOCIDADE FÍSICA — mais o estado `_onFire`, que alimentava +5 no duelo de drible e x1,18 no xG. São três gatilhos proibidos numa estrutura só: status de lenda, placar e minuto. O §42 é literal: nenhum jogador pode receber capacidade física adicional por ser lenda, por ter chegado a certo minuto ou por estar perdendo. A narração 'a lenda assume o jogo' sai junto: sem efeito mecânico, ela seria um evento sem causa física (§56). Se o comportamento de responsabilidade for desejado, o §42 permite implementá-lo como PREFERÊNCIA (procura pela bola, tolerância a risco) — em mudança separada e medida à parte.",
+  "from": "          hero._onFire = true;\n          hero.maxSpd *= 1.05;\n          this._legendFired = true;\n          this._emit('legend', { by: hero });",
+  "to": "          this._legendFired = true;"
+ },
+ {
+  "id": "r15-drop-onfire-dribble-bonus",
+  "priority": "P0",
+  "audit_ids": "SCRIPT-001",
+  "rationale": "§42 — consumidor do estado `_onFire`: +5 na força de ataque do duelo de drible. Vantagem técnica concedida por roteiro, não por atributo. O termo derivado de atributo (`elite`/`dri`) permanece intacto.",
+  "from": "+(o._onFire?5:0)+(elite?4+Math.max(0,dri-86)*.38:0)",
+  "to": "+(elite?4+Math.max(0,dri-86)*.38:0)"
+ },
+ {
+  "id": "r15-drop-onfire-xg-bonus",
+  "priority": "P0",
+  "audit_ids": "SCRIPT-001",
+  "rationale": "§56 — 'bônus direto de gol'. `base *= fire` multiplicava o xG em 18% pelo estado de roteiro. Removido na origem.",
+  "from": "const fire=o._onFire?1.18:1;",
+  "to": "const fire=1;"
+ },
+ {
+  "id": "r15-drop-nationality-chemistry",
+  "priority": "P0",
+  "audit_ids": "SCRIPT-002",
+  "rationale": "§19/§41/§56 — QUÍMICA POR NACIONALIDADE REMOVIDA. Contar quantos titulares vêm da mesma seleção e multiplicar `fx.ritmo` em até 8% acelerava `decideT` do time inteiro: o time decidia mais rápido por causa do passaporte dos jogadores. O §19 proíbe multiplicador global de química e exige familiaridade causal por comportamento; o §41 lista nacionalidade e quantidade de jogadores da mesma origem; o §56 lista 'bônus por nacionalidade' e 'química mágica'. Agravante: só o elenco montado no draft carrega `sl.from`, então o bônus caía apenas no time do usuário — e a matriz de gates, que roda com times da IA, estruturalmente nunca o mediu. O campo `t._chem` é mantido para diagnóstico e para a futura familiaridade causal do §19.",
+  "from": "    if (_chem >= 3) { fx.ritmo *= (1 + Math.min(0.08, (_chem - 2) * 0.025)); t._chem = _chem; }",
+  "to": "    if (_chem >= 3) { t._chem = _chem; }   /* §19/§41: sem multiplicador global de química */"
+ },
+ {
+  "id": "r15-drop-legend-pass-pull",
+  "priority": "P0",
+  "audit_ids": "SCRIPT-003",
+  "rationale": "§40/§41 — 'não crie exceções por nome'. `legendPull` somava 0,38 fixos à pontuação de qualquer passe cujo receptor tivesse a flag `legend` (overall>=92). A bola gravitava para um RÓTULO, não para quem estava melhor posicionado nem para quem tinha melhor atributo percebido. Consequência colateral registrada: com a remoção, a qualidade do RECEPTOR deixa de pesar na escolha do passe — o §54 pede que o jogador de elite influencie o coletivo, e isso terá de vir de termo derivado de atributo, avaliado nos testes de diferenciação do §24/§25.",
+  "from": "      const legendPull = (m.ref && m.ref.legend) ? 0.38 : 0;   // a bola gravita pro craque",
+  "to": "      const legendPull = 0;   /* §40/§41: sem exceção por rótulo de fama */"
+ },
+ {
+  "id": "r15-drop-clutch-xg-bonus",
+  "priority": "P0",
+  "audit_ids": "SCRIPT-004",
+  "rationale": "§42/§56 — ACHADO NOVO, não registrado em nenhum relatório anterior. `pGoal *= 1.15` dava 15% a mais de PROBABILIDADE DE GOL a qualquer jogador com o trait CLUTCH_PLAYER depois do minuto 80. Independe do buff de lenda: atinge quem tem o trait mesmo sem `legend`. O §42 diz que traits mentais não podem criar precisão inexistente; o §56 proíbe bônus direto de gol e scripting de fim de jogo.",
+  "from": "    if(this.minute>80 && o.ref.traits.indexOf('CLUTCH_PLAYER')!==-1)pGoal*=1.15;\n",
+  "to": ""
+ },
+ {
+  "id": "r15-drop-clutch-execution-bonus",
+  "priority": "P0",
+  "audit_ids": "SCRIPT-005",
+  "rationale": "§42 — ACHADO NOVO, não registrado antes. `execution += .055` para CLUTCH_PLAYER a partir do minuto 75, dentro de `_actionContext` — a camada de contexto que TODOS os cálculos de chute leem. Mesma proibição do anterior, com alcance maior por atuar na camada compartilhada.",
+  "from": "    if (action === 'shot' && p.ref && p.ref.traits && p.ref.traits.includes('CLUTCH_PLAYER') && this.minute >= 75) execution += .055;\n",
+  "to": ""
+ },
+ {
+  "id": "r15-identity-title-tag",
+  "priority": "P1",
+  "audit_ids": "VER-001",
+  "rationale": "§2 — IDENTIDADE DA BUILD. O arquivo dizia R14.4, o título interno dizia R12.3 e a camada de observação dizia R13: três versões na mesma build. O §2 exige que arquivo, título, manifesto, logs, relatório, testes e auditor declarem exatamente a mesma versão. Foi essa ambiguidade que permitiu que relatórios citassem camadas diferentes como se fossem a mesma coisa (§8). O template da R13.0 permanece intocado e byte-verificável; a troca acontece depois da conferência do SHA da base, como patch declarado.",
+  "from": "<title>Copa dos Sonhos — Núcleo Autoritativo Transacional R12.3</title>",
+  "to": "<title>Copa dos Sonhos — R15.8</title>"
+ },
+ {
+  "id": "r15-identity-document-title",
+  "priority": "P1",
+  "audit_ids": "VER-001",
+  "rationale": "Par do anterior. `document.title=` em 29-r12-transactional-core.js roda no carregamento e SOBRESCREVE a tag <title>: sem este patch, corrigir só a tag não mudaria nada do que o usuário vê na aba do navegador.",
+  "from": "document.title='Copa dos Sonhos — Núcleo Autoritativo Transacional R12.3';",
+  "to": "document.title='Copa dos Sonhos — R15.8';"
+ },
+ {
+  "id": "r15-identity-document-title-r13",
+  "priority": "P1",
+  "audit_ids": "VER-001",
+  "rationale": "TERCEIRO declarador de versão, e o ÚNICO que de fato vencia. A camada 30 carrega depois da 29, então `document.title` terminava em 'R13.0 Futebol Observável e Cadenciado' — nem o R12.3 da tag <title>, nem o R14.4 do nome do arquivo. A build tinha três identidades e a que o usuário via na aba não correspondia a nenhum relatório. Corrigir só os outros dois não mudaria nada do comportamento observável: este é o que precisa mudar.",
+  "from": "  document.title='Copa dos Sonhos — R13.0 Futebol Observável e Cadenciado';",
+  "to": "  document.title='Copa dos Sonhos — R15.8';"
+ },
+ {
+  "id": "r15-line-audit-all-defensive-phases",
+  "priority": "P0",
+  "audit_ids": "AUD-005",
+  "rationale": "§6/§7 — GATE DE LINHA DEFENSIVA MEDIA 9% DA PARTIDA E APROVAVA 100%. `lineRange` e `disconnectedLines` só eram amostrados quando a fase coletiva era exatamente `defensive_block`. Medido em 8 partidas de laboratório: `defensive_block` responde por 8,87% das amostras; `transition_defense` sozinha vale 35,01%. O time passava 91% do tempo com a forma defensiva NÃO auditada, e o gate reportava PASS sobre a partida inteira. Provado pela mutação `mut-line-scatter`: espalhar a linha de 0,42 m para 14 m manteve `defensive_line_range` em 7,52 (PASS) e `disconnectedLines` em 0,0 (PASS). A coletânea visual corrobora por fora — mede profundidade de linha com mediana 17 m e máximo 51 m nos mesmos 120 lances. A guarda `possessionTeam===tm.side` acima já garante que só o time SEM a bola é medido; exigir também `defensive_block` era restrição sem justificativa que cegava o gate. Isto ALARGA a medição — é esperado que os valores subam e que o gate passe a reprovar onde antes aprovava.",
+  "from": "    if(dp.length>1&&phase==='defensive_block'){",
+  "to": "    if(dp.length>1&&phase!=='restart'){"
+ },
+ {
+  "id": "r15-cover-holds-line",
+  "priority": "P0",
+  "audit_ids": "DEF-003",
+  "rationale": "§30/§53 — A LINHA DEFENSIVA NÃO EXISTIA COMO LINHA. Medido em 10 partidas, 584.851 amostras de jogadores da linha defensiva, desvio em relação ao escalar `_r13LineDepth`: quem passa pelo ramo `DEF` fica a 0,28 m dela; quem não passa fica a 9,95 m. Os responsáveis são `cover` (15,5% das amostras, desvio médio 20,22 m, mais de 6 m em 80,6% dos casos) e `shadow` (11,6%, 22,01 m, 89,2%): 27% da linha defensiva é posicionada em relação à BOLA — cover a 7,2 m dela em direção ao próprio gol, shadow entre ela e o atacante — ignorando a linha. Consequência medida com a amostragem corrigida: alcance médio 14,06 m (limite 10) e linha desconectada em 34% das amostras (limite 22%). O ramo `markRef` já resolvia isto desde sempre, com `clamp13(tp,line±3.0)`: o marcador segue o atacante mas não abandona a profundidade da linha. Esta correção aplica A MESMA regra, já existente e já calibrada, a cover e shadow. O deslocamento LATERAL continua livre — o defensor cobre e faz sombra normalmente; o que deixa de poder fazer é sair da faixa de profundidade do bloco. Não é regra por nome de formação nem por estilo: vale para qualquer jogador cuja linha seja DEF. Explica por que as cinco tentativas registradas no handoff falharam — todas mexeram em marcação e no escalar, nenhuma em cover/shadow.",
+  "from": "  if(p===tm._cover){\n    const vx=tm.goal.x-b.x,vy=tm.goal.y-b.y,len=Math.max(.1,Math.hypot(vx,vy));\n    const tx=clamp13(b.x+vx/len*7.2,2,FL13-2),ty=clamp13(b.y+vy/len*7.2,3,FW13-3);\n    return[tx,ty];\n  }",
+  "to": "  if(p===tm._cover){\n    const vx=tm.goal.x-b.x,vy=tm.goal.y-b.y,len=Math.max(.1,Math.hypot(vx,vy));\n    let tx=clamp13(b.x+vx/len*7.2,2,FL13-2);const ty=clamp13(b.y+vy/len*7.2,3,FW13-3);\n    if(L==='DEF')tx=fromOwnProg13(tm,clamp13(ownProg13(tm,tx),line-3.0,line+3.0));\n    return[tx,ty];\n  }"
+ },
+ {
+  "id": "r15-shadow-holds-line",
+  "priority": "P0",
+  "audit_ids": "DEF-003",
+  "rationale": "Par do r15-cover-holds-line, no papel de sombra. Mesma regra, mesmo limite, mesma justificativa.",
+  "from": "  if(p===tm._shadow&&tm._shadowTgt){\n    const a=tm._shadowTgt;\n    return[clamp13(lerp13(b.x,a.x,.40),2,FL13-2),clamp13(lerp13(b.y,a.y,.40),3,FW13-3)];\n  }",
+  "to": "  if(p===tm._shadow&&tm._shadowTgt){\n    const a=tm._shadowTgt;\n    let sx=clamp13(lerp13(b.x,a.x,.40),2,FL13-2);const sy=clamp13(lerp13(b.y,a.y,.40),3,FW13-3);\n    if(L==='DEF')sx=fromOwnProg13(tm,clamp13(ownProg13(tm,sx),line-3.0,line+3.0));\n    return[sx,sy];\n  }"
+ },
+ {
+  "id": "r15-carry-into-space",
+  "priority": "P1",
+  "audit_ids": "MOV-020",
+  "rationale": "§21/§29 — CONDUÇÃO PARA O ESPAÇO E A LINHA DE FUNDO. O `_carry` original mandava o portador 11 m em linha reta para o CENTRO DO GOL, sempre, ignorando onde havia espaço e ignorando a linha de fundo. Um ponta com o corredor livre cortava para o miolo lotado em vez de levar até o fundo. A nova versão avalia três rumos — direto ao gol, à frente no corredor, e à LINHA DE FUNDO quando já é ponta avançado — e escolhe o de maior progressão somada ao espaço livre, conduzindo mais longe quando há espaço. A decisão de QUANDO conduzir não muda; muda só o PARA ONDE. Chega ao fundo encadeia no cruzamento/cutback que o `_decide` já oferece a quem está avançado e aberto. Sem exceção por nome, formação ou estilo: vale para qualquer portador, e a distância nasce do espaço real, não de atributo presenteado. ACRÉSCIMO: cortar pra dentro — o ponto de entrada da área (a ~17 m do gol, puxado ao centro) entra como candidato quando o portador está aberto na metade ofensiva e a rota central NÃO está bloqueada, montando o chute de fora clássico. É preferência de rumo derivada da posição, não bônus de conversão.",
+  "from": "  _carry(o, g) {\n    o._act = 'carry';\n    const dir = Math.atan2(g.y - o.y, g.x - o.x);\n    o._tx = o.x + Math.cos(dir) * 11;\n    o._ty = o.y + Math.sin(dir) * 11;\n  }",
+  "to": "  _carry(o, g) {\n    o._act = 'carry';\n    const tm = this.teams[o.team], dir = tm.attackDir || 1;\n    const opps = this.teams[1 - o.team].players;\n    const adv = dir > 0 ? o.x : FL - o.x;              // progressao 0..FL\n    const wide = Math.abs(o.y - FW / 2) > 16;          // proximo de um corredor\n    const finalThird = adv > FL * 0.66;\n    const byX = dir > 0 ? FL - 1.5 : 1.5;              // linha de fundo adversaria\n    // Candidatos de direcao: gol, espaco a frente no corredor, e a LINHA DE FUNDO\n    // quando ja e ponta avancado (conduz ate o fundo para o cutback/cruzamento).\n    const cands = [{ tx: g.x, ty: g.y, bias: 0 },\n                   { tx: o.x + dir * 12, ty: o.y, bias: 0.4 }];\n    let centralBlocked = false;\n    { const ang0 = Math.atan2(g.y - o.y, g.x - o.x);\n      for (const d of opps) { if (d.red) continue;\n        const da = Math.atan2(d.y - o.y, d.x - o.x), dd = Math.hypot(d.x - o.x, d.y - o.y);\n        if (dd < 9 && Math.abs(Math.atan2(Math.sin(da - ang0), Math.cos(da - ang0))) < 0.5) centralBlocked = true; } }\n    if (wide && finalThird) cands.push({ tx: byX, ty: o.y + (o.y < FW / 2 ? 2 : -2), bias: centralBlocked ? 0.5 : 0.2 });\n    // CORTAR PRA DENTRO: aberto e na metade ofensiva, a diagonal para a entrada\n    // da area (a ~17 m do gol, puxando para o centro) monta o chute de fora.\n    if (wide && adv > FL * 0.52) {\n      const cutY = FW / 2 + (o.y < FW / 2 ? -6 : 6);\n      const cutX = dir > 0 ? FL - 17 : 17;\n      cands.push({ tx: cutX, ty: cutY, bias: centralBlocked ? 0.15 : 0.6 });\n    }\n    let bestAng = Math.atan2(g.y - o.y, g.x - o.x), bestSpace = 0, bestScore = -1e9;\n    for (const c of cands) {\n      const ang = Math.atan2(c.ty - o.y, c.tx - o.x);\n      const px = o.x + Math.cos(ang) * 10, py = o.y + Math.sin(ang) * 10;\n      const prog = dir > 0 ? px - o.x : o.x - px;      // quanto esse rumo avanca\n      let space = 99;\n      for (const d of opps) { if (d.red) continue; const dd = Math.hypot(px - d.x, py - d.y); if (dd < space) space = dd; }\n      const score = prog * 0.5 + Math.min(space, 12) + c.bias * 6;\n      if (score > bestScore) { bestScore = score; bestAng = ang; bestSpace = space; }\n    }\n    // carrega mais longe quando ha espaco a frente; encurta quando o espaco fecha\n    const reach = 8 + Math.min(6, bestSpace) * 0.6;\n    o._tx = clamp(o.x + Math.cos(bestAng) * reach, 1, FL - 1);\n    o._ty = clamp(o.y + Math.sin(bestAng) * reach, 1, FW - 1);\n  }"
+ },
+ {
+  "id": "r15-angular-rate-limit",
+  "priority": "P1",
+  "audit_ids": "MOV-030",
+  "rationale": "§33 — GIRO INSTANTANEO. `_integrate` limita a MAGNITUDE da aceleracao (`amax=acc*tp*dt`) mas nao limita o quanto o vetor de velocidade GIRA. Com velocidade baixa, um `dv` dentro de `amax` ainda inverte o rumo. Medido com `tools/r15/jitter_probe.js` sobre 2,2 milhoes de amostras: giro acima de 25 graus em 1,18% dos quadros de movimento — mais de 750 graus/s — contra a proibicao literal do §33 ('nao permita giro instantaneo'). DUAS HIPOTESES FORAM ELIMINADAS ANTES desta: `r14-pressing-approach` (A/B pareado: giro perto da bola 5,12 -> 4,97, bruscos 2,73% -> 2,81%, ou seja sem efeito) e `_resolveOverlaps` (estratificacao: o giro dobra dentro do raio de 1,7 m, mas isso ocorre em 0,2% dos quadros e nao explica o piso). O piso de 1,18% aparece no jogador LIVRE, com espaco e sem pressao — logo a causa esta no proprio modelo de steering. A taxa permitida cai com a velocidade (14/(1.2+v) rad/s) e escala pelo atributo `turn`: a 2 m/s permite ~250 graus/s, a 8 m/s ~87 graus/s, valores compativeis com um atleta. Nao e constante e nao e por nome, formacao ou estilo. RISCO: limitar demais deixa o jogador lento para reagir e pode piorar marcacao — por isso a validacao exige o jitter probe MAIS a matriz de 294 partidas com elencos reais. AJUSTE DA CURVA (R16.1): a primeira versao usou 14/(1.2+v), que a 2 m/s ainda limitava a 4,4 rad/s. A avaliacao contra o criterio pre-registrado deu AJUSTA_A_CURVA: o ganho de fluidez e a marcacao contínua melhoraram (cobertura 0,5430->0,5488, distancia do marcador 8,87->8,66), mas o estilo `balanced` perdeu 0,512 ppg contra o limite de 0,45 — e ele e justamente o que mais depende de reposicionamento curto e constante. Somado um termo que decai com o QUADRADO da velocidade, 6/(1+v*v): a 1 m/s a taxa passa de 6,4 para 11,4 rad/s, a 2 m/s de 4,4 para 6,4, e a 8 m/s de 1,52 para 1,68 — ou seja o teto em corrida fica praticamente intacto e o passo curto ganha liberdade. Continua fisico e geral: nao depende de papel, contexto, proximidade da bola nem estilo. TRIAGEM DA CONSTANTE (jitter, 4 seeds cada): bonus 10 dava giros bruscos 0,0042 e REPROVAVA o bloco A (limite 0,004); bonus 6 da 0,0022 e bonus 4 da 0,0015. Escolhido 6 — maximo alivio em baixa velocidade que ainda passa A com folga. A 2 m/s a taxa vai de 4,375 para 5,575 rad/s (+27%); a 8 m/s de 1,522 para 1,614 (+6%), ou seja o teto em corrida segue praticamente intacto.",
+  "from": "  if(dv>amax){p.vx=finite(p.vx)+dvx/dv*amax;p.vy=finite(p.vy)+dvy/dv*amax;}else{p.vx=finite(p.vx)+dvx;p.vy=finite(p.vy)+dvy;}",
+  "to": "  const _v0=Math.hypot(finite(p.vx),finite(p.vy));if(dv>amax){p.vx=finite(p.vx)+dvx/dv*amax;p.vy=finite(p.vy)+dvy/dv*amax;}else{p.vx=finite(p.vx)+dvx;p.vy=finite(p.vy)+dvy;}\n  /* §33 — LIMITE DE TAXA ANGULAR. O clamp acima limita a MAGNITUDE da\n     aceleracao, nunca o quanto o vetor GIRA. Com velocidade baixa um dv\n     dentro de `amax` ainda inverte o rumo, e medido em 2,2 milhoes de\n     amostras isso produz giro acima de 25 graus em 1,18% dos quadros\n     (>750 graus/s), o que o §33 proibe. A taxa permitida cai com a\n     velocidade — quem corre a 8 m/s nao vira como quem trota a 2 — e\n     escala pelo atributo de giro do jogador. */\n  {const _v1=Math.hypot(p.vx,p.vy);if(_v1>.25&&_v0>.25){const _a1=Math.atan2(p.vy,p.vx),_da=Math.atan2(Math.sin(_a1-cur),Math.cos(_a1-cur)),_max=finite(p.turn,1)*(14/(1.2+_v1)+6/(1+_v1*_v1))*dt;if(Math.abs(_da)>_max){const _c=cur+(_da>0?_max:-_max);p.vx=Math.cos(_c)*_v1;p.vy=Math.sin(_c)*_v1;}}}"
+ },
+ {
+  "id": "r16-foul-restarts-ball",
+  "priority": "P0",
+  "enabled": false,
+  "audit_ids": "§17, §36",
+  "rationale": "FALTA NAO REPOE A BOLA. O ramo de falta comum de `_awardFoul` (10-base-bundle.js:4395) faz apenas `this.dead=0.82` e agenda `pendingRestart` dando a bola ao companheiro mais proximo da VITIMA — onde quer que ele esteja naquele instante. A bola NUNCA e reposicionada no ponto da falta, e o ramo NAO limpa `ball.owner`/`ball.traveling`. Compare com os dois ramos de cartao vermelho (4373 e 4377), que limpam ambos. Consequencia observavel: a jogada nao para — durante os 0,82 s de `dead` o portador anterior continua com a posse e a bola teleporta para o cobrador no reinicio. Viola §17 (a forma deve surgir de movimentacao fisica, nunca de teletransporte) e §36 (evento sem causa fisica). A correcao reaproveita o padrao canonico de bola morta ja usado no escanteio (4606-4607): zera dono, deslocamento, velocidade, alvo e receptor, poe a bola em (victim.x, victim.y), escolhe o cobrador NO MOMENTO DA FALTA e alonga `dead` pela distancia que ele precisa andar — mesmo desenho ja provado em `r14-throwin-walk` e `r15-setpiece-walk`. Usa apenas `clamp` (linha 91) e `D` (linha 93), ambos de escopo de modulo no bundle base; `finite` NAO existe neste arquivo e por isso nao e usado. NAO EMBARCADO: precisa de matriz de 294 partidas com criterio pre-registrado antes de promover, e nao pode entrar na mesma regressao que o limitador angular.",
+  "from": "    this.dead = 0.82;\n    this.pendingRestart = () => { this._giveBall(this._nearestFieldMate(victim)); this.ball.owner.settle = 0.6; };",
+  "to": "    this.ball.owner=null;this.ball.traveling=false;this.ball.x=victim.x;this.ball.y=victim.y;this.ball.z=0;\n    this.ball.vx=this.ball.vy=this.ball.vz=0;this.ball.target=null;this.ball.receiver=null;\n    const _tk = this._nearestFieldMate(victim);\n    this.dead = clamp(0.82 + D(_tk.x, _tk.y, victim.x, victim.y) / 6.5, 0.82, 3.2);\n    this.pendingRestart = () => { this._giveBall(_tk); this.ball.owner.settle = 0.6; };"
+ },
+ {
   "id": "_exp-clock",
+  "enabled": false,
   "priority": "EXPERIMENTO",
   "audit_ids": "DENS-001",
   "rationale": "EXPERIMENTO: clockRate 0.24 -> 0.12 dobra o tempo de fisica por partida.",

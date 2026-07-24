@@ -390,9 +390,53 @@ function runOne(db, row, index) {
   const locks = [];
   let win = null; // {startStep, x0, y0, owners:Set, minute0}
   let steps = 0;
+
+  // ── DETECTOR DE TELEPORTE (§32/§56) ────────────────────────────────────────
+  // A guarda de movimento da R12 clampa ANTES de medir, e é desligada durante
+  // estados administrativos — então `maxFinalStep` nunca acusa salto. Aqui a
+  // posição é amostrada por fora, a cada passo, e o salto é classificado:
+  //   · troca de lado do intervalo  → legítimo (times invertem os campos);
+  //   · qualquer outro              → teleporte.
+  // Limite: um atleta a 8,5 m/s percorre 0,283 m em 1/30 s. 1,5 m é 5x isso.
+  const TP_LIMIT = 1.5;
+  const tp = { teleports: 0, teleportMaxM: 0, halfSwapJumps: 0, adminTeleports: 0,
+               samples: 0, worst: [] };
+  let prevPos = null, prevHalf = sim.half;
+  const snapPos = () => {
+    const m = new Map();
+    for (const tm of sim.teams || []) for (const p of tm.players || []) {
+      if (p && !p.red) m.set(p, [+p.x || 0, +p.y || 0]);
+    }
+    return m;
+  };
+  prevPos = snapPos();
+
   while (!sim.isOver() && steps++ < 500000) {
     currentStep = steps;
+    const halfBefore = sim.half;
     sim.step(DT);
+    {
+      const now = snapPos();
+      const halfChanged = sim.half !== halfBefore;
+      const admin = isAdmin(sim);
+      for (const [p, xy] of now) {
+        const old = prevPos.get(p);
+        if (!old) continue;
+        tp.samples++;
+        const d = Math.hypot(xy[0] - old[0], xy[1] - old[1]);
+        if (d <= TP_LIMIT) continue;
+        if (halfChanged) { tp.halfSwapJumps++; continue; }
+        tp.teleports++;
+        if (admin) tp.adminTeleports++;
+        if (d > tp.teleportMaxM) tp.teleportMaxM = d;
+        if (tp.worst.length < 8) tp.worst.push({
+          m: +d.toFixed(2), minute: +(+sim.minute || 0).toFixed(1),
+          admin, player: (p.ref && p.ref.n) || p.id || p.idx,
+        });
+      }
+      prevPos = now;
+      prevHalf = sim.half;
+    }
     if (TRACE && steps % 15 === 0 && sim.ball.owner) {
       const ow = sim.ball.owner;
       rec(steps, 'estado',
@@ -464,6 +508,8 @@ function runOne(db, row, index) {
       offsideTraps: stat.offsideTraps || 0
     })),
     canonicalStatus: canonical && canonical.status,
+    diagnostics: canonical && canonical.diagnostics || null,
+    teleport: tp,
     observedFootball,
     observer: obs
   };

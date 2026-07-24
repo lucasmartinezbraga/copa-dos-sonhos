@@ -208,3 +208,55 @@ audit-r14/                               pacote de auditoria, matriz 800, evidê
 - Nunca marcar PASS sem artefato concreto vinculado ao SHA.
 - Quando métrica e olho humano discordam, registrar os dois — o olho do usuário
   acertou em todas as vezes nesta sessão.
+
+---
+
+## 12. Correções a este documento (sessão R15 · 2026-07-23)
+
+O texto acima é preservado como registro. Os pontos abaixo foram **medidos** e
+corrigem ou completam o que está escrito antes.
+
+**§2 estava incompleto — a fonte não reconstruía a R14.4.** `tools/build_ux.py`
+aplicava `_exp-clock` incondicionalmente; o rebuild dava `9bc436a1…`. Corrigido:
+`enabled:false` agora é respeitado e existem `--with`/`--without`. Rebuild
+reproduz `7fdf1835…c8b071`.
+
+**§2 — `r14-shadow-lane` é INERTE.** Ancorado no `_defendTarget` do bundle base,
+que `30-r13-football-observer.js:540` substitui. O shadow vivo está na linha 582
+usando `lerp13(b, a, .40)`. A/B em 49 seeds: 49/49 placares idênticos, métricas
+iguais até 1e-9. O comportamento que o patch dizia corrigir **continua lá**.
+
+**§4 estava incompleto — há 8 modificadores ocultos, não 1.** Além do cluster do
+buff de lenda, a varredura encontrou:
+- `pGoal *= 1.15` para trait CLUTCH_PLAYER após o minuto 80 (`10-…:3840`);
+- `execution += .055` para trait CLUTCH_PLAYER após o 75 (`10-…:2833`);
+- `fx.ritmo *= 1.08` por nº de compatriotas no time — química por nacionalidade,
+  que **só afeta o time do usuário** e por isso a matriz de gates nunca mediu;
+- `legendPull = 0.38` na pontuação de passe por rótulo `legend`.
+
+Todos removidos na R15.0 (`54a8160c…`), verificados por
+`tools/r15/scan_hidden_modifiers.py` → 0 violações.
+
+**§8 confirmado e quantificado.** Em 294 partidas de matriz neutralizada:
+`canonicalStatus` 294/294 CONSISTENT contra observador de futebol 37/294 PASS.
+O sub-gate `marking` passa em 63/294.
+
+**Novo achado — o auditor aprovava por ausência.** `structural` em
+`30-…:875` é `!this.getR12Audit() || …`: sem auditor, o gate passa. Provado por
+mutação: com `getR12Audit` deletado, `structural` passou **49/49**.
+
+**Novo achado — teleporte é inauditável.** As guardas de movimento clampam antes
+de medir; `maxFinalStep` registra o valor já corrigido e não pode exceder 0,75.
+O gate existe e nunca pode disparar. Usar `maxRawStep` e os contadores
+`movementClamps`/`globalMovementClamps`, que já são coletados e nunca lidos.
+
+**Correção ao §1 do handoff:** `_integrate` e `_pressAndTackle` da camada R12
+**são vivos**, alcançados através de wrappers da R13 (`30-…:640` e `:259`) que
+chamam `oldIntegrate13`/`oldPress13`. A armadilha de código morto é real, mas
+não atinge esses dois — atinge `_dribble` e `_defendTarget` do bundle base.
+
+**Ferramentas novas** em `tools/r15/`: `aggregate_release.py` (agregador único),
+`scan_hidden_modifiers.py`, `mutation_test.py`, `patch_effect.py`,
+`skill_tiers.js`, `run_integrity.py`, `make_r15_patches.py`.
+Catálogo de gates em `manifests/r15-release-gates.json`.
+Relatórios em `reports/r15/`.
