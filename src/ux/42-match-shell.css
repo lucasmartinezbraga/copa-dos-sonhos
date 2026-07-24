@@ -34,17 +34,31 @@
   #app:has(#fieldcv) > .mh      { grid-column: 1; grid-row: 1; border-radius: var(--r-md); border-bottom: 1px solid var(--ui-border); }
   #app:has(#fieldcv) > .spd-row { grid-column: 2; grid-row: 1; border-bottom: 0; border-radius: var(--r-md); align-items: center; }
 
-  /* campo: ocupa a coluna 1 inteira e a linha flexivel — sem teto de altura,
-     entao o letterbox lateral (medido em 638px / 33% a 1920) praticamente some */
+  /* campo: casa a PROPORCAO do canvas (1024x500) em vez de esticar. Assim a
+     moldura do campo abraca o gramado exatamente — sem as bandas escuras de
+     letterbox dentro da borda, que davam a impressao de "campo cortado". O box
+     e o maior retangulo 1024:500 que cabe na celula, centrado. */
   #app:has(#fieldcv) > .field-wrap {
     grid-column: 1; grid-row: 2;
-    max-height: none; height: 100%; min-height: 0;
+    align-self: center; justify-self: center;
+    width: 100%; max-width: 100%;
+    height: auto; max-height: 100%;
+    aspect-ratio: 1024 / 500;
+    min-height: 0;
     border-radius: var(--r-md); overflow: hidden;
     border: 1px solid var(--ui-border);
   }
+  /* o wrap ja tem a proporcao do canvas; o canvas preenche o wrap inteiro
+     (inset 0), object-fit contain = encaixe exato, sem letterbox e sem corte */
   #app:has(#fieldcv) > .field-wrap > #fieldcv {
-    height: 100%; width: 100%; object-fit: contain;
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    bottom: 0; aspect-ratio: auto; object-fit: contain;
   }
+  /* narracao ao vivo dentro do campo e redundante com a faixa de eventos (#tline)
+     logo abaixo; escondida no desktop para o gramado nao ceder 38px nem quebrar
+     a proporcao do wrap */
+  #app:has(#fieldcv) > .field-wrap > .narr { display: none; }
 
   /* eventos: faixa unica logo abaixo do campo */
   #app:has(#fieldcv) > #tline { grid-column: 1; grid-row: 3; }
@@ -52,14 +66,24 @@
   /* navegacao inferior compacta */
   #app:has(#fieldcv) > .mtabs { grid-column: 1; grid-row: 4; border-radius: var(--r-md); }
 
-  /* corpo de aba: quando uma aba abre, ocupa a coluna 1 sobre eventos+nav,
-     rolando localmente; a aba padrao (Visao geral) deixa isso vazio */
+  /* corpo de aba: quando uma aba que NAO a padrao abre (Estatisticas, Adversario,
+     Elenco, Tatica), o #tbody vira um painel SOLIDO sobre o campo, rolando
+     localmente. Fundo opaco de proposito: sem ele o conteudo vazava sobre o
+     campo (as barras `.bar` de cor de time do Resumo apareciam como duas linhas
+     coloridas atravessando o gramado). */
   #app:has(#fieldcv) > #tbody {
     grid-column: 1; grid-row: 2 / 5;
     min-height: 0; overflow: auto;
     align-self: stretch;
+    background: var(--ui-bg-1);
+    border: 1px solid var(--ui-border);
+    border-radius: var(--r-md);
+    padding: var(--sp-2);
+    z-index: var(--z-hud);
   }
-  #app:has(#fieldcv) > #tbody:empty { display: none; }
+  /* aba padrao "Visao geral": campo + painel lateral ja bastam. Esconde o
+     #tbody para o Resumo (com as barras de cor) nao sobrepor o campo. */
+  #app:has(#fieldcv):has(.mt[data-mt="campo"].on) > #tbody { display: none; }
 
   /* ── PAINEL LATERAL "RESUMO AO VIVO" (o #statsb reaproveitado) ─────────── */
   #app:has(#fieldcv) > #statsb {
