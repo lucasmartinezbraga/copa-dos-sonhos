@@ -19,17 +19,24 @@ e `export PYTHONIOENCODING=utf-8`.
 
 ## 1. Estado das builds
 
+> **DESATUALIZADO a partir daqui — ver `reports/r15/DECISAO-R16.md` e
+> `reports/r15/PROMOCAO-R16.2.md` (2026-07-23).** A R16.2 **foi promovida**.
+> Duas afirmações desta seção não se sustentaram na medição: (a) "os gols caem
+> 6,2%" é ruído (pareado por seed, n=294, t = −1,49); (b) a decisão dependia de
+> ajustar a curva — três matrizes mostram que não existe constante que satisfaça
+> os blocos A e B ao mesmo tempo.
+
 | build | SHA-256 | o que é |
 |---|---|---|
-| R14.4 | `7fdf1835…c8b071` | baseline oficial de fallback, preservada |
-| **R15.9** | `b3e10532…9c74c7a0a1` | **candidata segura atual** |
-| R16.0 | `b9a20967…6e49cd1f97` | limitador angular, curva original — `AJUSTA_A_CURVA` |
-| R16.2 | `b168fd1a…266626a3b47` | limitador angular, curva ajustada — decisão pendente |
+| R14.4 | `7fdf1835…c8b071` | fallback anterior, preservada |
+| R15.9 | `b3e10532…9c74c7a0a1` | **fallback atual** — reprova 2 gates de fluidez |
+| R16.0 | `b9a20967…6e49cd1f97` | limitador, `bonus 0` — reprova bloco E |
+| R16.1 | `1e0e8dc3…4f1e0cedf` | limitador, `bonus 10` — reprova bloco A |
+| **R16.2** | `b168fd1a…266626a3b47` | **candidata corrente (promovida)** |
 
-**A R16.2 não foi promovida.** Ela troca fluidez por marcação: giros
-impossíveis caem 81% (0,0119 → 0,0022) mas a distância do marcador piora
-0,13 m, dois sub-gates caem e os gols caem 6,2%. É decisão de produto, não
-técnica. Comparação completa em `reports/r15/avaliacao-r162.json`.
+Custo aceito, medido e pareado: `threatCoverage` −0,0074 · `markerMeanDistance`
++0,133 m. Registrado como dívida que o §18 tem de pagar — critério já
+pré-registrado em `reports/r15/CRITERIO-POS-18-PRE-REGISTRADO.md`.
 
 ## 2. O que já foi corrigido e medido
 
