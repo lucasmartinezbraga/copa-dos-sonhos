@@ -16,35 +16,49 @@
  * ========================================================================== */
 
 @media (min-width: 900px) {
-  /* ── grid de duas colunas: campo protagonista + painel 26-32% ─────────── */
+  /* ── grid de duas colunas: campo protagonista + painel contextual ────────
+     Areas nomeadas: o painel (side) abrange TODAS as linhas da coluna 2, entao
+     tem sempre a altura cheia da tela — independente da altura do campo (cujo
+     aspect-ratio, quando ancorado numa linha 1fr, encolhia a linha e deixava o
+     painel curto, cortando o conteudo). */
   #app:has(#fieldcv) {
+    --side-w: clamp(var(--side-min), var(--side-pref), var(--side-max));
+    /* largura util do campo (coluna 1) e altura derivada da proporcao 2.048,
+       ambas DEFINIDAS — sem aspect-ratio, que criava dependencia circular no
+       grid e deixava a linha do campo (e portanto o painel) curta */
+    --col1-w: calc(100vw - var(--side-w) - var(--shell-gap) - 2 * var(--shell-pad));
+    --field-w: min(var(--col1-w), calc((100dvh - 168px) * 2.048));
+    --field-h: calc(var(--field-w) / 2.048);
     display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(var(--side-min), var(--side-pref), var(--side-max));
-    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    grid-template-columns: minmax(0, 1fr) var(--side-w);
+    grid-template-rows: auto auto auto auto 1fr;
+    grid-template-areas:
+      "head   side"
+      "field  side"
+      "events side"
+      "nav    side"
+      ".      side";
     column-gap: var(--shell-gap);
     row-gap: var(--sp-3);
-    align-content: stretch;
     padding: var(--shell-pad);
     height: 100dvh;
     max-height: 100dvh;
     overflow: hidden;
   }
 
-  /* cabecalho: placar sobre o campo, controles de velocidade sobre o painel */
-  #app:has(#fieldcv) > .mh      { grid-column: 1; grid-row: 1; border-radius: var(--r-md); border-bottom: 1px solid var(--ui-border); }
-  #app:has(#fieldcv) > .spd-row { grid-column: 2; grid-row: 1; border-bottom: 0; border-radius: var(--r-md); align-items: center; }
+  /* cabecalho: placar sobre o campo; velocidades na propria faixa, a direita */
+  #app:has(#fieldcv) > .mh      { grid-area: head; border-radius: var(--r-md); border-bottom: 1px solid var(--ui-border); }
+  #app:has(#fieldcv) > .spd-row { grid-area: head; justify-self: end; align-self: center; z-index: 1; border-bottom: 0; border-radius: var(--r-md); background: transparent; }
 
   /* campo: casa a PROPORCAO do canvas (1024x500) em vez de esticar. Assim a
-     moldura do campo abraca o gramado exatamente — sem as bandas escuras de
-     letterbox dentro da borda, que davam a impressao de "campo cortado". O box
-     e o maior retangulo 1024:500 que cabe na celula, centrado. */
+     moldura do campo abraca o gramado exatamente — sem bandas escuras de
+     letterbox dentro da borda. O box e o maior retangulo 1024:500 que cabe na
+     celula, alinhado ao topo (o painel usa o resto da altura). */
   #app:has(#fieldcv) > .field-wrap {
-    grid-column: 1; grid-row: 2;
-    align-self: center; justify-self: center;
-    width: 100%; max-width: 100%;
-    height: auto; max-height: 100%;
-    aspect-ratio: 1024 / 500;
-    min-height: 0;
+    grid-area: field;
+    align-self: start; justify-self: center;
+    width: var(--field-w); height: var(--field-h);   /* definidas: sem letterbox e sem quebrar o grid */
+    max-width: 100%; min-height: 0;
     border-radius: var(--r-md); overflow: hidden;
     border: 1px solid var(--ui-border);
   }
@@ -61,65 +75,68 @@
   #app:has(#fieldcv) > .field-wrap > .narr { display: none; }
 
   /* eventos: faixa unica logo abaixo do campo */
-  #app:has(#fieldcv) > #tline { grid-column: 1; grid-row: 3; }
+  #app:has(#fieldcv) > #tline { grid-area: events; }
 
   /* navegacao inferior compacta */
-  #app:has(#fieldcv) > .mtabs { grid-column: 1; grid-row: 4; border-radius: var(--r-md); }
+  #app:has(#fieldcv) > .mtabs { grid-area: nav; border-radius: var(--r-md); }
 
-  /* corpo de aba: quando uma aba que NAO a padrao abre (Estatisticas, Adversario,
-     Elenco, Tatica), o #tbody vira um painel SOLIDO sobre o campo, rolando
-     localmente. Fundo opaco de proposito: sem ele o conteudo vazava sobre o
-     campo (as barras `.bar` de cor de time do Resumo apareciam como duas linhas
-     coloridas atravessando o gramado). */
+  /* ── PAINEL LATERAL CONTEXTUAL (o #tbody) ─────────────────────────────────
+     O #tbody deixa de ser um overlay sobre o campo e passa a ser o painel FIXO
+     da direita: seu conteudo TROCA conforme a aba (Visao geral / Estatisticas /
+     Adversario / Tatica), enquanto o campo fica sempre visivel a esquerda. E a
+     arquitetura master-detail pedida — e, sem sobreposicao, some de vez o vazamento
+     das barras `.bar` do Resumo sobre o gramado. */
   #app:has(#fieldcv) > #tbody {
-    grid-column: 1; grid-row: 2 / 5;
-    min-height: 0; overflow: auto;
-    align-self: stretch;
-    background: var(--ui-bg-1);
-    border: 1px solid var(--ui-border);
-    border-radius: var(--r-md);
-    padding: var(--sp-2);
-    z-index: var(--z-hud);
-  }
-  /* aba padrao "Visao geral": campo + painel lateral ja bastam. Esconde o
-     #tbody para o Resumo (com as barras de cor) nao sobrepor o campo. */
-  #app:has(#fieldcv):has(.mt[data-mt="campo"].on) > #tbody { display: none; }
-
-  /* ── PAINEL LATERAL "RESUMO AO VIVO" (o #statsb reaproveitado) ─────────── */
-  #app:has(#fieldcv) > #statsb {
-    grid-column: 2; grid-row: 2 / 5;
-    display: flex; flex-direction: column; gap: var(--sp-4);
-    align-self: stretch; min-height: 0; overflow-y: auto;
+    grid-area: side;
+    min-height: 0;
+    max-height: none;   /* o base capa .tbody em min(52vh,560px) (=494px a 950); aqui o painel vai a altura toda */
+    height: auto;
+    overflow-y: auto; overflow-x: hidden;
+    align-self: stretch; float: none;
     background: var(--ui-surface-1);
     border: 1px solid var(--ui-border);
     border-radius: var(--r-lg);
-    padding: var(--sp-4);
-    border-bottom: 1px solid var(--ui-border);
+    padding: var(--sp-3);
+    scrollbar-gutter: stable;
   }
-  /* posse: barra cheia no topo do painel */
-  #app:has(#fieldcv) > #statsb > .poss-wrap {
-    display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--sp-2);
+  /* o campo nao floata na casca-grid (o base o floata em >=980px) */
+  #app:has(#fieldcv) > .field-wrap { float: none; }
+  /* feed de lances em coluna unica dentro do painel estreito */
+  #app:has(#fieldcv) > #tbody .mfeed { grid-template-columns: 1fr; }
+  #app:has(#fieldcv) > #tbody > div { width: 100%; margin-inline: 0; }
+  /* a barra de posse ao vivo (#statsb) e redundante com a aba "Visao geral";
+     fica oculta no desktop, mas segue no DOM (contrato + updateStatsBar validos) */
+  #app:has(#fieldcv) > #statsb { display: none; }
+
+  /* conteudo do painel cabe numa coluna estreita. As grades do jogo foram
+     desenhadas para a largura cheia da tela; dentro do painel (~560px) elas
+     estouravam (o `@media(max-width:900px)` do base nao pega, pois o VIEWPORT e
+     largo, so o container e estreito). Aqui elas colapsam pela largura real. */
+  #app:has(#fieldcv) > #tbody .ux-shotmaps,
+  #app:has(#fieldcv) > #tbody .split-feed,
+  #app:has(#fieldcv) > #tbody .opp-layout,
+  #app:has(#fieldcv) > #tbody .ux-team-scoreboard,
+  #app:has(#fieldcv) > #tbody .stat-board { grid-template-columns: 1fr; }
+  #app:has(#fieldcv) > #tbody .tactic-style-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
-  #app:has(#fieldcv) > #statsb > .poss-wrap::before {
-    content: "POSSE"; grid-column: 1 / -1;
-    font: 800 9px var(--f-cond); letter-spacing: 1.6px; color: var(--info); text-transform: uppercase;
-    margin-bottom: 2px;
+  #app:has(#fieldcv) > #tbody .ux-shell { gap: var(--sp-3); }
+
+  /* sub-nav Tatica|Elenco dentro da aba Tatica — grudada no topo ao rolar */
+  .tt-subnav {
+    display: flex; gap: var(--sp-2); margin-bottom: var(--sp-3);
+    position: sticky; top: 0; z-index: 2;
+    background: var(--ui-surface-1); padding-bottom: var(--sp-2);
   }
-  /* numeros (chutes / no alvo / escanteios): empilhados como linhas comparativas */
-  #app:has(#fieldcv) > #statsb > .quick-stat {
-    display: flex; flex-direction: column; gap: var(--sp-2);
+  .tt-sub {
+    flex: 1; padding: 9px 0; border-radius: var(--r-sm); cursor: pointer;
+    font: 800 12px var(--f-cond); letter-spacing: .8px; text-transform: uppercase;
+    border: 1px solid var(--ui-border); background: rgba(255,255,255,.04); color: var(--text-2);
+    transition: all var(--dur-fast) var(--ease);
   }
-  #app:has(#fieldcv) > #statsb > .quick-stat .sbn {
-    display: flex; justify-content: space-between; align-items: baseline;
-    padding: var(--sp-2) var(--sp-3); font-variant-numeric: tabular-nums;
-  }
-  /* a casca REVELA o que o field-first escondia: no alvo e momentum voltam */
-  #app:has(#fieldcv) > #statsb > .quick-stat .sbn:nth-child(2) { display: flex; }
-  #app:has(#fieldcv) > #statsb > .momentum-strip {
-    display: block; margin-top: auto;
-  }
-  #app:has(#fieldcv) > #statsb > .momentum-strip > #momcv {
-    width: 100%; height: auto;
+  .tt-sub.on {
+    background: linear-gradient(180deg, #ffe38a, var(--user) 55%, var(--user-2));
+    color: #241a00; border-color: transparent;
   }
 
   /* dica de "arraste para cima" nao faz sentido no desktop de duas colunas */
@@ -132,3 +149,15 @@
     }
   }
 }
+
+/* ── TELA ESTATISTICAS: mapa de finalizacoes (2 times lado a lado) ────────── */
+.ux-shotmaps {
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3);
+}
+.ux-shotmap { margin: 0; }
+.ux-shotmap figcaption {
+  font: 800 11px var(--f-cond); letter-spacing: .6px; text-transform: uppercase;
+  margin-bottom: var(--sp-2); display: flex; align-items: center; gap: 6px;
+}
+.ux-shotmap svg { width: 100%; height: auto; }
+@media (max-width: 720px) { .ux-shotmaps { grid-template-columns: 1fr; } }
