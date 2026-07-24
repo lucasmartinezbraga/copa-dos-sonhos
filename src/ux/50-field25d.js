@@ -212,6 +212,13 @@
     return cv;
   }
   function grass(ctx, M, fW, fH) {
+    /* §fix REPLAY ESCURO: durante o replay de gol um `ctx.save()` sem `restore()`
+       deixava globalAlpha < 1 vazar para o frame seguinte; como grass() e o
+       primeiro e dominante desenho do campo, o gramado saia a ~25% sobre o fundo
+       preto e o campo ficava escurecido — e assim FICAVA depois do replay. Como
+       grass roda todo frame antes de tudo, resetar aqui zera qualquer vazamento
+       de estado e garante o campo sempre em opacidade cheia. */
+    ctx.globalAlpha = 1;
     const key = M + ':' + fW + 'x' + fH;
     if (stage.key !== key) {
       setGeom(M, fW, fH); stage.cv = buildStage(); stage.key = key;

@@ -190,21 +190,15 @@
   "to": "}\nwindow.__CDS_BOOT_NOW = bootGame;\n/* Gatilhos redundantes — todos idempotentes graças ao _bootStarted: */\n"
  },
  {
-  "id": "fix-goalflash-t0",
-  "rationale": "TELA TINGIDA APOS O PRIMEIRO GOL. `goalFlash.alpha` decaia em DOIS lugares independentes e nenhum deles era fonte unica: o laco da simulacao (10-base-bundle.js:9813, `alpha -= dt*1.6`) e o veu branco do desenho. Com o jogo pausado — comemoracao, replay, intervalo — a simulacao para e o alpha congela. Aqui o flash passa a carregar o instante REAL em que nasceu; os dois sitios de desenho derivam o alpha desse carimbo, entao o decaimento existe uma vez so e acontece mesmo com o jogo parado.",
-  "from": "    goalFlash = { team: e.by.team, alpha: 1.0 };",
-  "to": "    goalFlash = { team: e.by.team, alpha: 1.0, t0: performance.now() };"
- },
- {
-  "id": "fix-goalflash-stuck",
-  "rationale": "Veu branco do gol: alpha derivado do carimbo real de `fix-goalflash-t0`. 0,625 s e o mesmo tempo do decaimento original (dt*1.6 => 1/1.6 s), agora imune a pausa. Escreve o valor de volta em `goalFlash.alpha` para que o brilho residual (fix-goalflash-residual) leia o mesmo numero no mesmo quadro.",
+  "id": "kill-goalflash-veil",
+  "rationale": "VEU DE GOL TRAVADO NO CAMPO (pedido explicito do usuario: remover por completo, ate no replay). Havia DOIS fillRect de tela cheia ligados ao goalFlash: o flash branco (11227) e o brilho residual em COR DO TIME (11296, alpha*0.28). O decaimento de goalFlash.alpha vivia no laco da SIMULACAO (9813); quando o jogo pausa no gol/replay a simulacao para, o alpha congela e o campo fica tingido — foi o que o usuario viu (veu avermelhado do time que marcou, sem texto). Correcao definitiva: o bloco do flash branco passa a ZERAR goalFlash. Como o brilho residual (11296) e um `else if (goalFlash...)`, com goalFlash=null ele nunca mais desenha. Nenhum tingimento de tela cheia sobra. So apresentacao — nao toca motor.",
   "from": "  if (goalFlash && goalFlash.alpha > 0.01) {\n    ctx.fillStyle = 'rgba(255,255,255,' + (goalFlash.alpha * 0.5) + ')';\n    ctx.fillRect(0, 0, CW, CH);\n  }",
-  "to": "  if (goalFlash) {\n    /* Fonte unica do decaimento: tempo REAL desde o gol. Sem isto o veu\n       congela com o jogo pausado e lava as cores do campo para sempre. */\n    if (goalFlash.t0 == null) goalFlash.t0 = performance.now();\n    goalFlash.alpha = Math.max(0, 1 - (performance.now() - goalFlash.t0) / 625);\n    if (goalFlash.alpha <= 0.001) goalFlash = null;\n    else {\n      ctx.fillStyle = 'rgba(255,255,255,' + (goalFlash.alpha * 0.5) + ')';\n      ctx.fillRect(0, 0, CW, CH);\n    }\n  }"
+  "to": "  /* §gol: sem flash nem veu de cor na tela — removido a pedido. Zerar aqui\n     tambem desliga o brilho residual (else if goalFlash, abaixo), que\n     congelava tingido quando o jogo pausava no gol/replay. */\n  if (goalFlash) goalFlash = null;"
  },
  {
-  "id": "fix-goalflash-residual",
-  "rationale": "O SITIO QUE FICAVA TINGIDO. Este ramo pinta a tela INTEIRA com a cor do time que marcou (`fillRect(0,0,CW,CH)` a 28% de alpha) e nunca foi corrigido — o patch anterior so tratou o veu branco. Como ele le `goalFlash.alpha` e o decaimento vivia no laco da simulacao, com o jogo parado o campo ficava com um veu permanente da cor do adversario. E exatamente o sintoma relatado: 'depois que acontece o primeiro gol, fica assim dessa cor'. Agora deriva do mesmo carimbo real, e o ramo so pinta enquanto o flash de fato existe.",
-  "from": "  } else if (goalFlash && goalFlash.alpha>0.02) {\n    // brilho residual após a comemoração\n    const alpha = goalFlash.alpha;",
-  "to": "  } else if (goalFlash && (goalFlash.alpha = Math.max(0, 1 - (performance.now() - (goalFlash.t0 || (goalFlash.t0 = performance.now()))) / 625)) > 0.02) {\n    // brilho residual após a comemoração — alpha por tempo REAL (ver fix-goalflash-t0)\n    const alpha = goalFlash.alpha;"
+  "id": "kill-celebration-veil",
+  "rationale": "COMEMORACAO DE GOL escurecia o campo inteiro com `rgba(4,8,18,.72)` fillRect(0,0,CW,CH) — o mesmo aspecto de replay que o usuario pediu para remover. Tira-se so o veu escuro de tela cheia; o texto GOL, o confete e a faixa fina da cor do time continuam, entao o gol segue anunciado sobre o campo claro. So apresentacao.",
+  "from": "    ctx.fillStyle = 'rgba(4,8,18,.72)'; ctx.fillRect(0,0,CW,CH);\n",
+  "to": "    /* §gol: sem veu escuro de tela cheia na comemoracao (removido a pedido) */\n"
  }
 ]

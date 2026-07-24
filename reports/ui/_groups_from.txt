@@ -1,0 +1,20 @@
+  const groups=[
+    ['Ataque',[
+      ['Finalizações',s[0].shots,s[1].shots],['No alvo',s[0].onTarget,s[1].onTarget],['xG',s[0].xg,s[1].xg,'decimal'],['Escanteios',s[0].corners,s[1].corners],['Laterais',s[0].throwIns||0,s[1].throwIns||0]
+    ]],
+    ['Construção',[
+      ['Posse',pa,pb,'percent'],['Passes',s[0].passes,s[1].passes],['Passes certos',s[0].passOk,s[1].passOk],['Precisão',Math.round(s[0].passOk/Math.max(1,s[0].passes)*100),Math.round(s[1].passOk/Math.max(1,s[1].passes)*100),'percent'],['Dribles certos',s[0].dribblesCompleted,s[1].dribblesCompleted]
+    ]],
+    ['Defesa e disciplina',[
+      ['Desarmes',s[0].tackles,s[1].tackles],['Interceptações',s[0].interceptions,s[1].interceptions],['Defesas do goleiro',s[0].saves,s[1].saves],['Faltas',s[0].fouls,s[1].fouls],['Amarelos',s[0].yellow,s[1].yellow],['Impedimentos',s[0].offsides,s[1].offsides]
+    ]],
+    ['Motor 5.0',[
+      ['Bolas em profundidade',s[0].throughBalls||0,s[1].throughBalls||0],['Profundidade certa',s[0].throughOk||0,s[1].throughOk||0],['Cruzamentos rasteiros',s[0].lowCrosses||0,s[1].lowCrosses||0],['Recuperações por pressão',s[0].pressWins||0,s[1].pressWins||0],['Erros defensivos',s[0].defErrors||0,s[1].defErrors||0]
+    ]],
+    ['Goleiros · Fase 8',[
+      ['Defesas seguras',s[0].gkSecureCatches||0,s[1].gkSecureCatches||0],['Espalmadas',s[0].gkParries||0,s[1].gkParries||0],['Rebotes cedidos',s[0].reboundsConceded||0,s[1].reboundsConceded||0],['Saídas certas',s[0].gkSweeps||0,s[1].gkSweeps||0],['Saídas falhas',s[0].gkSweepsFailed||0,s[1].gkSweepsFailed||0],['Cruzamentos dominados',s[0].gkClaimsWon||0,s[1].gkClaimsWon||0],['Socos',s[0].gkPunches||0,s[1].gkPunches||0],['Reposições certas',s[0].gkDistributionCompleted||0,s[1].gkDistributionCompleted||0]
+    ]],
+    ['Bolas paradas · Fase 8',[
+      ['Finalizações de bola parada',s[0].setPieceShots||0,s[1].setPieceShots||0],['Gols de bola parada',s[0].setPieceGoals||0,s[1].setPieceGoals||0],['Primeiro contato ganho',s[0].setPieceFirstContactWon||0,s[1].setPieceFirstContactWon||0],['Faltas diretas',s[0].freeKickDirect||0,s[1].freeKickDirect||0],['Faltas cruzadas',s[0].freeKickCrossed||0,s[1].freeKickCrossed||0],['Escanteios curtos',s[0].cornersShort||0,s[1].cornersShort||0],['Pênaltis convertidos',s[0].penaltiesScored||0,s[1].penaltiesScored||0]
+    ]]
+  ];
