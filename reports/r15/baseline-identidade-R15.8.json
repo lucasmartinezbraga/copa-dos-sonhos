@@ -1,0 +1,49 @@
+{
+  "artefato": "COPA DOS SONHOS — R15.8",
+  "papel": "candidata sob auditoria (Motor Vivo, linha R)",
+  "arquivo_origem": "1445e8f1-COPA_DOS_SONHOS__R15.8.html (upload do usuário)",
+  "bytes": 1760037,
+  "sha256": "a20468959f3b935ac5b6df5f7dcad45339fad023b1c40ccae6f330074a11dc91",
+  "titulo_interno": "Copa dos Sonhos — R15.8",
+  "versao_exibicao": "R15.8",
+  "engine_version_declarada": "5.3.0",
+  "versoes_componentes_presentes": ["5.1.0", "5.2.2", "5.3.0", "5.8.7-R9", "1.0.0"],
+  "linhas": 18572,
+  "blocos_script": 16,
+  "blocos_style": 5,
+  "clockRate": 0.24,
+  "base_congelada_referencia": {
+    "nome": "R13.0",
+    "engine": "5.9.3-R13.0",
+    "sha_modular": "363d9a91…9818a8 (gate: tools/verify_r13.py)",
+    "fonte": "src/r13/ (13 módulos, congelado, nunca editado direto)"
+  },
+  "camadas_vivas_por_bloco": [
+    {"bloco": 1,  "id": "anon(head-bootstrap)", "linha_inicio": 24,    "papel": "bootstrap de cabeçalho"},
+    {"bloco": 4,  "id": "cds-mobile-boot-bridge", "linha_inicio": 2026, "papel": "boot mobile"},
+    {"bloco": 6,  "id": "anon(base-bundle)", "linha_inicio": 2079, "linhas": 11704, "papel": "MOTOR BASE + DATA + DB + UI + render (muito é código morto, sobrescrito adiante)"},
+    {"bloco": 7,  "id": "cds-physics-timeline-581", "linha_inicio": 13783, "papel": "timeline de física"},
+    {"bloco": 8,  "id": "cds-p04-physical-reception-584-r6", "linha_inicio": 13953, "papel": "recepção física + getP04ValidationReport"},
+    {"bloco": 9,  "id": "cds-2_5d-gate-a-contracts-v02", "linha_inicio": 14918, "papel": "contratos de projeção 2.5D"},
+    {"bloco": 10, "id": "cds-pre25d-runtime-auditor-v04", "linha_inicio": 15308, "papel": "auditor de runtime da projeção 2.5D"},
+    {"bloco": 11, "id": "cds-pre25d-build-meta-584-r6", "linha_inicio": 15347, "papel": "metadados de build"},
+    {"bloco": 12, "id": "cds-r7-pass-flow-calibration", "linha_inicio": 15378, "papel": "calibração de fluxo de passe"},
+    {"bloco": 13, "id": "cds-r9-pass-natural-calibration", "linha_inicio": 15412, "papel": "calibração natural de passe"},
+    {"bloco": 14, "id": "cds-r10-engine-closure", "linha_inicio": 15421, "engine": "5.8.17-R10.9", "papel": "posse por contato + recovery + guardas de dono + getR10Report"},
+    {"bloco": 15, "id": "cds-r109-async-cup", "linha_inicio": 15543, "papel": "copa assíncrona"},
+    {"bloco": 16, "id": "cds-r12-transactional-core-r123", "linha_inicio": 15591, "engine": "5.9.3-R12.3", "papel": "núcleo autoritativo transacional: _integrate/_movePlayers (commit-once), _pass/_decide/_dribble/_pressAndTackle/_emit, razão de chute, getR12Audit, getFullFootballAudit"},
+    {"bloco": 17, "id": "cds-r13-football-observer-cadence", "linha_inicio": 15765, "engine": "5.9.3-R13.0", "papel": "futebol observável: cadência, marcação goal-side, linha sincronizada, ball glue, arremesso físico, gates de futebol, getR13Audit"},
+    {"bloco": 18, "id": "cds-r14-engine", "linha_inicio": 16690, "engine": "5.9.4-R14.0 + R15 set-piece walk", "papel": "contrato de ação (decidir≠executar; bola sai no contato) + R15 anti-teleporte de bola parada"},
+    {"bloco": 20, "id": "cds-ux-boot", "linha_inicio": 17605, "papel": "boot de UX / 2.5D"}
+  ],
+  "gap_fonte_modular": "O código-fonte modular da R15.x (R15 set-piece walk, remoção do buff de lenda, calibrações R15.2–R15.5) NÃO está no repositório — existe apenas no HTML R15.8 compilado. A árvore src/ do branch (r14-motor-vivo-auditoria-800) está na R14.4. Qualquer reconstrução por patch precisa resolver esse gap antes de tocar no motor.",
+  "ambiente_execucao": {
+    "node": "v22.22.2 (/opt/node22/bin/node) — PRESENTE",
+    "python": "3.11.15 — PRESENTE",
+    "chromium": "presente (/opt/pw-browsers) — auditoria em navegador viável",
+    "playwright_python": "módulo não importável; usar node/puppeteer ou chromium direto",
+    "tools_r15": "AUSENTE no source R14.4 (o profiler de teleporte e demais R15 só existem citados no HTML)"
+  },
+  "data_analise": "2026-07-23",
+  "preservacao": "Original preservado como upload do usuário e cópia de trabalho em scratchpad (work/R15.8.original.html). Blocos extraídos em scratchpad/work/blocks/. NÃO duplicado no git (decisão do usuário: manter o repositório enxuto). Integridade verificável a qualquer momento pelo SHA-256 acima."
+}
