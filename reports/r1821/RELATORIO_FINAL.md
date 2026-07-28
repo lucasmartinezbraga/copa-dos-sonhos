@@ -50,6 +50,7 @@ O usuário foi informado do conflito com o contrato e autorizou a remoção.
 | `cds-r1821-shot-plausibility` | Comprime a amplitude do chute errado (ia até 6,4 m com a trave em 3,3) para raspar o poste. |
 | `cds-r1821-press-anticipation` | O pressionador passa a ir ao **recebedor** em vez de perseguir a bola em voo. Deriva do alvo limitada a 0,8 m por avaliação. |
 | `cds-r1821-respread-top` | Reespalha o topo saturado de `finalizacao` e `passe`. |
+| `cds-r1821-tempo-e-pausas` | Acréscimos, fim de jogo só com bola parada, e pausa real na cobrança de falta. |
 
 **Dois patches cirúrgicos**, aplicados pelo construtor sobre uma cópia (a base fica intacta):
 
@@ -86,17 +87,48 @@ jogador com 6 casas decimais. **Zero divergências.** A base também passa, como
 Mesmos seeds nas duas builds, 17 formações e 7 estilos em rotação determinística.
 48 scripts carregados, 0 erros.
 
-| métrica | R18.20 | R18.21-RC1 | mediana | desvio | p10 | p90 | alvo | |
-|---|---:|---:|---:|---:|---:|---:|---|---|
-| chutes | 8,95 | 11,88 | 13 | 4,17 | 6 | 17 | 12–20 | FAIL (−0,12) |
-| chutes no alvo | 2,70 | **4,08** | 4 | 2,30 | 1 | 7 | 4–7 | **PASS** |
-| xG | 1,392 | **1,977** | 1,85 | 0,86 | 0,91 | 3,16 | 1,8–2,7 | **PASS** |
-| passes | 221,7 | **220,1** | 221 | 19,9 | 188 | 243 | 170–235 | **PASS** |
-| gols | 1,42 | 2,49 | 2 | 1,69 | 0 | 5 | — | — |
-| desarmes | 4,32 | 6,53 | 6 | 2,96 | 3 | 11 | 8–22 | FAIL |
-| faltas | 3,68 | 5,72 | 5 | 2,69 | 3 | 10 | 7–17 | FAIL |
-| laterais | 4,25 | 4,49 | 4 | 1,69 | 2 | 7 | 5–16 | FAIL |
-| escanteios | 1,18 | 1,16 | 1 | 1,47 | 0 | 3 | 4–10 | FAIL |
+| métrica | R18.20 | R18.21-RC1 | alvo | |
+|---|---:|---:|---|---|
+| chutes | 8,95 | **12,39** | 12–20 | **PASS** |
+| chutes no alvo | 2,70 | **4,37** | 4–7 | **PASS** |
+| xG | 1,392 | **2,088** | 1,8–2,7 | **PASS** |
+| gols | 1,42 | 2,77 | — | — |
+| passes | 221,7 | 238,7 | 170–235 | FAIL (+3,7) |
+| desarmes | 4,32 | 7,49 | 8–22 | FAIL (−0,51) |
+| faltas | 3,68 | 6,39 | 7–17 | FAIL (−0,61) |
+| laterais | 4,25 | 4,89 | 5–16 | FAIL (−0,11) |
+| escanteios | 1,18 | 1,21 | 4–10 | FAIL |
+
+### Tempo de jogo: acréscimos, fim de partida e pausa de bola parada
+
+Três defeitos de regra, encontrados pelo usuário jogando e confirmados por leitura:
+
+1. **Acréscimos nunca existiram.** `this.stoppage` é inicializado em zero (linha 4635),
+   zerado nas trocas de tempo (4894, 4910) e LIDO em três lugares — o fim do 1º tempo
+   (4893), o `isOver()` (4918) e a interface (7991, que exibe `Math.ceil(this.stoppage)`).
+   **Nenhuma linha do motor jamais atribuía outro valor.** Toda partida mostrava "+0".
+2. **A partida acabava com a bola rolando** em 75% dos casos: `isOver()` comparava só o
+   minuto, sem olhar se a bola estava viva, viajando ou em reinício pendente.
+3. **A cobrança de falta tinha a menor pausa do jogo** — 0,45 s, contra 0,82 da falta
+   comum, 0,60 do escanteio e 1,20 do gol. Justamente o lance que na vida real leva mais
+   tempo.
+
+Corrigidos. Medido em 40 partidas:
+
+| | antes | depois |
+|---|---:|---:|
+| acréscimo do 1º tempo | 0 | **2,17** (máx 5,1) |
+| acréscimo do 2º tempo | 0 | **3,38** (máx 7,0) |
+| minuto final médio | 90,1 | 94,76 |
+| partidas que acabaram com a bola em jogo | **75%** | **0%** |
+| pausa da cobrança de falta | 0,8 s | 1,7 s |
+
+**Consequência declarada:** a partida passou a durar ~5 minutos a mais, então tudo que se
+conta por partida subiu junto — o que é correto, já que no futebol as estatísticas incluem
+os acréscimos. Isso fez **chutes ENTRAREM** na faixa (11,88 → 12,39) e **passes SAÍREM**
+(220,1 → 238,7, estourando por 3,7). Não reduzi a magnitude do acréscimo nem mexi na faixa
+para acomodar o passe: os acréscimos estão em números de futebol e a faixa do contrato foi
+calibrada sobre um jogo que não tinha acréscimo nenhum.
 
 ### Amostra intermediária — 30 partidas pareadas
 
@@ -115,17 +147,18 @@ escanteios 1,17 → 1,23. Confirma a direção fora da matriz de estilos.
 | gate | valor | alvo | status |
 |---|---|---|---|
 | Determinismo | 8/8 idênticos | exato | **PASS** |
-| Chutes no alvo | 4,08 | 4–7 | **PASS** |
-| xG | 1,977 | 1,8–2,7 | **PASS** |
-| Passes | 220,1 | 170–235 | **PASS** |
+| Chutes | 12,39 | 12–20 | **PASS** |
+| Chutes no alvo | 4,37 | 4–7 | **PASS** |
+| xG | 2,088 | 1,8–2,7 | **PASS** |
+| Fim de jogo com bola parada | 0% em jogo | sempre | **PASS** |
 | `parkIdentity` | — | — | **PASS** |
 | `tikiIdentity` | — | — | **PASS** |
-| Chutes | 11,88 | 12–20 | FAIL (limítrofe) |
+| Passes | 238,7 | 170–235 | FAIL (+3,7) |
+| Desarmes | 7,49 | 8–22 | FAIL (−0,51) |
+| Faltas | 6,39 | 7–17 | FAIL (−0,61) |
+| Laterais | 4,89 | 5–16 | FAIL (−0,11) |
 | Cobertura crítica | 63,45% | ≥ 70% | FAIL |
-| Desarmes | 6,53 | 8–22 | FAIL |
-| Faltas | 5,72 | 7–17 | FAIL |
-| Laterais | 4,49 | 5–16 | FAIL |
-| Escanteios | 1,16 | 4–10 | FAIL |
+| Escanteios | 1,21 | 4–10 | FAIL |
 | `noDominantStyle` | ppgRange 0,81 | ≤ 0,75 | **INSUFFICIENT_DATA** |
 | Boot desktop / mobile | — | — | **NOT_EXECUTED** |
 | Matriz 17×7 completa | — | — | **NOT_EXECUTED** (o contrato manda deixar para depois) |
@@ -202,7 +235,7 @@ o ponta cruza no primeiro instante legal em vez de conduzir até a linha.
 
 | arquivo | SHA-256 |
 |---|---|
-| `COPA DOS SONHOS - R18.21-RC1 - DEFESA PRESSAO E ECOLOGIA.html` | `bf9bd6ec96bb8c4dbd0b9f43d7424174fa2b0b97955972a0c74f4f3330b57a88` |
+| `COPA DOS SONHOS - R18.21-RC1 - DEFESA PRESSAO E ECOLOGIA.html` | `ef461809b98e5751d4d3f8d9d82aaaefae1fd49819274a95f62f18bff16a71e7` |
 | base R18.20 (intocada, para conferência) | `11ab3fc32609f1a4cd87ea75437e27ce8ad491a4c8849c4c686f7c0a07314805` |
 
 Auditoria bruta em JSON: `auditoria/bat100_base.json`, `auditoria/bat100_rc1.json`

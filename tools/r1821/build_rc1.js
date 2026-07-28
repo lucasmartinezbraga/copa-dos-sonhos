@@ -62,6 +62,11 @@ const LAYERS = [
      por posto com o overall como desempate; simulação deu ZERO inversões em
      177 afetados e 6.785 intocados. */
   { id: 'cds-r1821-respread-top', file: 'layer_r1821_respread_top.js' },
+  /* Três defeitos de regra achados pelo usuário jogando: acréscimos nunca
+     existiram (`this.stoppage` era lido em 3 lugares e nunca atribuído), a
+     partida acabava com a bola rolando, e a cobrança de falta tinha a menor
+     pausa do jogo (0,45 s). */
+  { id: 'cds-r1821-tempo-e-pausas', file: 'layer_r1821_tempo_e_pausas.js' },
 ];
 
 const BASE_SHA_ESPERADO = '11ab3fc32609f1a4cd87ea75437e27ce8ad491a4c8849c4c686f7c0a07314805';
