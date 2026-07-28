@@ -184,6 +184,11 @@ function blankObservation() {
     defensiveSamples: 0,
     dangerousAttackers: 0,
     uncoveredAttackers: 0,
+    criticalThreats: 0,
+    criticalCovered: 0,
+    criticalUncovered: 0,
+    criticalEpisodes: 0,
+    criticalUncoveredRateSum: 0,
     goalSideCovered: 0,
     markerAssignments: 0,
     markerActuallyClose: 0,
@@ -256,6 +261,47 @@ function observe(sim, obs, row) {
       const goalDistance = distance(p, defendingTeam.goal);
       return goalDistance < 46 || p._breaking || p._runDeep;
     });
+
+    /* ─── AMEAÇA CRÍTICA (definição corrigida, medida em paralelo) ──────────
+       A definição acima conta como ameaça um atacante a até 46 m do gol — meio
+       campo — e, por causa do `|| p._breaking || p._runDeep`, conta um corredor
+       a QUALQUER distância. É o defeito que o handoff descreveu: "houve até
+       portador a 92 m exigindo marcador a 8,5 m".
+
+       Aqui a ameaça precisa ser real: dentro da zona de perigo, ou em ruptura
+       mas ainda em distância plausível. E a cobertura exige marcador a 8 m E
+       goal-side de verdade, não `_markRef` preenchido.
+
+       Roda ao lado da métrica original, sem substituí-la: os dois números vão
+       para o relatório e a comparação fica auditável. */
+    const ZONA_PERIGO = 35;      // dentro disso, atacante é ameaça
+    const ZONA_RUPTURA = 45;     // em ruptura, ainda conta até aqui
+    const RAIO_COBERTURA = 8;    // distância máxima do marcador (o contrato diz 8 m)
+    const criticas = attackingTeam.players.filter(p => {
+      if (p.red || p.isGK || lineOf(p) !== 'FWD') return false;
+      const gd = distance(p, defendingTeam.goal);
+      if (gd < ZONA_PERIGO) return true;
+      return (p._breaking || p._runDeep) && gd < ZONA_RUPTURA;
+    });
+    let criticasDescobertasFrame = 0;
+    for (const atacante of criticas) {
+      obs.criticalThreats++;
+      const eleg = defendingTeam.players.filter(p => !p.red && !p.isGK && lineOf(p) !== 'FWD');
+      let coberto = false;
+      const gdAtk = distance(atacante, defendingTeam.goal);
+      for (const def of eleg) {
+        if (distance(def, atacante) > RAIO_COBERTURA) continue;
+        if (distance(def, defendingTeam.goal) + 0.5 >= gdAtk) continue;   // goal-side real
+        if (Math.abs(def.y - atacante.y) > 7.5) continue;                 // no mesmo corredor
+        coberto = true; break;
+      }
+      if (coberto) obs.criticalCovered++;
+      else { obs.criticalUncovered++; criticasDescobertasFrame++; }
+    }
+    if (criticas.length) {
+      obs.criticalEpisodes++;
+      obs.criticalUncoveredRateSum += criticasDescobertasFrame / criticas.length;
+    }
     let uncoveredThisFrame = 0;
     for (const attacker of threats) {
       obs.dangerousAttackers++;
@@ -564,6 +610,16 @@ function sumMatch(results) {
     humanObserver: {
       uncoveredThreatRate: total.dangerousAttackers ? total.uncoveredAttackers / total.dangerousAttackers : 0,
       goalSideCoverageRate: total.dangerousAttackers ? total.goalSideCovered / total.dangerousAttackers : 0,
+      /* Definição CORRIGIDA de ameaça crítica, ao lado da original. A de cima
+         conta atacante a até 46 m e corredor a qualquer distância; esta exige
+         zona de perigo real (35 m, ou 45 m em ruptura), marcador a 8 m e
+         goal-side de verdade. `INSUFFICIENT_DATA` quando não houver episódio. */
+      criticalCoverageRate: total.criticalThreats ? total.criticalCovered / total.criticalThreats : null,
+      criticalThreatsPerMatch: matches ? total.criticalThreats / matches : 0,
+      falseThreatsRemovedPct: total.dangerousAttackers
+        ? 100 * (1 - total.criticalThreats / total.dangerousAttackers) : 0,
+      criticalCoverageStatus: !total.criticalEpisodes ? 'INSUFFICIENT_DATA'
+        : (total.criticalCovered / Math.max(1, total.criticalThreats)) >= 0.70 ? 'PASS' : 'FAIL',
       markerCloseRate: total.markerAssignments ? total.markerActuallyClose / total.markerAssignments : 0,
       markerGoalSideRate: total.markerAssignments ? total.markerGoalSide / total.markerAssignments : 0,
       markerMeanDistance: total.markerAssignments ? total.markerDistanceSum / total.markerAssignments : 0,

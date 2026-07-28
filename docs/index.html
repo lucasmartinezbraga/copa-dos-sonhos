@@ -5362,7 +5362,7 @@ class MatchSim {
         else {
           const goalAim={x:g.x+lcDir*.9,y:clamp(g.y+R(-2.5,2.5),g.y-3.3,g.y+3.3)};
           const shotSpeed=clamp(34+facet(atk,'shot')/100*16,32,54);
-          const st=this._gkInterceptTarget(gk,atk.x,atk.y,goalAim,shotSpeed,1.95);
+          const st=this._gkInterceptTarget(gk,atk.x,atk.y,goalAim,shotSpeed,3.0);
           if(chance(.48+(gk?facet(gk,'gk')/300:0))&&st){
             this._startTravel(atk,st,'shot',()=>this._gkResolveSave(gk,atk,{atk:finish,oneOnOne:true,saveTarget:st,g,tm:this.teams[atk.team],cornerChance:CAL.restarts.lowCrossSaveCorner}),null,'shot',{outcome:'save',actor:gk,contactRadius:1.95,interceptT:st.t});
           } else this._startTravel(atk,{x:g.x+lcDir*2,y:g.y+(chance(.5)?1:-1)*R(3.4,6.4)},'shot',()=>{this._emit('miss',{by:atk});this._goalKickOrRestart(1-o.team);},null,'shot');
@@ -5398,7 +5398,7 @@ class MatchSim {
           const hr=R();
           const goalAim={x:g.x+hdDir*.9,y:clamp(g.y+R(-3,3),g.y-3.3,g.y+3.3)};
           const shotSpeed=clamp(34+facet(atk,'shot')/100*16,32,54);
-          const st=this._gkInterceptTarget(gk,atk.x,atk.y,goalAim,shotSpeed,1.95);
+          const st=this._gkInterceptTarget(gk,atk.x,atk.y,goalAim,shotSpeed,3.0);
           const saveShare=st?.27+(gk?facet(gk,'gk')/100:.4)*.12:0;
           if(hr<saveShare&&st){
             this._startTravel(atk,st,'shot',()=>this._gkResolveSave(gk,atk,{atk:facet(atk,'head_atk'),oneOnOne:false,saveTarget:st,g,tm:this.teams[atk.team],cornerChance:CAL.restarts.aerialSaveCorner}),null,'shot',{outcome:'save',actor:gk,contactRadius:1.95,interceptT:st.t});
@@ -7103,7 +7103,8 @@ class MatchSim {
         // SEPARAÇÃO (relatório §5.1): ninguém divide o mesmo espaço.
         // Quem tem dever de bola (presser/cobertura/dono/receptor) fica fora.
         const ballDuty = p === presser || p === tm._cover || p === this.ball.owner ||
-                         (this.ball.traveling && this.ball.receiver === p);
+                         (this.ball.traveling && this.ball.receiver === p) ||
+                         !!(p.__r1821BoxRun && p.__r1821BoxRun.ate > this.t);
         if (!ballDuty) {
           let sepx = 0, sepy = 0;
           for (const q of tm.players) {                    // companheiros: raio 5.5m

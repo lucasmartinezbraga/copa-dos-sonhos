@@ -104,6 +104,29 @@ if (html.indexOf(ALVO_SEP) >= 0) {
   console.error('AVISO: ancora da isencao de separacao nao encontrada — patch NAO aplicado');
 }
 
+/* 1b. PATCH CIRÚRGICO — alcance do goleiro em jogo aberto
+   O motor usa contactRadius 3,0 no chute normal (linha 6114) mas 1,95 no chute
+   de cruzamento rasteiro (5365) e no cabeceio (5401). Não há razão física: o
+   braço do goleiro não encolhe porque a finalização veio de cabeça. O registro
+   do projeto mostra que o alcance foi subido de 1,90 para 3,0 numa correção
+   anterior e ela nunca propagou para essas duas rotas de jogo aberto.
+
+   A consequência é grave e medida: quando o goleiro não alcança, o chute
+   rasteiro NÃO tem caminho para gol nem para defesa — vai para fora, garantido.
+   E é justamente essa rota que teria `lowCrossSaveCorner: 0.55`, ou seja, mais
+   de metade das defesas viraria escanteio.
+
+   As duas linhas têm texto idêntico, então o replace pega exatamente elas.
+   Bola parada (falta 6752, pênalti 6824) fica em 1,95 de propósito: ali o
+   goleiro está posicionado e a cobrança é desenhada para batê-lo. */
+const ALVO_GK = "const st=this._gkInterceptTarget(gk,atk.x,atk.y,goalAim,shotSpeed,1.95);";
+const NOVO_GK = "const st=this._gkInterceptTarget(gk,atk.x,atk.y,goalAim,shotSpeed,3.0);";
+let patchesGk = 0;
+while (html.indexOf(ALVO_GK) >= 0) { html = html.replace(ALVO_GK, NOVO_GK); patchesGk++; }
+if (patchesGk !== 2) {
+  console.error(`AVISO: esperava 2 patches de alcance do goleiro, apliquei ${patchesGk}`);
+}
+
 // 2. injetar camadas antes do fecho do body
 const CLOSE = '</body></html>';
 const closeAt = html.lastIndexOf(CLOSE);
@@ -143,6 +166,7 @@ const outSha = crypto.createHash('sha256').update(Buffer.from(html, 'utf8')).dig
 console.log(JSON.stringify({
   base: path.basename(BASE), baseSha256: baseSha,
   r1819RemovidaChars: removidos,
+  patchesAlcanceGoleiro: patchesGk,
   patchesCirurgicos: patchesAplicados,
   camadas: aplicadas,
   saida: path.basename(OUT), saidaSha256: outSha,

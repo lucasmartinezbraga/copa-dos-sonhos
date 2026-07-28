@@ -8,7 +8,7 @@ Candidata construída sobre a **R18.20 — Inteligência de Chance**, seguindo o
 | Base | `COPA DOS SONHOS - R18.20 - INTELIGENCIA DE CHANCE.html` |
 | SHA-256 da base | `11ab3fc32609f1a4cd87ea75437e27ce8ad491a4c8849c4c686f7c0a07314805` |
 | Candidata | `dist/COPA DOS SONHOS - R18.21-RC1 - DEFESA PRESSAO E ECOLOGIA.html` |
-| SHA-256 da candidata | `a07f70c8d1193bfdd996be06d2294df99abfff767c16ccf8847cc4c19e150c2f` |
+| SHA-256 da candidata | `bf9bd6ec96bb8c4dbd0b9f43d7424174fa2b0b97955972a0c74f4f3330b57a88` |
 | Status | **CANDIDATA — NECESSITA AJUSTES** |
 
 A base **não foi alterada**. O construtor `tools/r1821/build_rc1.js` aborta se o SHA-256
@@ -61,7 +61,38 @@ Gates de identidade de estilo do probe:
 |---|---|---|
 | `parkIdentity` | FAIL | **PASS** |
 | `tikiIdentity` | FAIL | **PASS** |
-| `noDominantStyle` | FAIL | **PASS** |
+| `noDominantStyle` | FAIL | INDECIDÍVEL |
+
+**Ressalva sobre `noDominantStyle`:** este gate compara `ppgRange <= 0,75` e
+`maxAbsGoalDiffPerMatch <= 0,65`. As duas grandezas oscilam mais que a própria
+margem nesta amostra — medido, `ppgRange` desloca 11,5% sozinho entre amostras
+da mesma build, e as amostras usadas nessa medição eram correlacionadas, então
+o valor real é maior. Numa das builds intermediárias o gate passou com margem de
+**0,007** em `maxAbsGoalDiff`. Não tratar PASS nem FAIL deste gate como
+conclusivo sem `--repeats=6` (294 partidas), que é a prática estabelecida do
+projeto para a matriz.
+
+### Alcance do goleiro em jogo aberto
+
+O motor usava `contactRadius` 3,0 no chute normal mas 1,95 no chute de cruzamento
+rasteiro e no cabeceio — sem razão física. Quando o goleiro não alcançava, o chute
+rasteiro não tinha caminho nem para gol nem para defesa: ia para fora, garantido.
+
+Corrigido para 3,0 nas duas rotas de **jogo aberto** (bola parada fica em 1,95: ali
+o goleiro está posicionado e a cobrança é desenhada para batê-lo). Medido em 147
+partidas pareadas:
+
+| métrica | antes | depois | |
+|---|---:|---:|---|
+| escanteios | 1,16 | **1,27** | +8,8% |
+| defesas | 1,37 | **1,50** | +9,4% |
+| chutes para fora | 8,70 | **8,19** | −5,9% |
+| cabeceios | 1,20 | 1,29 | +7,4% |
+| chutes | 13,97 | 14,00 | — |
+
+Escanteio é a métrica mais estável do probe (desloca 0,0% sozinha), então o ganho
+é sinal. Gols subiram 12,4% na mesma amostra, mas gols oscilam ~27% sozinhos aqui
+e não sustentam conclusão.
 
 O ganho isolado da **pressão antecipada**, medido em 147 partidas pareadas contra a
 mesma build sem ela: tentativas de desarme 7,88 → 12,93 (+64%), desarmes 3,68 → 6,22
