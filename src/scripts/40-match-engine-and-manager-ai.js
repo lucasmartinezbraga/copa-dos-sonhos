@@ -844,7 +844,7 @@ class MatchSim {
        já ter tocado nela. Dentro da área e no 1x1 nada muda — ali o chute de
        primeira é legítimo. */
     const heldFor = this.t - (o._gotBallAt || 0);
-    if (longshot && (heldFor < 0.7 || (this.possT || 0) < 1.05)) {
+    if (longshot && (heldFor < 0.45 || (this.possT || 0) < 0.9)) {
       return { take:false, longshot:true, oneOnOne:false };
     }
     const skill = facet(o, oneOnOne ? 'one_on_one' : (longshot ? 'shot_far' : 'shot')) / 100;
@@ -926,7 +926,7 @@ class MatchSim {
     const atk=bestAir;
     const deliveryFail = clamp(.34-(crossSkill-55)/210-(setPiece?.08:0),.10,.43);
     if(!atk || chance(deliveryFail)){
-      this._startTravel(o,{x:g.x,y:FW/2+R(-8,8)},'pass',()=>{if(chance(.52))this._setCorner(o.team);else this._goalKickOrRestart(1-o.team);},null,'launch');
+      this._startTravel(o,{x:g.x,y:FW/2+R(-8,8)},'pass',()=>{if(chance(.70))this._setCorner(o.team);else this._goalKickOrRestart(1-o.team);},null,'launch');
       return;
     }
     const def=defs.slice().sort((a,b)=>D(a.x,a.y,atk.x,atk.y)-D(b.x,b.y,atk.x,atk.y))[0];
@@ -946,7 +946,21 @@ class MatchSim {
           else if(hr<saveShare+.18){this._emit('blocked',{by:def});if(chance(.45))this._setCorner(o.team);else this._looseBall(atk.x,atk.y);}
           else{this._emit('miss',{by:atk});this._goalKickOrRestart(1-o.team);}
         }
-      }else{if(def){def.rating+=.08;this._emit('header_clear',{by:def});this._turnover(def);}else this._goalKickOrRestart(1-o.team);}
+      }else{
+        if(def){
+          def.rating+=.08;this._emit('header_clear',{by:def});
+          /* CABECEADA PARA ESCANTEIO (§realismo). O zagueiro que ganhava a
+             bola aérea SEMPRE saía com ela dominada no pé. No censo, a origem
+             "bola fora pela linha de fundo" marcava ZERO escanteio: a jogada
+             mais comum do futebol — o defensor mandar pra fora atrás da
+             própria linha — simplesmente não existia no motor. Sob pressão o
+             alívio sai torto: vai pra fora, ou sobra na área. */
+          const pressed=D(def.x,def.y,atk.x,atk.y)<3.2, r3=R();
+          if(r3<(pressed?.50:.31))this._setCorner(o.team);
+          else if(r3<(pressed?.58:.36))this._spillBall(def.x+R(-3,3),def.y+R(-3,3),R(-7,7),R(-7,7));
+          else this._turnover(def);
+        }else this._goalKickOrRestart(1-o.team);
+      }
     },atk,'launch');
   }
 
@@ -1024,6 +1038,14 @@ class MatchSim {
   _clearBall(o) {
     const tm = this.teams[o.team];
     const dir = tm.attackDir;
+    // Alívio tirado de dentro da própria área sai pela linha de fundo com
+    // frequência — é escanteio, não posse. Antes todo chutão viajava limpo.
+    const ownDepth = dir > 0 ? o.x : FL - o.x;
+    if (ownDepth < 13 && chance(0.46)) {
+      this._emit('header_clear', { by: o });
+      this._setCorner(1 - o.team);
+      return;
+    }
     const tx = clamp(o.x + dir * (26 + R(0, 14)), 2, FL - 2);
     const ty = clamp(o.y + (R() < 0.5 ? -1 : 1) * (12 + R(0, 14)), 2, FW - 2);
     this._startTravel(o, { x: tx, y: ty }, 'pass', () => this._contestLoose());
@@ -1187,8 +1209,14 @@ class MatchSim {
     const tm = this.teams[o.team];
     const dir = tm.attackDir;
     const adv = dir > 0 ? o.x : FL - o.x;
-    const wideY = o.y < 20 || o.y > FW - 20;
-    return adv > 78 && wideY;
+    /* JANELA DE CRUZAMENTO (§realismo): exigir estar a menos de 27 m da linha
+       de fundo E muito aberto deixava o jogo com 1,8 cruzamento por partida —
+       futebol de verdade tem por volta de 16. Metade do jogo aéreo não existia,
+       e com ele faltavam os escanteios (cabeceada pra fora), as sobras e os
+       gols de cabeça. A janela abre para a faixa de onde se cruza de verdade,
+       incluindo a diagonal de meia-lua. */
+    const wideY = o.y < 23 || o.y > FW - 23;
+    return adv > 70 && wideY;
   }
   _laneRisk(o, m, opps) {
     let risk = 0;
@@ -1491,7 +1519,15 @@ class MatchSim {
       if(r2<saveCut){
         const saveTarget={x:g.x-tm.attackDir*1.25,y:clamp(g.y+dispersion,g.y-3.35,g.y+3.35)};
         this.stats[o.team].onTarget++;
-        this._startTravel(o,saveTarget,'shot',()=>{this.stats[1-o.team].saves++;if(gk)gk.rating+=(atk>82?.35:.18);this._emit('save',{gk,big:atk>82||oneOnOne});if(chance(.5))this._setCorner(o.team);else this._turnover(gk);},null,'shot');
+        this._startTravel(o,saveTarget,'shot',()=>{this.stats[1-o.team].saves++;if(gk)gk.rating+=(atk>82?.35:.18);this._emit('save',{gk,big:atk>82||oneOnOne});
+          /* REBOTE (§realismo): toda defesa terminava em escanteio ou com a
+             bola presa nas luvas. O goleiro que ESPALMA para dentro da area —
+             e a sobra que vira segunda finalizacao — nao existia. Goleiro bom
+             segura mais; sob chute forte, sobra. */
+          if(chance(.70))this._setCorner(o.team);
+          else if(chance(clamp(.52-(gk?facet(gk,'gk')/100*.22:0),.22,.55)))
+            this._spillBall(saveTarget.x+tm.attackDir*R(2,6),saveTarget.y+R(-5,5),R(-5,5),R(-5,5));
+          else this._turnover(gk);},null,'shot');
       }else if(r2<blockCut){
         const defenders=this.teams[1-o.team].players.filter(p=>!p.red&&!p.isGK);let blocker=null,bestLine=99;
         for(const d of defenders){const t=clamp(this._projT(o.x,o.y,g.x,g.y,d.x,d.y),0,1);if(t<.12||t>.88)continue;const px=lerp(o.x,g.x,t),py=lerp(o.y,g.y,t),ld=D(d.x,d.y,px,py);if(ld<bestLine){bestLine=ld;blocker=d;}}
@@ -1499,9 +1535,9 @@ class MatchSim {
         // Chute bloqueado dentro de area povoada quase sempre desvia para fora:
         // e a fonte de escanteio que faltava (a media estava em 4,0 por partida,
         // contra um piso de 5,0 — futebol de verdade fica perto de 10).
-        this._startTravel(o,blockTarget,'shot',()=>{this._emit('blocked',{by:blocker});if(chance(.58))this._setCorner(o.team);else this._looseBall(blockTarget.x,blockTarget.y);},null,'shot');
+        this._startTravel(o,blockTarget,'shot',()=>{this._emit('blocked',{by:blocker});if(chance(.74))this._setCorner(o.team);else this._looseBall(blockTarget.x,blockTarget.y);},null,'shot');
       }else if(r2<postCut){
-        this._startTravel(o,{x:g.x,y:g.y+(chance(.5)?1:-1)*3.66},'shot',()=>{this._emit('post',{by:o});if(chance(.45))this._setCorner(o.team);else this._looseBall(g.x,g.y);},null,'shot');
+        this._startTravel(o,{x:g.x,y:g.y+(chance(.5)?1:-1)*3.66},'shot',()=>{this._emit('post',{by:o});if(chance(.55))this._setCorner(o.team);else this._looseBall(g.x,g.y);},null,'shot');
       }else{
         const missY=g.y+(chance(.5)?1:-1)*R(5.2,11.5);
         this._startTravel(o,{x:g.x+tm.attackDir*3,y:missY},'shot',()=>{this._emit('miss',{by:o});this._goalKickOrRestart(1-o.team);},null,'shot');o.rating-=.08;

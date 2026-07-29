@@ -569,7 +569,13 @@ const ENGINE_CALIBRATION = Object.freeze({
     foulBase: 0.25,
     foulComposure: 0.12,
     yellowFirst: 0.19,
-    yellowSecond: 0.10,
+    /* Censo: 100% dos vermelhos vinham de SEGUNDO AMARELO (o vermelho direto
+       praticamente nunca dispara), e saíam 0,53 por partida contra um teto de
+       0,30 — mais de 3x o alvo. A causa é que 0,10 por falta se aplicava a um
+       jogador JÁ pendurado, que ainda comete várias faltas no resto do jogo.
+       Quem está pendurado se cuida: a taxa cai para o patamar em que expulsão
+       volta a ser um evento raro, como no futebol de verdade. */
+    yellowSecond: 0.030,
     straightRed: 0.003,
   }),
   shooting: Object.freeze({
