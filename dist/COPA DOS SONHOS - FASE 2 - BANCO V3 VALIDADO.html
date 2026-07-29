@@ -2634,7 +2634,11 @@ const ENGINE_CALIBRATION = Object.freeze({
        laboratório — nenhum número muda antes do relatório de regressão. */
     tackleAttemptRate: 45.0,
     boxAttemptRate: 16.0,
-    foulBase: 0.29,
+    /* Com o bloco defendendo de fato dentro da própria área, o número de
+       duelos por partida subiu — e com a mesma probabilidade por duelo as
+       faltas estouraram a faixa (29,7 contra o teto de 28). Menos falta POR
+       duelo mantém o total no lugar sem tirar a disputa do jogo. */
+    foulBase: 0.25,
     foulComposure: 0.12,
     yellowFirst: 0.19,
     yellowSecond: 0.10,
@@ -2644,7 +2648,15 @@ const ENGINE_CALIBRATION = Object.freeze({
     distanceXg: Object.freeze([
       [6, 0.48], [11, 0.27], [16, 0.135], [22, 0.064], [30, 0.032], [Infinity, 0.015],
     ]),
-    conversionScale: 2.20,
+    /* RECALIBRAÇÃO (§realismo). Este 2.20 foi ajustado quando 81% dos chutes
+       saíam de FORA da área — chutes de xG baixo, que a escala precisava
+       inflar para o placar fechar. Corrigida a decisão do portador (agora ele
+       conduz e chega à área em vez de bater de 30 m), a distribuição de
+       finalizações virou realista e a mesma escala passou a converter 18,8%
+       dos chutes: quase o dobro do futebol de verdade (~10-11%). A escala
+       desce para acompanhar a nova distribuição — o placar volta à faixa sem
+       precisar piorar de novo a qualidade das chances. */
+    conversionScale: 1.62,
     /* BALANCEAMENTO · finalizador e goleiro com voz de verdade:
        · skillInfluence 0.90 → 1.05: o termo (FIN−GK)/100 modula a conversão
          em ±~26% na faixa típica (antes ±22%). A POSIÇÃO do chute continua
@@ -5086,7 +5098,7 @@ class MatchSim {
        já ter tocado nela. Dentro da área e no 1x1 nada muda — ali o chute de
        primeira é legítimo. */
     const heldFor = this.t - (o._gotBallAt || 0);
-    if (longshot && (heldFor < 1.0 || (this.possT || 0) < 1.8)) {
+    if (longshot && (heldFor < 0.7 || (this.possT || 0) < 1.05)) {
       return { take:false, longshot:true, oneOnOne:false };
     }
     const skill = facet(o, oneOnOne ? 'one_on_one' : (longshot ? 'shot_far' : 'shot')) / 100;
@@ -5145,7 +5157,7 @@ class MatchSim {
         const win=duelProb(atkScore+6,defScore);
         if(!chance(win)){
           this._emit('blocked',{by:def});
-          if(chance(.42)) this._setCorner(o.team); else this._turnover(def||gk);
+          if(chance(.55)) this._setCorner(o.team); else this._turnover(def||gk);
           return;
         }
         this.stats[o.team].crossesOk++; this.stats[o.team].lowCrossesOk++;
@@ -5697,6 +5709,10 @@ class MatchSim {
     // Calibração FM-like: 1x1 mantém valor alto; chutes comuns e de longe
     // têm conversão mais contida, evitando placares inflados sem reduzir volume.
     pGoal *= oneOnOne ? .84 : longshot ? .70 : .76;
+    // COLOCAÇÃO DO GOLEIRO PESA (§realismo): bem postado, fecha o gol; batido
+    // ou adiantado demais, entrega. Antes isto valia zero para o resultado.
+    const gkCov=this._gkCoverage(gk,o.x,o.y,g);
+    pGoal*=lerp(1.16,.78,gkCov);
     pGoal=clamp(pGoal,CAL.shooting.minGoalChance,oneOnOne?.72:CAL.shooting.maxGoalChance);
     const xg=pGoal; this.stats[o.team].xg+=xg;
     if((o._setPieceShotUntil||0)>this.t)this.stats[o.team].setPieceShots++;
@@ -5709,8 +5725,22 @@ class MatchSim {
     }else{
       const gkQual=gk?facet(gk,oneOnOne?'gk_one_on_one':'gk')/100:.4;
       const r2=R();
-      const saveCut=CAL.shooting.savedShare+gkQual*CAL.shooting.keeperSaveInfluence+(oneOnOne?.04:0);
-      const blockCut=saveCut+CAL.shooting.blockedShare*(oneOnOne?.55:1);
+      // goleiro bem colocado também converte mais não-gols em DEFESA (e não em
+      // bola pra fora): quem está na linha do chute alcança o que voa no gol.
+      const saveCut=CAL.shooting.savedShare+gkQual*CAL.shooting.keeperSaveInfluence+(oneOnOne?.04:0)+gkCov*.07;
+      /* BLOQUEIO EXIGE CORPO NA FRENTE (§realismo): a fatia de bloqueio era
+         FIXA — encher a área de zagueiro não bloqueava um chute a mais, e o
+         trabalho defensivo não aparecia em lugar nenhum. Agora conta quantos
+         defensores estão de fato na linha do chute; é daí que saem o bloqueio
+         e o escanteio que faltavam. */
+      let laneDefs=0;
+      for(const d of this.teams[1-o.team].players){
+        if(d.red||d.isGK)continue;
+        const tl=clamp(this._projT(o.x,o.y,g.x,g.y,d.x,d.y),0,1);
+        if(tl<.08||tl>.92)continue;
+        if(D(d.x,d.y,lerp(o.x,g.x,tl),lerp(o.y,g.y,tl))<1.9)laneDefs++;
+      }
+      const blockCut=saveCut+CAL.shooting.blockedShare*(oneOnOne?.55:1)*clamp(.55+laneDefs*.45,.55,1.95);
       const postCut=blockCut+CAL.shooting.postShare;
       if(r2<saveCut){
         const saveTarget={x:g.x-tm.attackDir*1.25,y:clamp(g.y+dispersion,g.y-3.35,g.y+3.35)};
@@ -5720,7 +5750,10 @@ class MatchSim {
         const defenders=this.teams[1-o.team].players.filter(p=>!p.red&&!p.isGK);let blocker=null,bestLine=99;
         for(const d of defenders){const t=clamp(this._projT(o.x,o.y,g.x,g.y,d.x,d.y),0,1);if(t<.12||t>.88)continue;const px=lerp(o.x,g.x,t),py=lerp(o.y,g.y,t),ld=D(d.x,d.y,px,py);if(ld<bestLine){bestLine=ld;blocker=d;}}
         const blockTarget=blocker&&bestLine<7?{x:blocker.x,y:blocker.y}:{x:lerp(o.x,g.x,.55),y:lerp(o.y,g.y,.55)+R(-1.5,1.5)};
-        this._startTravel(o,blockTarget,'shot',()=>{this._emit('blocked',{by:blocker});if(chance(.38))this._setCorner(o.team);else this._looseBall(blockTarget.x,blockTarget.y);},null,'shot');
+        // Chute bloqueado dentro de area povoada quase sempre desvia para fora:
+        // e a fonte de escanteio que faltava (a media estava em 4,0 por partida,
+        // contra um piso de 5,0 — futebol de verdade fica perto de 10).
+        this._startTravel(o,blockTarget,'shot',()=>{this._emit('blocked',{by:blocker});if(chance(.58))this._setCorner(o.team);else this._looseBall(blockTarget.x,blockTarget.y);},null,'shot');
       }else if(r2<postCut){
         this._startTravel(o,{x:g.x,y:g.y+(chance(.5)?1:-1)*3.66},'shot',()=>{this._emit('post',{by:o});if(chance(.45))this._setCorner(o.team);else this._looseBall(g.x,g.y);},null,'shot');
       }else{
@@ -6162,7 +6195,21 @@ class MatchSim {
     const isSweeper=(p.role==='gk_libero')||(p.ref&&p.ref.traits&&p.ref.traits.includes('SWEEPER_KEEPER'));
     const quality=clamp((pos+sweep+anticipation*.35)/235,.35,1.12);
     let depth=3.8+quality*1.8+(isSweeper?1.7:0);
-    let ty=clamp(FW/2+(b.y-FW/2)*(.22+pos/290),18,FW-18);
+    /* FECHAR O ÂNGULO (§realismo). O goleiro acompanhava apenas uma fração do
+       deslocamento lateral da bola (22-56%) e ficava quase sempre central —
+       num chute de ângulo ele estava fora da linha bola→gol, com meio gol
+       aberto, e defendia assim mesmo porque a POSIÇÃO não entrava na conta do
+       chute. Agora ele se posta sobre a bissetriz (linha referência→centro do
+       gol), que é como um goleiro de verdade fecha o ângulo. A precisão dessa
+       colocação vem de POSICIONAMENTO: goleiro fraco fica central demais e é
+       exatamente por aí que o gol no canto passa. */
+    const place=(rx,ry,dep)=>{
+      const ang=Math.atan2(ry-goal.y,rx-goal.x);
+      const acc=clamp(.40+pos/145,.40,1);
+      return [lerp(goal.x+tm.attackDir*dep,goal.x+Math.cos(ang)*dep,acc),
+              clamp(lerp(goal.y,goal.y+Math.sin(ang)*dep,acc),goal.y-9,goal.y+9)];
+    };
+    let ty=place(b.x,b.y,depth)[1];
     const attacker=b.owner&&b.owner.team!==tm.side?b.owner:null;
     if(attacker){
       const danger=D(attacker.x,attacker.y,goal.x,goal.y);
@@ -6171,7 +6218,7 @@ class MatchSim {
         const breakaway=cover>6;
         const narrow=clamp((34-danger)*.30+(breakaway?4.2:0),0,13);
         depth+=narrow*(.48+sweep/210+(isSweeper?.12:0));
-        ty=clamp(lerp(FW/2,attacker.y,.44+pos/240),11,FW-11);
+        ty=place(attacker.x,attacker.y,depth)[1];
       }
     }else if(b.traveling&&b.target&&b.lastTouch&&b.lastTouch.team!==tm.side){
       const targetDanger=D(b.target.x,b.target.y,goal.x,goal.y);
@@ -6188,6 +6235,22 @@ class MatchSim {
     p._gkAI.wait-=dt;
     if(p._gkAI.wait<=0){p._gkAI.x=rawX;p._gkAI.y=ty;p._gkAI.wait=lerp(.25,.065,(reflex*.45+anticipation*.55)/100);}
     return [p._gkAI.x,p._gkAI.y];
+  }
+
+  /* COBERTURA GEOMÉTRICA DO GOLEIRO (§realismo): 0 = totalmente batido (fora
+     da linha de chute ou saiu na hora errada), 1 = perfeitamente colocado.
+     Até aqui o desfecho do chute ignorava onde o goleiro estava — só o
+     atributo pesava, então um goleiro pego no contrapé defendia igual a um
+     bem postado. É isto que transforma boa colocação em defesa. */
+  _gkCoverage(gk, sx, sy, g) {
+    if (!gk || gk.red) return 0.34;
+    const t = clamp(this._projT(sx, sy, g.x, g.y, gk.x, gk.y), 0, 1);
+    const offLine = D(gk.x, gk.y, lerp(sx, g.x, t), lerp(sy, g.y, t));
+    const dist = D(sx, sy, g.x, g.y);
+    // sair fecha o ângulo, mas sair DEMAIS deixa a cavadinha e o drible
+    const ideal = clamp(dist * 0.20, 1.4, 7);
+    const depthErr = Math.abs(Math.abs(gk.x - g.x) - ideal) / Math.max(ideal, 1);
+    return clamp(1 - offLine / 6.0, 0, 1) * clamp(1 - depthErr * 0.55, 0.22, 1);
   }
 
   _goalkeeperClaim(tm, p, b, dt) {
@@ -6255,6 +6318,7 @@ class MatchSim {
       for (const p of tm.players) {
         if (p.red) continue;
         let tx, ty;
+        p._recovering = false;
         if (p === b.owner) {
           // portador vai para onde a ação mandou
           tx = p._tx !== undefined ? p._tx : p.x; ty = p._ty !== undefined ? p._ty : p.y;
@@ -6272,6 +6336,16 @@ class MatchSim {
             if (p._slideF === undefined) p._slideF = 0.12 + R() * 0.14;   // 0.12–0.26 fixo por jogador
             ty = clamp(ty + (b.y - FW/2) * p._slideF, 1.5, FW - 1.5);
           }
+          /* RECOMPOSIÇÃO (§realismo). Medido: com a bola a menos de 14 m do
+             gol, o ALVO do zagueiro era 9,3 m do gol — correto, dentro da
+             área — mas ele estava de fato a 19,3 m. DEZ metros de atraso. O
+             alvo nunca foi o problema: o jogador voltava TROTANDO (a marcha
+             que respira dava 55-80% de esforço) e ainda passava pelo filtro
+             de reação, que num alvo em movimento vira erro permanente. Por
+             isso a área ficava vazia. Defensor fora do posto com a bola em
+             zona de perigo agora recompõe a fundo e sem atraso de leitura. */
+          p._recovering = D(b.x, b.y, tm.goal.x, tm.goal.y) < 34 &&
+                          D(p.x, p.y, tx, ty) > 3.5;
         }
         // ── DESSINCRONIZAÇÃO DE REAÇÃO (§movimento): mata o "deslizar em bloco".
         // Cada jogador persegue um alvo SUAVIZADO com constante de tempo PRÓPRIA —
@@ -6279,7 +6353,8 @@ class MatchSim {
         // reorganiza organicamente (não todos no mesmo frame, mesma direção, mesma
         // velocidade). O portador e quem tem dever de bola reagem na hora (sem lag).
         const ballDutyEarly = p === b.owner || p === presser || p === tm._cover ||
-                              (b.traveling && b.receiver === p) || p._breaking || p._burst;
+                              (b.traveling && b.receiver === p) || p._breaking || p._burst ||
+                              p._recovering;
         if (!ballDutyEarly && !p.isGK) {
           if (p._smx === undefined) { p._smx = tx; p._smy = ty; p._react = p.react || 0.16; }
           // constante de tempo individual: react baixo = ajusta rápido, alto = devagar
@@ -6293,19 +6368,39 @@ class MatchSim {
         const ballDuty = p === presser || p === tm._cover || p === this.ball.owner ||
                          (this.ball.traveling && this.ball.receiver === p);
         if (!ballDuty) {
+          // BLOCO COMPRIME (§realismo): 5,5 m de separação entre companheiros é
+          // espaçamento de jogo aberto. Defendendo a própria área, essa força
+          // empurrava a zaga PARA FORA justamente quando ela precisa juntar —
+          // seis jogadores não cabem na área com 5,5 m entre cada um. Sob
+          // perigo, o raio encolhe e o bloco fecha.
+          const defendingDeep = !attacking && D(b.x,b.y,tm.goal.x,tm.goal.y) < 30;
+          const sepR = defendingDeep ? 3.1 : 5.5;
           let sepx = 0, sepy = 0;
-          for (const q of tm.players) {                    // companheiros: raio 5.5m
+          for (const q of tm.players) {                    // companheiros
             if (q === p || q.red) continue;
             const dd = D(p.x,p.y,q.x,q.y);
-            if (dd < 5.5 && dd > 0.01) { sepx += (p.x-q.x)/dd * (5.5-dd); sepy += (p.y-q.y)/dd * (5.5-dd); }
+            if (dd < sepR && dd > 0.01) { sepx += (p.x-q.x)/dd * (sepR-dd); sepy += (p.y-q.y)/dd * (sepR-dd); }
           }
           const opp = this.teams[1 - tm.side];
-          for (const q of opp.players) {                   // adversários: raio curto (marcação respira)
+          // Defendendo a própria área o zagueiro NÃO se afasta do atacante: a
+          // repulsão o empurrava para longe justamente de quem ele deveria
+          // marcar. Fora dessa zona ela continua valendo (a marcação respira).
+          const oppW = defendingDeep ? 0.15 : 0.9;
+          for (const q of opp.players) {                   // adversários: raio curto
             if (q.red) continue;
             const dd = D(p.x,p.y,q.x,q.y);
-            if (dd < 3.2 && dd > 0.01) { sepx += (p.x-q.x)/dd * (3.2-dd) * 0.9; sepy += (p.y-q.y)/dd * (3.2-dd) * 0.9; }
+            if (dd < 3.2 && dd > 0.01) { sepx += (p.x-q.x)/dd * (3.2-dd) * oppW; sepy += (p.y-q.y)/dd * (3.2-dd) * oppW; }
           }
-          tx += sepx * 1.5; ty += sepy * 1.5;
+          /* TETO DA SEPARAÇÃO (§realismo) — a causa medida da área vazia. Esta
+             força era um deslocamento LIVRE somado ao alvo tático. Com vários
+             vizinhos perto (exatamente o que acontece defendendo a área), a
+             soma superava o próprio alvo e expulsava o bloco: os zagueiros
+             equilibravam num raio FORA da área, por mais que a tática mandasse
+             entrar. Agora ela AJUSTA o alvo, nunca o substitui. */
+          let dxs = sepx * 1.5, dys = sepy * 1.5;
+          const mag = Math.hypot(dxs, dys), cap = defendingDeep ? 1.8 : 4.0;
+          if (mag > cap) { dxs = dxs / mag * cap; dys = dys / mag * cap; }
+          tx += dxs; ty += dys;
         }
         tx = clamp(tx, 1, FL-1); ty = clamp(ty, 1, FW-1);
         this._integrate(p, tx, ty, dt, freeze);
@@ -6679,11 +6774,20 @@ class MatchSim {
        disputar. A bascule linear em torno do meio-campo nunca afunda o bloco.
        Aqui o bloco AFUNDA e FECHA conforme a bola se aproxima: a zaga entra na
        área, o meio protege a entrada e o ataque acompanha de longe. */
-    const danger = clamp(1 - D(b.x, b.y, tm.goal.x, tm.goal.y) / 40, 0, 1);
+    /* A descida comeca CEDO, e isso e o essencial. Medido: o alvo do zagueiro
+       ja estava certo (9,3 m do gol com a bola a 14 m) e mesmo assim ele
+       estava a 19,4 m. Nao e desobediencia — e fisica: o zagueiro corre a no
+       maximo ~5 m/s e a bola viaja a ~26 m/s. Quem so comeca a recuar quando
+       a bola ja esta perto NUNCA chega. Defesa de verdade nao persegue o
+       perigo, ela se antecipa a ele: o bloco afunda desde os 60 m, de modo
+       que ao chegar na area ja esteja posicionado em vez de correndo atras. */
+    const danger = clamp((60 - D(b.x, b.y, tm.goal.x, tm.goal.y)) / 45, 0, 1);
     if (danger > 0) {
-      const anchorX = pLine === 'DEF' ? 9.5 : pLine === 'MID' ? 21 : 34;
-      const pullX   = pLine === 'DEF' ? 0.66 : pLine === 'MID' ? 0.44 : 0.18;
-      const pullY   = pLine === 'DEF' ? 0.44 : pLine === 'MID' ? 0.28 : 0.10;
+      // âncoras: zaga DENTRO da área (a marca de 8 m fica entre a pequena e a
+      // marca do pênalti), meio protegendo a entrada, ataque acompanhando.
+      const anchorX = pLine === 'DEF' ? 8 : pLine === 'MID' ? 18 : 30;
+      const pullX   = pLine === 'DEF' ? 0.85 : pLine === 'MID' ? 0.55 : 0.22;
+      const pullY   = pLine === 'DEF' ? 0.50 : pLine === 'MID' ? 0.32 : 0.12;
       tx = lerp(tx, tm.goal.x + dir * anchorX, danger * pullX);
       ty = lerp(ty, clamp(b.y, FW / 2 - 15, FW / 2 + 15), danger * pullY);
     }
@@ -6769,7 +6873,8 @@ class MatchSim {
     // dessincroniza quem acelera e quando.
     if (p._gaitPh === undefined) p._gaitPh = R() * 6.28;
     const hasBallDuty = p._breaking || p._burst || p === this.ball.owner ||
-                        (this.ball.traveling && this.ball.receiver === p);
+                        (this.ball.traveling && this.ball.receiver === p) ||
+                        p._recovering;   // voltar para a área é dever de bola
     let effort;
     if (hasBallDuty || dist > 16) effort = 1;           // dever real ou muito longe: esprinta
     else {

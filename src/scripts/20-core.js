@@ -562,7 +562,11 @@ const ENGINE_CALIBRATION = Object.freeze({
        laboratório — nenhum número muda antes do relatório de regressão. */
     tackleAttemptRate: 45.0,
     boxAttemptRate: 16.0,
-    foulBase: 0.29,
+    /* Com o bloco defendendo de fato dentro da própria área, o número de
+       duelos por partida subiu — e com a mesma probabilidade por duelo as
+       faltas estouraram a faixa (29,7 contra o teto de 28). Menos falta POR
+       duelo mantém o total no lugar sem tirar a disputa do jogo. */
+    foulBase: 0.25,
     foulComposure: 0.12,
     yellowFirst: 0.19,
     yellowSecond: 0.10,
@@ -572,7 +576,15 @@ const ENGINE_CALIBRATION = Object.freeze({
     distanceXg: Object.freeze([
       [6, 0.48], [11, 0.27], [16, 0.135], [22, 0.064], [30, 0.032], [Infinity, 0.015],
     ]),
-    conversionScale: 2.20,
+    /* RECALIBRAÇÃO (§realismo). Este 2.20 foi ajustado quando 81% dos chutes
+       saíam de FORA da área — chutes de xG baixo, que a escala precisava
+       inflar para o placar fechar. Corrigida a decisão do portador (agora ele
+       conduz e chega à área em vez de bater de 30 m), a distribuição de
+       finalizações virou realista e a mesma escala passou a converter 18,8%
+       dos chutes: quase o dobro do futebol de verdade (~10-11%). A escala
+       desce para acompanhar a nova distribuição — o placar volta à faixa sem
+       precisar piorar de novo a qualidade das chances. */
+    conversionScale: 1.62,
     /* BALANCEAMENTO · finalizador e goleiro com voz de verdade:
        · skillInfluence 0.90 → 1.05: o termo (FIN−GK)/100 modula a conversão
          em ±~26% na faixa típica (antes ±22%). A POSIÇÃO do chute continua
