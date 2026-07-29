@@ -1,13 +1,28 @@
 #!/usr/bin/env python3
 from pathlib import Path
-import asyncio, json
+import asyncio, json, os, glob
 ROOT=Path(__file__).resolve().parents[1]
 HTML=ROOT/'dist/COPA DOS SONHOS - FASE 2 - BANCO V3 VALIDADO.html'
+def chromium_path():
+ """O caminho do Chromium varia por máquina (CI, container, desktop). Antes
+ estava fixo em /usr/bin/chromium e o teste simplesmente não rodava onde o
+ binário mora em outro lugar."""
+ env=os.environ.get('CDS_CHROMIUM')
+ if env: return env
+ for c in ['/usr/bin/chromium','/usr/bin/chromium-browser','/usr/bin/google-chrome']:
+  if os.path.exists(c): return c
+ for pat in ['/opt/pw-browsers/chromium-*/chrome-linux/chrome',
+             '/opt/pw-browsers/chromium_headless_shell-*/chrome-linux/headless_shell']:
+  hit=sorted(glob.glob(pat))
+  if hit: return hit[-1]
+ return None
 async def main():
  from playwright.async_api import async_playwright
  errors=[];console=[]
+ exe=chromium_path()
  async with async_playwright() as p:
-  b=await p.chromium.launch(headless=True,executable_path='/usr/bin/chromium',args=['--no-sandbox'])
+  b=await p.chromium.launch(headless=True,args=['--no-sandbox'],
+                            **({'executable_path':exe} if exe else {}))
   page=await b.new_page(viewport={'width':1366,'height':768})
   page.on('pageerror',lambda e:errors.append(str(e)))
   page.on('console',lambda m:console.append((m.type,m.text)) if m.type in ('error','warning') else None)

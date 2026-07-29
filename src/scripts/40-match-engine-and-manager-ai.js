@@ -708,10 +708,29 @@ class MatchSim {
        mas a ESCOLHA nasce de distância, ângulo, pressão, habilidade, fadiga,
        contexto do placar e qualidade da melhor assistência disponível. */
     const best = this._bestPass(o);
+    // O setor e o cone à frente passaram a ser lidos AQUI, antes da finalização.
+    // Motivo: a condução agora COMPETE com o chute em vez de ser a última opção
+    // da cadeia — para competir, precisa ser avaliada no mesmo ponto.
+    const inAtt = dir > 0 ? o.x > 62 : o.x < 43;
+    let cone = 0; for (const d of opps) if (this._inForwardCone(o, d, g, inAtt ? 4.5 : 5.5, 9)) cone++;
     // Um passe limpo para alguém já dentro da área tem prioridade sobre um chute
     // de média/longa distância. Antes a ordem era inversa: o meia encerrava a
     // jogada antes de servir o atacante livre, inflando chutes ruins e secando gols.
     if (best && best.intoBox && best.risk < 2.4 && dtg > 16) { this._pass(o, best); return; }
+
+    /* ═══ CONDUÇÃO COM COMPROMISSO (§realismo) ═════════════════════════════
+       O censo de decisões mostrou o que o olho já via: 85,6% das posses
+       individuais duravam UMA decisão e a mediana de metros conduzidos era
+       ZERO. O portador reavaliava tudo a cada 0,28 s e quase sempre soltava a
+       bola — nunca carregava. Agora, quem arranca com espaço mantém o
+       COMPROMISSO por alguns ciclos: só abandona se a pressão chegar, se
+       abrir um passe decisivo na área ou se a janela terminar. */
+    if ((o._carryUntil || 0) > this.t) {
+      const killer = best && best.intoBox && best.risk < 2.4;
+      if (!pressured && !killer && cone === 0 && dtg > 13) { this._carry(o, g); return; }
+      o._carryUntil = 0;
+    }
+
     const shotDecision = this._evaluateShotDecision(o, dtg, pressured, nd, best, T);
     if (shotDecision.take) { 
       const volley = o.settle > 0 && o.settle < 0.45;
@@ -734,12 +753,21 @@ class MatchSim {
     const crossP = clamp(0.69 * this.teams[o.team].fx.cross * crossMul * clamp(1.25 - passQ * 0.38, 0.30, 1.25), 0, 0.92);
     if (this._canCross(o) && chance(crossP)) { this._cross(o); return; }
 
-    const inAtt = dir > 0 ? o.x > 62 : o.x < 43;
-
     // CONSTRUÇÃO: sem pressa, prioriza passe seguro (mesmo lateral/recuado) e
     // circulação. Só progride se a opção pra frente é claramente boa.
+    /* SAIR JOGANDO COM A BOLA NO PÉ (§realismo). A construção era 100% toque:
+       o corredor podia estar completamente limpo que o jogador devolvia de lado
+       assim mesmo. Por isso a mediana de metros conduzidos era ZERO. Continua
+       valendo que o CB não DRIBLA (função da posição) — mas com grama livre à
+       frente ele AVANÇA com a bola, que é o que qualquer zagueiro faz. A
+       condução exige corredor limpo, sem pressão e pé para isso. */
+    const driveSkill = (getAttr(o, 'conducao') * 0.5 + getAttr(o, 'drible') * 0.2 +
+                        getAttr(o, 'ritmo') * 0.3) / 100;
+    const canDrive = cone === 0 && !pressured && nd > 6.5 && driveSkill > 0.58;
+
     // CB em construção JAMAIS dribla: com pressão e sem passe seguro, chutão (função da posição)
     if (o.slotPos === 'CB' && building) {
+      if (canDrive && dtg > 45) { this._carry(o, g); return; }   // zagueiro conduz para dentro
       const safe0 = this._safePass(o, opps);
       if (safe0) { this._pass(o, safe0); return; }
       if (nd < 2.2) { this._clearBall(o); return; }   // chutão só com o adversário em cima
@@ -751,6 +779,10 @@ class MatchSim {
       const progGate = tm.styleKey === 'tiki' ? 12 : tm.styleKey === 'direct' ? 4 : 8;
       const scoreGate = tm.styleKey === 'tiki' ? 2.0 : 1.4;
       if (best && best.progressM > progGate && best.score > scoreGate) { this._pass(o, best); return; }
+      // corredor limpo à frente → progride CONDUZINDO em vez de tocar de lado.
+      // O tiki-taka resiste mais (é a identidade dele); o direto aceita na hora.
+      const driveBias = tm.styleKey === 'tiki' ? 0.45 : tm.styleKey === 'direct' ? 1.15 : 1;
+      if (canDrive && chance(clamp(driveSkill * driveBias, 0, 0.85))) { this._carry(o, g); return; }
       if (safe) { this._pass(o, safe); return; }
       this._carry(o, g); return;
     }
@@ -774,8 +806,7 @@ class MatchSim {
       if (best && best.score > passThresh && !this._blocksPath(o, near, g)) { this._pass(o, best); return; }
       this._dribble(o, near, g); return;
     }
-    // espaço à frente → conduz (mais no terço final)
-    let cone = 0; for (const d of opps) if (this._inForwardCone(o, d, g, inAtt ? 4.5 : 5.5, 9)) cone++;
+    // espaço à frente → conduz (mais no terço final); o cone já foi lido no topo
     if (cone === 0 && dtg > 6) { this._carry(o, g); return; }
     // no terço final sem passe/condução clara → encara pra criar chance
     if (inAtt && near && nd < 7) { this._dribble(o, near, g); return; }
@@ -804,6 +835,18 @@ class MatchSim {
     const oneOnOne = dtg < 19 && (nearestDef > 5.4 || (o._throughReceiverUntil||0) > this.t);
     const base = distanceXg(dtg);
     const longshot = !oneOnOne && (dtg > 21 || (dtg > 18 && eliteLong));
+
+    /* CHUTE DE PRIMEIRA NA TRANSIÇÃO (§realismo): 58,5% de TODOS os chutes
+       nasciam de um jogador que tinha a bola havia menos de 1 s e finalizava
+       de fora da área — "rouba e chuta de 30 m", que não é futebol. O chute de
+       longe agora exige que a jogada RESPIRE: a bola precisa estar dominada
+       (settle vencido) e a posse precisa ter algum tempo, ou o jogador precisa
+       já ter tocado nela. Dentro da área e no 1x1 nada muda — ali o chute de
+       primeira é legítimo. */
+    const heldFor = this.t - (o._gotBallAt || 0);
+    if (longshot && (heldFor < 1.0 || (this.possT || 0) < 1.8)) {
+      return { take:false, longshot:true, oneOnOne:false };
+    }
     const skill = facet(o, oneOnOne ? 'one_on_one' : (longshot ? 'shot_far' : 'shot')) / 100;
     const angle = clamp(1 - Math.abs(o.y - g.y) / 42, 0.30, 1);
     const ctx = this._actionContext(o, nearestDist, 'shot');
@@ -1166,6 +1209,15 @@ class MatchSim {
     const dir = Math.atan2(g.y - o.y, g.x - o.x);
     o._tx = o.x + Math.cos(dir) * 11;
     o._ty = o.y + Math.sin(dir) * 11;
+    // JANELA DE CONDUÇÃO (§realismo): arranca comprometido. Sem isto o alvo de
+    // 11 m era recalculado 0,28 s depois e a bola saía do pé antes do primeiro
+    // metro. A janela vem de condução/drible/ritmo — o técnico carrega mais
+    // longe. Só re-arma depois de expirar, então a condução tem fim.
+    if ((o._carryUntil || 0) <= this.t) {
+      const skill = (getAttr(o, 'conducao') * 0.45 + getAttr(o, 'drible') * 0.30 +
+                     getAttr(o, 'ritmo') * 0.25) / 100;
+      o._carryUntil = this.t + lerp(0.55, 1.70, clamp(skill, 0, 1));
+    }
   }
   // REPERTÓRIO DA LENDA (§lendas): escolhe o drible de ASSINATURA pelo perfil do
   // jogador — velocista arranca, driblador puro faz elástico/caneta, técnico o
@@ -1533,6 +1585,15 @@ class MatchSim {
     // jogador mais próximo assume após breve disputa
     this._contestLoose();
   }
+  /* Bola que SOBRA: sai com velocidade e fica viva. Diferente de _looseBall,
+     não entrega a posse na hora — deixa _looseRoll rolar a disputa, que é o que
+     dá a sobra, o rebote e o segundo bote do futebol de verdade. */
+  _spillBall(x, y, vx, vy) {
+    const b = this.ball;
+    b.owner = null; b.traveling = false; b.receiver = null; b.onArrive = null;
+    b.x = clamp(x, 0.6, FL - 0.6); b.y = clamp(y, 0.6, FW - 0.6); b.z = 0;
+    b.vx = vx; b.vy = vy; b.vz = 0; b._looseT = 0;
+  }
   _contestLoose() {
     const b = this.ball; let cands = [];
     for (const tm of this.teams) for (const p of tm.players) {
@@ -1598,6 +1659,9 @@ class MatchSim {
       this.teams[p.team]._transitionWonAt=this.t;
     }
     this.ball.owner=p;this.ball.traveling=false;this.ball.lastTouch=p;this.ball._looseT=0;
+    // instante em que ESTE jogador pegou a bola — base do "deixa a jogada
+    // respirar" (chute de longe na transição) e da janela de condução.
+    if(prev!==p){p._gotBallAt=this.t;p._carryUntil=0;}
     this.poss=p.team;this.stats[p.team].poss++;
     if(switched)p.settle=Math.max(p.settle,CAL.possession.transitionProtection);
     this.decideT=Math.min(this.decideT,.10);
@@ -1637,7 +1701,24 @@ class MatchSim {
       const triggerRate=1+trigger*.72;
       if(chance(p*dt*(defBox?CAL.defending.boxAttemptRate:baseRate)*defTm.fx.tackle*defTm.mood.tackle*energy*triggerRate)){
         if(chance(this._foulProb(near)))this._awardFoul(near,o);
-        else{this.stats[near.team].tackles++;if(trigger>.42 && this.possT<=ADV4.pressing.counterPressWindow)this.stats[near.team].pressWins++;this._turnover(near);this._emit('tackle',{by:near,on:o,pressing:trigger>.28});near.rating+=.1;}
+        else{
+          this.stats[near.team].tackles++;
+          if(trigger>.42 && this.possT<=ADV4.pressing.counterPressWindow)this.stats[near.team].pressWins++;
+          this._emit('tackle',{by:near,on:o,pressing:trigger>.28});
+          near.rating+=.1;
+          /* O BOTE NÃO É TELEPORTE (§realismo): a bola passava do pé do atacante
+             para o pé do defensor no mesmo quadro, e o defensor já saía jogando.
+             Desarme limpo existe, mas é minoria: na maior parte das vezes a bola
+             ESPIRRA — bate na canela, sobra, e vira disputa. Controle e desarme
+             do defensor decidem se ele domina ou se a jogada fica em aberto. */
+          const cleanP=clamp(.20+facet(near,'control')/100*.32+facet(near,'tackle')/100*.18,.20,.70);
+          if(chance(cleanP))this._turnover(near);
+          else{
+            const ang=R(0,6.2832),sp=R(3.5,9);
+            this._emit('loose_after_tackle',{by:near,on:o});
+            this._spillBall(lerp(o.x,near.x,.5),lerp(o.y,near.y,.5),Math.cos(ang)*sp,Math.sin(ang)*sp);
+          }
+        }
       }
     }
     for(const d of defTm.players)if(d._tackleCd>0)d._tackleCd-=dt;
@@ -1677,11 +1758,25 @@ class MatchSim {
     // pênalti?
     const inBox = (this.teams[victim.team].attackDir > 0 ? victim.x > FL - 16.5 : victim.x < 16.5) && Math.abs(victim.y - FW/2) < 20;
     if (inBox) { this._penalty(victim.team); return; }
-    // falta perigosa → cobrança direta
-    if (dtg < 28 && chance(0.42)) { this._freeKick(victim.team, victim.x, victim.y); return; }
-    // falta comum: reinício com posse
-    this.dead = 0.82;
-    this.pendingRestart = () => { this._giveBall(this._nearestFieldMate(victim)); this.ball.owner.settle = 0.6; };
+    /* A FALTA PRECISA EXISTIR (§realismo). Antes, a cobrança direta era
+       resolvida no MESMO quadro do apito: a bola já saía batida enquanto todo
+       mundo seguia correndo. Não havia parada, barreira nem colocação — a falta
+       acontecia sem acontecer. Agora o jogo PARA, os jogadores se recolocam
+       (velocidade de bola morta) e só então a bola é batida. */
+    if (dtg < 28 && chance(0.42)) {
+      this.dead = 2.4; this.waiting = true;
+      this._emit('foul_setup', { team: victim.team, x: victim.x, y: victim.y, kind: 'freekick' });
+      this.pendingRestart = () => { this.waiting = false; this._freeKick(victim.team, victim.x, victim.y); };
+      return;
+    }
+    // falta comum: o jogo para, a bola é colocada e o reinício sai com posse
+    this.dead = 1.7; this.waiting = true;
+    this._emit('foul_setup', { team: victim.team, x: victim.x, y: victim.y, kind: 'indirect' });
+    this.pendingRestart = () => {
+      this.waiting = false;
+      this._giveBall(this._nearestFieldMate(victim));
+      this.ball.owner.settle = 0.6;
+    };
   }
   _nearestFieldMate(p){
     const tm = this.teams[p.team]; return tm.players.filter(x=>!x.red&&!x.isGK).sort((a,b)=>D(a.x,a.y,p.x,p.y)-D(b.x,b.y,p.x,p.y))[0] || p;
@@ -2333,6 +2428,23 @@ class MatchSim {
     const widthMod = tm.adaptive ? tm.adaptive.width || 0 : 0;
     if (widthMod < 0) ty = lerp(ty, FW / 2, Math.min(0.26, -widthMod * 0.82));
     else if (widthMod > 0) ty = lerp(ty, p.hy, Math.min(0.16, widthMod * 0.45));
+
+    /* ═══ RECUO E COMPACTAÇÃO DO BLOCO (§realismo) ═════════════════════════
+       Medido: com a bola a menos de 35 m do gol defendido, o time mantinha
+       0,97 jogador de linha dentro da PRÓPRIA ÁREA e a linha de zaga ficava a
+       26,6 m do próprio gol. Ou seja: a área ficava vazia justamente no
+       momento de perigo, e o cruzamento/condução chegava sem ninguém para
+       disputar. A bascule linear em torno do meio-campo nunca afunda o bloco.
+       Aqui o bloco AFUNDA e FECHA conforme a bola se aproxima: a zaga entra na
+       área, o meio protege a entrada e o ataque acompanha de longe. */
+    const danger = clamp(1 - D(b.x, b.y, tm.goal.x, tm.goal.y) / 40, 0, 1);
+    if (danger > 0) {
+      const anchorX = pLine === 'DEF' ? 9.5 : pLine === 'MID' ? 21 : 34;
+      const pullX   = pLine === 'DEF' ? 0.66 : pLine === 'MID' ? 0.44 : 0.18;
+      const pullY   = pLine === 'DEF' ? 0.44 : pLine === 'MID' ? 0.28 : 0.10;
+      tx = lerp(tx, tm.goal.x + dir * anchorX, danger * pullX);
+      ty = lerp(ty, clamp(b.y, FW / 2 - 15, FW / 2 + 15), danger * pullY);
+    }
     if (!p._nextDefErrorCheck || this.t >= p._nextDefErrorCheck) {
       p._nextDefErrorCheck = this.t + ADV4.defending.errorCheckEvery + (p.idx%3)*.17;
       const concentration = facet(p,'concentration')/100;
@@ -2425,7 +2537,10 @@ class MatchSim {
       const breathe = 0.5 + 0.5 * Math.sin(this.t * 0.85 + p._gaitPh);
       effort = clamp(0.55 + distF * 0.35 + breathe * 0.14, 0.5, 1);
     }
-    const vmax = p.maxSpd * staminaF * effort * (freeze ? 0.5 : 1);
+    // BOLA MORTA (§realismo): 0,5 ainda era CORRIDA — na falta, o jogo parava no
+    // relógio mas os 22 seguiam disputando na tela. Com bola morta ninguém
+    // corre: anda para se recolocar, que é o que o olho espera ver.
+    const vmax = p.maxSpd * staminaF * effort * (freeze ? 0.22 : 1);
     const desired = Math.min(vmax, dist * 3.2);         // freia perto do alvo
     const dvx = dx/dist * desired - p.vx;
     const dvy = dy/dist * desired - p.vy;
