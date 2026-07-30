@@ -118,7 +118,7 @@ const porTipo = {};
 for (const t of TIPOS) porTipo[t] = { n: 0, xg: 0, baseXg: 0, baseN: 0, gols: 0 };
 const porBanda = LIMS.map(() => ({ n: 0, xg: 0, baseXg: 0, baseN: 0, gols: 0 }));
 const abertoPorBanda = LIMS.map(() => ({ n: 0, xg: 0, baseXg: 0, gols: 0, long: 0, um: 0 }));
-let golsTotais = 0, xgTotal = 0, chutesTotal = 0;
+let golsTotais = 0, xgTotal = 0, chutesTotal = 0, falhaGk = 0;
 
 for (let i = 0; i < N; i++) {
   const seed = SEMENTE + i * 7919;
@@ -145,19 +145,55 @@ for (let i = 0; i < N; i++) {
         a.n++; a.xg += +d.xg || 0; a.baseXg += +d.baseXg || 0;
         if (d.longshot) a.long++; if (d.oneOnOne) a.um++;
       } else if (t === 'low_cross_shot' || t === 'header_shot' || t === 'freekick' || t === 'penalty') {
-        ultimo = { tipo: t, b: null };
         porTipo[t].n++;
+        /* Estes eventos nao publicam distancia, mas publicam `by`. Calculo a
+           distancia ao gol ATACADO (que e o gol defendido pelo adversario) para
+           saber se a base achatada esta sendo aplicada de perto ou de longe.
+           Sem isto eu estaria propondo curva sem saber onde os chutes nascem. */
+        let bb = null;
+        try {
+          const at = d && d.by;
+          const alvo = at && this.teams[1 - at.team] && this.teams[1 - at.team].goal;
+          if (at && alvo && isFinite(+at.x)) {
+            const g = porTipo[t];
+            /* Tres distancias, de proposito. O chute acontece onde a BOLA esta;
+               se `atk` estiver longe da bola, medir por `atk` mede outra coisa.
+               Comparar as duas e o que impede de concluir sobre o instrumento
+               errado (handoff §6). A banda usa a BOLA. */
+            const dBola = Math.hypot(+this.ball.x - +alvo.x, +this.ball.y - +alvo.y);
+            const dAtk = Math.hypot(+at.x - +alvo.x, +at.y - +alvo.y);
+            const dSep = Math.hypot(+at.x - +this.ball.x, +at.y - +this.ball.y);
+            g.dtgSoma = (g.dtgSoma || 0) + dBola; g.dtgN = (g.dtgN || 0) + 1;
+            g.dtgAtkSoma = (g.dtgAtkSoma || 0) + dAtk;
+            g.sepSoma = (g.sepSoma || 0) + dSep;
+            bb = banda(dBola);
+            g.porBanda = g.porBanda || LIMS.map(() => ({ n: 0, gols: 0, xg: 0 }));
+            g.porBanda[bb].n++;
+            const pgx = (d && isFinite(+d.xg)) ? +d.xg : NaN;
+            if (isFinite(pgx)) g.porBanda[bb].xg += pgx;
+          }
+        } catch (_) {}
+        ultimo = { tipo: t, b: null, bb };
         /* Estes caminhos publicam a probabilidade sob a chave `xg` (que e o
            proprio pGoal), nao sob `pGoal` — ver os _emit no bundle. `freekick`
            e `penalty` nao publicam nenhuma, entao para eles so a conversao real
            medida pelos gols e confiavel. */
         const pg = (d && isFinite(+d.xg)) ? +d.xg : (d && isFinite(+d.pGoal) ? +d.pGoal : NaN);
         if (isFinite(pg)) { porTipo[t].xg += pg; porTipo[t].pgN = (porTipo[t].pgN || 0) + 1; }
+      } else if (t === 'visual_contact_failed' && d && d.kind === 'save') {
+        /* AQUI ESTA A INCOERENCIA gols>xG. Em _gkResolveSave, quando o contato
+           do goleiro e invalido, um chute que o `chance(pGoal)` JA decidiu como
+           nao-gol e convertido em gol por `_goal(o,false)` — sem nenhum xG
+           adicional. Cada um destes e um gol que o modelo nao previu. E o mesmo
+           defeito CAU-03 medido em 17,75% na R18.40A. */
+        falhaGk++;
       } else if (t === 'goal') {
         golsTotais++;
         if (ultimo) {
-          porTipo[ultimo.tipo].gols++;
+          const g = porTipo[ultimo.tipo];
+          g.gols++;
           if (ultimo.b !== null) { porBanda[ultimo.b].gols++; abertoPorBanda[ultimo.b].gols++; }
+          if (ultimo.bb !== null && ultimo.bb !== undefined && g.porBanda) g.porBanda[ultimo.bb].gols++;
           ultimo = null;
         }
       }
@@ -170,7 +206,9 @@ for (let i = 0; i < N; i++) {
   chutesTotal += (+sim.stats[0].shots || 0) + (+sim.stats[1].shots || 0);
 }
 
-const f3 = v => +(v).toFixed(4);
+/* Tolera null/NaN: `div` devolve null quando o denominador e zero, e uma banda
+   sem chute nenhum e um resultado legitimo, nao um erro. */
+const f3 = v => (typeof v === 'number' && isFinite(v)) ? +v.toFixed(4) : null;
 const div = (a, b) => b ? a / b : null;
 
 const saida = {
@@ -186,7 +224,13 @@ const saida = {
     gols_por_partida: f3(golsTotais / N),
     xg_por_chute: f3(div(xgTotal, chutesTotal)),
     gols_por_xg: f3(div(golsTotais, xgTotal)),
+    /* Gols que o modelo nao previu: _gkResolveSave converte nao-gol em gol
+       quando o contato do goleiro e invalido, sem somar xG. */
+    gols_por_falha_de_contato_do_goleiro: f3(falhaGk / N),
+    pct_dos_gols_por_falha_do_goleiro: f3(div(falhaGk, golsTotais) * 100),
+    gols_menos_falhas_sobre_xg: f3(div(golsTotais - falhaGk, xgTotal)),
   },
+  nota_conversao_por_tipo: 'conversao_real por tipo e APROXIMADA: o gol e atribuido ao ultimo evento de finalizacao, e no rasteiro/cabeceio o gol so resolve depois do voo da bola, entao outro chute pode entrar no meio. Os pGoal e as distancias vem direto do evento e sao exatos.',
   porTipo: Object.fromEntries(TIPOS.map(t => {
     const o = porTipo[t];
     return [t, {
@@ -200,6 +244,16 @@ const saida = {
       razao_pGoal_sobre_baseXg: o.baseN ? f3(div(div(o.xg, o.n), div(o.baseXg, o.baseN))) : null,
       gols_por_partida: f3(o.gols / N),
       conversao_real: f3(div(o.gols, o.n)),
+      dtg_bola_medio_m: o.dtgN ? f3(div(o.dtgSoma, o.dtgN)) : null,
+      dtg_atacante_medio_m: o.dtgN ? f3(div(o.dtgAtkSoma, o.dtgN)) : null,
+      separacao_atacante_bola_m: o.dtgN ? f3(div(o.sepSoma, o.dtgN)) : null,
+      porBanda: o.porBanda ? o.porBanda.map((b, i) => ({
+        banda_m: rot(i), xg_da_tabela: TABELA[i] ? TABELA[i][1] : null,
+        chutes_por_partida: f3(b.n / N),
+        pct: f3(div(b.n, o.dtgN) * 100),
+        pGoal_medio: f3(div(b.xg, b.n)),
+        conversao_real: f3(div(b.gols, b.n)),
+      })).filter(b => b.chutes_por_partida > 0) : null,
     }];
   })),
   jogoAbertoPorBanda: LIMS.map((_, i) => {
