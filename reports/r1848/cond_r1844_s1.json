@@ -1,0 +1,37 @@
+{
+  "build": "COPA DOS SONHOS - R18.44 - RAIO DO GOLEIRO.html",
+  "sha256": "8466fd7bf6b978fb810e5a436bde1ce123c15320a44ee544b9e0a0aee23b3328",
+  "scripts": "49 ok / 1 erro",
+  "partidas": 48,
+  "sementeBase": 4200000,
+  "definicoes": {
+    "INT-01": "chamadas de _carry / total de acoes do portador (_carry+_pass+_shoot+_cross+_dribble+_clearBall)",
+    "INT-02": "metros de deslocamento real do portador com _act=carry, por POSSE (posse = periodo contiguo do mesmo time com portador)",
+    "metros por conducao": "os mesmos metros, por chamada de _carry — separa \"conduz pouco\" de \"conduz raro\""
+  },
+  "acoes_por_partida": {
+    "carry": 6.563,
+    "pass": 472.708,
+    "shoot": 12.042,
+    "cross": 29.083,
+    "dribble": 33.979,
+    "clearBall": 0.958
+  },
+  "mix_pct": {
+    "carry": 1.182,
+    "pass": 85.122,
+    "shoot": 2.168,
+    "cross": 5.237,
+    "dribble": 6.119,
+    "clearBall": 0.173
+  },
+  "INT-01_conducao_pct": 1.182,
+  "INT-02_metros_por_posse": 0.056,
+  "metros_por_conducao": 2.301,
+  "metros_conduzidos_por_partida": 15.103,
+  "posses_por_partida": 271.833,
+  "conducao_terco_final_por_partida": 2.5,
+  "conducao_fora_do_terco_final_por_partida": 4.063,
+  "metros_conduzidos_no_terco_final_por_partida": 9.289,
+  "posse_no_terco_final_pct": 8.007
+}

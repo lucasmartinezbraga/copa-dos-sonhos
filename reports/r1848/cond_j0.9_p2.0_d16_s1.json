@@ -1,0 +1,37 @@
+{
+  "build": "rc48c_j0.9_p2.0_d16.html",
+  "sha256": "7f8961b638a466f436ca9d1e6da1042d63f3177c5394d9200f5ddc5b33217d97",
+  "scripts": "50 ok / 1 erro",
+  "partidas": 48,
+  "sementeBase": 4200000,
+  "definicoes": {
+    "INT-01": "chamadas de _carry / total de acoes do portador (_carry+_pass+_shoot+_cross+_dribble+_clearBall)",
+    "INT-02": "metros de deslocamento real do portador com _act=carry, por POSSE (posse = periodo contiguo do mesmo time com portador)",
+    "metros por conducao": "os mesmos metros, por chamada de _carry — separa \"conduz pouco\" de \"conduz raro\""
+  },
+  "acoes_por_partida": {
+    "carry": 6.563,
+    "pass": 472.729,
+    "shoot": 11.438,
+    "cross": 26.875,
+    "dribble": 33.583,
+    "clearBall": 0.708
+  },
+  "mix_pct": {
+    "carry": 1.189,
+    "pass": 85.656,
+    "shoot": 2.072,
+    "cross": 4.87,
+    "dribble": 6.085,
+    "clearBall": 0.128
+  },
+  "INT-01_conducao_pct": 1.189,
+  "INT-02_metros_por_posse": 0.15,
+  "metros_por_conducao": 6.184,
+  "metros_conduzidos_por_partida": 40.585,
+  "posses_por_partida": 270.417,
+  "conducao_terco_final_por_partida": 2.688,
+  "conducao_fora_do_terco_final_por_partida": 3.875,
+  "metros_conduzidos_no_terco_final_por_partida": 21.286,
+  "posse_no_terco_final_pct": 8.937
+}
