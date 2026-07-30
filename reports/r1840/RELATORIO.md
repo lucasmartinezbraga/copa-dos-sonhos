@@ -159,6 +159,45 @@ navegador, que é onde elas existem.
 | carga do bundle | 48 ok / 1 erro, `motorVerificado: true` |
 | sha da build medida = sha da promovida | **sim** (`65933257de25`) |
 
+## H2. ECO-03 não é robusto à semente — e isso invalida parte da minha seleção
+
+Depois de promover, testei a aprovação numa segunda base de sementes
+(`8400000`, mesmo n=48, mesmo script). Resultado:
+
+| | semente 4200000 | semente 8400000 | faixa |
+|---|---:|---:|---|
+| chutes R18.35 | 12,458 | **11,854** | 12–20 |
+| chutes R18.40A | 12,042 | **11,438** | 12–20 |
+| no alvo R18.40A | 4,604 | 4,417 | 4–7 ok |
+| xG R18.40A | 2,067 | 1,882 | 1,8–2,7 ok |
+| gols R18.40A | 2,729 | 2,646 | 2,4–3,2 ok |
+
+**A baseline R18.35, já promovida, reprova ECO-03 na segunda base.** O piso de 12
+não é uma propriedade do jogo: é uma propriedade da semente 4200000. Os outros
+três gates de ecologia passam nas duas bases.
+
+Isto tem uma consequência direta sobre a decisão desta rodada, e ela é
+desfavorável ao que eu fiz: **a OS-09 foi excluída por ECO-03**, com 11,958
+(gatilho 73) e 11,771 (gatilho 74) contra 12,042 do subconjunto promovido. As
+três diferenças são menores que a banda de ruído de chutes (7% = ±0,87), e o
+piso não se sustenta nem na baseline. Escolher `sub_b` em vez de `sub_a` por
+esse critério foi, na prática, promover sobre ruído — o que a regra da rodada
+proíbe explicitamente.
+
+O que **é** reprodutível: a R18.40A custa cerca de 3,4% de chutes nas duas bases
+(−3,3% e −3,5%). Efeito consistente em direção, dentro do ruído em magnitude, e
+sem mecanismo isolado — portanto **não** deve ser tratado como regressão nem
+como melhoria.
+
+Encaminhamento: `ECO-03` precisa ser reespecificado antes de voltar a decidir
+promoção. Duas opções, ambas para a matriz e não para o código:
+1. piso derivado de várias bases de semente (por exemplo, mediana de 5 bases),
+   em vez de um valor único;
+2. piso mais baixo, coerente com o que o jogo realmente entrega (~11,4 a 12,5).
+
+Enquanto isso, **a inclusão da OS-09 fica reaberta**: ela atinge INT-05 e o único
+motivo para tê-la deixado fora não resistiu ao teste de robustez.
+
 ## I. Próximos passos — R18.40B
 
 1. **Recalibrar finalização** com o vazamento do goleiro fechado. `patch_gkraio.js`
@@ -167,9 +206,14 @@ navegador, que é onde elas existem.
 2. **Entrar com OS-02** na mesma bateria: os dois empurram gols em direções
    opostas (raio para baixo, escalação para cima) e podem se encontrar dentro da
    faixa. Medir juntos, com bisecção se reprovar.
-3. **OS-09** só volta se `ECO-03` ganhar folga — hoje o piso de 12 está a 3,7% da
-   baseline, dentro da própria banda de ruído de 7%. Vale reavaliar se o piso
-   estrito é o critério certo nessa vizinhança.
+3. **Reespecificar `ECO-03` antes de qualquer nova promoção** (seção H2). A
+   baseline R18.35 reprova o piso de 12 na base de sementes 8400000, então o
+   gate não discrimina candidatas nesta vizinhança. Sem isso, toda decisão de
+   promoção que dependa de chutes é decisão sobre ruído.
+4. **Reabrir a OS-09.** Ela atinge INT-05 (3,56% com gatilho 73) e o único motivo
+   para tê-la deixado fora — ECO-03 — não resistiu ao teste de robustez. Medir
+   `vel+folego73+goleiro` em pelo menos três bases de semente e decidir por
+   mecanismo, não por limiar.
 4. **OS-05** segue REDIAGNOSTICADO: `_clearBall` é chamado 0 vezes em 12 partidas
    e manda a bola para frente, então não gera escanteio por geometria. O caminho é
    toque defensivo que mande a bola para a própria linha de fundo, no padrão de

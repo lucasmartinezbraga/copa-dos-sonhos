@@ -1,0 +1,44 @@
+{
+  "build": "R18.40A",
+  "partidas": 30,
+  "OS-09_PLANOS": {
+    "decisoes": 2866,
+    "distribuicao": {
+      "balance": "1848 (64.48%)",
+      "control": "435 (15.18%)",
+      "chase": "196 (6.84%)",
+      "protect_lead": "151 (5.27%)",
+      "all_out": "129 (4.5%)",
+      "close_game": "106 (3.7%)",
+      "regain": "1 (0.03%)"
+    },
+    "save_energy_pct": 0,
+    "alvo": "3% a 12%",
+    "ten_men": 0
+  },
+  "ESTAMINA_DO_TIME": {
+    "minimo": 63,
+    "p10": 71.8,
+    "mediana": 85.1,
+    "apos85min": {
+      "minimo": 63,
+      "p10": 66.8,
+      "mediana": 69.8
+    },
+    "nota": "o gatilho atual e 62; se o piso ficar acima disso, save_energy e codigo morto"
+  },
+  "OS-10_VELOCIDADE": {
+    "vmax": 8.98,
+    "tetoDoMotor": "~8 m/s",
+    "amostras": 558162,
+    "acima8ms": 11870,
+    "pct": 2.13,
+    "dessas_com_bola_viajando": 7086,
+    "pctDasRapidas": 59.7,
+    "perfil_acima8": {
+      "p50": 8.2,
+      "p90": 8.4,
+      "p99": 8.5
+    }
+  }
+}
