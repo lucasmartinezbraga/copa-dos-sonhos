@@ -1,8 +1,9 @@
 # R18.47 — PROGRESSÃO CENTRAL: mecanismo confirmado, e o volume de chutes era contabilidade
 
-**Status: NÃO PROMOVIDA.** O mecanismo está certo e o ganho é grande (+56% de
-oportunidades de chute), mas a rodada revela que a produção ofensiva honesta do
-motor é muito menor do que os gates faziam parecer.
+**Status: NÃO PROMOVIDA.** O mecanismo está certo e o ganho é real (+29,1% de
+oportunidades de chute e +36,1% de chutes reais, mediana de 3 bases), mas a rodada
+revela que a produção ofensiva honesta do motor é muito menor do que os gates
+faziam parecer.
 
 Baseline R18.44 (`8466fd7bf6b9`) · Patch `tools/r1847/patch_progressao.js`
 Diagnóstico: `tools/r1847/diag_progressao.js`
@@ -61,21 +62,40 @@ sítio.
 ## C. O conserto funciona, e a cadeia causal se comprova
 
 Restaurando `adv>80` e faixa de 20 m no termo adicionado (o termo do base fica
-intacto):
+intacto). **Mediana de 3 bases nos dois lados**, n=48 por base:
 
 | | R18.44 | R18.47 | Δ |
 |---|---:|---:|---:|
-| `cross` por partida | 14,75 | **3,75** | −75% |
-| **situações de chute** | 8,42 | **13,12** | **+56%** |
-| `shot_taken` | 5,81 | **8,62** | **+48%** |
-| `shot_deferred` | 2,60 | 4,50 | +73% |
-| posse no terço final | 8,01% | **12,43%** | +55% |
-| `adv` médio do cruzamento | 76,46 | **86,43** | posição real |
-| `low_cross_shot` | 6,75 | 1,48 | −78% |
+| `cross` por partida | 15,17 | **4,06** | **−73,2%** |
+| **situações de chute** | 9,31 | **12,02** | **+29,1%** |
+| `shot_taken` | 6,06 | **8,25** | **+36,1%** |
+| `shot_deferred` | 3,25 | 4,04 | +24,4% |
+| posse no terço final | 8,58% | **12,61%** | **+46,9%** |
+| fatia central do terço final | 83,96% | 84,32% | +0,4% |
+| `adv` médio do cruzamento | 76,46 | **86,43** | +13,0% |
+| `low_cross_shot` | 6,94 | 1,73 | −75,1% |
 
 Menos cruzamento de longe → mais posse sobrevive ao terço final → mais avaliações
 de chute → mais chutes reais. A cadeia é exatamente a prevista no cabeçalho do
 patch, escrita **antes** de medir.
+
+### C.1 Correção de números que eu já havia publicado
+
+A primeira versão deste relatório e o commit `0422a46` reportaram
+**+56%** de situações de chute e **+48%** de `shot_taken`. Aqueles números vinham
+da base **s1 nos dois lados** — e s1 é a base mais favorável das três. Medindo a
+baseline também em 3 bases, os valores corretos são **+29,1%** e **+36,1%**.
+
+O mecanismo, a direção e o veredito não mudam. As magnitudes eram infladas em
+~1,5–1,9×. É o mesmo erro que este projeto já documentou duas vezes (handoff
+R18.40B §6: "reportei CAU-03 21,9% → 10,8% com **uma** semente") e que eu havia
+criticado nesta mesma sessão. A correção veio de rodar a baseline nas 3 bases em
+vez de comparar mediana da candidata com uma base única da baseline.
+
+Registro também que a **fatia central do terço final não muda** (83,96% → 84,32%):
+o patch não torna o ataque mais central em proporção, ele faz o ataque **chegar**
+mais ao terço final. É uma distinção que importa para não atribuir ao patch um
+efeito que ele não tem.
 
 ## D. E reprova em 3 bases
 
@@ -105,10 +125,13 @@ jogo está bem mais longe do futebol real do que qualquer gate mostrava, porque 
 gates mediam o resultado do defeito.
 
 Para chegar a 2,4–2,7 de xG honestamente são necessários ~22–25 chutes a 0,108. O
-motor agora entrega 11,5, com oportunidades saturando em ~13,3. **As oportunidades
+motor agora entrega 11,5, com oportunidades saturando em ~12,0. **As oportunidades
 precisam praticamente dobrar de novo.**
 
 ## F. Combinar com os patches anteriores não fecha a conta
+
+Atenção: esta tabela é **base s1 apenas** (varredura exploratória). As magnitudes
+aqui não devem ser citadas como resultado — só o ordenamento entre stacks.
 
 | stack | gols | xG | chutes | sit. chute | xG/chute |
 |---|---:|---:|---:|---:|---:|
@@ -119,14 +142,15 @@ precisam praticamente dobrar de novo.**
 
 O patch de volume da R18.46 **passou a funcionar** com mais oportunidades
 disponíveis (`shot_taken` 8,62 → 9,25), confirmando que ele saturava por falta de
-chutes adiados. Mas o ganho é marginal e as oportunidades saturam em ~13,3
+chutes adiados. Mas o ganho é marginal e as oportunidades saturam
 independentemente do que se faça a jusante. O stack completo dá o xG/chute mais
 honesto de toda a linhagem (**0,1101**, contra ~0,108 do futebol real) e o pior
 placar (1,354 gols).
 
 ## G. O que limita agora, e é a próxima etapa
 
-Oportunidades saturam em 13,3 porque a posse no terço final satura em ~12,4%. Subir
+Oportunidades saturam em ~12,0 (mediana de 3 bases) porque a posse no terço final
+satura em ~12,6%. Subir
 os chutes para a faixa 17–27 exige **mais entradas no terço final**, não mais
 disposição para chutar nem melhor preço. Isso é volume de progressão: sucesso de
 passe para o terço final, ocupação central, `OS-08` (condução em 1,0% das ações do
@@ -134,7 +158,7 @@ portador).
 
 O instrumento está pronto e é o mesmo: `tools/r1847/diag_progressao.js` mede
 `posse_do_portador_pct` por corredor e faixa de `adv`, e `situacoes_de_chute`. A
-métrica a mover é `terco_final.pct_do_tempo_de_posse`, de 12,4% para ~22–25%.
+métrica a mover é `terco_final.pct_do_tempo_de_posse`, de 12,6% para ~22–25%.
 
 ## H. Recomendação
 
