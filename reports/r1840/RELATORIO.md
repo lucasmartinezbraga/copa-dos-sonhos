@@ -198,6 +198,48 @@ promoção. Duas opções, ambas para a matriz e não para o código:
 Enquanto isso, **a inclusão da OS-09 fica reaberta**: ela atinge INT-05 e o único
 motivo para tê-la deixado fora não resistiu ao teste de robustez.
 
+### H2.1 Reabertura da OS-09, decidida em três bases
+
+`tools/r1840/multibase.js` foi escrito para não repetir o erro: antes de julgar a
+candidata, pergunta se **a baseline** cumpre o gate naquela base. Três bases,
+n=48 cada.
+
+**Validade dos gates** (a baseline cumpre?):
+
+| gate | s1 `4200000` | s2 `8400000` | s3 `1260000` | válido em |
+|---|---:|---:|---:|---|
+| ECO-01 gols | 2,667 ok | 2,646 ok | 2,542 ok | **3/3** |
+| ECO-02 xG | 2,059 ok | 2,004 ok | 2,060 ok | **3/3** |
+| ECO-03 chutes | 12,458 ok | 11,854 **reprova** | 11,750 **reprova** | **1/3** |
+| ECO-04 no alvo | 4,604 ok | 4,333 ok | 4,354 ok | **3/3** |
+
+`ECO-03` é cumprido pela baseline em **uma** das três bases. O piso de 12 é, na
+prática, uma propriedade da base histórica 4200000.
+
+**Efeito das candidatas:**
+
+| | ECO-01 gols | ECO-04 no alvo | ECO-03 chutes |
+|---|---|---|---|
+| R18.40A `vel+goleiro` | +2,3% / 0,0% / +9,8% — inconsistente | 0,0% / +1,9% / +15,8% — inconsistente | −3,3% / −3,5% / +6,9% — inconsistente |
+| `sub_a` `+folego73` | +0,8% / +5,5% / +15,6% — **consistente** | +0,5% / +5,3% / +17,7% — **consistente, acima da banda** | −4,0% / −3,7% / +10,6% — inconsistente |
+
+**Veredito formal:** `R18.40A` não perde nenhum gate válido. `sub_a` perde
+`ECO-03` na base s1 — a única em que esse gate é válido — por 0,042 (0,35%,
+dentro da banda de 7%).
+
+**Leitura honesta.** A promoção de `R18.40A` está **correta sob o critério
+declarado**, e nisso a decisão final se sustenta. Mas o *raciocínio* que me levou
+a ela estava errado: eu comparei 12,042 contra 11,958 como se fosse sinal. A
+coincidência entre a regra e o resultado não valida o método.
+
+E há um sinal contrário que não pode ser omitido: `sub_a` melhora **gols e chutes
+no alvo de forma consistente nas três bases** — os dois gates válidos em 3/3 — e
+`no alvo` passa da banda de ruído. Pelo mérito, a OS-09 provavelmente **deveria**
+entrar; ela só não entra porque o único gate que a barra é o menos confiável do
+conjunto. Essa decisão é de quem governa a matriz, não minha: envolve reescrever
+`ECO-03`, e eu não vou reespecificar um gate para fazer passar uma candidata que
+eu mesmo propus.
+
 ## I. Próximos passos — R18.40B
 
 1. **Recalibrar finalização** com o vazamento do goleiro fechado. `patch_gkraio.js`
