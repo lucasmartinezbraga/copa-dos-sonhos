@@ -1,32 +1,63 @@
-# Copa dos Sonhos — Fase 2
+# Copa dos Sonhos
 
-Camada canônica **Banco V3** aplicada sobre o banco legado, preservando a entrega final em um único HTML autocontido.
+Simulador de futebol histórico em HTML único, construído para montar seleções de diferentes Copas do Mundo e disputar partidas em um motor próprio de futebol.
 
-## O que mudou
-- posição primária, posições secundárias e posições emergenciais explícitas;
-- 45 atributos granulares persistentes usados pelo motor;
-- ficha própria de goleiro;
-- pé dominante, pé fraco e altura de simulação com proveniência;
-- traits legados ampliados e traits comportamentais;
-- funções naturais por jogador;
-- validação automática do banco e de todas as formações;
-- escalação automática que nunca mistura goleiro e jogador de linha.
+[**Jogar no navegador**](https://lucasmartinezbraga.github.io/copa-dos-sonhos/)
 
-## Proveniência
-Dados não historicamente curados são marcados como estimativas de simulação. Nenhuma altura ou pé estimado deve ser apresentado ao usuário como fato biográfico.
+## Estado atual
 
-## Estrutura
-- `src/scripts/25-data-integrity-v3.js`: camada V3 e validador.
-- `tools/phase2_audit.js`: auditoria completa do banco e das escalações.
-- `tests/phase2_engine_smoke.js`: integração dos perfis V3 com o motor.
-- `tests/browser_smoke.py`: abertura real no Chromium.
-- `reports/phase2-audit.json`: resultado completo da auditoria.
+| Frente | Versão / situação |
+|---|---|
+| Build pública no GitHub Pages | **5.0.0** |
+| Baseline atual de desenvolvimento | **R18.50 — Preservar Energia** |
+| Rodada técnica em andamento | **OS-05A — censo do corte aéreo efetivo** |
+| Situação da OS-05A | Instrumentação observacional; ainda depende das baterias de medição e **não está promovida** |
 
-## Uso
+A R18.50 é a referência da linhagem atual. A OS-05A foi adicionada exclusivamente para investigar a baixa geração de escanteios sem alterar o comportamento da partida. Ela não substitui a versão jogável publicada.
+
+## O jogo
+
+- draft de jogadores e seleções históricas;
+- elencos de diferentes edições de Copa do Mundo;
+- formações, mentalidade, funções e ajustes táticos;
+- partidas em campo 2.5D;
+- atributos e perfis individuais influenciando decisões;
+- bolas paradas, goleiros e inteligência do treinador adversário;
+- interface para desktop e celular;
+- entrega jogável em um único arquivo HTML.
+
+## Arquivos principais
+
+- `docs/index.html`: versão jogável publicada no GitHub Pages;
+- `dist/COPA DOS SONHOS - R18.50 - PRESERVAR ENERGIA.html`: baseline atual de desenvolvimento;
+- `dist/COPA DOS SONHOS - R18.50 - OS05A CENSO.html`: build instrumental da rodada OS-05A;
+- `reports/r1851/RODADA_OS05A.md`: mecanismo, hipótese, previsão anterior à medição, gates e armadilhas;
+- `tools/r1851/`: patch reproduzível e diagnóstico da OS-05A;
+- `src/`: código modular do projeto;
+- `tests/` e `tools/`: validações, auditorias e laboratórios.
+
+## Rodada atual — OS-05A
+
+O objetivo imediato é entender o destino real dos cortes no primeiro contato aéreo antes de propor outra alteração comportamental para o gate de escanteios.
+
+A rodada:
+
+- separa jogada corrida de bola parada;
+- distingue posse limpa, bola viva e trajetórias para as linhas;
+- observa o resultado depois das sobrescritas efetivas de `_turnover`;
+- não usa RNG e não altera posse, trajetória ou estatísticas;
+- exige 48 partidas em cada uma das três bases de semente antes da próxima decisão.
+
+Leia o relatório completo em [`reports/r1851/RODADA_OS05A.md`](reports/r1851/RODADA_OS05A.md).
+
+## Desenvolvimento
+
+Para reconstruir e verificar a estrutura modular:
+
 ```bash
 python3 tools/build.py
 python3 tools/verify.py
 python3 tests/browser_smoke.py
 ```
 
-Edite apenas `src/`; o diretório `dist/` é gerado pelo build.
+A versão em `docs/` é a publicada. As builds instrumentais em `dist/` só devem ser promovidas depois de passarem pelos gates e pelas baterias previstas.
