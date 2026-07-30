@@ -1,0 +1,308 @@
+{
+  "build": "COPA DOS SONHOS - R18.50 - PRESERVAR ENERGIA.html",
+  "sha256": "495a9d684104b55ec749e43462549667fddb66a93b5d0b0a4cb1ab9d95c0445a",
+  "scripts": "50 ok / 1 erro",
+  "partidas": 48,
+  "sementeBase": 4200000,
+  "tabelaCAL": [
+    {
+      "ate": 6,
+      "xg": 0.48
+    },
+    {
+      "ate": 11,
+      "xg": 0.27
+    },
+    {
+      "ate": 16,
+      "xg": 0.135
+    },
+    {
+      "ate": 22,
+      "xg": 0.064
+    },
+    {
+      "ate": 30,
+      "xg": 0.032
+    },
+    {
+      "ate": "inf",
+      "xg": 0.015
+    }
+  ],
+  "conversionScale": 2.25,
+  "skillInfluence": 1.05,
+  "totais": {
+    "chutes_por_partida": 14.8125,
+    "xg_por_partida": 2.5353,
+    "gols_por_partida": 2.5,
+    "xg_por_chute": 0.1712,
+    "gols_por_xg": 0.9861,
+    "gols_por_falha_de_contato_do_goleiro": 0.0208,
+    "pct_dos_gols_por_falha_do_goleiro": 0.8333,
+    "gols_menos_falhas_sobre_xg": 0.9779
+  },
+  "nota_conversao_por_tipo": "conversao_real por tipo e APROXIMADA: o gol e atribuido ao ultimo evento de finalizacao, e no rasteiro/cabeceio o gol so resolve depois do voo da bola, entao outro chute pode entrar no meio. Os pGoal e as distancias vem direto do evento e sao exatos.",
+  "porTipo": {
+    "shot_taken": {
+      "por_partida": 5.8333,
+      "pct_das_finalizacoes": 39.3812,
+      "pGoal_medio": 0.1566,
+      "pGoal_publicado_em": "280/280",
+      "baseXg_medio": 0.1063,
+      "razao_pGoal_sobre_baseXg": 1.474,
+      "gols_por_partida": 1.0625,
+      "conversao_real": 0.1821,
+      "dtg_bola_medio_m": null,
+      "dtg_atacante_medio_m": null,
+      "separacao_atacante_bola_m": null,
+      "porBanda": null
+    },
+    "low_cross_shot": {
+      "por_partida": 7.0625,
+      "pct_das_finalizacoes": 47.6793,
+      "pGoal_medio": 0.2046,
+      "pGoal_publicado_em": "339/339",
+      "baseXg_medio": null,
+      "razao_pGoal_sobre_baseXg": null,
+      "gols_por_partida": 1.2917,
+      "conversao_real": 0.1829,
+      "dtg_bola_medio_m": 23.8183,
+      "dtg_atacante_medio_m": 26.105,
+      "separacao_atacante_bola_m": 2.4476,
+      "porBanda": [
+        {
+          "banda_m": "<6",
+          "xg_da_tabela": 0.48,
+          "chutes_por_partida": 0.0417,
+          "pct": 0.59,
+          "pGoal_medio": 0.2299,
+          "conversao_real": 0.5
+        },
+        {
+          "banda_m": "6-11",
+          "xg_da_tabela": 0.27,
+          "chutes_por_partida": 0.1042,
+          "pct": 1.4749,
+          "pGoal_medio": 0.2131,
+          "conversao_real": 0
+        },
+        {
+          "banda_m": "11-16",
+          "xg_da_tabela": 0.135,
+          "chutes_por_partida": 0.9375,
+          "pct": 13.2743,
+          "pGoal_medio": 0.2185,
+          "conversao_real": 0.2
+        },
+        {
+          "banda_m": "16-22",
+          "xg_da_tabela": 0.064,
+          "chutes_por_partida": 1.6667,
+          "pct": 23.5988,
+          "pGoal_medio": 0.2129,
+          "conversao_real": 0.2
+        },
+        {
+          "banda_m": "22-30",
+          "xg_da_tabela": 0.032,
+          "chutes_por_partida": 2.9375,
+          "pct": 41.5929,
+          "pGoal_medio": 0.1998,
+          "conversao_real": 0.156
+        },
+        {
+          "banda_m": ">=30",
+          "xg_da_tabela": 0.015,
+          "chutes_por_partida": 1.375,
+          "pct": 19.469,
+          "pGoal_medio": 0.1939,
+          "conversao_real": 0.2121
+        }
+      ]
+    },
+    "header_shot": {
+      "por_partida": 1.3125,
+      "pct_das_finalizacoes": 8.8608,
+      "pGoal_medio": 0.0866,
+      "pGoal_publicado_em": "63/63",
+      "baseXg_medio": null,
+      "razao_pGoal_sobre_baseXg": null,
+      "gols_por_partida": 0.1042,
+      "conversao_real": 0.0794,
+      "dtg_bola_medio_m": 20.1387,
+      "dtg_atacante_medio_m": 20.1715,
+      "separacao_atacante_bola_m": 0.1,
+      "porBanda": [
+        {
+          "banda_m": "6-11",
+          "xg_da_tabela": 0.27,
+          "chutes_por_partida": 0.0208,
+          "pct": 1.5873,
+          "pGoal_medio": 0.0607,
+          "conversao_real": 0
+        },
+        {
+          "banda_m": "11-16",
+          "xg_da_tabela": 0.135,
+          "chutes_por_partida": 0.1875,
+          "pct": 14.2857,
+          "pGoal_medio": 0.0756,
+          "conversao_real": 0
+        },
+        {
+          "banda_m": "16-22",
+          "xg_da_tabela": 0.064,
+          "chutes_por_partida": 0.5208,
+          "pct": 39.6825,
+          "pGoal_medio": 0.0841,
+          "conversao_real": 0.16
+        },
+        {
+          "banda_m": "22-30",
+          "xg_da_tabela": 0.032,
+          "chutes_por_partida": 0.5833,
+          "pct": 44.4444,
+          "pGoal_medio": 0.0934,
+          "conversao_real": 0.0357
+        }
+      ]
+    },
+    "freekick": {
+      "por_partida": 0.5625,
+      "pct_das_finalizacoes": 3.7975,
+      "pGoal_medio": 0.0503,
+      "pGoal_publicado_em": "27/27",
+      "baseXg_medio": null,
+      "razao_pGoal_sobre_baseXg": null,
+      "gols_por_partida": 0,
+      "conversao_real": 0,
+      "dtg_bola_medio_m": 23.3907,
+      "dtg_atacante_medio_m": 28.6848,
+      "separacao_atacante_bola_m": 14.0364,
+      "porBanda": [
+        {
+          "banda_m": "16-22",
+          "xg_da_tabela": 0.064,
+          "chutes_por_partida": 0.125,
+          "pct": 22.2222,
+          "pGoal_medio": 0,
+          "conversao_real": 0
+        },
+        {
+          "banda_m": "22-30",
+          "xg_da_tabela": 0.032,
+          "chutes_por_partida": 0.4375,
+          "pct": 77.7778,
+          "pGoal_medio": 0,
+          "conversao_real": 0
+        }
+      ]
+    },
+    "penalty": {
+      "por_partida": 0.0417,
+      "pct_das_finalizacoes": 0.2813,
+      "pGoal_medio": null,
+      "pGoal_publicado_em": "0/2",
+      "baseXg_medio": null,
+      "razao_pGoal_sobre_baseXg": null,
+      "gols_por_partida": 0.0417,
+      "conversao_real": 1,
+      "dtg_bola_medio_m": 10.7231,
+      "dtg_atacante_medio_m": 13.1924,
+      "separacao_atacante_bola_m": 4.8226,
+      "porBanda": [
+        {
+          "banda_m": "6-11",
+          "xg_da_tabela": 0.27,
+          "chutes_por_partida": 0.0208,
+          "pct": 50,
+          "pGoal_medio": 0,
+          "conversao_real": 1
+        },
+        {
+          "banda_m": "11-16",
+          "xg_da_tabela": 0.135,
+          "chutes_por_partida": 0.0208,
+          "pct": 50,
+          "pGoal_medio": 0,
+          "conversao_real": 1
+        }
+      ]
+    }
+  },
+  "jogoAbertoPorBanda": [
+    {
+      "banda_m": "<6",
+      "xg_da_tabela": 0.48,
+      "chutes_por_partida": 0.1458,
+      "pct_dos_chutes_abertos": 2.5,
+      "baseXg_medio": 0.4552,
+      "pGoal_medio": 0.6,
+      "razao_pGoal_sobre_baseXg": 1.3181,
+      "conversao_real": 0.7143,
+      "pct_longshot": 0,
+      "pct_umXum": 14.2857
+    },
+    {
+      "banda_m": "6-11",
+      "xg_da_tabela": 0.27,
+      "chutes_por_partida": 0.6042,
+      "pct_dos_chutes_abertos": 10.3571,
+      "baseXg_medio": 0.24,
+      "pGoal_medio": 0.3485,
+      "razao_pGoal_sobre_baseXg": 1.4518,
+      "conversao_real": 0.3103,
+      "pct_longshot": 0,
+      "pct_umXum": 6.8966
+    },
+    {
+      "banda_m": "11-16",
+      "xg_da_tabela": 0.135,
+      "chutes_por_partida": 1.0625,
+      "pct_dos_chutes_abertos": 18.2143,
+      "baseXg_medio": 0.1354,
+      "pGoal_medio": 0.2032,
+      "razao_pGoal_sobre_baseXg": 1.5015,
+      "conversao_real": 0.2941,
+      "pct_longshot": 0,
+      "pct_umXum": 13.7255
+    },
+    {
+      "banda_m": "16-22",
+      "xg_da_tabela": 0.064,
+      "chutes_por_partida": 3.2083,
+      "pct_dos_chutes_abertos": 55,
+      "baseXg_medio": 0.0758,
+      "pGoal_medio": 0.1161,
+      "razao_pGoal_sobre_baseXg": 1.531,
+      "conversao_real": 0.1299,
+      "pct_longshot": 13.6364,
+      "pct_umXum": 10.3896
+    },
+    {
+      "banda_m": "22-30",
+      "xg_da_tabela": 0.032,
+      "chutes_por_partida": 0.75,
+      "pct_dos_chutes_abertos": 12.8571,
+      "baseXg_medio": 0.0275,
+      "pGoal_medio": 0.035,
+      "razao_pGoal_sobre_baseXg": 1.2737,
+      "conversao_real": 0.0556,
+      "pct_longshot": 100,
+      "pct_umXum": 0
+    },
+    {
+      "banda_m": ">=30",
+      "xg_da_tabela": 0.015,
+      "chutes_por_partida": 0.0625,
+      "pct_dos_chutes_abertos": 1.0714,
+      "baseXg_medio": 0.0123,
+      "pGoal_medio": 0.0162,
+      "razao_pGoal_sobre_baseXg": 1.3233,
+      "conversao_real": 0,
+      "pct_longshot": 100,
+      "pct_umXum": 0
+    }
+  ]
+}
