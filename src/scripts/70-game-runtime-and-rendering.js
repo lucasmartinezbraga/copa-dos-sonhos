@@ -247,9 +247,14 @@ function a8Html(p, isLegend) {
   }).join('')}</div>`;
 }
 function esc(s) { return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+// Nome de campo: alguns jogadores são conhecidos por um nome que não é a última
+// palavra do registro completo — "Neymar Santos Júnior" virava "JÚNIOR". A troca
+// é só de exibição: o nome de dados fica intacto porque alimenta hash32(p.n) na
+// geração de atributos, e alterá-lo mudaria o jogador dentro do motor.
+const FIELD_NAME = { 'Neymar Santos Júnior': 'Neymar' };
 function lastWord(name, max) {
   if (!name) return '';
-  const p = name.trim().split(' ');
+  const p = (FIELD_NAME[name.trim()] || name).trim().split(' ');
   const last = p[p.length-1];
   return (last.length<=max ? last : last.slice(0,max-1)+'.' ).toUpperCase();
 }
