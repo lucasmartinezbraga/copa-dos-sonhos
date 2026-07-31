@@ -261,7 +261,16 @@ const FIELD_NAME = {
   'Oscar Emboaba Júnior': 'Oscar',
   'João Miranda de Souza Filho': 'Miranda',
   'Roque Júnior': 'Roque',
-  'José Paulo Maciel Júnior': 'Maciel'
+  'José Paulo Maciel Júnior': 'Maciel',
+  // "da Silva" nunca é o nome de uso: num mesmo elenco quatro jogadores
+  // dividiam o rótulo SILVA. O nome de uso é o primeiro, salvo Daniel Alves,
+  // conhecido pelo do meio.
+  'Daniel Alves da Silva': 'Alves',
+  'Thiago da Silva': 'Thiago',
+  'Willian da Silva': 'Willian',
+  'Danilo da Silva': 'Danilo',
+  'Gilberto da Silva': 'Gilberto',
+  'Nilmar da Silva': 'Nilmar'
 };
 function lastWord(name, max) {
   if (!name) return '';
