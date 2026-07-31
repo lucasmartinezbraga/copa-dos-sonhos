@@ -11106,7 +11106,14 @@ function a8Html(p, isLegend) {
   }).join('')}</div>`;
 }
 function esc(s) { return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-const FIELD_NAME = { 'Neymar Santos Júnior': 'Neymar' };
+const FIELD_NAME = {
+  'Neymar Santos Júnior': 'Neymar',
+  'Marcelo da Silva Júnior': 'Marcelo',
+  'Oscar Emboaba Júnior': 'Oscar',
+  'João Miranda de Souza Filho': 'Miranda',
+  'Roque Júnior': 'Roque',
+  'José Paulo Maciel Júnior': 'Maciel'
+};
 function lastWord(name, max) {
   if (!name) return '';
   const p = (FIELD_NAME[name.trim()] || name).trim().split(' ');

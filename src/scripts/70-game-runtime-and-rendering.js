@@ -247,11 +247,22 @@ function a8Html(p, isLegend) {
   }).join('')}</div>`;
 }
 function esc(s) { return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-// Nome de campo: alguns jogadores são conhecidos por um nome que não é a última
-// palavra do registro completo — "Neymar Santos Júnior" virava "JÚNIOR". A troca
-// é só de exibição: o nome de dados fica intacto porque alimenta hash32(p.n) na
-// geração de atributos, e alterá-lo mudaria o jogador dentro do motor.
-const FIELD_NAME = { 'Neymar Santos Júnior': 'Neymar' };
+// Nome de campo: o rótulo sai da ÚLTIMA palavra do registro completo, e para
+// nome terminado em sufixo geracional isso produz um rótulo que não é nome de
+// ninguém — "Neymar Santos Júnior" virava "JÚNIOR". Na seleção de 2018 quatro
+// jogadores dividiam esse mesmo rótulo.
+// A troca é só de exibição: o nome de dados fica intacto porque alimenta
+// hash32(p.n) na geração de atributos, e alterá-lo mudaria o jogador dentro do
+// motor. Nomes de uma palavra só ("Junior", "Filho", "Sobrinho") são o nome de
+// registro do jogador e ficam como estão.
+const FIELD_NAME = {
+  'Neymar Santos Júnior': 'Neymar',
+  'Marcelo da Silva Júnior': 'Marcelo',
+  'Oscar Emboaba Júnior': 'Oscar',
+  'João Miranda de Souza Filho': 'Miranda',
+  'Roque Júnior': 'Roque',
+  'José Paulo Maciel Júnior': 'Maciel'
+};
 function lastWord(name, max) {
   if (!name) return '';
   const p = (FIELD_NAME[name.trim()] || name).trim().split(' ');
