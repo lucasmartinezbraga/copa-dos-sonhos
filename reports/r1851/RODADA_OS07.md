@@ -76,6 +76,30 @@ linha, é lida em nove sítios (`:4971`, `:5652`, `:5679`, `:7368`, `:7371`,
 `:7396`, `:7416`, `:7590`, `:16186`). O par foi escrito junto e só metade foi
 conectada.
 
+## RESULTADO DA PARTE C — `oopRole` é código morto
+
+A troca de função defensiva de um jogador produziu partida **idêntica** em
+todas as sementes tentadas. Fui verificar se era artefato do instrumento e não
+é: `setPlayerPhaseRole` funciona e realmente grava
+`oopRole: 'press_mid' → 'track_wide'`.
+
+A causa é estrutural, não estatística. `oopRole` de jogador de linha é lido em
+exatamente três pontos — `:7535` e `:7536`, dentro do `_defendTarget` **base**:
+
+```js
+if (p.oopRole==='track_wide') ty=lerp(ty,b.y,.12);
+if (p.oopRole==='screen' || p.oopRole==='anchor') tx=lerp(tx,tm.goal.x,.05);
+```
+
+E o `_defendTarget` base é código morto: a camada R13 (`:16845`) sobrescreve
+`_defendTarget` e **não chama `oldDefend13` nenhuma vez**. O único `oopRole`
+que sobrevive é o do goleiro, em `:6002` (`gk2.oopRole === 'sweeper'`).
+
+Mesmo padrão de `_assignDefRoles` na OS-06: R13 substitui a base inteira sem
+encadear, e o que ficou para trás continua parecendo funcional na leitura do
+texto. `oopPos` continua vivo — a **posição** defensiva importa; a **função**
+não.
+
 ## HIPÓTESE PARA A PARTE B
 
 Em direção, sem percentual, para os campos vivos:
@@ -124,6 +148,9 @@ Observacional, **não promovível**.
 **Gate da parte A — já decidido, e é binário.** Campo que não muda `fx`, não
 entra no escore de decisão e não vira flag lida é morto. Oito campos são
 mortos. Não há bateria capaz de mudar isso e não há o que medir neles.
+
+**Gate da parte C — decidido, e estrutural.** `oopRole` de jogador de linha não
+é lido por nenhum código alcançável. Bateria não muda isso.
 
 **Gate da parte B:** `inerte === true` (impressão idêntica em todas as
 sementes) reprova o campo, mesmo ele sendo vivo na parte A — significa que
@@ -175,6 +202,14 @@ substring encontra o contador e conclui que a instrução é lida. Não é.
   semente, então é resultado, não fumaça.
 - A adjudicação dos oito campos `verificar` foi manual, linha a linha, e está
   na tabela acima.
-- Partes B e C: instrumento exercitado apenas para provar que roda. **Nenhum
-  número de B ou C neste documento**; a bateria de três bases × 48 partidas não
-  foi executada.
+- Parte C: o veredito acima é **estático** (`_defendTarget` base inalcançável),
+  não estatístico, e por isso não depende da bateria.
+- Parte B: instrumento exercitado com 4 sementes apenas para provar que roda.
+  Dois eixos apareceram inertes nessas 4 (`finalThird.crossType` e a troca de
+  `oopRole`), e vale lembrar a assimetria: impressão idêntica é evidência de
+  inércia, impressão diferente não é evidência de efeito. Ainda assim, **4
+  sementes não são o protocolo**: a bateria de três bases × 48 partidas não foi
+  executada e nenhuma taxa da parte B deve ser citada.
+- Verificado à parte que `finalThird.crossType` de fato altera `fx.cross`
+  (1,071 em `cutback` contra 1,1025 em `high`), ou seja, o eixo é vivo na parte
+  A e a inércia observada é de amplitude, não de ligação.
