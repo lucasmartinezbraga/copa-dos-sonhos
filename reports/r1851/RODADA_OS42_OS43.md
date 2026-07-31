@@ -56,9 +56,14 @@ Não existe disputa na área.
 
 **1. A OS-42 v1 nunca disparou.** Exigi bola ALTA (`z > 0,55` ou `vz > 2`) e o
 resultado foi 18,6% → 20,1% de disputa, com o corte piorando de 12,2% para 9,4%.
-A causa é a descoberta desta rodada: **o cruzamento aéreo não sobe**. Ele sai por
-`_startTravel(o, alvo, 'pass')` sem estilo, logo `vz = 0,4` e `z = 0,12`. É uma
-bola rasteira para um ponto aleatório da área. O gatilho virou geométrico.
+
+> **CORRIGIDO NA RODADA OS-44.** Eu atribuí isso a "o cruzamento aéreo não
+> sobe", tendo lido `_startTravel(o, alvo, 'pass', ...)` sem ler o fim da
+> chamada. Ela termina em `},null,'launch')`: o cruzamento **sobe** — `z = 0,3`,
+> `vz = 7`, arco com pico de ~1,5 m. O gatilho falhou porque testava `z` no
+> instante da chamada, quando a bola ainda está a 0,3 m, não porque a bola fosse
+> rasteira. A conclusão prática (gatilho geométrico) continua valendo; a
+> explicação estava errada.
 
 **2. Aproximar o defensor não bastou.** Com o gatilho certo, a disputa a 2,5 m
 subiu para 30,0% — e `cruzamento -> chute` ficou em 70,0%. Porque a chegada é uma
@@ -134,7 +139,6 @@ Navegador: sem `pageerror`, sem erro de console.
 
 - **gols 1,90** — abaixo da média real; passei do ponto.
 - `cruzamento -> chute` 52,7% ainda o dobro do real (~25%).
-- o cruzamento aéreo **não é aéreo** (`vz = 0,4`): consertar isso de verdade é
-  mexer na física da entrega e no `_physicalContactValid`, e não cabia nesta
-  rodada.
+- ~~o cruzamento aéreo não é aéreo~~ — **afirmação errada, corrigida na OS-44**:
+  ele usa `passKind='launch'` e sobe de verdade.
 - salto por quadro fora de `_movePlayers`, herdado da base.
