@@ -24,6 +24,26 @@
  *
  * NAO ha RNG novo, NAO ha mudanca de posse, NAO ha bonus. O efeito e
  * geometrico e simetrico entre os dois times.
+ *
+ * RESULTADO MEDIDO (3 partidas, base 4200000, contra a baseline pareada):
+ *   coladoLt2   0.0035 -> 0.0008     (sobreposicao local cai ~4x)
+ *   coladoLt3   0.0151 -> 0.0087
+ *   coluna3     0.0507 -> 0.0527     INALTERADO
+ *   coluna4     0.0063 -> 0.0077     INALTERADO
+ *   colunaLongeDaBola 0.0266 -> 0.0284  INALTERADO
+ *   corredorMax 9 -> 9               INALTERADO
+ *
+ * ESTA CANDIDATA NAO CUMPRE O QUE PROPOS. Ela conserta sobreposicao local e
+ * NAO abre a coluna. A razao e geometrica: uma coluna definida por |dy|<=3 e
+ * |dx|<=12 tem vizinhos a mais de 3,40 m um do outro, entao a forca nunca
+ * engata. O amontoamento da tela NAO e "jogadores perto demais" — e varios
+ * jogadores escolhendo o MESMO corredor de y.
+ *
+ * O sitio da coluna e portanto de FAIXA, nao de proximidade: as ancoras de
+ * zona (`hy`) e o alvo de marca do R13 (:16768, marcador em 96,5% da faixa do
+ * alvo; marcaDyMedio medido em 1,8 m). Nao vou patchar isso as cegas — antes
+ * e preciso atribuir as colunas por dever, que a OS-06 mede com uma extensao
+ * pequena. Foi assim que a hipotese do penalti da OS-09 morreu.
  */
 const fs = require('fs');
 const crypto = require('crypto');
