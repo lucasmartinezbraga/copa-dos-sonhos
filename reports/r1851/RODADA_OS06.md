@@ -204,3 +204,63 @@ ciclo, não de lance. Comparar qualquer uma delas com eventos de partida
   partidas, e nenhuma direção deve ser lida daquele par.
 - Nenhuma bateria foi executada neste ambiente. Nenhum número deste documento é
   resultado.
+
+---
+
+# RESULTADO — 3 bases × 48 partidas, sobre a R18.57
+
+| | 4200000 | 8400000 | 1260000 | previsão |
+|---|---|---|---|---|
+| MID `duty=zone` | 0,359 | 0,363 | 0,363 | acima do DEF |
+| DEF `duty=zone` | 0,476 | 0,485 | 0,484 | — |
+| MID `fracaoComMarca` | 0,189 | 0,187 | 0,181 | abaixo do DEF |
+| DEF `fracaoComMarca` | 0,380 | 0,371 | 0,375 | — |
+| `entreLinhas_cobertura` | 0,723 | 0,716 | 0,723 | abaixo da profunda |
+| `profundas_cobertura` | 0,975 | 0,974 | 0,971 | — |
+| `unreachableMarksConverted` | 735,2 | 696,5 | 655,3 | acima de screens |
+| `screensAssigned` | 515,7 | 501,2 | 473,3 | — |
+| gate `marking` reprovado | 30/48 | 29/48 | 29/48 | maioria |
+| `threatCoverage` | 0,633 | 0,633 | 0,641 | (gate: ≥ 0,65) |
+| `markerMeanDistance` | 6,32 | 6,31 | 6,32 | (gate: ≤ 8,5) |
+| `marcaDyMedio` | 1,86 | 1,87 | 1,87 | abaixo de 3 m |
+| `colunaLongeDaBola` | 0,035 | 0,033 | 0,034 | acima de zero |
+| `corredorMax` | 10 | 10 | 10 | — |
+| `swarmRate` reprovado | 7/48 | 7/48 | 7/48 | zero |
+| `severeCollapse` reprovado | 17/48 | 13/48 | 9/48 | zero |
+
+## PREVISÕES: 5 CERTAS, 3 ERRADAS
+
+**Certas (estáveis nas três bases):**
+- (2) meia tem metade da marcação do zagueiro — 0,19 contra 0,38.
+- (3) ameaça entre linhas é coberta a 0,72 contra 0,97 da profunda. **A faixa
+  entre linhas é onde a marcação falha**, exatamente como previsto.
+- (4) `unreachableMarksConverted` supera `screensAssigned` em ~40%: a maioria
+  das marcas destruídas por alcance vira zona, não screen.
+- (5) o gate `marking` do motor **reprova em ~60% das partidas**, e reprova
+  por `threatCoverage` (0,633 contra 0,65 exigido), não por distância — o
+  `markerMeanDistance` 6,32 passa folgado.
+- (6) `marcaDyMedio` 1,86 m: o marcador vive na faixa do alvo.
+
+**ERRADAS:**
+- (1) **Invertida.** O MID fica em zona 36% do tempo, o DEF **48%**. O zagueiro
+  é quem mais fica sem referência, não o meia. Minha leitura do sintoma
+  atribuía ao meio-campo um problema que é mais forte na defesa.
+- (7) **`swarmRate` e `severeCollapseRate` NÃO passam** — reprovam em 7/48 e
+  em 9–17/48. Eu afirmei que os gates de enxame eram cegos à coluna e por isso
+  passariam. Eles reprovam por conta própria, com aglomeração *na bola*.
+- (8) `corredorMax` = 10 nas três bases: dez jogadores de um time num corredor
+  de 13,6 m de largura. A coluna da tela não é caso raro.
+
+## O QUE ISSO DECIDE
+
+O gate de decisão registrado apontava para o alcance do MID (`:21192`) e o teto
+de um screen (`:21206`) se `entreLinhas_cobertura` ficasse abaixo da profunda.
+**Ficou** — 0,72 contra 0,97, estável. A rota está confirmada.
+
+Mas a previsão (1) invertida muda o alvo: o `reach` a mexer é o do **DEF**
+(18,5) tanto quanto o do MID (16,5), porque é o zagueiro que passa mais tempo
+sem referência.
+
+E a previsão (7) errada é a mais útil: como os gates de enxame **já reprovam**,
+qualquer candidata que aumente cobertura tem de ser medida contra eles desde o
+primeiro dia — não há folga para gastar.
