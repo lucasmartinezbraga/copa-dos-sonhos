@@ -3,7 +3,7 @@
 # Fora: OS-11 (separacao) — medida e nao cumpriu.
 set -euo pipefail
 BASE="dist/COPA DOS SONHOS - R18.50 - PRESERVAR ENERGIA.html"
-OUT="dist/COPA DOS SONHOS - R18.66 - JOGO DE FUTEBOL.html"
+OUT="dist/COPA DOS SONHOS - R18.67 - JOGO DE FUTEBOL.html"
 T=$(mktemp -d); trap 'rm -rf "$T"' EXIT
 node tools/r1851/patch_field_name_suffix.js        --in="$BASE"     --out="$T/1.html"
 node tools/r1851/patch_os08_oop_role_reconnect.js  --in="$T/1.html" --out="$T/2.html"
@@ -23,5 +23,7 @@ node tools/r1851/patch_os27_cut_inside.js          --in="$T/14.html" --out="$T/1
 node tools/r1851/patch_os31_freekick_sense.js      --in="$T/15.html" --out="$T/16.html"
 node tools/r1851/patch_os36_freekick_distance.js   --in="$T/16.html" --out="$T/17.html"
 node tools/r1851/patch_os37_smooth_corrections.js --vcorr=5 --in="$T/17.html" --out="$T/18.html"
-node tools/r1851/patch_os39_block_on_flight.js     --in="$T/18.html" --out="$OUT"
+node tools/r1851/patch_os39_block_on_flight.js     --in="$T/18.html" --out="$T/19.html"
+# OS-40 REPROVADA (trava de profundidade nao era a causa) — fora da cadeia.
+node tools/r1851/patch_os41_threat_range.js        --in="$T/19.html" --out="$OUT"
 echo "-> $OUT"
