@@ -318,3 +318,113 @@ Aberto, com número medido e sem correção:
 - `threatCoverage` 0,618 contra gate 0,65 (anterior a esta rodada);
 - distância 18,82 km contra ~10,5 — melhorou, não chegou;
 - partida de 90 min leva ~14 min reais no 1x.
+
+---
+
+## 6. OS-70 a OS-72 — a caça ao domínio da bola, e o que ela custou
+
+### O método que finalmente funcionou
+
+Depois de OS-67, OS-68 e OS-69 caírem, parei de deduzir a arquitetura e
+instrumentei: gancho em `_pass`, `_carry`, `_dribble`, `_shoot` e `_cross`
+capturando a **pilha de quem chama**.
+
+```
+40,5%  _pass    <- P.step (r14-engine:169)          execução diferida da R14
+11,9%  _pass    <- P._decide (r13-observer-cadence:710)
+11,0%  _pass    <- P._decide (r13-observer-cadence:691)
+ 4,2%  _pass    <- P._decide (r13-observer-cadence:714)
+ 3,7%  _pass    <- P._decide (r13-observer-cadence:703)
+ 4,9%  _dribble <- MatchSim._decide (núcleo)
+ 4,2%  _carry   <- MatchSim._decide (núcleo)
+```
+
+**A maioria das decisões de passe sai da camada `cds-r13-football-observer-
+cadence`, não do núcleo.** O núcleo responde por ~10%.
+
+### Duas afirmações minhas que estavam erradas
+
+- **OS-69**: eu disse que o `_decide` do núcleo estava morto e que a P47 não
+  encadeava. **Errado.** A P47 escolhe um candidato, ajusta `tm.fx` em ~6% e
+  termina em `return od.call(this,p)` — é camada de **viés**. O núcleo está
+  vivo; o que existe a montante dele é a R13.
+- **OS-71**: eu disse que `:5189` (`progressM > 3`) era "a linha que domina".
+  Não é — ela é alcançada em ~1% das ações.
+
+Por isso OS-69 e OS-71 deram resultado **idêntico byte a byte** à base.
+
+### OS-72 · a cadência cede quando há espaço — recusada
+
+A R13 tem quatro saídas de passe e **nenhuma olha o espaço do portador**. Fiz a
+camada ceder para a cadeia abaixo quando o adversário mais próximo está a mais
+de 5 ou 7 m.
+
+| | base | espaço 7 m | espaço 5 m |
+|---|---|---|---|
+| domínio médio | 0,45 | 0,46 | 0,45 |
+| mediana | 0,37 | 0,37 | 0,37 |
+| bola em voo | 55,0% | 57,7% | 60,3% |
+| bola no pé | 26,0% | 24,9% | 24,0% |
+
+Os números **mudaram** (a camada está viva), mas na direção errada. **Recusada.**
+
+### O que ficou provado sobre o domínio
+
+A mediana do domínio é **0,37 s** e é `settle + prep`. Ela é **invariante** sob
+tudo que testei:
+
+| knob | fator testado | domínio |
+|---|---|---|
+| `decisionInterval` | 5,7× | 0,45 → 0,45 |
+| os cinco tetos de `decideT` | 2,6× | 0,45 → 0,45 |
+| portão de condução do núcleo (:5209) | teto 2→5 | idêntico |
+| limiar de progressão do núcleo (:5189) | 3 m → 15 m | idêntico |
+| escore de condução da P47 (:8206) | +0,27 | 0,45 → 0,45 |
+| cessão da cadência R13 | 5 e 7 m | 0,45 → 0,46 |
+
+Toda posse é: recebe → `settle` → `prep` → solta. **Nada segura a bola**, e o
+que faria isso — condução repetida — nunca ganha a decisão. É onde a próxima
+rodada tem de entrar, e agora com o mapa certo: a R13 é quem decide.
+
+### OS-70 · o escore de condução — **promovida**
+
+Único edit da rodada que mediu ganho. A linha do `carry` na P47 (:8206) tinha um
+`space` em **degrau em 5 m**: 4,9 m de espaço valia `.1`, 5,1 m valia `.4`.
+Virou contínuo (0 em 3 m, 0,75 em 12 m), com `fit` .4 → .52 e `risk` .35 → .22.
+
+Uma segunda variante (fit .62, risk .14) foi **recusada**: escanteios 3,88
+(abaixo de 4) e xG 2,82 (acima de 2,7).
+
+**R18.83, bateria de 16 partidas:**
+
+| | R18.82 | R18.83 | real |
+|---|---|---|---|
+| gols | 1,81 | **2,63** | ~2,7 |
+| xG | 2,48 | 2,67 | ≤ 2,7 |
+| chutes | 21,81 | 23,25 | — |
+| no alvo | 7,19 | 9,25 | — |
+| escanteios | 5,88 | 6,56 | 4–10 |
+| passes | 451,25 | 460,69 | ~900 |
+| faltas | 13,13 | 14,94 | ~22 |
+| `severe` | 0,0565 | **0,0498** | — |
+| `threatCoverage` | 0,618 | 0,616 | ≥ 0,65 |
+
+Gols em 2,63 com o xG dentro do gate é o melhor ponto que o projeto já teve.
+
+---
+
+## 7. Estado
+
+Promovida: **R18.83** = R18.82 + OS-70.
+
+Não promovidas, medidas e falsificadas: OS-67, OS-68, OS-69, OS-71, OS-72.
+
+Aberto, com número medido e sem correção:
+- domínio 0,37 s de mediana contra 1,1–1,4 s reais — **invariante sob seis
+  mecanismos diferentes**;
+- bola no ar 55% contra ~28% reais;
+- 504 passes em ~750 s de bola rolando: 0,67 por segundo contra ~0,27 do futebol;
+- passes 461 contra ~900; faltas 14,9 contra ~22;
+- `threatCoverage` 0,616 contra gate 0,65 (anterior a esta rodada);
+- distância 18,8 km contra ~10,5;
+- partida de 90 min leva ~14 min reais no 1x.

@@ -3,7 +3,7 @@
 # Fora: OS-11 (separacao) — medida e nao cumpriu.
 set -euo pipefail
 BASE="dist/COPA DOS SONHOS - R18.50 - PRESERVAR ENERGIA.html"
-OUT="dist/COPA DOS SONHOS - R18.82 - JOGO DE FUTEBOL.html"
+OUT="dist/COPA DOS SONHOS - R18.83 - JOGO DE FUTEBOL.html"
 T=$(mktemp -d); trap 'rm -rf "$T"' EXIT
 node tools/r1851/patch_field_name_suffix.js        --in="$BASE"     --out="$T/1.html"
 node tools/r1851/patch_os08_oop_role_reconnect.js  --in="$T/1.html" --out="$T/2.html"
@@ -57,5 +57,8 @@ node tools/r1851/patch_os62_label_decollide.js     --in="$T/40.html" --out="$T/4
 #   O script continua no repositorio; so nao entra na build.
 # node tools/r1851/patch_os63_ref_and_kits.js      --in="$T/41.html" --out="$T/42.html"
 node tools/r1851/patch_os64_overlay_matrix.js      --in="$T/41.html" --out="$T/42.html"
-node tools/r1851/patch_os65_effort_by_ball.js      --in="$T/42.html" --out="$OUT"
+node tools/r1851/patch_os65_effort_by_ball.js      --in="$T/42.html" --out="$T/43.html"
+# OS-67, OS-68, OS-69, OS-71 e OS-72 foram MEDIDAS E FALSIFICADAS. Ficam no
+# repositorio, fora da cadeia, com o numero que as derrubou no cabecalho.
+node tools/r1851/patch_os70_carry_score.js --fit=0.52 --risk=0.22 --in="$T/43.html" --out="$OUT"
 echo "-> $OUT"
