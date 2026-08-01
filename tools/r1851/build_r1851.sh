@@ -3,7 +3,7 @@
 # Fora: OS-11 (separacao) — medida e nao cumpriu.
 set -euo pipefail
 BASE="dist/COPA DOS SONHOS - R18.50 - PRESERVAR ENERGIA.html"
-OUT="dist/COPA DOS SONHOS - R18.74 - JOGO DE FUTEBOL.html"
+OUT="dist/COPA DOS SONHOS - R18.75 - JOGO DE FUTEBOL.html"
 T=$(mktemp -d); trap 'rm -rf "$T"' EXIT
 node tools/r1851/patch_field_name_suffix.js        --in="$BASE"     --out="$T/1.html"
 node tools/r1851/patch_os08_oop_role_reconnect.js  --in="$T/1.html" --out="$T/2.html"
@@ -35,5 +35,9 @@ node tools/r1851/patch_os47_spin_move.js           --in="$T/25.html" --out="$T/2
 node tools/r1851/patch_os48_carry_flow.js          --in="$T/26.html" --out="$T/27.html"
 node tools/r1851/patch_os49_body_360.js            --in="$T/27.html" --out="$T/28.html"
 node tools/r1851/patch_os50_setpiece_clean.js      --in="$T/28.html" --out="$T/29.html"
-node tools/r1851/patch_os51_beaten_defender.js     --in="$T/29.html" --out="$OUT"
+node tools/r1851/patch_os51_beaten_defender.js     --in="$T/29.html" --out="$T/30.html"
+node tools/r1851/patch_os52_clockrate_retune.js    --in="$T/30.html" --out="$T/31.html"
+node tools/r1851/patch_os53_freekick_angle.js      --in="$T/31.html" --out="$T/32.html"
+node tools/r1851/patch_os54_dribble_propensity.js  --in="$T/32.html" --out="$T/33.html"
+node tools/r1851/patch_os55_penalty_on_pitch.js    --in="$T/33.html" --out="$OUT"
 echo "-> $OUT"
