@@ -3,7 +3,7 @@
 # Fora: OS-11 (separacao) — medida e nao cumpriu.
 set -euo pipefail
 BASE="dist/COPA DOS SONHOS - R18.50 - PRESERVAR ENERGIA.html"
-OUT="dist/COPA DOS SONHOS - R18.81 - JOGO DE FUTEBOL.html"
+OUT="dist/COPA DOS SONHOS - R18.82 - JOGO DE FUTEBOL.html"
 T=$(mktemp -d); trap 'rm -rf "$T"' EXIT
 node tools/r1851/patch_field_name_suffix.js        --in="$BASE"     --out="$T/1.html"
 node tools/r1851/patch_os08_oop_role_reconnect.js  --in="$T/1.html" --out="$T/2.html"
@@ -47,6 +47,15 @@ node tools/r1851/patch_os59_header_pose.js         --in="$T/37.html" --out="$T/3
 node tools/r1851/patch_os60_dribble_poses.js       --in="$T/38.html" --out="$T/39.html"
 node tools/r1851/patch_os61_stadium_wrap.js        --in="$T/39.html" --out="$T/40.html"
 node tools/r1851/patch_os62_label_decollide.js     --in="$T/40.html" --out="$T/41.html"
-node tools/r1851/patch_os63_ref_and_kits.js        --in="$T/41.html" --out="$T/42.html"
-node tools/r1851/patch_os64_overlay_matrix.js      --in="$T/42.html" --out="$OUT"
+# OS-63 (arbitro + padrao de camisa) SAIU DA CADEIA na OS-66.
+#   Observacao de campo: "a 81 quebrou tambem, a parte grafica ficou estranha".
+#   Comparadas as bonecas isoladas da R18.80 e da R18.81 lado a lado, o padrao
+#   de camisa era pintado com a cor ESCURA do time a 55% sobre metade da area
+#   do tronco; no tamanho real de ~20 px isso nao le como listra, le como
+#   sujeira, e a cor do time fica encardida. E o arbitro entrava como um vulto
+#   preto MENOR que os atletas colado na bola o tempo todo.
+#   O script continua no repositorio; so nao entra na build.
+# node tools/r1851/patch_os63_ref_and_kits.js      --in="$T/41.html" --out="$T/42.html"
+node tools/r1851/patch_os64_overlay_matrix.js      --in="$T/41.html" --out="$T/42.html"
+node tools/r1851/patch_os65_effort_by_ball.js      --in="$T/42.html" --out="$OUT"
 echo "-> $OUT"
