@@ -203,9 +203,114 @@ jogador, não `owner` na bola. Não há defeito aí.
 
 ---
 
+## 4b. OS-67, OS-68, OS-69 — três hipóteses medidas e falsificadas
+
+Nenhuma foi promovida. Ficam no repositório, fora da cadeia, com o número que
+as derrubou.
+
+### OS-67 · acoplar `decisionInterval` e `clockRate`
+
+Hipótese: `clockRate` é o botão de volume (todo total ∝ 1/clockRate) e
+`decisionInterval` o de cadência; escalar um por *k* e o outro por 1/*k* manteria
+os totais e baixaria a densidade por segundo.
+
+**Previsão registrada:** totais aproximadamente constantes.
+
+**Medido (8 partidas):**
+
+| | R18.82 | k=1,6 | k=2,4 |
+|---|---|---|---|
+| passes | 451 | 758 | 1165 |
+| gols | 1,81 | 4,38 | 8,38 |
+| chutes | 21,8 | 39,1 | 57,4 |
+
+O produto não é constante. **Falsificada.**
+
+### OS-68 · subir os tetos de `decideT`
+
+A OS-67 falhou porque `decisionInterval` não muda nada — levado de 0,28 a 0,90 e
+a 1,60 (5,7×), o domínio ficou em **0,45 s / 0,45 s / 0,45 s**, mediana 0,37 e
+p90 0,62 nos três pontos.
+
+Então o alvo passou a ser os cinco tetos que rebaixam `decideT` depois:
+
+```
+:6726   Math.min(this.decideT, .10)          <- na recepção
+:5076   Math.min(this.decideT, 0.20)         <- sob pressão
+:17289-91  fases R13: 0.20 / 0.31 / 0.44
+```
+
+Multiplicados por 1,8 e 2,6, com `clockRate` compensando:
+
+| | R18.82 | m=1,8 | m=2,6 |
+|---|---|---|---|
+| domínio médio | 0,45 | **0,45** | **0,45** |
+| mediana | 0,37 | 0,37 | 0,38 |
+| posses/partida | 529 | 967 | 1398 |
+
+**Falsificada.**
+
+**Por quê.** `decideT` corre livre (`this.decideT -= dt` todo quadro) mas só é
+consumido quando há dono, a bola não viaja e o `settle` acabou. Durante os 0,92 s
+de voo o contador continua descendo e chega fundo no negativo — quando a bola
+pousa ele já está vencido e o receptor decide no mesmo quadro. **O intervalo
+nunca vincula.**
+
+### O que o domínio realmente é
+
+```
+settle  0,10 a 0,34    (primeiro toque, :2729)
+prep    pass [0.10, 0.19] · cross [0.15, 0.26] · shot [0.17, 0.30]   (:17477)
+------------------------------------------------------------------
+~0,20 + ~0,15 = 0,35            mediana medida: 0,37
+```
+
+E esses números estão **certos**: um passe de primeira leva mesmo 0,3–0,5 s.
+Esticar o `prep` viraria um windup que não existe no futebol. O 1,1 s real é uma
+*média* que inclui os lances de recebe-conduz-passa — e é a condução que falta,
+não a lentidão.
+
+### OS-69 · abrir a janela de condução — e a quinta camada morta
+
+Mecanismo aparente (:5209):
+
+```js
+const _cnTeto = ((drible + aceleracao)/2 >= 55) ? 2 : 0;
+if (cone <= _cnTeto && dtg > 6) { this._carry(o, g); return; }
+```
+
+Aberto para teto 3/limiar 48 e teto 5/limiar 40. Resultado, **idêntico byte a
+byte** à base nas duas variantes: voo 57,1%, no pé 28,0%, domínio 0,45,
+posses 529, `carry` 46,3, `goals` 1,83.
+
+**O `_decide` do núcleo (:5068) está morto**, e com ele o portão de condução.
+A camada P47 (:8211) **não encadeia**: monta `q.candidates`, ordena por score e
+despacha sozinha.
+
+É a **quinta** confirmação do mesmo padrão estrutural nesta linhagem, depois de
+`_assignDefRoles` (:16736), `_defendTarget` (:20218), `_dribble` (:16382) e o
+`_integrate` do núcleo (:7713).
+
+### Onde a próxima rodada entra
+
+O portão vivo da condução está em :8206:
+
+```js
+add('carry', drib, ins.inPossession.progression.carryMore ? .72 : .4,
+              nd > 5 ? .4 : .1, .35)
+// score = ajuste + habilidade + espaço − pressão − fadiga − risco
+```
+
+Condução carrega risco fixo **0,35** e ajuste base **0,4**. É esse o número a
+mexer, com previsão registrada antes.
+
+---
+
 ## 5. Estado
 
 Promovida: **R18.82** = R18.81 − OS-63 + OS-65.
+
+Não promovidas, medidas e falsificadas: OS-67, OS-68, OS-69.
 
 Aberto, com número medido e sem correção:
 - bola no ar 57,5% contra ~28% reais;
