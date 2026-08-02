@@ -24,6 +24,15 @@ manifests/        metadata, hashes, responsabilidades
 reference/        baseline imutável (4.0)
 ```
 
+## LEIA ANTES DE COMEÇAR
+
+**`HANDOFF.md` na raiz.** Ele lista as armadilhas que custam horas neste
+código — em especial: (1) o método que você achou provavelmente está morto ou
+sombreado por uma camada posterior, e a única saída é instrumentar a pilha de
+chamadas em vez de deduzir; (2) existem parâmetros de calibração que não são
+lidos por ninguém; (3) o contrato de método exige previsão registrada antes de
+medir. Também traz o estado aberto com número medido.
+
 ## Workflow de Desenvolvimento
 
 ### Para editar o jogo:
