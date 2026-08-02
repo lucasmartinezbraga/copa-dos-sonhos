@@ -315,3 +315,12 @@ projeto já teve com o xG dentro do gate.
 O relatório completo de cada rodada está em `reports/r1851/`. Leia
 `RODADA_OS65_OS66.md` antes de encostar em decisão ou movimento: ele tem as seis
 falsificações com os números que as derrubaram, e vai te poupar de repeti-las.
+
+---
+
+## 12. A fila de trabalho
+
+`PROXIMA_RODADA.md` na raiz. Seis observações de campo do dono do projeto
+assistindo a uma partida da R18.83, cada uma com o que eu já medi, a âncora
+exata no código, e o que ainda não sei. Duas delas (lado do escanteio e falta
+atrás) são defeito objetivo com número medido e correção localizada.
