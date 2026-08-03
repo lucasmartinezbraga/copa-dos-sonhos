@@ -1,0 +1,37 @@
+{
+  "build": "COPA DOS SONHOS - R18.83 - JOGO DE FUTEBOL.html",
+  "sha": "5897f3af409f",
+  "partidas": 8,
+  "interceptacoes": 211,
+  "porPartida": 26.38,
+  "1_distancia_a_linha_do_passe_m": {
+    "p10": 1.45,
+    "mediana": 1.47,
+    "p90": 1.61,
+    "max": 1.74
+  },
+  "2_angulo_corpo_x_bola_graus": {
+    "mediana": 66.15,
+    "p90": 158.17,
+    "nota": "0 = indo na direcao da bola; 180 = de costas"
+  },
+  "3_velocidade_no_instante_ms": {
+    "p10": 2.37,
+    "mediana": 4.85,
+    "p90": 7.56,
+    "parados_abaixo_0_5": 0.9
+  },
+  "4_tempo_da_bola_no_ar_s": {
+    "p10": 0.1,
+    "mediana": 0.37,
+    "p90": 0.77,
+    "instantaneas_abaixo_0_1s": 9.5
+  },
+  "5_desfecho_da_bola": {
+    "virou_posse": 109,
+    "virou_desvio": 100,
+    "parada_sem_dono": 0,
+    "pct_posse": 52.2,
+    "nota": "no futebol a maior parte DESVIA, nao captura"
+  }
+}
