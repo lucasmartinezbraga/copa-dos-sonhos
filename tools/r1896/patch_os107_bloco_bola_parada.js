@@ -195,7 +195,18 @@ const CAMADA = [
 'const VEL  = 6.5;         // mesma referencia de velocidade da R15',
 'const TETO_FALTA = ' + TETO.toFixed(2) + ';   // mesmo teto que :21556 ja usa no escanteio',
 'const MIN_MOVE = 3.0;     // mesmo limiar da R15: abaixo disso nao importa',
-'const RAIO = 0.45;        // folga antes de re-armar o alvo',
+/* §OS-111 · como o jogador ESPERA. Medido (diag_os110): com o pino da primeira
+   versao, o alvo era RE-ARMADO 5,385 vezes por jogador por escanteio (p90 14,
+   maximo 24) e os quadros em velocidade de corrida subiam de 26,1% para 34,8%.
+   Um repuxao a cada 0,2 s: quem espera o escanteio corria no lugar.
+   A causa: re-armar `__spTarget` delega a volta a R15 (:18270), que caminha a
+   `maxSpd * 0,92` -- ~6 m/s, velocidade de corrida -- para cobrir 45 cm.
+   A correcao troca CORRIDA por CONTENCAO: perto do posto o jogador nao corre de
+   volta, ele so nao consegue escapar da folga, e a velocidade exibida fica
+   abaixo do limiar de `moving` (2 m/s, :4910) para ele ler como parado. */
+'const FOLGA = 0.9;        // raio em que ele pode se mexer a vontade',
+'const SOLTO = 3.0;        // alem disto foi deslocado de verdade: volta andando',
+'const VEL_ESPERA = 1.2;   // m/s -- abaixo do limiar de `moving` (:4910)',
 'const QUADROS_MAX = 600;  // guarda A2',
 'const DEFENSORES_NA_AREA = ' + DEFESA + ';',
 '',
@@ -350,8 +361,25 @@ const CAMADA = [
 '        for (let i = 0; i < st.postos.length; i++) {',
 '          const q = st.postos[i], p = q.p;',
 '          if (!p || p.red) continue;',
-'          if (!p.__spTarget && dd(p.x, p.y, q.x, q.y) > RAIO) {',
-'            p.__spTarget = { x: q.x, y: q.y };',
+'          const d = dd(p.x, p.y, q.x, q.y);',
+'          if (d > SOLTO) {',
+'            /* deslocado de verdade: volta caminhando, com a maquina da R15 */',
+'            if (!p.__spTarget) p.__spTarget = { x: q.x, y: q.y };',
+'            continue;',
+'          }',
+'          /* §OS-111 · ele esta NO posto, entao ele ESPERA. Nada de correr de',
+'             volta a 6 m/s por causa de 45 cm -- isso e o tremor que o dono viu.',
+'             Aqui ele so nao consegue escapar da folga, e a velocidade exibida',
+'             fica abaixo do limiar de `moving` para ele ler como parado. */',
+'          if (d > FOLGA) {',
+'            const k = FOLGA / d;',
+'            p.x = q.x + (p.x - q.x) * k;',
+'            p.y = q.y + (p.y - q.y) * k;',
+'          }',
+'          const v = Math.hypot(num(p.vx), num(p.vy));',
+'          if (v > VEL_ESPERA) {',
+'            p.vx = num(p.vx) / v * VEL_ESPERA;',
+'            p.vy = num(p.vy) / v * VEL_ESPERA;',
 '          }',
 '        }',
 '      }',
