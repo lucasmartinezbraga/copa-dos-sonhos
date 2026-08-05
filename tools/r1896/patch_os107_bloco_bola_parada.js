@@ -157,7 +157,8 @@ const PINO = flag('pino', 1) ? 1 : 0;
 const FALTA = flag('falta', 1) ? 1 : 0;
 const DEFESA = Math.max(0, Math.min(9, flag('defesa', 5)));
 const TETO = flag('teto', 5.0);
-console.log('  OS-107  pino=' + PINO + '  falta=' + FALTA + '  defesa=' + DEFESA + '  teto=' + TETO);
+const SOLTA = flag('solta', 0.4);   // OS-111b: a contencao solta nos ultimos N s
+console.log('  OS-107  pino=' + PINO + '  falta=' + FALTA + '  defesa=' + DEFESA + '  teto=' + TETO + '  solta=' + SOLTA);
 let src = fs.readFileSync(IN, 'utf8');
 
 function edit(id, from, to, esperado) {
@@ -207,6 +208,16 @@ const CAMADA = [
 'const FOLGA = 0.9;        // raio em que ele pode se mexer a vontade',
 'const SOLTO = 3.0;        // alem disto foi deslocado de verdade: volta andando',
 'const VEL_ESPERA = 1.2;   // m/s -- abaixo do limiar de `moving` (:4910)',
+/* §OS-111b · SOLTAR ANTES DA COBRANCA. A primeira versao da contencao segurava
+   o jogador ate o ultimo quadro da bola morta, e a bateria cobrou caro: gols
+   1,8750 de media com TRES bases abaixo do piso, negativo em 5 das 6 bases.
+   O canal e a velocidade: limitar `vx/vy` a 1,2 m/s a cada quadro faz o jogador
+   entrar no lance parado, e ele chega atrasado no cruzamento.
+   O nucleo ja trata `dead > 0.4` como espera (:4850 passa `waiting` ao
+   `_movePlayers`). A contencao passa a valer so nessa janela: os ultimos 0,4 s
+   sao livres, que e quando o cobrador se aproxima da bola e o time comeca a
+   atacar o espaco -- futebol de verdade, e momento para entrar no lance. */
+'const SOLTA_EM = ' + SOLTA.toFixed(2) + ';   // s de `dead` em que a contencao SOLTA',
 'const QUADROS_MAX = 600;  // guarda A2',
 'const DEFENSORES_NA_AREA = ' + DEFESA + ';',
 '',
@@ -362,6 +373,9 @@ const CAMADA = [
 '          const q = st.postos[i], p = q.p;',
 '          if (!p || p.red) continue;',
 '          const d = dd(p.x, p.y, q.x, q.y);',
+'          /* §OS-111b · nos ultimos SOLTA_EM segundos ninguem e contido: o time',
+'             entra no lance com velocidade de verdade. */',
+'          if (num(this.dead) <= SOLTA_EM) continue;',
 '          if (d > SOLTO) {',
 '            /* deslocado de verdade: volta caminhando, com a maquina da R15 */',
 '            if (!p.__spTarget) p.__spTarget = { x: q.x, y: q.y };',
