@@ -1,5 +1,13 @@
 # RODADA OS-107 — o time vai para o lance no escanteio e na falta
 
+> **DESFECHO: PROMOVIDA — R18.97, sha `df4d9f28…`.**
+> Este relatório termina com "não promovido", e isso está certo para o momento em
+> que foi escrito: com a bateria de então (24 × 6) o patch reprovava. A rodada
+> seguinte mostrou que aquela reprovação era **ruído do protocolo**, consertou a
+> bateria, corrigiu um bug do próprio patch, e a build passou nos três gates.
+> Leia `RODADA_OS108_OS109_CANAL_DOS_CHUTES.md` na sequência — os dois relatórios
+> só fazem sentido juntos.
+
 **Build de partida:** R18.96 · `a335bbba8aad76a40df4399bbc32ebf995116e46f0e73fcdf31b4a3fa14ca164`
 **Item da fila:** `PROXIMA_RODADA.md` · PARTE A · A1 — o pedido mais antigo do dono ainda aberto.
 

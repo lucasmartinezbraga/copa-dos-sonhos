@@ -1,4 +1,4 @@
-# HANDOFF — Copa dos Sonhos, R18.96
+# HANDOFF — Copa dos Sonhos, R18.97
 
 Você está pegando este projeto **sem contexto nenhum**. Leia este arquivo inteiro
 antes de tocar em qualquer coisa. Cada número aqui foi **medido**; onde não foi,
@@ -26,15 +26,20 @@ BASE  = COPA DOS SONHOS - R18.86 - JOGO DE FUTEBOL.html
         + OS-100  o lateral é cobrado por quem caminhou
         + OS-101  o gol de falta direta
         + OS-106  câmera lenta em todo chute
+        + OS-107  o time vai para o lance e fica lá até a cobrança
 
-PROMOVIDA = R18.96
+PROMOVIDA = R18.97
+            sha256 df4d9f284691ca5341866983c3bd1d4ffc91bbb1258d6192125cc74b67a34e66
+
+ANTERIOR  = R18.96
             sha256 a335bbba8aad76a40df4399bbc32ebf995116e46f0e73fcdf31b4a3fa14ca164
+            (reproduzível com build_r1896.js, que fica no repositório)
 ```
 
 ### Como buildar
 
 ```bash
-node build_r1896.js saida.html --base="caminho/para/COPA DOS SONHOS - R18.86 - JOGO DE FUTEBOL.html"
+node build_r1897.js saida.html --base="caminho/para/COPA DOS SONHOS - R18.86 - JOGO DE FUTEBOL.html"
 ```
 
 O script **aborta** se a base não for exatamente a R18.86 (confere o SHA), e
@@ -315,24 +320,31 @@ antes.
 
 ## 4. Estado atual, com número
 
-### R18.96, seis bases, 288 partidas (protocolo novo, 48 por base)
+### R18.97, seis bases, 288 partidas (protocolo novo, 48 por base)
 
-| | média | pior base | gate |
+| | R18.97 | pior base | R18.96 | gate |
+|---|---:|---:|---:|---|
+| gols | 2,007 | **1,8125** | 2,149 | 1,8–3,0 ✔ 6/6 |
+| xG | 2,114 | 2,293 (máx) | 2,170 | ≤ 2,7 ✔ 6/6 |
+| escanteios | 4,931 | 4,583 | 4,879 | ≥ 4 ✔ 6/6 |
+| chutes | **17,59** | 16,85 | 19,13 | — |
+
+> **A folga acima do piso de gols é 0,0125 e o ruído do gate é ±0,3 (§3.2b).**
+> A próxima rodada trabalha sem folga. Antes de mexer em qualquer coisa que
+> possa custar gol, releia a §3.2b e rode a bateria completa.
+
+Aplicando a regra de consistência entre bases ao que a OS-107 mudou:
+
+| | média | bases negativas | leitura |
 |---|---:|---:|---|
-| gols | 2,149 | 1,958 | 1,8–3,0 ✔ 6/6 |
-| xG | 2,170 | 2,307 (máx) | ≤ 2,7 ✔ 6/6 |
-| escanteios | 4,879 | 4,417 | ≥ 4 ✔ 6/6 |
-| chutes | 19,13 | 18,02 | — |
-| no alvo | 6,34 | — | — |
-| passes | 441,5 | — | — |
-| faltas | 14,73 | — | — |
-| defesas | 4,19 | — | — |
-| impedimentos | 4,65 | — | — |
+| chutes | −1,5469 | **6 de 6** | **real** |
+| gols | −0,1424 | 4 de 6 | não estabelecido |
+| escanteios | +0,0521 | 2 de 6 | não estabelecido |
 
-*(Medido em `reports/r1896/bateria_48x6_base.json`. A tabela antiga, com 24
-partidas por base, dava gols 2,181 / pior 1,875 e escanteios 4,785 / pior 4,000 —
-a diferença entre as duas tabelas é amostra, não build: é exatamente o problema
-descrito na §3.2b.)*
+*(Medido em `reports/r1896/bateria_48x6_base.json` e
+`bateria_48x6_os107b.txt`. A tabela antiga da R18.96, com 24 partidas por base,
+dava gols 2,181 / pior 1,875 e escanteios 4,785 / pior 4,000 — a diferença entre
+aquela e esta é amostra, não build: é o problema descrito na §3.2b.)*
 
 *(A OS-106 é apresentação pura e não muda estes números em relação à R18.95.)*
 
@@ -349,21 +361,30 @@ descrito na §3.2b.)*
 | teleporte do cobrador do lateral | 4,86 m em 75% | **0 de 58** |
 | domínio da bola | 0,200 s | **0,267 s** |
 | câmera lenta no chute | só xg ≥ 0,28 | **todo chute** |
+| atacantes na área quando o escanteio é cobrado | 0,656 | **2,233** |
+| postos do escanteio ainda ocupados no reinício | 28,8% | **94,3%** |
+| defensores na própria área na falta cruzada | 0,262 | **4,468** |
+| teleporte dos alvos na falta cruzada | 247 de 840, máx 70,4 m | **0 de 2140** |
 
 ### Distância do futebol real, medida
 
 | por partida | jogo | real | proporção |
 |---|---:|---:|---:|
 | passes | 442 | ~900 | 49% |
-| escanteios | 4,8 | ~10,5 | 46% |
-| faltas | 14,5 | ~22 | 66% |
-| chutes | 19,2 | ~25 | 77% |
-| gols | 2,18 | ~2,7 | 81% |
+| escanteios | 4,9 | ~10,5 | 47% |
+| faltas | 14,7 | ~22 | 67% |
+| chutes | **17,6** | ~25 | **70%** |
+| gols | 2,01 | ~2,7 | 74% |
 | domínio individual | 0,267 s | 1,1–1,4 s | 22% |
 
 **O jogo foi calibrado para acertar gols e chutes; todo o resto ficou em 45–65%
 do real**, porque `clockRate = 0,13` comprime 90 minutos em ~692 s de ação.
 Isso não é defeito de escanteio nem de passe — é volume global.
+
+**Chutes caíram de 77% para 70% na OS-107**, e isso foi um preço aceito com
+número na mesa, não um acidente. Parte dele é conserto: cruzamento contra área
+vazia virando finalização inflava a estatística. A outra parte (−1,13 no jogo
+corrido) é o **primeiro item da fila** e continua sem canal isolado.
 
 ---
 
@@ -371,11 +392,14 @@ Isso não é defeito de escanteio nem de passe — é volume global.
 
 ```
 COPA DOS SONHOS - R18.86 - JOGO DE FUTEBOL.html   base (não editar)
-COPA DOS SONHOS - R18.96 - JOGO DE FUTEBOL.html   promovida
-build_r1896.js                                    a cadeia
+COPA DOS SONHOS - R18.97 - JOGO DE FUTEBOL.html   PROMOVIDA
+COPA DOS SONHOS - R18.96 - JOGO DE FUTEBOL.html   promovida anterior
+build_r1897.js                                    a cadeia atual
+build_r1896.js                                    a cadeia da promovida anterior
 patch_os*.js                                      um por rodada, com o cabeçalho
 diag_os*.js                                       os instrumentos
-bateria_espelho30.js                              a bateria oficial
+bateria_espelho30.js                              a bateria, uma base por vez
+bateria_oficial.sh                                a bateria OFICIAL, 48 x 6
 mklab.js                                          cópia de laboratório
 RODADA_*.md                                       o relatório de cada rodada
 PROXIMA_RODADA.md                                 a fila de trabalho

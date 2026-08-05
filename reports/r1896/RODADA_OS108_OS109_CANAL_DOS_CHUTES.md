@@ -169,10 +169,28 @@ não em média:
 
 ---
 
-## 6. Veredito da OS-107b
+## 6. Veredito da OS-107b — PROMOVIDA, R18.97
 
-**Passa nos três gates e continua NÃO promovida.** É uma decisão de julgamento, e
-o motivo não é o gate — é este:
+**Passa nos três gates, e o dono do projeto decidiu promover** depois de ver o
+preço com número. A build é a R18.97:
+
+```
+sha256  df4d9f284691ca5341866983c3bd1d4ffc91bbb1258d6192125cc74b67a34e66
+node tools/r1896/build_r1897.js saida.html \
+  --base="dist/COPA DOS SONHOS - R18.86 - JOGO DE FUTEBOL.html"
+```
+
+Reproduzida três vezes a partir da base R18.86, byte a byte.
+
+**O que foi trocado, com número na mesa:** chutes 19,13 → 17,59 por partida
+(negativo nas seis bases; de 77% para 70% do futebol real na tabela da §4 do
+HANDOFF), em troca de 0,656 → 2,233 atacante dentro da área no escanteio e
+0,262 → 4,468 defensor dentro da própria área na falta cruzada.
+
+### A recomendação que foi dada antes da decisão, e que fica no registro
+
+Eu tinha recomendado **não** promover, por uma razão que continua valendo como
+aviso e que agora está no HANDOFF §4 e no topo da fila:
 
 **A pior base fica a 0,0125 do piso.** O gate de gols tem ruído da ordem de ±0,3
 (§3.2b), então 1,8125 não é "passou", é "não dá para saber". Promover uma build
@@ -184,18 +202,15 @@ Some-se a isso que **1,55 chute por partida** some com o mesmo sinal nas seis
 bases e só ~60% disso está explicado (a perda na janela do cruzamento, que é
 intencional). Os outros ~40% são o jogo corrido, e ninguém sabe por quê.
 
-**O que isso não quer dizer:** não quer dizer que o patch está errado. O defeito
-que ele conserta é real, está medido, e é o que o dono pediu. Ele está a **uma
-pergunta medida** de ser promovível, e a pergunta está escrita na seção 4.
+Essa recomendação era de **prudência de margem**, não de mecanismo — em nenhum
+momento o patch foi acusado de estar errado. O defeito que ele conserta é real,
+está medido, e é o que o dono pediu com todas as letras. A decisão de gastar a
+folga para ter o lance certo é dele, e foi tomada com os dois números na mesa.
 
-**Se a decisão for promover mesmo assim**, ela é reprodutível com um comando —
-e o que se está aceitando, com número, é: chutes 19,13 → 17,59 (de 77% para 70%
-do futebol real na tabela da §4 do HANDOFF), em troca de 0,656 → 2,233 atacante
-dentro da área no escanteio e 0,262 → 4,468 defensor dentro da própria área na
-falta cruzada.
+**O que a promoção obriga daqui para a frente, e está no topo da fila:**
 
-```bash
-node tools/r1896/patch_os107_bloco_bola_parada.js \
-  "dist/COPA DOS SONHOS - R18.96 - JOGO DE FUTEBOL.html" R18.97.html
-# sha256  df4d9f284691ca5341866983c3bd1d4ffc91bbb1258d6192125cc74b67a34e66
-```
+1. a R18.97 trabalha a **0,0125 do piso** de gols. Qualquer rodada que possa
+   custar gol precisa da bateria completa antes de qualquer conclusão, e precisa
+   olhar consistência entre bases em vez de média;
+2. os **−1,13 chute no jogo corrido** viraram o item **A0** — é a próxima rodada,
+   e recuperá-los devolve folga ao gate ao mesmo tempo que devolve futebol.

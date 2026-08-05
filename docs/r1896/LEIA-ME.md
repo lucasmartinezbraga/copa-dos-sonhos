@@ -1,4 +1,4 @@
-# Copa dos Sonhos — pacote de continuação, R18.96
+# Copa dos Sonhos — linhagem R18.8x/R18.9x, promovida R18.97
 
 Este pacote é **autossuficiente**: com ele e um Node qualquer você reproduz a
 build promovida byte a byte, mede tudo o que foi medido, e sabe o que já foi
@@ -19,13 +19,13 @@ tentado e falsificado.
 Rodando da raiz do repositório:
 
 ```bash
-node tools/r1896/build_r1896.js saida.html --base="dist/COPA DOS SONHOS - R18.86 - JOGO DE FUTEBOL.html"
+node tools/r1896/build_r1897.js saida.html --base="dist/COPA DOS SONHOS - R18.86 - JOGO DE FUTEBOL.html"
 ```
 
 Tem de imprimir, ao fim:
 
 ```
-sha256  a335bbba8aad76a40df4399bbc32ebf995116e46f0e73fcdf31b4a3fa14ca164
+sha256  df4d9f284691ca5341866983c3bd1d4ffc91bbb1258d6192125cc74b67a34e66
 ```
 
 Se não bater, **pare** — algo no pacote está fora do lugar. Rode duas vezes e
@@ -34,7 +34,7 @@ confira que o SHA se repete.
 ## O que tem dentro
 
 ```
-dist/          a base R18.86 (NÃO EDITE) e a promovida R18.96
+dist/          a base R18.86 (NÃO EDITE), a promovida R18.97 e a anterior R18.96
 tools/r1896/   os patches da cadeia, os patches falsificados, os diagnósticos,
                a bateria oficial e o gerador da cópia de laboratório
 reports/r1896/ um .md por rodada, mais os JSON de censo e bateria
@@ -53,14 +53,22 @@ docs/r1896/    este arquivo, o HANDOFF e a PROXIMA_RODADA
 
 ## Estado em uma linha
 
-Promovida: **R18.96**, seis bases, 144 partidas — gols 2,181 (pior 1,875), xG
-2,193 (máx 2,289), escanteios 4,785 (pior 4,000). **Zero bases reprovando
-qualquer gate.**
+Promovida: **R18.97**, seis bases, **288 partidas** — gols 2,007 (pior 1,8125),
+xG 2,114 (máx 2,293), escanteios 4,931 (pior 4,583). **Zero bases reprovando
+qualquer gate** — mas a folga acima do piso de gols é **0,0125**, e o ruído do
+gate é ±0,3. A próxima rodada trabalha sem folga.
 
 ## Última rodada
 
-**OS-107** mediu o item A1 da fila (o time não vai para o lance), localizou a
-causa em `:18287` e `:6951`, corrigiu, e **foi reprovada pela bateria** — gols
-1,9722 com 1,5417 na pior base. Não promovida. Está em
-`tools/r1896/patch_os107_bloco_bola_parada.js`, fora da cadeia, e o relatório
-com todos os números é `reports/r1896/RODADA_OS107_BLOCO_BOLA_PARADA.md`.
+**OS-107** resolveu o item A1 da fila — o time agora vai para a área no escanteio
+e na falta, dos dois lados, caminhando e sem teleporte. Atacantes na área quando
+o escanteio é cobrado: **0,656 → 2,233**. Defensores dentro da própria área na
+falta cruzada: **0,262 → 4,468**. Teleporte de até 70,4 m: **zero em 2140**.
+
+O preço foi medido e aceito: **chutes 19,13 → 17,59**, negativo nas seis bases.
+Parte disso é conserto (cruzamento contra área vazia inflava a estatística);
+**−1,13 no jogo corrido continua sem canal isolado e é o item A0 da fila.**
+
+Duas coisas mudaram de fundação no caminho: a bateria oficial passou de 24 para
+**48 partidas por base** (§3.2b), e marcar `_setPieceRole` fora do escanteio faz
+o jogador sumir de duas camadas (§2.3c).

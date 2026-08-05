@@ -13,7 +13,40 @@ porcentagem, e a bateria de **seis** bases antes de promover.
 
 ## PARTE A — o que o dono pediu e ainda não foi feito
 
-### A1. O time não se move para o lance no escanteio e na falta · MEDIDO · CORREÇÃO REPROVADA
+### A0. Os 1,13 chutes que somem no jogo corrido · ABERTO · É O PRÓXIMO
+
+**Herança direta da OS-107, que foi promovida com este custo na mesa.**
+
+`chutes` caiu de 19,13 para 17,59 por partida, **negativo nas seis bases**. A
+decomposição por fase (`diag_os108`, tempo vivo como base) diz onde:
+
+| fase | Δ chutes | leitura |
+|---|---:|---|
+| janela do cruzamento (0–2,5 s) | −1,54 | **pretendido** — a área passou a ser defendida |
+| pós-reinício (2,5–12 s) | +0,38 | **ganho** — 0,715 → 1,066 chute/min vivo |
+| jogo corrido | **−1,13** | **sem canal isolado** |
+
+**O que já está descartado, não refaça:**
+
+- **fadiga.** `:4859` dá `return` antes do bloco de stamina: bola morta não gasta
+  fôlego nem relógio. Medido: tempo vivo 748,0 → 750,6 s, stamina final 45,15 →
+  45,35, distância 2805 → 2833 m;
+- **a E3.** A culpa é do **pino**: "só o pino", que não marca papel nenhum, perde
+  1,21 sozinho (`--pino=1 --falta=0 --defesa=0`);
+- **o vazamento de papel**, que existia e foi corrigido — valia só +0,29 chute.
+
+**A hipótese a medir:** o pino segura a forma dos dois times até a cobrança,
+então o lance termina com o time que ataca comprometido dentro da área e o resto
+fora da posição tática. Meça a **reorganização depois do reinício**: quanto tempo
+vivo cada equipe leva para voltar à distância tática média, e o que acontece com
+a finalização nesse intervalo. Sinal compatível que **não** prova: retenção de
+posse 10 s após o reinício caiu de 12,2% para 7,9%.
+
+**Cuidado especial nesta rodada:** a R18.97 está a **0,0125 do piso** do gate de
+gols, cujo ruído é ±0,3. Não há folga. Rode a bateria completa antes de concluir
+qualquer coisa, e olhe consistência entre bases, não média.
+
+### A1. O time não se move para o lance no escanteio e na falta · RESOLVIDO · PROMOVIDO NA R18.97
 
 > *"Quando acontecer o escanteio o time tem que ir pra área, mesma coisa a falta,
 > isso você está pecando, o time não se move para a direção do lance igual em uma
@@ -35,13 +68,15 @@ nada segura o jogador depois disso. A falta cruzada não tem coreografia
 nenhuma: `:6951` escreve posição direto (a R15 nunca foi estendida a
 `_freeKick`) e o time que defende não recebe posto algum.
 
-**A correção existe, funciona, e foi reprovada pela bateria** — leia
-`reports/r1896/RODADA_OS107_BLOCO_BOLA_PARADA.md` antes de refazê-la. Ela está em
-`tools/r1896/patch_os107_bloco_bola_parada.js`, fora da cadeia, com flags
-(`--pino`, `--falta`, `--defesa`, `--teto`) para separar as três edições.
+**A correção está NA CADEIA desde a R18.97**
+(`tools/r1896/patch_os107_bloco_bola_parada.js`, com flags `--pino`, `--falta`,
+`--defesa`, `--teto` que separam as três edições). Leia
+`reports/r1896/RODADA_OS107_BLOCO_BOLA_PARADA.md` e
+`RODADA_OS108_OS109_CANAL_DOS_CHUTES.md`.
 
-**O que ela resolve:** postos ocupados 28,8% → 93,6%; atacantes na área 0,656 →
-2,180; defensor na própria área na falta 0,26 → 4,50; teleporte de 70 m → zero.
+**O que ela resolve, medido:** postos ocupados no reinício 28,8% → 94,3%;
+atacantes na área 0,656 → 2,233; defensor na própria área na falta 0,262 →
+4,468; teleporte de 70,4 m → **zero em 2140 jogadores**.
 
 **O que ela custa.** Com a bateria oficial (24 × 6 = 144 partidas) ela
 **reprovou**: gols 2,1805 → 1,9722, pior base 1,5417 contra um piso de 1,8.
@@ -51,46 +86,30 @@ Isso não é contradição, é a bateria oficial não tendo resolução — leia
 nova do HANDOFF. Duas metades da **mesma base e mesma build** chegam a diferir
 **0,79 gol**; a folga do gate é 0,075.
 
-**Ela continua não promovida**, e as razões não são o gate:
+### Como ela foi de reprovada a promovida — e por que isso não é troca de régua
 
-1. a régua foi registrada antes de medir e as 288 partidas vieram *depois* de ver
-   a reprovação — trocar a amostra sabendo o que a menor disse é escolher a régua
-   pela resposta;
-2. sobra um custo consistente que a rodada **não explicou**.
+Vale a pena entender a sequência, porque ela é o método funcionando:
 
-**A pergunta que destravava foi parcialmente respondida** pelas OS-108 e OS-109 —
-leia `reports/r1896/RODADA_OS108_OS109_CANAL_DOS_CHUTES.md`. Resumo do que **não
-precisa ser refeito**:
+1. com a bateria de então (24 × 6) ela **reprovou**: gols 1,9722, pior base
+   1,5417 contra um piso de 1,8;
+2. 288 partidas mostraram que aquela reprovação era **ruído do protocolo** —
+   duas metades da mesma base e mesma build diferem até 0,79 gol (§3.2b);
+3. o protocolo oficial passou para **48 partidas por base**, a linha de base foi
+   re-medida e a §4 do HANDOFF foi reescrita — **item A3, feito**;
+4. a OS-108/OS-109 achou e corrigiu um **bug do próprio patch** (o papel `zone`
+   vazando para o jogo corrido, §2.3c), e decompôs o custo restante;
+5. a build corrigida passou nos **três gates 6/6** na bateria nova;
+6. o dono decidiu promover com o preço na mesa.
 
-- **fadiga está falsificada.** `:4859` dá `return` antes do bloco de stamina:
-  bola morta não gasta fôlego nem relógio. Medido: tempo vivo 748,0 → 750,6 s,
-  stamina final 45,15 → 45,35, distância 2805 → 2833 m;
-- a decomposição dos chutes, por fase, com tempo vivo como base:
-  **bola parada −1,54** (é o efeito **pretendido**: a área passou a ser
-  defendida), **pós-reinício +0,38** (é ganho: 0,715 → 1,066 chute por minuto
-  vivo), **jogo corrido −1,33** (é o que sobra sem explicação);
-- **havia um bug no patch**: o papel `zone` da E3 vazava para o jogo corrido
-  (mediana 4,433 s, máx 183,1 s de tempo vivo) e sumia cinco jogadores de duas
-  camadas. **Corrigido** — virou a §2.3c do HANDOFF. Valia +0,29 chute;
-- com o bug corrigido, a **OS-107b passa nos três gates 6/6** na bateria nova:
-  gols 2,0070 (pior 1,8125), xG 2,1139, escanteios 4,9305 (pior 4,583).
-
-**O que ainda segura o patch, e é a rodada seguinte:** −1,13 chute no jogo
-corrido, causado **pelo pino** e não pela E3 (prova: "só o pino", que não marca
-papel nenhum, perde 1,21 sozinho). Meça a **reorganização depois do reinício** —
-quanto tempo vivo cada time leva para voltar à distância tática média, e o que
-acontece com a finalização nesse intervalo. Sinal compatível, que não prova:
-retenção de posse 10 s após o reinício cai de 12,2% para 7,9%.
-
-E o segundo motivo, que é de prudência e não de mecanismo: **a pior base fica a
-0,0125 do piso** num gate cujo ruído é ±0,3. Promover apoiado nessa margem deixa
-a rodada seguinte sem folga — foi assim que a R18.86 foi promovida e depois
-reprovou numa base que ninguém tinha rodado.
+**O preço aceito, com número:** chutes 19,13 → 17,59 por partida, negativo nas
+seis bases, em troca da área deixar de ser cobrada vazia dos dois lados.
 
 Nota sobre um falso alarme já descartado: com 24 partidas parecia que **só o
 pino** derrubava escanteios de 4,785 para 4,028 (pior base 3,458). Com 288
 partidas o efeito some (4,9305 contra 4,8785, e só 2 das 6 bases negativas).
 Era ruído. Não gaste rodada nisso.
+
+**O que ficou aberto virou o item A0, no topo desta fila.**
 
 ### A2. A física da espalmada do goleiro · NÃO INICIADO
 

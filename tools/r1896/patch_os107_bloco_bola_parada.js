@@ -5,13 +5,22 @@
  * ============================================================
  *
  * ###########################################################################
- * # ESTADO: FORA DA CADEIA. NAO PROMOVIDO.                                  #
+ * # ESTADO: NA CADEIA. PROMOVIDO -> R18.97.                                 #
  * #                                                                         #
- * # O mecanismo funciona e esta medido (secao 4 abaixo). O que o segura:    #
+ * # Bateria oficial nova (48 x 6 = 288 partidas): PASSA NOS TRES GATES.     #
+ * #   gols 2,0070 (pior base 1,8125)   xG 2,1139   escanteios 4,9305        #
  * #                                                                         #
- * #   -1,13 chute por partida NO JOGO CORRIDO, causado pelo pino e nao pela #
- * #   E3 -- "so o pino", que nao marca papel nenhum, perde 1,21 sozinho.    #
- * #   O canal nao foi isolado. Ver RODADA_OS108_OS109_CANAL_DOS_CHUTES.md.  #
+ * # O PRECO FOI MEDIDO E ACEITO PELO DONO DO PROJETO, com estes numeros:    #
+ * #   chutes 19,13 -> 17,59 por partida, NEGATIVO NAS SEIS BASES, em troca  #
+ * #   de 0,656 -> 2,233 atacante dentro da area no escanteio e              #
+ * #   0,262 -> 4,468 defensor dentro da propria area na falta cruzada.      #
+ * #                                                                         #
+ * # DUAS COISAS QUE QUEM PEGAR DEPOIS PRECISA SABER                         #
+ * #   1. a pior base fica a 0,0125 do piso do gate de gols, e o ruido desse #
+ * #      gate e +-0,3 (HANDOFF §3.2b). A proxima rodada trabalha SEM FOLGA. #
+ * #   2. -1,13 dos chutes somem no JOGO CORRIDO e o canal nao foi isolado.  #
+ * #      E causado pelo pino, nao pela E3: "so o pino", que nao marca papel #
+ * #      nenhum, perde 1,21 sozinho. E o primeiro item da fila.             #
  * #                                                                         #
  * # O que JA foi respondido e nao precisa ser refeito:                      #
  * #   - fadiga esta falsificada: `:4859` da return antes do bloco de        #
@@ -21,9 +30,8 @@
  * #     area passou a ser defendida. Nao e dano;                            #
  * #   - nos 10 s seguintes ao reinicio o patch produz MAIS futebol:         #
  * #     0,715 -> 1,066 chute por minuto vivo;                               #
- * #   - havia um bug meu, o papel `zone` vazando para o jogo corrido        #
- * #     (mediana 4,433 s, max 183,1 s). CORRIGIDO nesta versao. Valia       #
- * #     +0,29 chute -- real, e pouco.                                       #
+ * #   - havia um bug, o papel `zone` vazando para o jogo corrido (mediana   #
+ * #     4,433 s, max 183,1 s). CORRIGIDO. Valia +0,29 chute -- real, pouco. #
  * ###########################################################################
  *
  * PEDIDO DO DONO (PROXIMA_RODADA.md · PARTE A · A1)
