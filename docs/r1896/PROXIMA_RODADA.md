@@ -43,20 +43,34 @@ nenhuma: `:6951` escreve posição direto (a R15 nunca foi estendida a
 **O que ela resolve:** postos ocupados 28,8% → 93,6%; atacantes na área 0,656 →
 2,180; defensor na própria área na falta 0,26 → 4,50; teleporte de 70 m → zero.
 
-**O que ela custa, medido em 144 partidas:** gols 2,1805 → 1,9722 (pior base
-1,5417, piso é 1,8) e **chutes 19,21 → 17,71**.
+**O que ela custa.** Com a bateria oficial (24 × 6 = 144 partidas) ela
+**reprovou**: gols 2,1805 → 1,9722, pior base 1,5417 contra um piso de 1,8.
+Com **48 × 6 = 288 partidas ela passa nos três gates**, 6/6, pior base 1,8125.
 
-**A pergunta a responder antes de religar** — a mesma classe da C1 abaixo:
-o volume de finalização do **jogo corrido** cai junto, ~1,5 chute por partida,
-que é mais do que a fatia inteira de bola parada. Só o pino, sem alongar `dead`
-nenhum, já perde 0,77 chute. **Ache o canal antes de calibrar qualquer número.**
-Uma pista não medida: no reinício o time que ataca fica com 2-3 jogadores dentro
-da área e o resto fora de posição para o jogo corrido que vem em seguida.
+Isso não é contradição, é a bateria oficial não tendo resolução — leia a §3.2b
+nova do HANDOFF. Duas metades da **mesma base e mesma build** chegam a diferir
+**0,79 gol**; a folga do gate é 0,075.
 
-E uma segunda, independente: **só o pino derruba escanteios** de 4,785 para
-4,028 (pior base 3,458, abaixo do ECO-05), mas com E2+E3 juntos eles voltam para
-4,806. O efeito sobre escanteio não vem de "mais gente na área" — vem de outra
-coisa que esta rodada não isolou.
+**Ela continua não promovida**, e as razões não são o gate:
+
+1. a régua foi registrada antes de medir e as 288 partidas vieram *depois* de ver
+   a reprovação — trocar a amostra sabendo o que a menor disse é escolher a régua
+   pela resposta;
+2. sobra um custo consistente que a rodada **não explicou**.
+
+**A pergunta que destrava** — mesma classe da C1 abaixo: `chutes` cai **1,5556
+por partida, negativo nas seis bases** (gols trocam de sinal e não estão
+estabelecidos; chutes não trocam). É ~8% do volume de finalização, mais do que a
+fatia inteira de bola parada, e só o pino — que não alonga `dead` nenhum — já
+perde 0,77. **Ache o canal antes de calibrar qualquer número.** Pista não medida:
+no reinício o time que ataca fica com 2-3 jogadores dentro da área e o resto fora
+de posição para o jogo corrido que vem em seguida. Instrumente posse e
+finalização nos ~10 s **seguintes** ao reinício.
+
+E uma segunda, independente: com 24 partidas, **só o pino derrubava escanteios**
+de 4,785 para 4,028 (pior base 3,458). Com 288 partidas o patch completo dá
+4,948 contra 4,878 da base — ou seja, aquele efeito também era, em boa parte,
+ruído. Não gaste rodada perseguindo ele antes de refazer a medição.
 
 ### A2. A física da espalmada do goleiro · NÃO INICIADO
 
@@ -69,6 +83,27 @@ qualquer relação com o ângulo de chegada e com o lado do mergulho.
 Contexto útil já medido: `_gkResolveSave` produz 2,167 espalmadas por partida, das
 quais 1,0 vira escanteio e 1,167 fica viva (contadores da camada R18.18.3, que
 são legítimos e funcionam).
+
+---
+
+### A3. A bateria oficial precisa de 48 partidas por base · MEDIDO, NÃO FEITO
+
+**Isto vem antes de qualquer decisão de gol que você for tomar.**
+
+Medido na OS-107: entre duas metades da **mesma base com a mesma build**, gols
+diferem até **0,7916**. A folga da build promovida acima do piso é **0,075**.
+O gate reprovou um patch que passa com o dobro da amostra.
+
+O que fazer, e é trabalho chato mas de fundação:
+
+1. re-medir a linha de base da R18.96 com `--matches=48` nas seis bases
+   (já está feito e guardado em `reports/r1896/bateria_48x6_base.json`:
+   gols 2,1493 / pior 1,9583, xG 2,170, escanteios 4,878, chutes 19,13);
+2. reescrever os números da §4 do HANDOFF com essa amostra;
+3. passar o protocolo oficial para 48 e dizer isso na §3.1.
+
+Custo: ~11 min de CPU por build em quatro núcleos, contra ~5. É barato perto de
+gastar uma rodada inteira decidindo no sorteio.
 
 ---
 

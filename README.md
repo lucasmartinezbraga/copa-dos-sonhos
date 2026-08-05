@@ -63,9 +63,18 @@ e **0,095 defensor dentro da própria área** na falta cruzada, cujos três alvo
 teleportados até **70,40 m**.
 
 A correção resolve o defeito (postos ocupados no reinício 28,8% → 93,6%,
-teleporte → zero) e **foi reprovada pela bateria de seis bases**: gols 2,1805 →
-1,9722, com 1,5417 na pior base contra um piso de 1,8. Ela fica no repositório
-fora da cadeia, com o número que a derrubou no cabeçalho.
+teleporte → zero). Ela **reprovou na bateria oficial** (24 partidas × 6 bases:
+gols 1,9722, pior base 1,5417 contra um piso de 1,8) e **passa nos três gates com
+48 partidas × 6 bases** (2,0486, pior base 1,8125).
+
+A rodada não promoveu o patch, e o motivo não é o gate: a régua foi registrada
+antes de medir, e sobra um custo consistente que ninguém explicou — **chutes caem
+1,56 por partida, negativo nas seis bases**.
+
+O subproduto vale mais que a rodada: **a bateria oficial foi pega errando.** Duas
+metades da mesma base, com a mesma build, chegam a diferir **0,79 gol** — dez
+vezes a folga que a build promovida tem acima do piso do gate. Está registrado na
+§3.2b do HANDOFF e como item A3 da fila.
 
 Leia o relatório completo em
 [`reports/r1896/RODADA_OS107_BLOCO_BOLA_PARADA.md`](reports/r1896/RODADA_OS107_BLOCO_BOLA_PARADA.md).

@@ -195,12 +195,96 @@ Duas suspeitas, **nenhuma medida**, para quem pegar a próxima:
 
 ---
 
+## 5b. A bateria oficial não consegue decidir isto — medido
+
+A reprovação acima tem 0,075 de folga em jogo e 24 partidas por base para
+resolvê-la. Isso não fecha. Para saber se a queda era sinal ou ruído, as duas
+builds foram medidas de novo com **48 partidas por base — 288 por build**.
+
+| build | gols | pior base | xG (máx) | escanteios (pior) | chutes | veredito |
+|---|---:|---:|---:|---:|---:|---|
+| R18.96 | 2,1493 | 1,9583 | 2,170 (2,307) | 4,878 (4,417) | 19,13 | passa 6/6 |
+| OS-107 completo | 2,0486 | **1,8125** | 2,134 (2,292) | 4,948 (4,500) | **17,58** | **passa 6/6** |
+
+**Com 288 partidas o mesmo patch passa nos três gates.** As duas bases que o
+reprovaram com 24 partidas — 1,5833 e 1,5417 — dão 1,8125 e 1,9375 com 48.
+
+A prova de que isso é ruído do protocolo, e não uma build diferente: as 48
+partidas contêm as 24 primeiras, então dá para separar as duas metades da
+**mesma base, mesma build**.
+
+| semente | R18.96 · 1ª / 2ª metade | OS-107 · 1ª / 2ª metade |
+|---:|---:|---:|
+| 4200000 | 2,4583 / 2,5833 | 2,1667 / 2,1249 |
+| 8400000 | 2,0833 / 1,8751 | 2,4583 / 2,0417 |
+| 1260000 | 2,0417 / 1,8749 | 1,5833 / 2,0417 |
+| 2100000 | 2,0833 / 1,8751 | **1,5417 / 2,3333** |
+| 6300000 | 1,8750 / 2,2084 | 2,0833 / 2,0833 |
+| 3150000 | 2,5417 / 2,2917 | 2,0000 / 2,1250 |
+
+Na base 2100000, o mesmo patch dá **1,5417 nas primeiras 24 partidas e 2,3333
+nas 24 seguintes**. A maior diferença entre duas metades da mesma base e da
+mesma build é **0,7916 gol** — **dez vezes** a folga que a build promovida tem
+acima do piso.
+
+**Conclusão desta seção, que vale para toda rodada futura e não só para esta:**
+o gate de gols com 24 partidas por base não tem resolução para a margem que ele
+é encarregado de policiar. Ele reprova build boa e passaria build ruim.
+
+### O que sobra de sinal depois disso
+
+`chutes` cai **1,5556 por partida — negativo nas seis bases**, sem uma exceção:
+
+| semente | 4200000 | 8400000 | 1260000 | 2100000 | 6300000 | 3150000 |
+|---|---:|---:|---:|---:|---:|---:|
+| Δ chutes | −2,56 | −0,83 | −1,25 | −1,80 | −1,02 | −1,88 |
+
+Gols variam de sinal entre bases (−0,375 a +0,271, média −0,101): não está
+estabelecido. **Chutes não variam de sinal.** É o único efeito que sobrevive ao
+aumento de amostra, e é ~8% do volume de finalização do jogo. A tabela de
+distância do futebol real do HANDOFF põe chutes em 19,2 contra ~25 reais (77%);
+esta correção levaria para 17,6 (70%) — ou seja, **afasta** o jogo do real num
+eixo enquanto o aproxima em outro.
+
+---
+
 ## 6. Veredito
 
 **Não promovido.** A R18.96 continua sendo a build promovida, byte a byte.
 
+Isso precisa de justificativa, porque com 288 partidas o patch **passa nos três
+gates**. São duas razões independentes, e nenhuma das duas é o gate:
+
+**1. A régua foi registrada antes de medir, e trocá-la depois de ver o resultado
+seria escolher a régua pela resposta.** O protocolo desta rodada era 24 × 6, e
+ele reprovou. Eu rodei 288 partidas *depois* de ver a reprovação. Que o resultado
+maior seja mais confiável não muda o fato de que a amostra foi escolhida sabendo
+o que a menor tinha dito — e o método deste projeto existe inteiro para impedir
+exatamente esse movimento. A medição de 288 partidas entra como **evidência sobre
+o gate**, não como aprovação do patch.
+
+**2. Existe um custo consistente que esta rodada não explicou.** `chutes` cai
+1,5556 por partida, negativo nas seis bases. É o único efeito que sobrevive ao
+aumento de amostra. O precedente do projeto é explícito: a OS-104 funciona, e
+está desligada na PARTE C com "descubra o canal" como condição para religar. Um
+patch cujo preço medido ninguém sabe explicar não entra na cadeia.
+
 O patch fica no repositório, fora da cadeia, com estes números no cabeçalho —
-mesmo tratamento da OS-104 e da OS-105 na PARTE C da fila.
+mesmo tratamento da OS-104 e da OS-105 na PARTE C da fila. **Ele está muito mais
+perto de promovível do que a bateria de 24 partidas fez parecer**, e o que falta
+agora são duas perguntas precisas em vez de uma reprovação vaga.
+
+### As duas perguntas que destravam a OS-107
+
+1. **Onde foram os 1,56 chutes?** Negativo nas seis bases, e o pino sozinho — que
+   não alonga `dead` nenhum — já perde 0,77. Suspeita não medida: no reinício o
+   time que ataca fica com 2-3 jogadores dentro da área e o resto fora de posição
+   para o jogo corrido que vem logo depois. Instrumente a posse e a finalização
+   nos ~10 s **seguintes** ao reinício, separando bola parada de jogo corrido.
+2. **A bateria oficial precisa passar para 48 partidas por base** antes de julgar
+   qualquer coisa cuja margem seja menor que ~0,3 gol. Isso significa re-medir a
+   linha de base e reescrever o número do HANDOFF. É trabalho, e sem ele todo
+   veredito de gol neste projeto é sorteio.
 
 O que esta rodada entrega, e que não existia antes:
 
@@ -210,6 +294,9 @@ O que esta rodada entrega, e que não existia antes:
   chegada, `:6951` teleporta e não arma defesa nenhuma;
 - **existe uma correção que resolve o defeito** — 28,8% → 93,6% de postos
   ocupados, 0,26 → 4,50 defensor na própria área, teleporte de 70 m → zero;
-- **e existe o preço medido dela**: −0,21 gol e −1,5 chute por partida.
+- **existe o preço medido dela**: com 288 partidas, gols −0,10 (não estabelecido,
+  troca de sinal entre bases) e **chutes −1,56, negativo nas seis bases**;
+- **e a bateria oficial foi pega errando**: 0,79 gol de diferença entre duas
+  metades da mesma base e da mesma build, contra 0,075 de folga no gate.
 
 O que ficou aberto está na `PROXIMA_RODADA.md`.

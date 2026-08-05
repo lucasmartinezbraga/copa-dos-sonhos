@@ -225,6 +225,39 @@ ECO-05   escanteios entre 4 e 10
 
 Nas seis bases. **Gate é rede de segurança, não objetivo.**
 
+### 3.2b O gate de gols com 24 partidas NÃO tem resolução para a própria margem
+
+**MEDIDO na OS-107, e é o achado mais importante desta sessão.**
+
+As 48 partidas de uma base contêm as 24 primeiras, então dá para comparar as duas
+metades da **mesma base com a mesma build**. Fiz isso para as seis bases, em duas
+builds. A maior diferença entre metades foi **0,7916 gol** — na base 2100000, a
+mesma build deu **1,5417** nas primeiras 24 partidas e **2,3333** nas 24
+seguintes.
+
+A folga que a build promovida tem acima do piso do gate é **0,075**.
+
+Consequência prática, e você vai tropeçar nela:
+
+- um patch pode **reprovar por ruído**. A OS-107 reprovou com 24 partidas
+  (gols 1,9722, pior base 1,5417) e **passou nos três gates com 48**
+  (2,0486, pior base 1,8125). Mesmo patch, mesmas bases, mesmo protocolo;
+- e o contrário também vale: um patch ruim passa.
+
+**Regra:** com 24 partidas por base, só confie em diferença de gol maior que
+~0,3. Abaixo disso, aumente a amostra **antes** de decidir — nunca depois de ver
+o resultado, porque aí você está escolhendo a régua pela resposta.
+
+**Dívida aberta:** a bateria oficial deveria passar para 48 partidas por base, o
+que obriga a re-medir a linha de base e reescrever os números da §4 deste
+arquivo. Enquanto isso não for feito, todo veredito de gol com margem pequena
+neste projeto é sorteio.
+
+O que **não** perde resolução do mesmo jeito: efeito que aparece com o **mesmo
+sinal nas seis bases**. Na OS-107, `chutes` caiu nas seis (média −1,56) enquanto
+`gols` trocava de sinal — o primeiro é sinal, o segundo não estava estabelecido.
+Olhe a consistência entre bases, não só a média.
+
 ### 3.3 Função pura
 
 `resolveFreeKickPhysics` é pura: amostre 50 000 vezes por cenário em vez de
