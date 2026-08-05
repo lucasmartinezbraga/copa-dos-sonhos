@@ -62,19 +62,30 @@ pra área, mesma coisa a falta"*. O censo mediu e confirmou o defeito —
 e **0,095 defensor dentro da própria área** na falta cruzada, cujos três alvos são
 teleportados até **70,40 m**.
 
-A correção resolve o defeito (postos ocupados no reinício 28,8% → 93,6%,
-teleporte → zero). Ela **reprovou na bateria oficial** (24 partidas × 6 bases:
-gols 1,9722, pior base 1,5417 contra um piso de 1,8) e **passa nos três gates com
-48 partidas × 6 bases** (2,0486, pior base 1,8125).
+A correção resolve o defeito — postos ocupados no reinício 28,8% → 94,3%,
+atacantes na área 0,656 → 2,233, defensor na própria área na falta 0,26 → 4,47,
+teleporte de 70 m → **zero em 2140 jogadores** — e **passa nos três gates** na
+bateria oficial (48 × 6): gols 2,0070, xG 2,1139, escanteios 4,9305.
 
-A rodada não promoveu o patch, e o motivo não é o gate: a régua foi registrada
-antes de medir, e sobra um custo consistente que ninguém explicou — **chutes caem
-1,56 por partida, negativo nas seis bases**.
+**Mesmo assim não foi promovida**, por duas razões medidas: sobra **−1,55 chute
+por partida, negativo nas seis bases**, do qual só ~60% está explicado (a perda
+na janela do cruzamento é o efeito pretendido — a área passou a ser defendida); e
+a pior base fica a **0,0125 do piso** num gate cujo ruído é ±0,3, o que deixaria
+a rodada seguinte sem folga nenhuma.
 
-O subproduto vale mais que a rodada: **a bateria oficial foi pega errando.** Duas
-metades da mesma base, com a mesma build, chegam a diferir **0,79 gol** — dez
-vezes a folga que a build promovida tem acima do piso do gate. Está registrado na
-§3.2b do HANDOFF e como item A3 da fila.
+Dois subprodutos que valem mais que a rodada:
+
+1. **A bateria oficial foi pega errando** e foi consertada. Duas metades da mesma
+   base, com a mesma build, chegam a diferir **0,79 gol** — dez vezes a folga do
+   gate. O protocolo passou de 24 para **48 partidas por base**, a linha de base
+   foi re-medida e agora há um comando só: `tools/r1896/bateria_oficial.sh`.
+2. **Marcar `_setPieceRole` fora do escanteio faz o jogador sumir de duas camadas
+   de movimento** por até 183 s de jogo vivo, porque só a cadeia de escanteio
+   limpa o papel. Virou a §2.3c do HANDOFF.
+
+Relatórios completos:
+[`RODADA_OS107_BLOCO_BOLA_PARADA.md`](reports/r1896/RODADA_OS107_BLOCO_BOLA_PARADA.md)
+e [`RODADA_OS108_OS109_CANAL_DOS_CHUTES.md`](reports/r1896/RODADA_OS108_OS109_CANAL_DOS_CHUTES.md).
 
 Leia o relatório completo em
 [`reports/r1896/RODADA_OS107_BLOCO_BOLA_PARADA.md`](reports/r1896/RODADA_OS107_BLOCO_BOLA_PARADA.md).

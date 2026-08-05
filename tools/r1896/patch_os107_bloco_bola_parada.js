@@ -4,6 +4,28 @@
  * OS-107 · O TIME VAI PARA O LANCE -- E FICA LA ATE A COBRANCA
  * ============================================================
  *
+ * ###########################################################################
+ * # ESTADO: FORA DA CADEIA. NAO PROMOVIDO.                                  #
+ * #                                                                         #
+ * # O mecanismo funciona e esta medido (secao 4 abaixo). O que o segura:    #
+ * #                                                                         #
+ * #   -1,13 chute por partida NO JOGO CORRIDO, causado pelo pino e nao pela #
+ * #   E3 -- "so o pino", que nao marca papel nenhum, perde 1,21 sozinho.    #
+ * #   O canal nao foi isolado. Ver RODADA_OS108_OS109_CANAL_DOS_CHUTES.md.  #
+ * #                                                                         #
+ * # O que JA foi respondido e nao precisa ser refeito:                      #
+ * #   - fadiga esta falsificada: `:4859` da return antes do bloco de        #
+ * #     stamina, bola morta nao gasta folego nem relogio. Medido: tempo     #
+ * #     vivo 748,0 -> 750,6 s, stamina final 45,15 -> 45,35;                #
+ * #   - a perda na janela do cruzamento (-1,54) e o efeito PRETENDIDO: a    #
+ * #     area passou a ser defendida. Nao e dano;                            #
+ * #   - nos 10 s seguintes ao reinicio o patch produz MAIS futebol:         #
+ * #     0,715 -> 1,066 chute por minuto vivo;                               #
+ * #   - havia um bug meu, o papel `zone` vazando para o jogo corrido        #
+ * #     (mediana 4,433 s, max 183,1 s). CORRIGIDO nesta versao. Valia       #
+ * #     +0,29 chute -- real, e pouco.                                       #
+ * ###########################################################################
+ *
  * PEDIDO DO DONO (PROXIMA_RODADA.md · PARTE A · A1)
  *   "Quando acontecer o escanteio o time tem que ir pra area, mesma coisa a
  *    falta, isso voce esta pecando, o time nao se move para a direcao do lance
@@ -242,6 +264,7 @@ const CAMADA = [
 '    return dd(a.x, a.y, g.x, g.y) - dd(b.x, b.y, g.x, g.y);',
 '  });',
 '  const n = Math.min(DEFENSORES_NA_AREA, livres.length);',
+'  const marcados = [];',
 '  for (let i = 0; i < n; i++) {',
 '    const p = livres[i];',
 '    const lado = (i % 2) ? 1 : -1;',
@@ -250,7 +273,17 @@ const CAMADA = [
 '    p.y = cl(num(g.y) + lado * faixa, 3, FWv - 3);',
 '    p.vx = 0; p.vy = 0;',
 '    p._setPieceRole = "zone";',
+'    marcados.push(p);',
 '  }',
+'  /* O papel PRECISA ser devolvido no reinicio. Medido (diag_os109): sem isto',
+'     ele sobrevive 4,433 s de mediana e ate 183,1 s de tempo vivo, porque',
+'     `clearCorner13` (:17074) so roda em gol/erro/trave, tiro de meta e na',
+'     expiracao da CADEIA DE ESCANTEIO -- e falta cruzada nao abre cadeia',
+'     nenhuma. Enquanto ele fica pendurado, :21841 e :21867 pulam esses cinco',
+'     jogadores, que somem das camadas de movimento e ataque no jogo corrido.',
+'     O nucleo nao marca ninguem na falta cruzada; devolver no reinicio e o',
+'     comportamento mais proximo da base. */',
+'  sim.__os107Zona = marcados;',
 '}',
 '',
 '/* ---------------------------------------------------------------- escanteio */',
@@ -292,6 +325,14 @@ const CAMADA = [
 'P.step = function (dt) {',
 '  const r = oldStep.apply(this, arguments);',
 '  try {',
+'    /* devolve o papel de zona no instante em que a bola volta a rolar */',
+'    if (this.__os107Zona && !(num(this.dead) > 0)) {',
+'      const z = this.__os107Zona;',
+'      for (let i = 0; i < z.length; i++) {',
+'        if (z[i] && z[i]._setPieceRole === "zone") z[i]._setPieceRole = null;',
+'      }',
+'      this.__os107Zona = null;',
+'    }',
 '    const st = PINO_LIGADO ? this.__os107 : null;',
 '    if (st) {',
 '      st.quadros++;',

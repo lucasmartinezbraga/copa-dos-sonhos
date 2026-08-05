@@ -58,19 +58,39 @@ nova do HANDOFF. Duas metades da **mesma base e mesma build** chegam a diferir
    pela resposta;
 2. sobra um custo consistente que a rodada **não explicou**.
 
-**A pergunta que destrava** — mesma classe da C1 abaixo: `chutes` cai **1,5556
-por partida, negativo nas seis bases** (gols trocam de sinal e não estão
-estabelecidos; chutes não trocam). É ~8% do volume de finalização, mais do que a
-fatia inteira de bola parada, e só o pino — que não alonga `dead` nenhum — já
-perde 0,77. **Ache o canal antes de calibrar qualquer número.** Pista não medida:
-no reinício o time que ataca fica com 2-3 jogadores dentro da área e o resto fora
-de posição para o jogo corrido que vem em seguida. Instrumente posse e
-finalização nos ~10 s **seguintes** ao reinício.
+**A pergunta que destravava foi parcialmente respondida** pelas OS-108 e OS-109 —
+leia `reports/r1896/RODADA_OS108_OS109_CANAL_DOS_CHUTES.md`. Resumo do que **não
+precisa ser refeito**:
 
-E uma segunda, independente: com 24 partidas, **só o pino derrubava escanteios**
-de 4,785 para 4,028 (pior base 3,458). Com 288 partidas o patch completo dá
-4,948 contra 4,878 da base — ou seja, aquele efeito também era, em boa parte,
-ruído. Não gaste rodada perseguindo ele antes de refazer a medição.
+- **fadiga está falsificada.** `:4859` dá `return` antes do bloco de stamina:
+  bola morta não gasta fôlego nem relógio. Medido: tempo vivo 748,0 → 750,6 s,
+  stamina final 45,15 → 45,35, distância 2805 → 2833 m;
+- a decomposição dos chutes, por fase, com tempo vivo como base:
+  **bola parada −1,54** (é o efeito **pretendido**: a área passou a ser
+  defendida), **pós-reinício +0,38** (é ganho: 0,715 → 1,066 chute por minuto
+  vivo), **jogo corrido −1,33** (é o que sobra sem explicação);
+- **havia um bug no patch**: o papel `zone` da E3 vazava para o jogo corrido
+  (mediana 4,433 s, máx 183,1 s de tempo vivo) e sumia cinco jogadores de duas
+  camadas. **Corrigido** — virou a §2.3c do HANDOFF. Valia +0,29 chute;
+- com o bug corrigido, a **OS-107b passa nos três gates 6/6** na bateria nova:
+  gols 2,0070 (pior 1,8125), xG 2,1139, escanteios 4,9305 (pior 4,583).
+
+**O que ainda segura o patch, e é a rodada seguinte:** −1,13 chute no jogo
+corrido, causado **pelo pino** e não pela E3 (prova: "só o pino", que não marca
+papel nenhum, perde 1,21 sozinho). Meça a **reorganização depois do reinício** —
+quanto tempo vivo cada time leva para voltar à distância tática média, e o que
+acontece com a finalização nesse intervalo. Sinal compatível, que não prova:
+retenção de posse 10 s após o reinício cai de 12,2% para 7,9%.
+
+E o segundo motivo, que é de prudência e não de mecanismo: **a pior base fica a
+0,0125 do piso** num gate cujo ruído é ±0,3. Promover apoiado nessa margem deixa
+a rodada seguinte sem folga — foi assim que a R18.86 foi promovida e depois
+reprovou numa base que ninguém tinha rodado.
+
+Nota sobre um falso alarme já descartado: com 24 partidas parecia que **só o
+pino** derrubava escanteios de 4,785 para 4,028 (pior base 3,458). Com 288
+partidas o efeito some (4,9305 contra 4,8785, e só 2 das 6 bases negativas).
+Era ruído. Não gaste rodada nisso.
 
 ### A2. A física da espalmada do goleiro · NÃO INICIADO
 
@@ -86,24 +106,27 @@ são legítimos e funcionam).
 
 ---
 
-### A3. A bateria oficial precisa de 48 partidas por base · MEDIDO, NÃO FEITO
+### A3. A bateria oficial passou para 48 partidas por base · FEITO
 
-**Isto vem antes de qualquer decisão de gol que você for tomar.**
+**Isto vinha antes de qualquer decisão de gol, e está feito.**
 
 Medido na OS-107: entre duas metades da **mesma base com a mesma build**, gols
 diferem até **0,7916**. A folga da build promovida acima do piso é **0,075**.
 O gate reprovou um patch que passa com o dobro da amostra.
 
-O que fazer, e é trabalho chato mas de fundação:
+O que foi feito:
 
-1. re-medir a linha de base da R18.96 com `--matches=48` nas seis bases
-   (já está feito e guardado em `reports/r1896/bateria_48x6_base.json`:
-   gols 2,1493 / pior 1,9583, xG 2,170, escanteios 4,878, chutes 19,13);
-2. reescrever os números da §4 do HANDOFF com essa amostra;
-3. passar o protocolo oficial para 48 e dizer isso na §3.1.
+1. a linha de base da R18.96 foi re-medida com 48 partidas nas seis bases —
+   `reports/r1896/bateria_48x6_base.json`;
+2. a §4 do HANDOFF foi reescrita com essa amostra (gols 2,149 / pior 1,958,
+   xG 2,170, escanteios 4,879 / pior 4,417, chutes 19,13);
+3. o protocolo oficial passou para 48 e está na §3.1, com um único comando:
+   `tools/r1896/bateria_oficial.sh <build.html>`.
 
-Custo: ~11 min de CPU por build em quatro núcleos, contra ~5. É barato perto de
-gastar uma rodada inteira decidindo no sorteio.
+**O que isso NÃO resolve:** diferença de gol menor que ~0,3 continua fora do
+alcance. Antes de acreditar numa média, olhe se o sinal se repete nas **seis**
+bases — foi assim que a OS-107 separou `chutes` (negativo em 6 de 6, real) de
+`gols` (troca de sinal, não estabelecido).
 
 ---
 

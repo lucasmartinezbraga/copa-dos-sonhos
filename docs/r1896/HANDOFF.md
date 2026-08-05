@@ -157,6 +157,29 @@ pergunta é **"ele ainda está lá no instante do lance?"**.
 A OS-100 já tinha resolvido isto para **um** jogador (o cobrador do lateral, "o
 pino", `:21556`) sem que ninguém percebesse que era um padrão.
 
+### 2.3c Marcar um jogador com `_setPieceRole` o faz SUMIR de outras camadas
+
+Custou a OS-109 descobrir, e é fácil de repetir.
+
+Pelo menos duas camadas pulam quem tem `_setPieceRole` setado:
+
+```js
+:21841  if(team==null||!actor||actor.isGK||actor._setPieceRole) return r;
+:21867  if(!base||!tm||!p||p.red||p.isGK||p._setPieceRole||finite(this.dead)>.04) return base;
+```
+
+E quem limpa o papel é `clearCorner13` (`:17074`), que roda em `goal|miss|post`,
+em `goal_kick` e na expiração da **cadeia de escanteio** — que só existe se houve
+escanteio. **Marcar papel em qualquer outro lance deixa o jogador marcado por
+tempo indeterminado.**
+
+Medido: um `_setPieceRole='zone'` posto numa falta cruzada sobreviveu **4,433 s
+de mediana e 183,1 s no pior caso** de tempo vivo, e os papéis pendurados por
+quadro vivo passaram de 0,2216 para 1,0222.
+
+**Regra:** se você marcar papel fora do escanteio, limpe-o você mesmo — e no
+reinício, não no fim do lance.
+
 ### 2.4 Ancore a medição no LANCE, não no agente
 
 Duas vezes nesta sessão medi a coisa certa e fiz a pergunta errada. *"O jogador
@@ -199,13 +222,17 @@ redesenhada dentro do `paintField`, na mesma transformação de câmera.
 ### 3.1 Bateria oficial
 
 ```bash
-node bateria_espelho30.js --build=<html> --matches=24 --semente=<base>
+tools/r1896/bateria_oficial.sh <build.html>          # 48 x 6 = 288 partidas
 ```
 
 Protocolo `espelho_30`: Brasil 1970 × Brasil 1970, mesma formação, `balanced`,
 `dt = 1/30`, sementes `base + i*7919`.
 
 **Use SEIS bases**, não três: `4200000 8400000 1260000 2100000 6300000 3150000`.
+
+**E use 48 partidas por base, não 24.** Isto mudou na OS-107 — leia a §3.2b, o
+motivo está medido. Os relatórios anteriores a ela usam 24 e os números deles
+não são comparáveis diretamente com os de agora.
 
 Motivo medido: a R18.86, que era a build promovida, **reprova o piso de gols na
 base 6300000 com 1,667**. As três bases publicadas no relatório dela eram um
@@ -288,15 +315,24 @@ antes.
 
 ## 4. Estado atual, com número
 
-### R18.96, seis bases, 144 partidas
+### R18.96, seis bases, 288 partidas (protocolo novo, 48 por base)
 
 | | média | pior base | gate |
 |---|---:|---:|---|
-| gols | 2,181 | 1,875 | 1,8–3,0 ✔ 6/6 |
-| xG | 2,193 | 2,289 (máx) | ≤ 2,7 ✔ 6/6 |
-| escanteios | 4,785 | 4,000 | ≥ 4 ✔ 6/6 |
-| passes | 442,0 | — | — |
-| chutes | 19,21 | — | — |
+| gols | 2,149 | 1,958 | 1,8–3,0 ✔ 6/6 |
+| xG | 2,170 | 2,307 (máx) | ≤ 2,7 ✔ 6/6 |
+| escanteios | 4,879 | 4,417 | ≥ 4 ✔ 6/6 |
+| chutes | 19,13 | 18,02 | — |
+| no alvo | 6,34 | — | — |
+| passes | 441,5 | — | — |
+| faltas | 14,73 | — | — |
+| defesas | 4,19 | — | — |
+| impedimentos | 4,65 | — | — |
+
+*(Medido em `reports/r1896/bateria_48x6_base.json`. A tabela antiga, com 24
+partidas por base, dava gols 2,181 / pior 1,875 e escanteios 4,785 / pior 4,000 —
+a diferença entre as duas tabelas é amostra, não build: é exatamente o problema
+descrito na §3.2b.)*
 
 *(A OS-106 é apresentação pura e não muda estes números em relação à R18.95.)*
 
