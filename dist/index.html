@@ -6267,7 +6267,11 @@ class MatchSim {
     pGoal *= oneOnOne ? .70 : longshot ? .50 : 0.62;
     pGoal *= finishPlan.goalMul;
     pGoal=clamp(pGoal,CAL.shooting.minGoalChance,oneOnOne?.72:CAL.shooting.maxGoalChance);
-    const xg=pGoal; this.stats[o.team].xg+=xg;
+    /* OS-200 · o xG registrado passa por uma escala medida. Com o desfecho
+       vindo da geometria, `pGoal` calibra a pontaria e nao e mais igual a
+       probabilidade de gol; sem a escala a coluna de xG passa a superestimar
+       de forma sistematica. A escala mora junto da calibracao da fisica. */
+    const xg=pGoal*(this._os200EscalaXg?this._os200EscalaXg():1); this.stats[o.team].xg+=xg;
     if((o._setPieceShotUntil||0)>this.t)this.stats[o.team].setPieceShots++;
     this._emit('shot_taken',{by:o,xg,baseXg:clamp(base*angMul,.003,.75),pGoal,longshot:!!longshot,dtg,volley,oneOnOne,finishType:finishPlan.type,finishFit:+finishPlan.fit.toFixed(2)});
     this._emit('finish_choice',{by:o,type:finishPlan.type,fit:+finishPlan.fit.toFixed(2),dtg,oneOnOne:!!oneOnOne,longshot:!!longshot,volley:!!volley});
@@ -27105,13 +27109,13 @@ try { document.title = 'Copa dos Sonhos — R19.08'; } catch (_) {}
   const T = (root && root.CDS_OS200_TUNE) || {};
   const num = (v, padrao) => Number.isFinite(v) ? v : padrao;
 
-  /* Valores promovidos pela grade de calibracao (reports/calib-02.json, 36
-     partidas por configuracao, semente base 4200000): 1,89 gol/partida e 37,5%
-     de finalizacoes no alvo, contra 1,771 e 36,9% do R19.08. */
-  const ERRO_BASE = num(T.erroBase, 14.0);         // dispersao lateral de referencia
+  /* Valores promovidos pela grade de calibracao (reports/calib-03.json, 60
+     partidas por configuracao, semente base 4200000): 1,68 gol/partida e 38,2%
+     de finalizacoes no alvo, contra 1,77 e 36,5% do R19.08 na mesma amostra. */
+  const ERRO_BASE = num(T.erroBase, 15.0);         // dispersao lateral de referencia
   const ERRO_VERTICAL = num(T.erroVertical, 0.30); // erro vertical relativo ao lateral
   const VIES_ALTO = num(T.viesAlto, 0.16);         // chute errado sobe mais do que afunda
-  const DEFESA_BASE = num(T.defesaBase, 0.78);     // chance de defesa com folga zero
+  const DEFESA_BASE = num(T.defesaBase, 0.80);     // chance de defesa com folga zero
   const DEFESA_POR_METRO = num(T.defesaPorMetro, 0.30);
   const BLOQUEIO_RAIO = num(T.bloqueioRaio, 0.85);
   const BLOQUEIO_AVANCO = num(T.bloqueioAvanco, 3.2);
@@ -27121,6 +27125,16 @@ try { document.title = 'Copa dos Sonhos — R19.08'; } catch (_) {}
      real fica perto de 25 m/s. A escala corrige a faixa sem jogar fora o
      ordenamento por atributo que a formula original produz. */
   const FORCA_ESCALA = num(T.forcaEscala, 0.62);
+
+  /* xG REGISTRADO x xG REALIZADO.
+     `pGoal` deixou de ser a probabilidade de gol e virou entrada de pontaria,
+     entao ele nao serve mais como xG cru: medido em 60 partidas, o motor
+     registrava 2,41 de xG para 1,68 gol, e a tela diria "azarado" toda
+     partida. A escala abaixo e a razao medida entre gol realizado e pGoal
+     acumulado, para a coluna de xG voltar a significar gols esperados.
+     Refaça a medicao se mexer em ERRO_BASE, DEFESA_BASE ou FORCA_ESCALA. */
+  const XG_ESCALA = num(T.xgEscala, 0.70);
+  P._os200EscalaXg = function () { return XG_ESCALA; };
 
   /* Ruido em forma de sino, somando dois uniformes. E limitado em [-1,1], o
      que importa: uma normal de verdade produz caudas que colocariam a bola na
@@ -27507,6 +27521,79 @@ try { document.title = 'Copa dos Sonhos — R19.08'; } catch (_) {}
     return { tipo: 'fora', cruzamento: c, porCima: c.z > TRAVESSAO, larga: dy > POSTE };
   };
 
+  /* ─── rebote na trave e no travessao ──────────────────────────────────────
+     O ramo antigo sorteava tudo: `chance(postCorner)` decidia se a bola saia,
+     e o rebote ia para um ponto aleatorio num raio de 3 a 9 m. Com a geometria
+     no lugar, nada disso precisa de sorteio — a bola bate num cilindro de aco
+     e volta pelo angulo com que chegou.
+
+     A normal do contato NAO e puramente lateral: a bola chega de frente, entao
+     ela toca a face dianteira do poste. Procuramos na trajetoria a amostra mais
+     proxima do eixo do cilindro e usamos o vetor eixo->bola, que carrega a
+     componente x de volta para o campo. */
+  const REST_TRAVE = 0.68;  // aco: devolve bem mais energia que o gramado
+
+  function contatoNaTrave(seg, gol, tipo, cruz) {
+    const py = gol.y + (cruz.y >= gol.y ? 1 : -1) * POSTE;
+    const ss = seg.samples;
+    let melhor = null, melhorD = Infinity;
+    for (const s of ss) {
+      /* poste: cilindro vertical em (gol.x, py)  ->  distancia no plano x-y
+         travessao: cilindro ao longo de y em (gol.x, TRAVESSAO) -> plano x-z */
+      const d = tipo === 'travessao'
+        ? Math.hypot(s.x - gol.x, s.z - TRAVESSAO)
+        : Math.hypot(s.x - gol.x, s.y - py);
+      if (d < melhorD) { melhorD = d; melhor = s; }
+    }
+    if (!melhor) return null;
+    let nx, ny, nz;
+    if (tipo === 'travessao') {
+      nx = melhor.x - gol.x; ny = 0; nz = melhor.z - TRAVESSAO;
+    } else {
+      nx = melhor.x - gol.x; ny = melhor.y - py; nz = 0;
+    }
+    const L = Math.hypot(nx, ny, nz);
+    if (!(L > EPS)) return null;
+    return { ponto: melhor, n: { x: nx / L, y: ny / L, z: nz / L } };
+  }
+
+  /* Reflete a velocidade incidente na normal e integra o rebote ate a bola
+     sair do campo ou parar. Devolve para onde ela foi — e nao um sorteio. */
+  P._os200Rebote = function (seg, gol, dir, tipo, cruz) {
+    const c = contatoNaTrave(seg, gol, tipo, cruz);
+    if (!c) return null;
+    const v = { x: finito(cruz.vx), y: finito(cruz.vy), z: finito(cruz.vz) };
+    const dot = v.x * c.n.x + v.y * c.n.y + v.z * c.n.z;
+    const r = {
+      x: (v.x - 2 * dot * c.n.x) * REST_TRAVE,
+      y: (v.y - 2 * dot * c.n.y) * REST_TRAVE,
+      z: (v.z - 2 * dot * c.n.z) * REST_TRAVE,
+    };
+    /* Se a reflexao ainda aponta para dentro do gol, a bola raspou o poste por
+       tras; empurramos de volta ao campo para nao atravessar a rede. */
+    if (r.x * dir > 0) r.x = -r.x;
+
+    const s = estado({ x: c.ponto.x, y: c.ponto.y, z: c.ponto.z }, r.x, r.y, r.z);
+    let saiu = false, voltou = false;
+    for (let i = 0; i < MAX_PASSOS; i++) {
+      avancar(s, PASSO);
+      /* O contato acontece EM CIMA da linha de fundo, entao testar a saida
+         desde o primeiro passo declarava "saiu" antes de a bola se mexer —
+         media 4 de 5 traves saindo. So vale a partir do momento em que ela
+         voltou ao campo de verdade. */
+      if (!voltou && (gol.x - s.x) * dir > 0.3) voltou = true;
+      if (s.x < 0 || s.x > FL || s.y < 0 || s.y > FW) { saiu = true; break; }
+      if (voltou && (s.x - gol.x) * dir > 0) { saiu = true; break; }
+      if (s.z <= 0.02 && Math.hypot(s.vx, s.vy) < 3.5) break;  // morreu no gramado
+    }
+    return {
+      ponto: c.ponto,
+      saiu,
+      pouso: { x: clamp(s.x, 1, FL - 1), y: clamp(s.y, 1, FW - 1) },
+      velocidade: Math.hypot(r.x, r.y),
+    };
+  };
+
   /* ═══════════════════════════════════════════════════ 5. ALCANCE DO GOLEIRO ═
 
      O goleiro e avaliado sobre a trajetoria QUE EXISTE, nao sobre um ponto de
@@ -27699,18 +27786,24 @@ try { document.title = 'Copa dos Sonhos — R19.08'; } catch (_) {}
       return;
     }
 
-    /* 3. na trave ou no travessao */
+    /* 3. na trave ou no travessao — rebote calculado, nao sorteado */
     if (desf.tipo === 'trave' || desf.tipo === 'travessao') {
       diag.traves++;
+      const rebote = this._os200Rebote(seg, g, dir, desf.tipo, desf.cruzamento);
+      if (rebote && rebote.saiu) diag.travesQueSairam = (diag.travesQueSairam || 0) + 1;
       this._startTravel(o, mira, 'shot', () => {
         this._recordVisualContact('post', null, this.ball.x, this.ball.y, { shooterId: o.idx == null ? null : o.idx });
         this._emit('post', { by: o, contact: { x: this.ball.x, y: this.ball.y }, parte: desf.tipo });
-        if (_chance(calRestart("postCorner", .5))) this._goalKickOrRestart(1 - o.team);
-        else {
-          const rx = clamp(this.ball.x - dir * _R(3, 9), 2, FL - 2);
-          const ry = clamp(this.ball.y + _R(-7, 7), 2, FW - 2);
-          this._deflectTo(rx, ry, 12);
+        /* Sair ou continuar viva deixa de ser sorteio: depende de para onde a
+           reflexao mandou a bola. Sem rebote calculado (caso degenerado da
+           busca do contato), caimos na regra de calibracao antiga. */
+        if (!rebote) {
+          if (_chance(calRestart('postCorner', .5))) this._goalKickOrRestart(1 - o.team);
+          else this._looseBall(this.ball.x, this.ball.y);
+          return;
         }
+        if (rebote.saiu) this._goalKickOrRestart(1 - o.team);
+        else this._deflectTo(rebote.pouso.x, rebote.pouso.y, Math.max(6, rebote.velocidade));
       }, null, 'shot', { outcome: 'post' });
       return;
     }

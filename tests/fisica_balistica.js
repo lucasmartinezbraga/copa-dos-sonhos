@@ -133,5 +133,35 @@ console.log(`erro ate o alvo: rasteiro ${e1.toFixed(3)} m, lancado ${e2.toFixed(
 checar('solucionador acerta o alvo pedido', e1 < 0.6 && e2 < 0.6 && e3 < 0.6,
   `max ${Math.max(e1, e2, e3).toFixed(3)} m`);
 
+/* 10. trave e travessao devolvem a bola pelo angulo, nao por sorteio ------ */
+const gol = { x: 105, y: 34 };
+/* chute de fora mirando o poste: cruza em |dy| ~ 3,66 */
+const naTrave = P._planPhysicalSegment.call(sim, { x: 88, y: 30, z: 0.1 },
+  { x: 105, y: 34 + 3.66, z: 0.9 }, 'shot', 'shot', 30);
+const dTrave = P._os200Desfecho.call(sim, naTrave, gol, 1);
+console.log(`chute no poste: tipo=${dTrave.tipo}`);
+checar('bola no poste e classificada como trave', dTrave.tipo === 'trave', `tipo=${dTrave.tipo}`);
+
+if (dTrave.tipo === 'trave') {
+  const reb = P._os200Rebote.call(sim, naTrave, gol, 1, 'trave', dTrave.cruzamento);
+  console.log(`rebote: saiu=${reb && reb.saiu}, pouso=(${reb ? reb.pouso.x.toFixed(1) : '-'}, ${reb ? reb.pouso.y.toFixed(1) : '-'}), v=${reb ? reb.velocidade.toFixed(1) : '-'} m/s`);
+  checar('rebote na trave e calculado', !!reb);
+  checar('rebote conserva parte da energia, nao toda', !!reb && reb.velocidade > 3 && reb.velocidade < 30,
+    reb ? `${reb.velocidade.toFixed(1)} m/s` : '-');
+  /* Determinismo: mesma entrada, mesmo rebote. Era exatamente isto que o
+     ramo antigo nao tinha — ele sorteava o destino num raio de 3 a 9 m. */
+  const reb2 = P._os200Rebote.call(sim, naTrave, gol, 1, 'trave', dTrave.cruzamento);
+  checar('rebote e deterministico (mesma entrada, mesmo destino)',
+    !!reb2 && Math.abs(reb2.pouso.x - reb.pouso.x) < 1e-9 && Math.abs(reb2.pouso.y - reb.pouso.y) < 1e-9);
+}
+
+/* 11. mira alta bate no travessao ---------------------------------------- */
+const noTravessao = P._planPhysicalSegment.call(sim, { x: 88, y: 34, z: 0.1 },
+  { x: 105, y: 34, z: 2.44 }, 'shot', 'shot', 30);
+const dBar = P._os200Desfecho.call(sim, noTravessao, gol, 1);
+console.log(`chute na altura do travessao: tipo=${dBar.tipo}, z=${dBar.cruzamento ? dBar.cruzamento.z.toFixed(2) : '-'}`);
+checar('bola na altura exata do travessao e classificada como travessao',
+  dBar.tipo === 'travessao', `tipo=${dBar.tipo}`);
+
 console.log(`\n${falhas ? falhas + ' verificacao(oes) falharam' : 'todas as verificacoes passaram'}\n`);
 process.exit(falhas ? 1 : 0);

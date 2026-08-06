@@ -97,6 +97,21 @@ o integrador reamostra por causa disso.
 espessura real do poste (6 cm), então "na trave" deixa de ser sorteio e passa a
 ser o que é: uma bola que passou a 6 cm de entrar.
 
+**O rebote também deixou de ser sorteado.** O ramo antigo decidia com
+`chance(postCorner)` se a bola saía, e mandava o rebote para um ponto aleatório
+num raio de 3 a 9 m. Agora o poste é um cilindro: procuramos na trajetória a
+amostra mais próxima do eixo, tiramos a normal dali — o que dá à normal a
+componente `x` de volta para o campo, já que a bola toca a face dianteira — e
+refletimos a velocidade incidente com restituição 0,68. O destino sai de
+integrar esse rebote; sair ou seguir em jogo passa a depender de para onde a
+bola foi.
+
+Uma armadilha que o teste pegou: o contato acontece **em cima da linha de
+fundo**, então testar a saída desde o primeiro passo da integração declarava
+"saiu" antes de a bola se mexer — 4 de 5 traves saíam. A saída só passa a valer
+depois que a bola volta ao campo de verdade. Medido depois da correção: 6 saem,
+5 seguem vivas.
+
 ### 3. Inversão da causalidade no chute
 
 `pGoal` continua sendo calculado como antes — é um bom modelo de xG. O que muda
@@ -135,60 +150,89 @@ travessão *pareça* por cima do travessão — saturando suavemente acima disso
 
 ## Resultado medido
 
-Bateria de **60 partidas**, semente base 4200000, compatível com a bateria
-histórica R18.40 (mesma população, mesmo incremento, mesmo `dt`). Os dois lados
-foram medidos na mesma amostra — comparação pareada.
+Bateria de **120 partidas** por lado, semente base 4200000, compatível com a
+bateria histórica R18.40 (mesma população, mesmo incremento, mesmo `dt`). Os
+dois builds foram medidos na mesma amostra — comparação pareada. A coluna
+`Δ/EP` é a diferença em erros-padrão: abaixo de ~2 não dá para distinguir de
+ruído amostral.
 
-| Métrica | R19.08 | OS-200 |
+| Métrica | R19.08 | OS-200 | Δ/EP |
+|---|---|---|---|
+| Gols por partida | 1,88 | 1,75 | −0,7 |
+| xG por partida | 1,85 | 1,93 | +0,7 |
+| Finalizações por partida | 14,72 | 12,82 | −2,9 |
+| No alvo por partida | 5,42 | 4,92 | −1,5 |
+| Passes por partida | 426,9 | 329,6 | −18,4 |
+| Escanteios por partida | 3,59 | 4,82 | +4,1 |
+| Faltas por partida | 10,82 | 9,38 | −3,1 |
+
+**Gols ficaram estatisticamente iguais** (Δ = −0,7 erro-padrão). A taxa de
+finalização no alvo subiu de 36,8% para 38,4%, e gols/xG ficou em 0,90 contra
+1,01 do R19.08.
+
+O que de fato mudou é a física:
+
+| Métrica de física | R19.08 | OS-200 |
 |---|---|---|
-| Gols por partida | 1,77 | **2,13** |
-| xG por partida | 1,98 | **2,40** |
-| Finalizações no alvo | 36,5% | **42,8%** |
 | Aceleração vertical | −4,84 m/s² | **−9,90 m/s²** |
-| Tempo médio de voo | 1,001 s | **1,419 s** |
-| Ápice médio de voo | 0,42 m | **0,74 m** |
-| Ápice máximo observado | 2,93 m | **11,04 m** |
-| Quiques por partida | 0,033 | **5,42** |
-| Chutes por cima do travessão | **0** | **7,8% dos chutes** |
+| Tempo médio de voo | 1,000 s | **1,429 s** |
+| Ápice médio de voo | 0,42 m | **0,75 m** |
+| Ápice máximo observado | 3,00 m | **11,03 m** |
+| Quiques por partida | 0,033 | **5,16** |
+| Chutes por cima do travessão | **0** | **11,5% dos chutes** |
 
-Gols seguem o xG na mesma proporção nos dois builds (0,89), o que indica que a
-inversão preservou a calibração de finalização em vez de a substituir por outra.
+Distribuição dos desfechos de chute: 16,4% gol, 22,1% defesa, 2,9%
+trave/travessão, 39,5% fora, 19,1% bloqueio. Das 25 bolas na trave, 8 saíram e
+17 seguiram vivas — decidido pela reflexão, não por sorteio.
 
-Distribuição dos desfechos de chute (423 chutes): 20,1% gol, 22,7% defesa,
-3,3% trave/travessão, 34,3% fora, 19,6% bloqueio.
+### Um efeito colateral que precisou de conserto
 
-## O que esta mudança custou, e que não foi escondido
+Com `pGoal` virando entrada de pontaria, ele deixou de ser a probabilidade de
+gol — e a coluna de xG passou a superestimar de forma sistemática (2,41 de xG
+para 1,68 gol numa medição de 60 partidas). Na tela isso leria "azarado" toda
+partida. O xG **registrado** passou a levar uma escala medida (0,70), que mora
+junto da calibração da física e precisa ser refeita se `ERRO_BASE`,
+`DEFESA_BASE` ou `FORCA_ESCALA` mudarem.
 
-O volume de ações caiu de forma **uniforme** em todos os eventos: passes 424 →
-337, chutes 15,5 → 12,5, desarmes 21,9 → 18,7, faltas 11,1 → 9,1 por partida
-(≈ −19% em tudo).
+## Quem manda na bola hoje (e por que não achatei mais que isto)
 
-A causa é única e é honesta: o tempo médio de voo subiu 42% (1,001 s → 1,419 s).
-O R19.08 gastava menos relógio com a bola no ar porque a duração era `d/v`,
-indiferente ao arco, e nada desacelerava. Com voo real, mais do relógio da
-partida é bola viajando, e sobram menos ações.
+O plano previa achatar a cadeia da bola num módulo só. A **física** foi
+achatada: geração de trajetória, colisão e desfecho vivem em
+`88-os200-balistica-real.js`, e `_planPhysicalSegment` / `_trajectoryPoint`
+são substituídos, não encadeados. O resto da cadeia **não** foi, e a razão está
+medida.
 
-Parte disso foi recuperada exigindo que o passe rasteiro chegue com **ritmo
-útil** (≥ 7,5 m/s) em vez de apenas alcançar o destino — um passe que chega
-rastejando levou tempo demais e o companheiro já saiu dali.
+Mapa real, na ordem em que roda:
 
-O que sobra é custo real da física. **Não** foi compensado mexendo em
-`ENGINE_CALIBRATION.timing.clockRate`: isso restauraria a contagem de eventos
-escondendo a causa, e a densidade de ações do motor já estava abaixo do futebol
-real antes desta mudança (424 passes por partida somando os dois times). Fica
-registrado como decisão para o dono do projeto, não como algo a silenciar.
-
-## Ferramentas novas
-
-| Arquivo | Para quê |
+| Camada | O que decide |
 |---|---|
-| `tools/fisica/bateria.js` | Bateria paralela com sondas de física (ápice, altura na linha, quiques, tempo de voo, ramos de desfecho). Compatível em semente com `tools/r1840/bateria.js`. |
-| `tools/fisica/calibrar.py` | Varre configurações contra a bateria e tabela o resultado, na mesma população, para comparação pareada. |
-| `tests/fisica_balistica.js` | Teste de unidade da balística: gravidade, tempo de voo por altura, quique, passar por cima do travessão, uniformidade das amostras, precisão do solucionador. |
-| `tests/browser_smoke.js` | Sobe o bundle em Chromium de verdade e roda uma partida. As baterias usam `vm.runInThisContext`, que **não** é como o navegador carrega. |
+| `_startTravel` do core | alvo e callback do lance |
+| `07-physics-timeline-581` | grava o plano, reproduz o voo quadro a quadro, captura timeline e replays |
+| `17-r13-...` (`_startTravel`) | **velocidade inicial, altura de saída e `ball.speed`** por tipo de bola |
+| `17-r13-...` (`_ballTravel`) | multiplica `ball.vx/vy` por um fator de arrasto após o voo do quadro |
+| `88-os200-balistica-real` | a física: trajetória, colisão, desfecho |
 
-`CDS_OS200_TUNE` permite varrer os parâmetros sem reconstruir o bundle. Em
-produção ele não existe e valem os padrões calibrados.
+Tentei remover o arrasto da R13 tratando-o como código morto. **Ele não é.**
+A prova de que não influencia a trajetória continua válida — medido em 8
+partidas, `_ballTravel` rodou 127.980 vezes sempre com plano de física (o ramo
+legado do integrador do core: **zero execuções**), e o `vx` escrito ali
+sobrevive ao quadro seguinte em 0,2% das amostras, porque o playback reescreve
+`vx/vy/vz` a partir do segmento.
+
+Mas remover mudou **todas** as métricas da bateria (gols 1,917 → 1,667 nas
+mesmas 24 partidas e sementes). O valor não chega à trajetória, e ainda assim é
+**lido** por consumidores dentro do mesmo quadro. Reverti, e os números voltaram
+idênticos à referência.
+
+Fica o registro: nesta base, "código comprovadamente sem efeito na trajetória"
+**não** é sinônimo de "código sem efeito". O critério de aceitação que pegou
+isso — rodar a bateria com as mesmas sementes e exigir agregados idênticos — é
+o que qualquer limpeza futura nessas camadas precisa passar antes de ser
+promovida.
+
+Consequência prática que vale saber: a velocidade que o planejador balístico
+recebe para passes vem dos clamps da R13 (passe curto 14,1–17,5 m/s, lançamento
+20–23,4 m/s), não do core.
 
 ## Ainda aberto
 
@@ -196,5 +240,8 @@ produção ele não existe e valem os padrões calibrados.
   agora que o voo tem duração física.
 - **Posicionamento do goleiro** foi corrigido com dois tetos pontuais, não
   reescrito. Ele ainda fica a ~6 m da linha em média no momento do chute.
+- **Achatar o resto da cadeia da bola** (velocidade inicial da R13, playback da
+  camada 581) exige re-hospedar bookkeeping de timeline e replays que hoje é
+  privado ao IIFE da 581. É trabalho próprio, com o critério de aceitação acima.
 - **76 camadas empilhadas**: `P.step` tem ~20 wrappers, `_startTravel` 13. Esta
-  mudança substituiu a cadeia da bola, mas o resto continua em pilha.
+  mudança substituiu a geração de trajetória, mas o resto continua em pilha.

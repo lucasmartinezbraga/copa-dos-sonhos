@@ -1883,7 +1883,11 @@ class MatchSim {
     pGoal *= oneOnOne ? .70 : longshot ? .50 : 0.62;
     pGoal *= finishPlan.goalMul;
     pGoal=clamp(pGoal,CAL.shooting.minGoalChance,oneOnOne?.72:CAL.shooting.maxGoalChance);
-    const xg=pGoal; this.stats[o.team].xg+=xg;
+    /* OS-200 · o xG registrado passa por uma escala medida. Com o desfecho
+       vindo da geometria, `pGoal` calibra a pontaria e nao e mais igual a
+       probabilidade de gol; sem a escala a coluna de xG passa a superestimar
+       de forma sistematica. A escala mora junto da calibracao da fisica. */
+    const xg=pGoal*(this._os200EscalaXg?this._os200EscalaXg():1); this.stats[o.team].xg+=xg;
     if((o._setPieceShotUntil||0)>this.t)this.stats[o.team].setPieceShots++;
     this._emit('shot_taken',{by:o,xg,baseXg:clamp(base*angMul,.003,.75),pGoal,longshot:!!longshot,dtg,volley,oneOnOne,finishType:finishPlan.type,finishFit:+finishPlan.fit.toFixed(2)});
     this._emit('finish_choice',{by:o,type:finishPlan.type,fit:+finishPlan.fit.toFixed(2),dtg,oneOnOne:!!oneOnOne,longshot:!!longshot,volley:!!volley});
