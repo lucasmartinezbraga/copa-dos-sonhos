@@ -140,7 +140,15 @@ goleiro até o ponto onde a bola cruza a linha, ele procura o **primeiro instant
 do voo** em que o goleiro alcança a bola. Um goleiro adiantado intercepta onde
 ele está, bem antes da meta; a versão anterior o castigava por isso.
 
-### 5. Altura na tela
+### 5. Cabeceio e finalização de cruzamento
+
+Os dois também sorteavam o desfecho antes da bola sair, com o mesmo
+`if (chance(pGoal)) ... _goal()`. Passaram a resolver pela geometria. O
+resolvedor aceita **força explícita**, porque cabeceio não sai a 31 m/s: usar a
+faixa do chute não daria tempo nenhum ao goleiro. Com isso, 81% de todas as
+finalizações do jogo terminam pela geometria da meta.
+
+### 6. Altura na tela
 
 Os 22 px/m do renderizador foram calibrados quando a bola não passava de
 2,35 m. Com balística real um lançamento chega a 6–10 m e batia no teto
@@ -151,48 +159,88 @@ travessão *pareça* por cima do travessão — saturando suavemente acima disso
 ## Resultado medido
 
 Bateria de **120 partidas** por lado, semente base 4200000, compatível com a
-bateria histórica R18.40 (mesma população, mesmo incremento, mesmo `dt`). Os
-dois builds foram medidos na mesma amostra — comparação pareada. A coluna
-`Δ/EP` é a diferença em erros-padrão: abaixo de ~2 não dá para distinguir de
-ruído amostral.
+bateria histórica R18.40 (mesma população, mesmo incremento, mesmo `dt`).
+Comparação pareada. `Δ/EP` é a diferença em erros-padrão: abaixo de ~2 não se
+distingue de ruído amostral.
 
 | Métrica | R19.08 | OS-200 | Δ/EP |
 |---|---|---|---|
-| Gols por partida | 1,88 | 1,75 | −0,7 |
-| xG por partida | 1,85 | 1,93 | +0,7 |
-| Finalizações por partida | 14,72 | 12,82 | −2,9 |
-| No alvo por partida | 5,42 | 4,92 | −1,5 |
-| Passes por partida | 426,9 | 329,6 | −18,4 |
-| Escanteios por partida | 3,59 | 4,82 | +4,1 |
-| Faltas por partida | 10,82 | 9,38 | −3,1 |
+| Gols por partida | 1,88 | 1,84 | **−0,2** |
+| Finalizações no alvo | 36,8% | 36,5% | — |
+| xG por partida | 1,85 | 1,96 | +0,9 |
+| Finalizações por partida | 14,72 | 13,62 | −1,6 |
+| Passes por partida | 426,9 | 381,0 | −8,2 |
+| Escanteios por partida | 3,59 | 5,55 | +6,4 |
+| Desarmes por partida | 21,68 | 19,23 | −2,8 |
 
-**Gols ficaram estatisticamente iguais** (Δ = −0,7 erro-padrão). A taxa de
-finalização no alvo subiu de 36,8% para 38,4%, e gols/xG ficou em 0,90 contra
-1,01 do R19.08.
+**Gols e taxa de acerto ao alvo ficaram estatisticamente iguais** ao R19.08 —
+que era o objetivo: consertar a física sem trocar o jogo por outro. gols/xG:
+1,01 → 0,94.
+
+Escanteios subiram 55%, efeito das traves que voltam ao jogo e do bloqueio, que
+agora depende da altura da bola. Os 5,55 ficam mais perto do futebol real do
+que os 3,59 anteriores.
 
 O que de fato mudou é a física:
 
 | Métrica de física | R19.08 | OS-200 |
 |---|---|---|
 | Aceleração vertical | −4,84 m/s² | **−9,90 m/s²** |
-| Tempo médio de voo | 1,000 s | **1,429 s** |
-| Ápice médio de voo | 0,42 m | **0,75 m** |
-| Ápice máximo observado | 3,00 m | **11,03 m** |
-| Quiques por partida | 0,033 | **5,16** |
-| Chutes por cima do travessão | **0** | **11,5% dos chutes** |
+| Tempo médio de voo | 1,000 s | **1,177 s** |
+| Ápice máximo observado | 3,00 m | **11,04 m** |
+| Quiques por partida | 0,033 | **5,87** |
+| Chutes por cima do travessão | **0** | **12,2% dos chutes** |
 
-Distribuição dos desfechos de chute: 16,4% gol, 22,1% defesa, 2,9%
-trave/travessão, 39,5% fora, 19,1% bloqueio. Das 25 bolas na trave, 8 saíram e
-17 seguiram vivas — decidido pela reflexão, não por sorteio.
+**81% de todas as finalizações** (1.318 de 1.634) passam pela geometria da
+meta: 15,3% gol, 18,5% defesa, 1,8% trave, 40,1% fora, 24,3% bloqueio.
+
+### Sensibilidade: mexer nestes números exige medir
+
+Entre `ERRO_BASE` 15,0 e 16,5 os gols caem de 2,18 para 1,45 — 4,7 erros-padrão
+para uma mudança de 10% no parâmetro. A boca do gol é uma janela fixa, e a
+fração que entra despenca assim que a dispersão passa da meia-largura. Não
+estime: rode `tools/fisica/calibrar.py`.
 
 ### Um efeito colateral que precisou de conserto
 
 Com `pGoal` virando entrada de pontaria, ele deixou de ser a probabilidade de
 gol — e a coluna de xG passou a superestimar de forma sistemática (2,41 de xG
-para 1,68 gol numa medição de 60 partidas). Na tela isso leria "azarado" toda
-partida. O xG **registrado** passou a levar uma escala medida (0,70), que mora
-junto da calibração da física e precisa ser refeita se `ERRO_BASE`,
-`DEFESA_BASE` ou `FORCA_ESCALA` mudarem.
+para 1,68 gol numa medição). Na tela isso leria "azarado" toda partida. O xG
+**registrado** passou a levar uma escala medida, que mora junto da calibração
+da física e precisa ser refeita se `ERRO_BASE`, `DEFESA_BASE` ou
+`FORCA_ESCALA` mudarem.
+
+## O que esta mudança custou, e que não foi escondido
+
+O volume de ações caiu: passes 427 → 381 (−11%), finalizações 14,7 → 13,6,
+desarmes 21,7 → 19,2.
+
+A causa é única: o tempo médio de voo subiu (1,000 s → 1,177 s). O R19.08
+gastava menos relógio com a bola no ar porque a duração era `d/v`, indiferente
+ao arco, e nada desacelerava.
+
+A maior parte da perda inicial (que chegou a −23% em passes) foi recuperada — e
+não por atalho. O `speed` que o motor passa **não é a velocidade de saída do
+pé**: é a velocidade média que ele assumiu para a bola chegar na hora certa, e
+toda a camada tática (interceptações, corridas de recepção, linha de
+impedimento) foi calibrada nesse tempo de chegada. Traduzir isso com honestidade
+não é ignorar o arrasto: é **bater mais forte**, que é o que um jogador faz. A
+bola rasteira agora sai com a velocidade cujo tempo de chegada bate com o que o
+motor assumiu, e desacelera de verdade no caminho.
+
+A compensação vale **só para bola rasteira**. Lançamento e cruzamento continuam
+levando o tempo que a física manda — uma bola alta demorar mais que uma rasteira
+é justamente o que esta camada veio consertar (40 m: 1,82 s rasteiro contra
+3,24 s lançado).
+
+O que sobra (−11%) é custo real da física. **Não** foi compensado mexendo em
+`ENGINE_CALIBRATION.timing.clockRate`: isso restauraria a contagem escondendo a
+causa. Fica registrado como decisão para o dono do projeto.
+
+Custo de simulação medido: 6,86 → 7,18 s por partida (**+4,6%**). O
+planejamento da trajetória acontece uma vez por lance, não por quadro, e o
+solucionador de interceptação usa memória — por isso a integração real sai
+barata.
 
 ## Quem manda na bola hoje (e por que não achatei mais que isto)
 
@@ -236,8 +284,11 @@ recebe para passes vem dos clamps da R13 (passe curto 14,1–17,5 m/s, lançamen
 
 ## Ainda aberto
 
-- **Densidade de ações** (acima): decidir se `clockRate` deve ser recalibrado
-  agora que o voo tem duração física.
+- **Densidade de ações**: sobra −11% em passes. Decidir se `clockRate` deve ser
+  recalibrado agora que o voo tem duração física.
+- **Pênalti e falta direta** ainda sorteiam o desfecho antes da bola sair
+  (`_penalty`, `:2713`). São eventos raros e têm apresentação própria, com fases
+  de animação, por isso ficaram fora — mas é a mesma doença.
 - **Posicionamento do goleiro** foi corrigido com dois tetos pontuais, não
   reescrito. Ele ainda fica a ~6 m da linha em média no momento do chute.
 - **Achatar o resto da cadeia da bola** (velocidade inicial da R13, playback da
