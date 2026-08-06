@@ -123,10 +123,16 @@
   const T = (root && root.CDS_OS200_TUNE) || {};
   const num = (v, padrao) => Number.isFinite(v) ? v : padrao;
 
-  /* Valores promovidos pela grade de calibracao (reports/calib-03.json, 60
-     partidas por configuracao, semente base 4200000): 1,68 gol/partida e 38,2%
-     de finalizacoes no alvo, contra 1,77 e 36,5% do R19.08 na mesma amostra. */
-  const ERRO_BASE = num(T.erroBase, 15.0);         // dispersao lateral de referencia
+  /* Valores promovidos pela grade (reports/calib-06.json, 60 partidas por
+     configuracao, semente base 4200000), ja com cabeceio e finalizacao de
+     cruzamento passando pela geometria: 1,97 gol/partida e 38,0% de
+     finalizacoes no alvo, contra 1,88 e 36,8% do R19.08 na mesma amostra.
+
+     A resposta e INGREME: entre erroBase 15,0 e 16,5 os gols caem de 2,18 para
+     1,45, porque a boca do gol e uma janela fixa e a fracao que entra despenca
+     assim que a dispersao passa da meia-largura. Mexer nestes numeros exige
+     rodar a grade, nao estimar. */
+  const ERRO_BASE = num(T.erroBase, 15.3);         // dispersao lateral de referencia
   const ERRO_VERTICAL = num(T.erroVertical, 0.30); // erro vertical relativo ao lateral
   const VIES_ALTO = num(T.viesAlto, 0.16);         // chute errado sobe mais do que afunda
   const DEFESA_BASE = num(T.defesaBase, 0.80);     // chance de defesa com folga zero
@@ -139,6 +145,9 @@
      real fica perto de 25 m/s. A escala corrige a faixa sem jogar fora o
      ordenamento por atributo que a formula original produz. */
   const FORCA_ESCALA = num(T.forcaEscala, 0.62);
+  /* Compensar o arrasto na bola rasteira para o tempo de chegada bater com o
+     que o motor assumiu. Desligavel para medir os dois mundos. */
+  const TEMPO_RASTEIRO = T.tempoRasteiro === undefined ? true : !!T.tempoRasteiro;
 
   /* xG REGISTRADO x xG REALIZADO.
      `pGoal` deixou de ser a probabilidade de gol e virou entrada de pontaria,
@@ -326,12 +335,36 @@
     const d = Math.hypot(dx, dy);
     if (d < 1e-3) return { vel, sol: { theta: 0, ux: 1, uy: 0, d: 1e-3 } };
     const ux = dx / d, uy = dy / d;
-    /* Nao basta CHEGAR: uma bola que chega rastejando levou tempo demais no
-       caminho, e o companheiro ja saiu dali. Um passador poe peso suficiente
-       para a bola chegar em ritmo de jogo. Exigir uma velocidade minima de
-       chegada e o que separa um passe de uma bola morta — e foi o que devolveu
-       ao jogo o tempo que a integracao real tinha comido. */
+    /* O `speed` que o motor passa foi calibrado num mundo SEM desaceleracao,
+       onde `duration = d/v` era exato. Ele nao e a velocidade de saida do pe:
+       e a velocidade MEDIA que o motor assumiu para o passe chegar na hora
+       certa — e toda a camada tatica (interceptacoes, corridas de recepcao,
+       linha de impedimento) foi calibrada nesse tempo de chegada.
+
+       Traduzir isso com honestidade nao e ignorar o arrasto: e bater mais
+       forte, que e o que um jogador faz. Procuramos a velocidade de SAIDA cujo
+       tempo de chegada bate com o que o motor assumiu. A bola desacelera de
+       verdade no caminho — so que agora ela sai com o peso certo.
+
+       Isto vale so para bola rasteira. Lancamento e cruzamento continuam
+       levando o tempo que a fisica manda: uma bola alta demorar mais que uma
+       rasteira e justamente o que esta camada veio consertar. */
+    const alvoT = TEMPO_RASTEIRO ? d / vel : Infinity;
     let v = vel;
+    if (Number.isFinite(alvoT)) {
+      let lo = vel, hi = vel * 3.2;
+      /* o tempo de chegada cai de forma monotonica com a velocidade de saida */
+      if (chegadaEm(o, ux, uy, d, hi, ELEV_RASTEIRA).t > alvoT) v = hi;
+      else {
+        for (let i = 0; i < 20; i++) {
+          const m = (lo + hi) / 2;
+          if (chegadaEm(o, ux, uy, d, m, ELEV_RASTEIRA).t > alvoT) lo = m; else hi = m;
+        }
+        v = (lo + hi) / 2;
+      }
+    }
+    /* Piso: a bola ainda precisa chegar viva. Uma que chega rastejando levou
+       tempo demais e o companheiro ja saiu dali. */
     for (let i = 0; i < 14; i++) {
       const c = chegadaEm(o, ux, uy, d, v, ELEV_RASTEIRA);
       if (Number.isFinite(c.z) && c.v >= CHEGADA_MINIMA) break;
@@ -758,8 +791,12 @@
   P._os200ResolverChute = function (o, ctx) {
     const g = ctx.g, tm = ctx.tm, gk = ctx.gk;
     const dir = finito(tm.attackDir, g.x > FL / 2 ? 1 : -1) || (g.x > FL / 2 ? 1 : -1);
-    const forca = clamp((34 + finito(_facet(o, 'shot'), 65) / 100 * 16)
-      * finito(ctx.finishPlan && ctx.finishPlan.speedMul, 1), 26, 59) * FORCA_ESCALA;
+    /* Cabeceio e finalizacao de primeira nao saem com a forca de um chute
+       armado; quem chama informa a faixa. Sem isso um cabeceio viajaria a
+       31 m/s e nenhum goleiro teria tempo. */
+    const forca = Number.isFinite(ctx.forca) ? ctx.forca
+      : clamp((34 + finito(_facet(o, 'shot'), 65) / 100 * 16)
+          * finito(ctx.finishPlan && ctx.finishPlan.speedMul, 1), 26, 59) * FORCA_ESCALA;
 
     const mira = this._os200Mira(o, g, dir, ctx);
     const origem = {

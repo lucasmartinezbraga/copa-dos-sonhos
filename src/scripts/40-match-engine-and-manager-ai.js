@@ -1041,6 +1041,17 @@ class MatchSim {
         // MOTOR VISUAL: o chute do rasteiro VOA até o gol antes de resolver —
         // o goleiro converge durante o voo e o contato acontece no ponto real
         const lcDir=this.teams[atk.team].attackDir;
+        /* OS-200 · mesma inversao do chute de bola rolando: a finalizacao do
+           cruzamento rasteiro tambem era sorteada antes da bola sair do pe.
+           Forca menor que a de um chute armado — e uma finalizacao de
+           primeira, nao uma bomba. */
+        if(this._os200ResolverChute){
+          this._os200ResolverChute(atk,{g,tm:this.teams[atk.team],gk,atk:finish,pGoal,
+            dtg:D(atk.x,atk.y,g.x,g.y),longshot:false,volley:false,oneOnOne:true,
+            forca:clamp(20+finish/100*8,18,29),
+            finishPlan:{type:'placed',dispersionMul:1,speedMul:1},gkScrambling:false});
+          return;
+        }
         if(chance(pGoal)) this._startTravel(atk,{x:g.x+lcDir*.9,y:clamp(g.y+R(-3,3),g.y-3.3,g.y+3.3)},'shot',()=>this._goal(atk,false),null,'shot');
         else {
           const goalAim={x:g.x+lcDir*.9,y:clamp(g.y+R(-2.5,2.5),g.y-3.3,g.y+3.3)};
@@ -1132,6 +1143,16 @@ class MatchSim {
         // MOTOR VISUAL: o cabeceio VOA até o gol antes de resolver — nada de
         // defesa instantânea com o goleiro a 10m do lance
         const hdDir=this.teams[atk.team].attackDir;
+        /* OS-200 · o cabeceio tambem sorteava o desfecho antes. A forca vem
+           do cabeceio, nao do chute: bola de cabeca sai bem mais devagar, e
+           usar a faixa do chute daria ao goleiro tempo nenhum. */
+        if(this._os200ResolverChute){
+          this._os200ResolverChute(atk,{g,tm:this.teams[atk.team],gk,atk:facet(atk,'head_atk'),pGoal,
+            dtg:D(atk.x,atk.y,g.x,g.y),longshot:false,volley:false,oneOnOne:false,
+            forca:clamp(13+facet(atk,'head_atk')/100*7,12,21),
+            finishPlan:{type:'power',dispersionMul:1,speedMul:1},gkScrambling:false});
+          return;
+        }
         if(chance(pGoal))this._startTravel(atk,{x:g.x+hdDir*.9,y:clamp(g.y+R(-3,3),g.y-3.3,g.y+3.3)},'shot',()=>this._goal(atk,false),null,'shot');
         else{
           const hr=R();
