@@ -96,8 +96,25 @@
   /* altura (bola/rastro/trajetória) em Y de tela COM TETO no horizonte: uma bola
    * muito alta (tiro de meta, lançamento, cruzamento) nunca é desenhada dentro da
    * arquibancada — corrige o P0 "bola alta invadindo o estádio". */
+  /* ALTURA NA TELA · escala 1:1 embaixo, comprimida em cima (OS-200).
+     Os 22 px/m foram calibrados quando a bola nao passava de 2,35 m — o motor
+     travava a altura ali. Com balistica real um lancamento chega a 6-10 m, e
+     em escala linear ele batia no teto `G.topY + 8` e ficava GRUDADO na
+     arquibancada em vez de subir e descer.
+
+     A faixa que precisa de fidelidade e a da meta: ate ~2,6 m o mapeamento
+     continua exatamente 1:1, senao uma bola por cima do travessao nao PARECE
+     por cima do travessao. Acima disso a curva satura suavemente, entao o ceu
+     inteiro cabe na tela sem comprimir o que importa. */
+  const Z_FIEL = 2.6, Z_FOLGA = 3.4;
+  function alturaVisual(z) {
+    const a = Math.max(0, z || 0);
+    if (a <= Z_FIEL) return a;
+    const e = a - Z_FIEL;
+    return Z_FIEL + e / (1 + e / Z_FOLGA);
+  }
   function liftY(baseY, z, s) {
-    return Math.max(G.topY + 8, baseY - (z || 0) * 22 * s);   // piso = base da arquibancada
+    return Math.max(G.topY + 8, baseY - alturaVisual(z) * 22 * s);
   }
 
   /* PLANO DE CHÃO ÚNICO.

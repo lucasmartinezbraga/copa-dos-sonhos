@@ -3481,7 +3481,11 @@ function paintField() {
   const b = rframe ? rframe.ball
           : shotFx ? { x: shotFx.x / 105, y: shotFx.y / 68, z: shotFx.z }
           : st.ball;
-  const bx=cx(b.x), by=cy(b.y)-(b.z||0)*22;
+  /* Mesma compressao de altura do palco 2.5D (ver alturaVisual em cds-ux-boot):
+     1:1 ate 2,6 m, para a faixa da meta continuar fiel, e saturando acima
+     disso para bola alta nao sumir no topo do canvas. */
+  const _zVis=(z=>{const a=Math.max(0,z||0);if(a<=2.6)return a;const e=a-2.6;return 2.6+e/(1+e/3.4);})(b.z);
+  const bx=cx(b.x), by=cy(b.y)-_zVis*22;
   if (window.CDS_F25D) {
     const _tv = (!rframe && bT && bT.traveling && bT.target) ? { tx: cx(bT.target.x), ty: cy(bT.target.y), kind: bT.kind } : null;
     window.CDS_F25D.ball(ctx, { gx: cx(b.x), gy: cy(b.y), z: b.z || 0, tv: _tv });

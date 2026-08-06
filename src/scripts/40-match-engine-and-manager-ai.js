@@ -1888,6 +1888,26 @@ class MatchSim {
     this._emit('shot_taken',{by:o,xg,baseXg:clamp(base*angMul,.003,.75),pGoal,longshot:!!longshot,dtg,volley,oneOnOne,finishType:finishPlan.type,finishFit:+finishPlan.fit.toFixed(2)});
     this._emit('finish_choice',{by:o,type:finishPlan.type,fit:+finishPlan.fit.toFixed(2),dtg,oneOnOne:!!oneOnOne,longshot:!!longshot,volley:!!volley});
     this.momentum=clamp(this.momentum+(o.team===0?.5:-.5),-1,1);this.beat=.5;
+    /* OS-200 · INVERSAO DA CAUSALIDADE DO CHUTE
+       -----------------------------------------
+       Tudo acima permanece: a chance da finalizacao, o xG contabilizado, os
+       eventos emitidos. O que muda e o que vem DEPOIS. Ate aqui o desfecho era
+       sorteado antes da bola sair do pe (`if (chance(pGoal))`) e a trajetoria
+       era fabricada para chegar no resultado ja escolhido — por isso qualquer
+       mexida na fisica mexia no placar, e por isso a OS-104 nao conseguiu
+       fazer chute passar por cima do gol sem derrubar a media de gols.
+
+       Com a camada OS-200 instalada, pGoal passa a calibrar a PONTARIA e quem
+       decide gol/trave/fora/defesa e a geometria da meta, lida da trajetoria
+       que a bola realmente descreveu.
+
+       O ramo antigo fica logo abaixo, intacto, como rede: se a camada de
+       fisica nao estiver carregada, o motor se comporta como antes. */
+    if(this._os200ResolverChute){
+      this._os200ResolverChute(o,{g,tm,gk,atk,gkF,pGoal,dtg,longshot,volley,oneOnOne,finishPlan,gkScrambling});
+      o._throughReceiverUntil=0;
+      return;
+    }
     const shotQuality=clamp(atk/100,.3,1),dispersion=R(-4.8,4.8)*(1.15-shotQuality*.62)*finishPlan.dispersionMul;
     if(chance(pGoal)){
       let goalY;
@@ -2863,9 +2883,27 @@ class MatchSim {
       const danger=D(attacker.x,attacker.y,goal.x,goal.y);
       if(danger<34){
         let cover=1e9;for(const d of tm.players){if(d===p||d.red)continue;cover=Math.min(cover,D(d.x,d.y,attacker.x,attacker.y));}
-        const breakaway=cover>6;
+        /* OS-200 · mano a mano exige estar PERTO do gol, nao so sem marcador.
+           `cover>6` sozinho classificava como breakaway um chute de 25 m sem
+           defensor por perto, e o goleiro entao ignorava o teto de avanco e
+           saia da area para enfrentar um chute de fora. */
+        const breakaway=cover>6&&danger<18;
         const narrow=clamp((34-danger)*.30+(breakaway?4.2:0),0,13);
         depth+=narrow*(.48+sweep/210+(isSweeper?.12:0));
+        /* OS-200 · TETO DE AVANCO FORA DO MANO A MANO.
+           `narrow` cresce quando o atacante se APROXIMA, entao um chute de
+           16 m punha o goleiro a ~10 m da propria linha — medido: 9,9 m de
+           media no momento do chute. Ele ficava a 6 m do batedor, e a bola
+           passava por ele antes do tempo de reacao terminar.
+
+           Isso nunca apareceu porque a defesa era sorteada antes da bola sair
+           do pe: a posicao do goleiro nao decidia nada. Com o desfecho vindo da
+           geometria, ela decide tudo, e o erro fica visivel na hora.
+
+           No mano a mano sair e correto e continua liberado. No resto, o
+           avanco fica preso a uma fracao da distancia do chute: 2,8 m para um
+           chute de 8 m, 4,0 m para um de 16 m, 6,1 m para um de 30 m. */
+        if(!breakaway)depth=Math.min(depth,1.6+danger*.15);
         ty=clamp(lerp(FW/2,attacker.y,.44+pos/240),11,FW-11);
       }
     }else if(b.traveling&&b.target&&b.lastTouch&&b.lastTouch.team!==tm.side){
