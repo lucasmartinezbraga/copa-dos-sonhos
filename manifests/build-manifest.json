@@ -1,150 +1,660 @@
 {
-  "phase": 2,
-  "name": "Banco V3: posições, atributos, goleiros, traits e validação",
-  "baseline_file": "COPA DOS SONHOS - FASE 1 - ARQUITETURA MODULAR.html",
-  "baseline_sha256": "7878fa516eea86d97dbc376977f5e2786d5a2b573780067b5e81b47682b2a76e",
-  "head_script": {
-    "file": "src/scripts/00-head-bootstrap.js",
-    "bytes": 1404,
-    "sha256": "b40fc82a34f51868630c349598d63f9a4c77a92eff0614f722571496b5baf10f"
-  },
-  "styles": [
-    {
-      "file": "src/styles/00-foundation-and-common-ui.css",
-      "bytes": 33560,
-      "sha256": "f0361d951f723cdfa7c23bab3c952196348cc9717da6b015722081c446277f11"
-    },
-    {
-      "file": "src/styles/20-setup-and-draft.css",
-      "bytes": 4841,
-      "sha256": "540853fa89a83b5cc0a2a943007629fd38eac1418b1e573e85404b7d8c5cf9e7"
-    },
-    {
-      "file": "src/styles/30-match-core.css",
-      "bytes": 16702,
-      "sha256": "f1f3ef485405c0da03f97ae8358cca00b6664865043f830d3e95b6421b663d0a"
-    },
-    {
-      "file": "src/styles/40-match-desktop.css",
-      "bytes": 8530,
-      "sha256": "8a76074ae420be201dc3bc71ea988f31918c8c94368605e977f8b4487dee54f8"
-    },
-    {
-      "file": "src/styles/50-match-mobile.css",
-      "bytes": 9105,
-      "sha256": "e6b9c339bcdbdad1796aec74a60a87d0c5ad242a1915fe341aa29a8873308c5d"
-    },
-    {
-      "file": "src/styles/60-set-pieces.css",
-      "bytes": 8603,
-      "sha256": "9306772f311a30598a7b21554cbd51c38846049c14bbef264c10d81192e19ea6"
-    },
-    {
-      "file": "src/styles/70-responsive-overrides.css",
-      "bytes": 6538,
-      "sha256": "89ee303cb0f70eac91ef05d48e2e94a6c129be728d9c70b854e0a95f41a04053"
-    },
-    {
-      "file": "src/styles/75-typography-polish.css",
-      "bytes": 1512,
-      "sha256": "f947c60552e8cc467b832489f9558e57d71efa6fdc8a55326dbdd0e8b721e38c"
-    },
-    {
-      "file": "src/styles/80-prematch-base.css",
-      "bytes": 6957,
-      "sha256": "ceff2bd9ee095d50ff72b834575c1c15b46ed297ce8c003ccd19ef3985ddabdb"
-    },
-    {
-      "file": "src/styles/85-match-mobile-field-first.css",
-      "bytes": 2494,
-      "sha256": "69e718da75774bb2b11a5ad182d063a3db511aa1d2c346b3c5dcae3917c2de78"
-    },
-    {
-      "file": "src/styles/90-prematch-role-zones.css",
-      "bytes": 3252,
-      "sha256": "f74aa119ed863b7610ef6cb50fce6ae820c9e6485bdfb9db1410861827e3136e"
-    },
-    {
-      "file": "src/styles/91-ux-redesign.css",
-      "bytes": 5353,
-      "sha256": "efa4c880864b8975c6b10a0dd1fc1df4aeb751694b534885d96bf2ead86289db"
-    },
-    {
-      "file": "src/styles/92-ux-refinement.css",
-      "bytes": 7507,
-      "sha256": "7c3e1f513ea3037434a99340b01668a298271b13169802eb070724445b2784f2"
-    },
-    {
-      "file": "src/styles/93-prematch-redesign.css",
-      "bytes": 12384,
-      "sha256": "0186c95c45a2d71ae51c0401ad5337ea1ea125ab36d56fc8210344c552830ffd"
-    },
-    {
-      "file": "src/styles/99-final-overrides.css",
-      "bytes": 2643,
-      "sha256": "3e6a7ba40c474a7c625513266680609a7f1e9eececad229f0bbd0649de2380d2"
-    }
-  ],
-  "scripts": [
+  "source_html": "0df0dc4c-COPA_DOS_SONHOS__R19.08__O_APITO_FINAL.html",
+  "source_sha256": "7fad037f95402ae51637f0d2782b84a4985b33fc69d1fa04f7ed61afa8d8927f",
+  "build_output": "dist/index.html",
+  "core_block_index": 6,
+  "core_modules": [
     {
       "file": "src/scripts/00-polyfills.js",
-      "bytes": 762,
-      "sha256": "dd027ac092b284ae8c39634de4f25263db1a3a1d29f6bf1c5069a7d81929ff96"
+      "bytes": 762
     },
     {
       "file": "src/scripts/10-data.js",
-      "bytes": 414538,
-      "sha256": "aa5b3b7b161092a3d291f60334b7aed1bb2e3d6e4f159db15aedb4b03f42edb3"
+      "bytes": 414538
     },
     {
       "file": "src/scripts/20-core.js",
-      "bytes": 80771,
-      "sha256": "0cf0693a4ad149dfd936f7ac515e1d52b7843884db73f9ef2a9293b92504708b"
+      "bytes": 82982
     },
     {
       "file": "src/scripts/25-data-integrity-v3.js",
-      "bytes": 36680,
-      "sha256": "f9d6b545c05c109562f103d7b53f53418b286ab071cac4b27b667a598796cd57"
+      "bytes": 36680
     },
     {
       "file": "src/scripts/30-tactics.js",
-      "bytes": 5920,
-      "sha256": "25d62d15ceb0e8ef5a7f6f661069d3b5b55960da98e321f7d4c4ae7235e9d375"
+      "bytes": 5920
     },
     {
       "file": "src/scripts/40-match-engine-and-manager-ai.js",
-      "bytes": 157256,
-      "sha256": "5b5a464ff8c1ecd5d5b218d0151bd336714ec29cdd27140d2839dde1245d9acd"
+      "bytes": 342417
     },
     {
       "file": "src/scripts/50-tournament.js",
-      "bytes": 15405,
-      "sha256": "83a68e8be82a70cadbd15e6a32f3874120d658b9ce84a296656fd5a9be0166f7"
+      "bytes": 16161
     },
     {
       "file": "src/scripts/60-ui-flow.js",
-      "bytes": 52871,
-      "sha256": "8751aa74ade876b3ae39e1f33d2063cad18fcd0f8c261707efcaeafccc7e7388"
+      "bytes": 65959
     },
     {
       "file": "src/scripts/70-game-runtime-and-rendering.js",
-      "bytes": 203557,
-      "sha256": "4a7a0f771354401523bf401714814e1ab092011c7d417453cb3b1ee8c52fdcc6"
+      "bytes": 251692
     }
   ],
-  "build_output": "dist/COPA DOS SONHOS - FASE 2 - BANCO V3 VALIDADO.html",
-  "module_order_is_contract": true,
-  "notes": [
-    "HTML final continua autocontido.",
-    "Banco bruto preservado; camada V3 aplicada após o decode legado.",
-    "Posições possuem primária, secundárias e emergenciais explícitas.",
-    "Goleiros possuem ficha granular completa, inclusive registros sem A8.",
-    "Pé e altura não curados são parâmetros de simulação marcados como estimados.",
-    "Validador fica disponível em window.CDS_DATA_AUDIT."
-  ],
-  "parent_phase": 1,
-  "parent_build_sha256": "7878fa516eea86d97dbc376977f5e2786d5a2b573780067b5e81b47682b2a76e",
-  "last_build_sha256": "0d495bf089a79654748405ff19bd7dc0e0f4bda06831663f6bca12fe48afa614",
-  "audit_file": "reports/phase2-audit.json",
-  "qa_file": "manifests/phase2-qa.json"
+  "blocks": [
+    {
+      "index": 0,
+      "kind": "script",
+      "id": "",
+      "file": "src/scripts/layers/00-inline.js",
+      "bytes": 1404
+    },
+    {
+      "index": 1,
+      "kind": "style",
+      "id": "cds-inline-fonts",
+      "file": "src/styles/layers/01-cds-inline-fonts.css",
+      "bytes": 184269
+    },
+    {
+      "index": 2,
+      "kind": "style",
+      "id": "",
+      "file": "src/styles/layers/02-inline.css",
+      "bytes": 131472
+    },
+    {
+      "index": 3,
+      "kind": "style",
+      "id": "r18152-player-ui",
+      "file": "src/styles/layers/03-r18152-player-ui.css",
+      "bytes": 4228
+    },
+    {
+      "index": 4,
+      "kind": "script",
+      "id": "cds-mobile-boot-bridge",
+      "file": "src/scripts/layers/04-cds-mobile-boot-bridge.js",
+      "bytes": 3644
+    },
+    {
+      "index": 5,
+      "kind": "style",
+      "id": "cds-mobile-input-fix",
+      "file": "src/styles/layers/05-cds-mobile-input-fix.css",
+      "bytes": 913
+    },
+    {
+      "index": 6,
+      "kind": "core",
+      "assembled_from": "core_modules"
+    },
+    {
+      "index": 7,
+      "kind": "script",
+      "id": "cds-physics-timeline-581",
+      "file": "src/scripts/layers/07-cds-physics-timeline-581.js",
+      "bytes": 40532
+    },
+    {
+      "index": 8,
+      "kind": "script",
+      "id": "cds-p04-physical-reception-584-r6",
+      "file": "src/scripts/layers/08-cds-p04-physical-reception-584-r6.js",
+      "bytes": 37763
+    },
+    {
+      "index": 9,
+      "kind": "script",
+      "id": "cds-2_5d-gate-a-contracts-v02",
+      "file": "src/scripts/layers/09-cds-2-5d-gate-a-contracts-v02.js",
+      "bytes": 17220
+    },
+    {
+      "index": 10,
+      "kind": "script",
+      "id": "cds-pre25d-runtime-auditor-v04",
+      "file": "src/scripts/layers/10-cds-pre25d-runtime-auditor-v04.js",
+      "bytes": 7352
+    },
+    {
+      "index": 11,
+      "kind": "script",
+      "id": "cds-pre25d-build-meta-584-r6",
+      "file": "src/scripts/layers/11-cds-pre25d-build-meta-584-r6.js",
+      "bytes": 1030
+    },
+    {
+      "index": 12,
+      "kind": "script",
+      "id": "cds-r7-pass-flow-calibration",
+      "file": "src/scripts/layers/12-cds-r7-pass-flow-calibration.js",
+      "bytes": 1946
+    },
+    {
+      "index": 13,
+      "kind": "script",
+      "id": "cds-r9-pass-natural-calibration",
+      "file": "src/scripts/layers/13-cds-r9-pass-natural-calibration.js",
+      "bytes": 400
+    },
+    {
+      "index": 14,
+      "kind": "script",
+      "id": "cds-r10-engine-closure",
+      "file": "src/scripts/layers/14-cds-r10-engine-closure.js",
+      "bytes": 19705
+    },
+    {
+      "index": 15,
+      "kind": "script",
+      "id": "cds-r109-async-cup",
+      "file": "src/scripts/layers/15-cds-r109-async-cup.js",
+      "bytes": 1988
+    },
+    {
+      "index": 16,
+      "kind": "script",
+      "id": "cds-r12-transactional-core-r123",
+      "file": "src/scripts/layers/16-cds-r12-transactional-core-r123.js",
+      "bytes": 35638
+    },
+    {
+      "index": 17,
+      "kind": "script",
+      "id": "cds-r13-football-observer-cadence",
+      "file": "src/scripts/layers/17-cds-r13-football-observer-cadence.js",
+      "bytes": 41937
+    },
+    {
+      "index": 18,
+      "kind": "script",
+      "id": "cds-r14-engine",
+      "file": "src/scripts/layers/18-cds-r14-engine.js",
+      "bytes": 34331
+    },
+    {
+      "index": 19,
+      "kind": "style",
+      "id": "cds-ux-system",
+      "file": "src/styles/layers/19-cds-ux-system.css",
+      "bytes": 48546
+    },
+    {
+      "index": 20,
+      "kind": "script",
+      "id": "cds-r183-natural-football",
+      "file": "src/scripts/layers/20-cds-r183-natural-football.js",
+      "bytes": 11815
+    },
+    {
+      "index": 21,
+      "kind": "script",
+      "id": "cds-ux-boot",
+      "file": "src/scripts/layers/21-cds-ux-boot.js",
+      "bytes": 52312
+    },
+    {
+      "index": 22,
+      "kind": "script",
+      "id": "cds-r184-certificacao-honesta",
+      "file": "src/scripts/layers/22-cds-r184-certificacao-honesta.js",
+      "bytes": 6213
+    },
+    {
+      "index": 23,
+      "kind": "script",
+      "id": "cds-r185-bloco-defensivo",
+      "file": "src/scripts/layers/23-cds-r185-bloco-defensivo.js",
+      "bytes": 3247
+    },
+    {
+      "index": 24,
+      "kind": "script",
+      "id": "cds-r187-atributos-vivos",
+      "file": "src/scripts/layers/24-cds-r187-atributos-vivos.js",
+      "bytes": 13537
+    },
+    {
+      "index": 25,
+      "kind": "script",
+      "id": "cds-r188-action-intelligence-core",
+      "file": "src/scripts/layers/25-cds-r188-action-intelligence-core.js",
+      "bytes": 1433
+    },
+    {
+      "index": 26,
+      "kind": "script",
+      "id": "cds-r189-offball-intelligence",
+      "file": "src/scripts/layers/26-cds-r189-offball-intelligence.js",
+      "bytes": 3178
+    },
+    {
+      "index": 27,
+      "kind": "script",
+      "id": "cds-r1810-reception-intelligence",
+      "file": "src/scripts/layers/27-cds-r1810-reception-intelligence.js",
+      "bytes": 5120
+    },
+    {
+      "index": 28,
+      "kind": "script",
+      "id": "cds-r1811-second-ball-intelligence",
+      "file": "src/scripts/layers/28-cds-r1811-second-ball-intelligence.js",
+      "bytes": 4432
+    },
+    {
+      "index": 29,
+      "kind": "script",
+      "id": "cds-r1813-live-tackle-timing",
+      "file": "src/scripts/layers/29-cds-r1813-live-tackle-timing.js",
+      "bytes": 3209
+    },
+    {
+      "index": 30,
+      "kind": "script",
+      "id": "cds-r1814-orientation-recovery",
+      "file": "src/scripts/layers/30-cds-r1814-orientation-recovery.js",
+      "bytes": 6642
+    },
+    {
+      "index": 31,
+      "kind": "script",
+      "id": "cds-r1815-carry-protection-pressure",
+      "file": "src/scripts/layers/31-cds-r1815-carry-protection-pressure.js",
+      "bytes": 6273
+    },
+    {
+      "index": 32,
+      "kind": "style",
+      "id": "r18153-draft-random-ui",
+      "file": "src/styles/layers/32-r18153-draft-random-ui.css",
+      "bytes": 1974
+    },
+    {
+      "index": 33,
+      "kind": "script",
+      "id": "cds-r18fix-restart-positions",
+      "file": "src/scripts/layers/33-cds-r18fix-restart-positions.js",
+      "bytes": 11709
+    },
+    {
+      "index": 34,
+      "kind": "script",
+      "id": "cds-r18155-shot-restart-law-fix",
+      "file": "src/scripts/layers/34-cds-r18155-shot-restart-law-fix.js",
+      "bytes": 1799
+    },
+    {
+      "index": 35,
+      "kind": "script",
+      "id": "r18155-build-identity",
+      "file": "src/scripts/layers/35-r18155-build-identity.js",
+      "bytes": 641
+    },
+    {
+      "index": 36,
+      "kind": "script",
+      "id": "cds-r18161-box-runs-execution",
+      "file": "src/scripts/layers/36-cds-r18161-box-runs-execution.js",
+      "bytes": 15415
+    },
+    {
+      "index": 37,
+      "kind": "script",
+      "id": "cds-r18161-build-identity",
+      "file": "src/scripts/layers/37-cds-r18161-build-identity.js",
+      "bytes": 501
+    },
+    {
+      "index": 38,
+      "kind": "script",
+      "id": "cds-r1817-release-meta",
+      "file": "src/scripts/layers/38-cds-r1817-release-meta.js",
+      "bytes": 1490
+    },
+    {
+      "index": 39,
+      "kind": "script",
+      "id": "cds-r18172-approach-before-shot-meta",
+      "file": "src/scripts/layers/39-cds-r18172-approach-before-shot-meta.js",
+      "bytes": 2144
+    },
+    {
+      "index": 40,
+      "kind": "script",
+      "id": "cds-r18173-defensive-responsibility",
+      "file": "src/scripts/layers/40-cds-r18173-defensive-responsibility.js",
+      "bytes": 12647
+    },
+    {
+      "index": 41,
+      "kind": "script",
+      "id": "cds-r181732-mobile-start-meta",
+      "file": "src/scripts/layers/41-cds-r181732-mobile-start-meta.js",
+      "bytes": 162
+    },
+    {
+      "index": 42,
+      "kind": "script",
+      "id": "",
+      "file": "src/scripts/layers/42-inline.js",
+      "bytes": 96
+    },
+    {
+      "index": 43,
+      "kind": "script",
+      "id": "cds-r1818-offensive-progression",
+      "file": "src/scripts/layers/43-cds-r1818-offensive-progression.js",
+      "bytes": 13146
+    },
+    {
+      "index": 44,
+      "kind": "script",
+      "id": "cds-r1818-build-meta",
+      "file": "src/scripts/layers/44-cds-r1818-build-meta.js",
+      "bytes": 216
+    },
+    {
+      "index": 45,
+      "kind": "script",
+      "id": "cds-r18181-second-phase-natural-out",
+      "file": "src/scripts/layers/45-cds-r18181-second-phase-natural-out.js",
+      "bytes": 11886
+    },
+    {
+      "index": 46,
+      "kind": "script",
+      "id": "cds-r18181-build-meta",
+      "file": "src/scripts/layers/46-cds-r18181-build-meta.js",
+      "bytes": 119
+    },
+    {
+      "index": 47,
+      "kind": "script",
+      "id": "cds-r18182-duels-natural-restarts",
+      "file": "src/scripts/layers/47-cds-r18182-duels-natural-restarts.js",
+      "bytes": 28553
+    },
+    {
+      "index": 48,
+      "kind": "script",
+      "id": "cds-r18182-build-meta",
+      "file": "src/scripts/layers/48-cds-r18182-build-meta.js",
+      "bytes": 115
+    },
+    {
+      "index": 49,
+      "kind": "script",
+      "id": "cds-r18183-corner-ecology",
+      "file": "src/scripts/layers/49-cds-r18183-corner-ecology.js",
+      "bytes": 18466
+    },
+    {
+      "index": 50,
+      "kind": "script",
+      "id": "cds-r18183-build-meta",
+      "file": "src/scripts/layers/50-cds-r18183-build-meta.js",
+      "bytes": 224
+    },
+    {
+      "index": 51,
+      "kind": "script",
+      "id": "cds-r1820-chance-intelligence",
+      "file": "src/scripts/layers/51-cds-r1820-chance-intelligence.js",
+      "bytes": 17417
+    },
+    {
+      "index": 52,
+      "kind": "script",
+      "id": "cds-r1820-build-meta",
+      "file": "src/scripts/layers/52-cds-r1820-build-meta.js",
+      "bytes": 213
+    },
+    {
+      "index": 53,
+      "kind": "script",
+      "id": "cds-r1821-throwin-law",
+      "file": "src/scripts/layers/53-cds-r1821-throwin-law.js",
+      "bytes": 6780
+    },
+    {
+      "index": 54,
+      "kind": "script",
+      "id": "cds-r1821-post-recovery-decision",
+      "file": "src/scripts/layers/54-cds-r1821-post-recovery-decision.js",
+      "bytes": 8090
+    },
+    {
+      "index": 55,
+      "kind": "script",
+      "id": "cds-r1821-shot-plausibility",
+      "file": "src/scripts/layers/55-cds-r1821-shot-plausibility.js",
+      "bytes": 4736
+    },
+    {
+      "index": 56,
+      "kind": "script",
+      "id": "cds-r1821-press-anticipation",
+      "file": "src/scripts/layers/56-cds-r1821-press-anticipation.js",
+      "bytes": 9567
+    },
+    {
+      "index": 57,
+      "kind": "script",
+      "id": "cds-r1821-respread-top",
+      "file": "src/scripts/layers/57-cds-r1821-respread-top.js",
+      "bytes": 5147
+    },
+    {
+      "index": 58,
+      "kind": "script",
+      "id": "cds-r1821-tempo-e-pausas",
+      "file": "src/scripts/layers/58-cds-r1821-tempo-e-pausas.js",
+      "bytes": 7876
+    },
+    {
+      "index": 59,
+      "kind": "script",
+      "id": "cds-r1821rc1-build-meta",
+      "file": "src/scripts/layers/59-cds-r1821rc1-build-meta.js",
+      "bytes": 3915
+    },
+    {
+      "index": 60,
+      "kind": "script",
+      "id": "cds-r1843-block-depth",
+      "file": "src/scripts/layers/60-cds-r1843-block-depth.js",
+      "bytes": 5311
+    },
+    {
+      "index": 61,
+      "kind": "script",
+      "id": "cds-r1849-carry-cone",
+      "file": "src/scripts/layers/61-cds-r1849-carry-cone.js",
+      "bytes": 2058
+    },
+    {
+      "index": 62,
+      "kind": "style",
+      "id": "cds-os20-style",
+      "file": "src/styles/layers/62-cds-os20-style.css",
+      "bytes": 2055
+    },
+    {
+      "index": 63,
+      "kind": "script",
+      "id": "cds-os20-setpiece-hud",
+      "file": "src/scripts/layers/63-cds-os20-setpiece-hud.js",
+      "bytes": 3098
+    },
+    {
+      "index": 64,
+      "kind": "script",
+      "id": "cds-os21-wall-taker",
+      "file": "src/scripts/layers/64-cds-os21-wall-taker.js",
+      "bytes": 6555
+    },
+    {
+      "index": 65,
+      "kind": "script",
+      "id": "cds-os36-freekick-distance",
+      "file": "src/scripts/layers/65-cds-os36-freekick-distance.js",
+      "bytes": 6473
+    },
+    {
+      "index": 66,
+      "kind": "script",
+      "id": "cds-os39-block-on-flight",
+      "file": "src/scripts/layers/66-cds-os39-block-on-flight.js",
+      "bytes": 2697
+    },
+    {
+      "index": 67,
+      "kind": "script",
+      "id": "cds-os42-contest-the-cross",
+      "file": "src/scripts/layers/67-cds-os42-contest-the-cross.js",
+      "bytes": 2342
+    },
+    {
+      "index": 68,
+      "kind": "script",
+      "id": "cds-os43-aerial-duel",
+      "file": "src/scripts/layers/68-cds-os43-aerial-duel.js",
+      "bytes": 3066
+    },
+    {
+      "index": 69,
+      "kind": "script",
+      "id": "cds-os46-anim-wiring",
+      "file": "src/scripts/layers/69-cds-os46-anim-wiring.js",
+      "bytes": 4993
+    },
+    {
+      "index": 70,
+      "kind": "script",
+      "id": "cds-os48-carry-flow",
+      "file": "src/scripts/layers/70-cds-os48-carry-flow.js",
+      "bytes": 2317
+    },
+    {
+      "index": 71,
+      "kind": "script",
+      "id": "cds-os51-beaten-defender",
+      "file": "src/scripts/layers/71-cds-os51-beaten-defender.js",
+      "bytes": 1452
+    },
+    {
+      "index": 72,
+      "kind": "script",
+      "id": "cds-os81-low-cross-contact-meta",
+      "file": "src/scripts/layers/72-cds-os81-low-cross-contact-meta.js",
+      "bytes": 312
+    },
+    {
+      "index": 73,
+      "kind": "script",
+      "id": "cds-os82-intercept-control-meta",
+      "file": "src/scripts/layers/73-cds-os82-intercept-control-meta.js",
+      "bytes": 344
+    },
+    {
+      "index": 74,
+      "kind": "script",
+      "id": "cds-os77-common-foul-restart",
+      "file": "src/scripts/layers/74-cds-os77-common-foul-restart.js",
+      "bytes": 2594
+    },
+    {
+      "index": 75,
+      "kind": "script",
+      "id": "cds-os83-restart-watchdog",
+      "file": "src/scripts/layers/75-cds-os83-restart-watchdog.js",
+      "bytes": 1943
+    },
+    {
+      "index": 76,
+      "kind": "script",
+      "id": "cds-os90-gk-freekick-stance",
+      "file": "src/scripts/layers/76-cds-os90-gk-freekick-stance.js",
+      "bytes": 2416
+    },
+    {
+      "index": 77,
+      "kind": "script",
+      "id": "cds-os92-shot-out-geometry",
+      "file": "src/scripts/layers/77-cds-os92-shot-out-geometry.js",
+      "bytes": 7630
+    },
+    {
+      "index": 78,
+      "kind": "script",
+      "id": "cds-os100-throwin-delivery",
+      "file": "src/scripts/layers/78-cds-os100-throwin-delivery.js",
+      "bytes": 4113
+    },
+    {
+      "index": 79,
+      "kind": "script",
+      "id": "cds-os107-bloco-bola-parada",
+      "file": "src/scripts/layers/79-cds-os107-bloco-bola-parada.js",
+      "bytes": 9500
+    },
+    {
+      "index": 80,
+      "kind": "script",
+      "id": "cds-os112-lateral-saida-e-apoio",
+      "file": "src/scripts/layers/80-cds-os112-lateral-saida-e-apoio.js",
+      "bytes": 8260
+    },
+    {
+      "index": 81,
+      "kind": "style",
+      "id": "cds-os113-style",
+      "file": "src/styles/layers/81-cds-os113-style.css",
+      "bytes": 1360
+    },
+    {
+      "index": 82,
+      "kind": "script",
+      "id": "cds-os113-falta-cartao",
+      "file": "src/scripts/layers/82-cds-os113-falta-cartao.js",
+      "bytes": 4352
+    },
+    {
+      "index": 83,
+      "kind": "script",
+      "id": "cds-r1886-build-meta",
+      "file": "src/scripts/layers/83-cds-r1886-build-meta.js",
+      "bytes": 446
+    },
+    {
+      "index": 84,
+      "kind": "script",
+      "id": "cds-r1899-antiteleporte",
+      "file": "src/scripts/layers/84-cds-r1899-antiteleporte.js",
+      "bytes": 12243
+    },
+    {
+      "index": 85,
+      "kind": "script",
+      "id": "cds-r1903-falta-natural",
+      "file": "src/scripts/layers/85-cds-r1903-falta-natural.js",
+      "bytes": 3245
+    },
+    {
+      "index": 86,
+      "kind": "script",
+      "id": "cds-r1904-corte-que-sai",
+      "file": "src/scripts/layers/86-cds-r1904-corte-que-sai.js",
+      "bytes": 3563
+    },
+    {
+      "index": 87,
+      "kind": "script",
+      "id": "cds-r1905-papel-morre-com-o-lance",
+      "file": "src/scripts/layers/87-cds-r1905-papel-morre-com-o-lance.js",
+      "bytes": 2036
+    }
+  ]
 }

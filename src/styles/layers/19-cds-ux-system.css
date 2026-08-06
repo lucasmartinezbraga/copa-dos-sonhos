@@ -1,0 +1,902 @@
+
+/* ============================================================================
+ * Copa dos Sonhos · Camada UX (redesign) · Sistema base
+ * ----------------------------------------------------------------------------
+ * Camada ADITIVA sobre a R13.0. Reaproveita os tokens existentes (:root do
+ * bundle) e acrescenta escala de espaçamento, acessibilidade (foco visível,
+ * movimento reduzido), áreas seguras e a limpeza dos overlays de dev na visão
+ * do jogador. Não altera o motor. Construída no candidato RC-UX; a R13.0 segue
+ * byte-idêntica.
+ * ========================================================================== */
+
+:root {
+  /* Grid de 8 px (doc 04) */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px;
+  /* Raios consistentes */
+  --r-sm: 10px; --r-md: 14px; --r-lg: var(--r, 18px); --r-pill: 999px;
+  /* Movimento 120–220 ms (doc 04) */
+  --dur-fast: 120ms; --dur-mid: 180ms; --dur-slow: 220ms;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  /* Foco/risco semânticos */
+  --focus: var(--azul, #38bdf8);
+  --risk: var(--rosa, #fb7185);
+  /* Alturas seguras de toque */
+  --touch: 44px;
+}
+
+/* ─── Acessibilidade: foco de teclado sempre visível (doc 04 / item 165) ─── */
+:where(a, button, [role="button"], input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+/* não mostrar o anel em clique de mouse quando :focus-visible é suportado */
+:where(a, button, [role="button"]):focus:not(:focus-visible) { outline: none; }
+
+/* ─── Movimento reduzido (doc 04 / item 158/160) ───────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─── Guarda de overflow horizontal (nenhuma tela rola de lado) ─────────── */
+html, body { max-width: 100%; overflow-x: hidden; }
+img, canvas, svg, video { max-width: 100%; }
+
+/* ─── Áreas seguras (notch/gestos) para barras fixas conhecidas ─────────── */
+@supports (padding: max(0px)) {
+  .match-top, .hud-top, .home-nav-v2 {
+    padding-left: max(var(--sp-3), env(safe-area-inset-left));
+    padding-right: max(var(--sp-3), env(safe-area-inset-right));
+  }
+}
+
+/* ─── Limpeza dos overlays de DEV na visão do jogador ──────────────────────
+ * Ferramentas de desenvolvimento (Tática 5.0, IA do Treinador, Lab Físico,
+ * Auditor Pré-2.5D) poluíam todas as telas — sobrepondo conteúdo no mobile.
+ * Ficam OCULTAS por padrão e reaparecem com ?dev=1 (ou localStorage cds_dev),
+ * que adiciona a classe .cds-dev ao <html>. Nada é removido; só some da visão
+ * do jogador. */
+html:not(.cds-dev) #p47btn,
+html:not(.cds-dev) #p47box,
+html:not(.cds-dev) #p9btn,
+html:not(.cds-dev) #p9box,
+html:not(.cds-dev) #p13lab,
+html:not(.cds-dev) #p13labbtn,
+html:not(.cds-dev) #cds-pre25d-audit-btn,
+html:not(.cds-dev) [id$="labbtn"],
+html:not(.cds-dev) [id$="-audit-btn"] {
+  display: none !important;
+}
+
+/* Selo discreto de modo dev quando ligado */
+html.cds-dev::after {
+  content: "DEV";
+  position: fixed; right: 8px; top: 8px; z-index: 2147483001;
+  font: 700 9px/1 var(--f-ui); letter-spacing: .12em;
+  color: #04121f; background: var(--ouro); padding: 3px 6px; border-radius: var(--r-pill);
+  pointer-events: none; opacity: .85;
+}
+
+/* ═══ A11: ACESSIBILIDADE ═══════════════════════════════════════════════════ */
+/* Região lida por leitor de tela, visualmente oculta (A11-011..015) */
+.cds-sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+/* Alto contraste / forced-colors do SO (A11-016..020): garante bordas visíveis
+   na cromo da UI (o canvas da partida não é estilizável, mas os controles sim). */
+@media (forced-colors: active) {
+  button, .rrbtn, .spd, .spdbtn, .chip, .home-mode-v2, .row, .bchip {
+    border: 1px solid ButtonText !important;
+    forced-color-adjust: none;
+  }
+  .gold, .ovr-hi, .dot.ovr-hi { color: Highlight !important; }
+  :focus-visible { outline: 2px solid Highlight !important; outline-offset: 2px; }
+}
+@media (prefers-contrast: more) {
+  button, .rrbtn, .spd, .spdbtn, .chip { outline: 1px solid currentColor; outline-offset: 1px; }
+}
+
+/* ============================================================================
+ * Copa dos Sonhos · Redesign · IDENTIDADE ELEVADA (compartilhada)
+ * Linguagem "HUD esportivo techy" aplicável a todas as telas: grid técnico de
+ * fundo, acentos neon, molduras com cantos, brilho/juice em botões e títulos.
+ * Segura por padrão (não altera geometria dos controles) e respeita
+ * prefers-reduced-motion. Não toca o motor.
+ * ========================================================================== */
+
+:root {
+  --neon: #38e1ff;          /* ciano HUD */
+  --neon-2: #4ade80;        /* verde HUD */
+  --neon-dim: rgba(56,225,255,.5);
+  --hud-line: rgba(56,225,255,.32);
+  --glass: rgba(15,26,48,.62);
+  --glass-brd: rgba(120,170,220,.18);
+}
+
+/* Fundo: grid técnico + vinheta, atrás de tudo (coeso em todas as telas) */
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .5;
+  background-image:
+    linear-gradient(rgba(56,225,255,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56,225,255,.05) 1px, transparent 1px);
+  background-size: 44px 44px, 44px 44px;
+  -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 30%, transparent 78%);
+          mask-image: radial-gradient(120% 90% at 50% 0%, #000 30%, transparent 78%);
+}
+#app { position: relative; z-index: 1; }
+
+/* Utilitário de moldura HUD com cantos em L (aplicável a superfícies-herói) */
+.cds-hud { position: relative; }
+.cds-hud::before, .cds-hud::after {
+  content: ''; position: absolute; width: 22px; height: 22px; pointer-events: none;
+  border: 2px solid var(--neon); filter: drop-shadow(0 0 6px var(--neon-dim)); opacity: .85;
+}
+.cds-hud::before { top: 9px; left: 9px; border-right: 0; border-bottom: 0; border-top-left-radius: 6px; }
+.cds-hud::after  { bottom: 9px; right: 9px; border-left: 0; border-top: 0; border-bottom-right-radius: 6px; }
+
+/* Botão-ouro com varredura de brilho (juice) + glow mais forte */
+.btn-gold { position: relative; overflow: hidden; }
+.btn-gold::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.55) 48%, transparent 62%);
+  transform: translateX(-140%); transition: none;
+}
+.btn-gold:hover::after { animation: cdsShine 720ms var(--ease); }
+@keyframes cdsShine { to { transform: translateX(140%); } }
+
+/* Scrollbar coesa (desktop) */
+* { scrollbar-width: thin; scrollbar-color: rgba(120,170,220,.4) transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: rgba(120,170,220,.32); border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
+*::-webkit-scrollbar-thumb:hover { background: rgba(120,170,220,.5); background-clip: content-box; }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-gold:hover::after { animation: none; }
+}
+
+/* ============================================================================
+ * Copa dos Sonhos · Redesign de partida · TOKENS
+ *
+ * O brief (03_DESIGN_SYSTEM.md) define nomes semanticos: --user, --opponent,
+ * --positive, --info, --surface-1... Este arquivo MAPEIA esses nomes sobre a
+ * paleta que ja existe (src/r13/styles/00-bundle.css), em vez de introduzir uma
+ * segunda fonte de cor. O brief manda exatamente isso: "ajuste os valores a
+ * paleta existente" e "nao copie sem verificar contraste".
+ *
+ * Regra: nenhuma cor nova e inventada aqui a nao ser onde a paleta base nao tem
+ * equivalente (superficies e bordas da casca, disabled). Onde ja existe, e
+ * alias — assim trocar --ouro troca o usuario em todo lugar.
+ * ========================================================================== */
+:root {
+  /* ── semanticos do brief -> paleta existente (alias, nao duplicata) ────── */
+  --user:      var(--ouro);      /* #ffcb45 — usuario, selecao, CTA */
+  --user-2:    var(--ouro2);     /* #e6ae1f — usuario, estado pressionado */
+  --opponent:  var(--rosa);      /* #fb7185 — adversario, perigo */
+  --positive:  var(--verde);     /* #4ade80 — condicao positiva */
+  --info:      var(--azul);      /* #38bdf8 — informacao neutra */
+  --text-1:    var(--txt);       /* #f8fafc */
+  --text-2:    var(--mut);       /* #94a3b8 */
+
+  /* ── superficies e bordas da casca (nao existiam com estes papeis) ─────── */
+  --ui-bg-0:      #06101f;
+  --ui-bg-1:      #0a1629;
+  --ui-surface-1: rgba(16, 31, 55, .72);   /* painel lateral */
+  --ui-surface-2: rgba(23, 40, 66, .85);   /* card dentro do painel */
+  --ui-border:    rgba(38, 59, 89, .9);
+  --ui-disabled:  #56647a;
+  --ui-warning:   #ff9f36;                  /* atencao — laranja do brief */
+
+  /* ── layout da casca de partida ────────────────────────────────────────── */
+  --shell-gap:      var(--sp-4);
+  --shell-pad:      var(--sp-4);
+  --side-min:       340px;
+  --side-max:       460px;       /* painel contextual mais estreito -> campo mais largo */
+  --side-pref:      26vw;        /* alvo: painel ~26% (brief §5), campo protagonista */
+  --bp-shell:       900px;       /* abaixo disto = pilha mobile atual */
+
+  /* ── z-index centralizado (brief §11) ──────────────────────────────────── */
+  --z-field:   1;
+  --z-hud:     10;
+  --z-sheet:   40;
+  --z-modal:   60;
+  --z-toast:   80;
+}
+
+/* ============================================================================
+ * Copa dos Sonhos · Redesign · HOME (candidato RC-UX)
+ * Salto visível: título metálico, ambiência de estádio, card-campo premium com
+ * jogadores em token top-down (identidade nova, alinhada ao motor 2.5D) e CTAs
+ * com brilho. Não toca o motor.
+ * ========================================================================== */
+
+/* Ambiência de fundo (estádio à noite) atrás de tudo */
+.home-v2 { position: relative; isolation: isolate; }
+.home-v2::before {
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(1200px 540px at 78% -10%, rgba(56,189,248,.18), transparent 60%),
+    radial-gradient(900px 520px at -8% 112%, rgba(255,203,69,.12), transparent 58%),
+    radial-gradient(760px 760px at 50% 128%, rgba(74,222,128,.07), transparent 62%);
+}
+
+/* ─── NAV ─────────────────────────────────────────────────────────────── */
+.home-nav-v2 { padding-block: 18px; }
+.home-monogram {
+  display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px;
+  background: linear-gradient(160deg, #fff3cf, var(--ouro) 55%, var(--ouro2));
+  color: #241a00; font: 900 13px var(--f-cond); letter-spacing: .5px;
+  box-shadow: 0 8px 20px rgba(255,203,69,.28), inset 0 1px 0 rgba(255,255,255,.6);
+}
+.home-wordmark { font: 800 15px var(--f-cond); letter-spacing: .6px; }
+.home-edition { color: var(--mut); font: 700 10px var(--f-cond); letter-spacing: 1.4px; text-transform: uppercase; opacity: .8; }
+
+/* ─── COLUNA DE TEXTO ─────────────────────────────────────────────────── */
+/* troca a linha "Motor visual 5.8.2" (dev) por um eyebrow que vende o jogo */
+#app .home-status { display: none; }
+.home-copy-v2::before {
+  content: 'Draft de lendas · Mundial de 32 · Física real em campo';
+  display: inline-flex; align-items: center; padding: 7px 13px; margin-bottom: 6px;
+  border: 1px solid rgba(255,203,69,.28); border-radius: var(--r-pill);
+  background: rgba(255,203,69,.06); color: #ffdf9a;
+  font: 800 10px var(--f-cond); letter-spacing: 1.5px; text-transform: uppercase;
+}
+
+/* Título metálico: cromado + "Sonhos" em ouro polido */
+.home-title-v2 {
+  margin-top: 16px; font-size: clamp(64px, 7.9vw, 122px); line-height: .82; letter-spacing: -2px;
+  background: linear-gradient(180deg, #ffffff 6%, #dbe7f7 36%, #a7bfe0 54%, #ffffff 74%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 10px 32px rgba(0,0,0,.55));
+}
+.home-title-v2 span {
+  display: block; -webkit-text-stroke: 0; color: transparent;
+  background: linear-gradient(180deg, #fff4d0 8%, #ffcf58 42%, #dc9f14 64%, #fff4d0 86%);
+  -webkit-background-clip: text; background-clip: text;
+  text-shadow: 0 0 48px rgba(255,203,69,.25);
+}
+.home-lead-v2 { color: #aab8cd; }
+
+/* Facts com brilho sutil */
+.home-fact {
+  border-left: 2px solid var(--ouro); border-radius: 0 8px 8px 0;
+  background: linear-gradient(90deg, rgba(255,203,69,.10), rgba(255,255,255,.03));
+}
+
+/* ─── CTAs premium ────────────────────────────────────────────────────── */
+.home-cta-v2 .btn { font: 900 15px var(--f-cond); letter-spacing: 1px; text-transform: uppercase; min-height: 56px; border-radius: 14px; transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), filter var(--dur-fast) var(--ease); }
+.home-cta-v2 .btn-gold {
+  background: linear-gradient(180deg, #ffe38a, var(--ouro) 46%, var(--ouro2));
+  box-shadow: 0 14px 30px rgba(255,203,69,.34), inset 0 1px 0 rgba(255,255,255,.65);
+}
+.home-cta-v2 .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 18px 40px rgba(255,203,69,.44), inset 0 1px 0 rgba(255,255,255,.7); filter: brightness(1.03); }
+.home-cta-v2 .btn-ghost { border: 1px solid rgba(140,170,210,.28); background: rgba(20,34,60,.55); backdrop-filter: blur(6px); }
+.home-cta-v2 .btn-ghost:hover { border-color: rgba(255,203,69,.5); transform: translateY(-1px); }
+
+/* ─── CARD-CAMPO PREMIUM ──────────────────────────────────────────────── */
+.dream-card {
+  border: 1px solid rgba(255,203,69,.32); border-radius: 28px; transform: rotate(2.2deg);
+  box-shadow: 0 54px 120px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.03), inset 0 1px 0 rgba(255,255,255,.07);
+}
+.dream-pitch {
+  border: 1px solid rgba(210,245,225,.28);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.06), transparent 34%),
+    repeating-linear-gradient(90deg, #1e9256 0 12.5%, #178048 12.5% 25%),
+    linear-gradient(180deg, #1c8b51, #0c472f);
+  box-shadow: inset 0 22px 60px rgba(0,0,0,.45), inset 0 -30px 60px rgba(0,0,0,.4);
+}
+.dream-pitch::before { filter: brightness(1.25); opacity: .9; }
+.dream-card-head b { color: var(--ouro); text-shadow: 0 0 18px rgba(255,203,69,.35); }
+
+/* Jogadores como token top-down (jersey + número + sombra no gramado) */
+.legend-chip i {
+  position: relative; width: 42px; height: 42px; border-radius: 50% 50% 47% 47% / 54% 54% 46% 46%;
+  background: radial-gradient(120% 120% at 50% 22%, #fff4cf, var(--ouro) 52%, #d89b16);
+  border: 1.5px solid rgba(255,255,255,.55); color: #211500; font: 900 15px var(--f-cond);
+  box-shadow: 0 11px 16px rgba(0,0,0,.5), inset 0 2px 3px rgba(255,255,255,.6), inset 0 -3px 6px rgba(150,95,0,.35);
+}
+/* sombra elíptica no gramado */
+.legend-chip i::after {
+  content: ''; position: absolute; left: 50%; bottom: -8px; width: 34px; height: 10px;
+  transform: translateX(-50%); border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,.5), transparent 72%); z-index: -1;
+}
+.legend-chip b { font-size: 11px; text-shadow: 0 2px 6px #000, 0 0 2px #000; }
+.legend-chip span { color: #ffd77a; }
+/* Goleiro (Yashin, #1 = lc7) com kit distinto */
+.lc7 i { background: radial-gradient(120% 120% at 50% 22%, #b9ffd8, #2fce7e 52%, #10925a); color: #04231a; border-color: rgba(255,255,255,.6); }
+
+.dream-caption { border-color: rgba(255,203,69,.16); background: rgba(6,14,26,.9); }
+.dream-caption b { color: var(--ouro); }
+
+/* ─── OUSAR MAIS: identidade HUD + juice ──────────────────────────────── */
+
+/* Título metálico vivo (varredura sutil do brilho) */
+.home-title-v2 { background-size: 100% 320%; animation: cdsTitleSheen 7s ease-in-out infinite; }
+.home-title-v2 span { background-size: 100% 320%; animation: cdsTitleSheen 7s ease-in-out infinite .4s; }
+@keyframes cdsTitleSheen { 0%, 100% { background-position: 50% 8%; } 50% { background-position: 50% 92%; } }
+
+/* Eyebrow com traço neon */
+.home-copy-v2::before {
+  border-color: var(--hud-line); background: rgba(56,225,255,.06); color: #bff0ff;
+  box-shadow: 0 0 22px rgba(56,225,255,.14), inset 0 0 0 1px rgba(56,225,255,.08);
+}
+
+/* Card-campo: moldura neon + cantos HUD */
+.dream-card {
+  box-shadow: 0 54px 120px rgba(0,0,0,.62), 0 0 0 1px rgba(56,225,255,.12),
+              0 0 40px rgba(56,225,255,.08), inset 0 1px 0 rgba(255,255,255,.07);
+}
+.dream-card::after {
+  content: ''; position: absolute; inset: 6px; z-index: 6; pointer-events: none; --b: 2px; --l: 20px; --c: var(--neon);
+  background:
+    linear-gradient(var(--c), var(--c)) left 8px top 8px / var(--l) var(--b) no-repeat,
+    linear-gradient(var(--c), var(--c)) left 8px top 8px / var(--b) var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) right 8px top 8px / var(--l) var(--b) no-repeat,
+    linear-gradient(var(--c), var(--c)) right 8px top 8px / var(--b) var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) left 8px bottom 8px / var(--l) var(--b) no-repeat,
+    linear-gradient(var(--c), var(--c)) left 8px bottom 8px / var(--b) var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) right 8px bottom 8px / var(--l) var(--b) no-repeat,
+    linear-gradient(var(--c), var(--c)) right 8px bottom 8px / var(--b) var(--l) no-repeat;
+  filter: drop-shadow(0 0 5px var(--neon-dim)); opacity: .9;
+}
+
+/* Jogadores top-down: cabeça + camisa + sombra (prévia da identidade nova) */
+.legend-chip i::before {
+  content: ''; position: absolute; left: 50%; top: -7px; transform: translateX(-50%);
+  width: 15px; height: 15px; border-radius: 50%;
+  background: radial-gradient(circle at 42% 34%, #ffe3c2, #c98d5e 78%);
+  box-shadow: 0 2px 4px rgba(0,0,0,.45), inset 0 1px 1px rgba(255,255,255,.5);
+}
+.lc7 i::before { background: radial-gradient(circle at 42% 34%, #ffe3c2, #b97f52 78%); }
+
+/* Mode card com acento neon e seta que desliza */
+.home-mode-v2 { border-color: var(--hud-line); }
+.home-mode-v2:hover { box-shadow: 0 0 30px rgba(56,225,255,.14); }
+.home-mode-v2 .hm-copy small { color: var(--neon); }
+.home-mode-v2 .hm-go { transition: transform var(--dur-fast) var(--ease); }
+.home-mode-v2:hover .hm-go { transform: translateX(4px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .home-title-v2, .home-title-v2 span { animation: none; }
+}
+
+/* ─── MOBILE ──────────────────────────────────────────────────────────── */
+@media (max-width: 720px) {
+  .home-copy-v2::before { font-size: 9px; letter-spacing: 1.1px; }
+  .home-title-v2 { font-size: clamp(52px, 15vw, 72px); }
+  .home-cta-v2 .btn { min-height: 52px; }
+}
+
+/* ============================================================================
+ * Copa dos Sonhos · Redesign · Largura de fluxo + SETUP
+ * Corrige o trava-largura no desktop (telas de fluxo ficavam em coluna de
+ * 520px) e eleva a tela de preparação com a identidade HUD. Não toca o motor.
+ * ========================================================================== */
+
+/* ─── CORREÇÃO UNIVERSAL: telas de fluxo usam a largura no desktop ──────────
+ * O #app era travado em 520px, anulando o max-width de .screen (860/1180).
+ * Destravando o #app quando há .screen, todas as telas de fluxo passam a
+ * respeitar a largura desktop já prevista no CSS base. */
+#app:has(.screen) { max-width: none; }
+.top { width: 100%; }
+@media (min-width: 768px) {
+  #app:has(.screen) > .top { max-width: 860px; margin-inline: auto; }
+}
+@media (min-width: 1100px) {
+  #app:has(.screen) > .top { max-width: 1180px; }
+}
+
+/* ─── SETUP: mode cards premium ───────────────────────────────────────── */
+.modecard {
+  background: linear-gradient(160deg, var(--glass), rgba(8,16,30,.86));
+  border: 1px solid var(--glass-brd); border-radius: var(--r-md);
+  transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.modecard:hover { transform: translateY(-2px); border-color: var(--hud-line); box-shadow: 0 12px 30px rgba(0,0,0,.4), 0 0 22px rgba(56,225,255,.1); }
+.modecard.on {
+  border-color: var(--ouro);
+  box-shadow: 0 0 0 1px var(--ouro) inset, 0 12px 30px rgba(255,203,69,.16), 0 0 26px rgba(255,203,69,.14);
+}
+.modecard.on .mc-i { filter: drop-shadow(0 0 10px rgba(255,203,69,.5)); }
+
+/* ─── SETUP: estilo de jogo — grid no desktop + linhas premium ───────────── */
+@media (min-width: 720px) {
+  .screen > div:has(> .stylerow) { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: stretch; }
+  .stylerow + .stylerow { margin-top: 0; }
+}
+@media (min-width: 1100px) {
+  .screen > div:has(> .stylerow) { grid-template-columns: repeat(3, 1fr); }
+}
+.stylerow {
+  background: linear-gradient(160deg, var(--glass), rgba(8,16,30,.82));
+  border: 1px solid var(--glass-brd); border-radius: var(--r-md); padding: 12px 12px;
+  transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.stylerow:hover { transform: translateY(-2px); border-color: var(--hud-line); box-shadow: 0 12px 26px rgba(0,0,0,.4), 0 0 20px rgba(56,225,255,.1); }
+.stylerow .st-i {
+  display: grid; place-items: center; width: 40px; height: 40px; flex: 0 0 40px;
+  border-radius: 12px; background: rgba(56,225,255,.08); border: 1px solid var(--glass-brd); font-size: 20px;
+}
+.stylerow .st-t { font: 800 15px var(--f-cond); letter-spacing: .4px; }
+.stylerow .st-d { font-size: 12px; color: var(--mut); margin-top: 2px; }
+.stylerow.on {
+  border-color: var(--ouro);
+  box-shadow: 0 0 0 1px var(--ouro) inset, 0 0 24px rgba(255,203,69,.14);
+}
+.stylerow.on .st-i { background: rgba(255,203,69,.14); border-color: rgba(255,203,69,.4); }
+
+/* Pills (formação/variação) com estado ligado neon-ouro */
+.pill.on { box-shadow: 0 0 0 1px var(--ouro) inset, 0 0 16px rgba(255,203,69,.16); }
+
+/* Minipitch não deve esticar na largura desktop */
+#minipitch { max-width: 460px; margin-inline: auto; width: 100%; }
+
+/* ============================================================================
+ * Copa dos Sonhos · Redesign · HUD DE PARTIDA
+ * Placar broadcast compacto, velocidades premium, barra de stats/momentum
+ * legível e, no mobile, overlays organizados sobre o campo (field-first).
+ * Não toca o motor nem o canvas do campo.
+ * ========================================================================== */
+
+/* ─── HEADER / PLACAR (broadcast) ─────────────────────────────────────── */
+.mh {
+  background: linear-gradient(180deg, rgba(12,22,42,.92), rgba(7,12,22,.92));
+  border-bottom: 1px solid var(--hud-line);
+  box-shadow: 0 1px 0 rgba(56,225,255,.12), 0 10px 30px rgba(0,0,0,.35);
+  padding: 10px 16px;
+}
+.mh-flag {
+  display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px;
+  background: rgba(56,225,255,.06); border: 1px solid var(--glass-brd);
+  overflow: hidden; box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+}
+.mh-flag svg, .mh-flag img { width: 24px; height: auto; border-radius: 3px; }
+.mh-name { font: 800 14px var(--f-cond); letter-spacing: .6px; text-transform: uppercase; }
+.mh-form { font: 700 10px var(--f-cond); letter-spacing: 1.4px; color: var(--neon); opacity: .9; }
+.mh-center { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.mh-sc {
+  font: 900 34px var(--f-display); letter-spacing: 3px; line-height: 1; color: #fff;
+  padding: 4px 16px; border-radius: 12px;
+  background: linear-gradient(180deg, rgba(10,18,34,.9), rgba(6,12,22,.95));
+  border: 1px solid var(--hud-line); box-shadow: 0 0 22px rgba(56,225,255,.14), inset 0 1px 0 rgba(255,255,255,.06);
+  text-shadow: 0 0 20px rgba(255,203,69,.25);
+}
+.mh-ck { font: 800 12px var(--f-cond); letter-spacing: 2px; color: var(--ouro); padding: 2px 10px; border-radius: 999px; background: rgba(255,203,69,.08); }
+.mh-ck.urgent { color: var(--rosa) !important; background: rgba(251,113,133,.12); }
+
+/* ─── VELOCIDADES (pills premium) ─────────────────────────────────────── */
+.spd-row {
+  display: flex; gap: 6px; justify-content: center; padding: 8px 12px;
+  background: rgba(7,12,22,.6); border-bottom: 1px solid var(--linha);
+}
+.spd {
+  min-width: 46px; min-height: 40px; padding: 6px 12px; border-radius: 10px;   /* UX-041: alvo ≥40px */
+  border: 1px solid var(--glass-brd); background: rgba(20,34,60,.5); color: var(--txt);
+  font: 800 12px var(--f-cond); letter-spacing: 1px; cursor: pointer;
+  transition: all var(--dur-fast) var(--ease);
+}
+.spd:hover { border-color: var(--hud-line); transform: translateY(-1px); }
+.spd.on {
+  background: linear-gradient(180deg, #ffe38a, var(--ouro) 55%, var(--ouro2)); color: #241a00;
+  border-color: transparent; box-shadow: 0 6px 16px rgba(255,203,69,.3), inset 0 1px 0 rgba(255,255,255,.5);
+}
+#bt-pause { color: var(--neon); }
+
+/* ─── BARRA DE STATS + MOMENTUM ───────────────────────────────────────── */
+.statsb { background: rgba(7,12,22,.6); border-bottom: 1px solid var(--linha); padding: 9px 14px 10px; }
+.poss-track, .sb-track { border-radius: 999px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); height: 8px !important; }
+.poss-label { font: 800 11px var(--f-cond); letter-spacing: .5px; }
+.quick-stat .sbn, .sb-nums .sbn {
+  font: 700 11px var(--f-cond); letter-spacing: .6px; color: var(--mut); text-transform: uppercase;
+  padding: 3px 8px; border-radius: 8px; background: rgba(56,225,255,.04); border: 1px solid rgba(120,170,220,.1);
+}
+.quick-stat .sbn b, .sb-nums .sbn b { color: var(--txt); font-weight: 900; }
+.momentum-strip { border: 1px solid rgba(120,170,220,.12); border-radius: 10px; padding: 4px 8px; background: rgba(5,11,22,.5); }
+.momentum-strip > span { color: var(--neon); font: 800 9px var(--f-cond); letter-spacing: 1.6px; text-transform: uppercase; }
+
+/* ─── ABAS ────────────────────────────────────────────────────────────── */
+.mtabs { background: rgba(7,12,22,.7); border-bottom: 1px solid var(--hud-line); }
+
+/* ─── MOBILE: faixa de HUD compacta acima do campo (field-first, sem overlap)
+ * O layout base flutuava .statsb (canto sup. esq.) e .spd-row (canto sup. dir.),
+ * que se sobrepunham e ficavam apertados. Aqui os dois voltam ao fluxo como uma
+ * faixa fina e organizada logo abaixo do placar; o campo segue dominando. */
+@media (max-width: 899px) {
+  #app:has(#fieldcv) .mh {
+    padding: 8px 12px; padding-top: max(8px, env(safe-area-inset-top));
+    background: linear-gradient(180deg, rgba(9,16,30,.96), rgba(8,14,26,.92));
+    border-bottom: 1px solid var(--hud-line); box-shadow: none;
+  }
+  #app:has(#fieldcv) .mh-sc { font-size: 24px; padding: 2px 12px; }
+  #app:has(#fieldcv) .mh-flag { width: 28px; height: 28px; }
+  #app:has(#fieldcv) .mh-name { font-size: 12px; max-width: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* velocidades: faixa fina no fluxo, centralizada */
+  #app:has(#fieldcv) .spd-row {
+    position: static !important; inset: auto !important; width: auto !important;
+    justify-content: center; gap: 6px; padding: 6px 10px;
+    background: rgba(6,11,22,.72); border-bottom: 1px solid var(--linha);
+  }
+  #app:has(#fieldcv) .spd { min-width: 42px; min-height: 40px; padding: 5px 10px; font-size: 11px; }   /* UX-041: ≥40px mesmo no field-first */
+
+  /* stats: faixa fina no fluxo (posse + números); momentum vai pro painel */
+  #app:has(#fieldcv) .statsb {
+    position: static !important; inset: auto !important; width: auto !important;
+    display: flex; align-items: center; gap: 10px; padding: 6px 12px;
+    background: rgba(6,11,22,.6); border-bottom: 1px solid var(--linha);
+  }
+  #app:has(#fieldcv) .poss-wrap, #app:has(#fieldcv) .sb-poss { flex: 1; min-width: 0; }
+  #app:has(#fieldcv) .quick-stat, #app:has(#fieldcv) .sb-nums { display: flex; gap: 6px; flex: 0 0 auto; }
+  #app:has(#fieldcv) .quick-stat .sbn:nth-child(2) { display: none; } /* economiza espaço: só chutes+escanteios */
+  #app:has(#fieldcv) .momentum-strip { display: none; }               /* momentum fica na aba/painel */
+}
+
+/* UX-041..045: em telas de toque, controles com alvo confortável (≥44px) */
+@media (pointer: coarse) {
+  .spd, .spdbtn, .rrbtn, #bt-pause { min-height: 44px; min-width: 44px; }
+}
+
+/* UX-041: garante o alvo ≥40px vencendo o estilo base (.spd.spdbtn = 0,2,0) */
+.spd.spdbtn, .spd-row .spd { min-height: 40px !important; }
+@media (pointer: coarse) {
+  .spd.spdbtn, .spd-row .spd, .rrbtn, #bt-pause { min-height: 44px !important; min-width: 44px !important; }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   CAMPO CORTADO — teto de altura para a faixa do campo.
+
+   Medido em navegador real (tools/r15/browser_match_layout.py, 1440x810):
+     .mh          0 →  58
+     statsb     109 → 189
+     .field-wrap 217 → 920   ← 703px, de `aspect-ratio:1024/500` com width:100%
+     .narr       887 → 919   fora da janela
+     .mtabs      934 → 984   fora da janela
+     canvas visível na janela: 84,3%
+
+   A regra do campo tinha proporção fixa e NENHUM teto de altura. A 1440px de
+   largura a proporção 2,048 exige 703px de altura; com os 217px de cabeçalho e
+   placar acima, o bloco termina em 920px numa janela de 810. E como o documento
+   tem exatamente a altura da janela (docHeight == 810), a página não rola: a
+   narração e as abas não ficavam escondidas, ficavam INALCANÇÁVEIS.
+
+   O teto reserva o espaço de cima (217px) e das abas (~68px): com 275px as
+   abas ainda terminavam 6px abaixo da dobra numa janela de 810. O canvas já usa
+   `object-fit:contain`, então a proporção é preservada por letterbox e o campo
+   aparece INTEIRO, apenas menor — em vez de ser recortado.
+
+   Sem !important e sem altura fixa: apenas o limite que faltava. */
+#app:has(#fieldcv) .field-wrap,
+#app:has(.mh) > .field-wrap {
+  max-height: calc(100dvh - 285px);
+}
+#app:has(#fieldcv) #fieldcv,
+#app:has(.mh) > .field-wrap #fieldcv {
+  height: 100%;
+  object-fit: contain;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   LEGENDA DA JOGADA CORTANDO O CAMPO.
+
+   `.narr` é `position:absolute; bottom:0` DENTRO de `.field-wrap`, com um
+   gradiente escuro sobre o gramado. Medido em navegador (1440x810, R15.3):
+   o campo termina em 752px e a narração ocupa de 709 a 741 — ou seja, os
+   últimos ~43px do gramado ficam sob a tarja. Quanto menor o campo, maior a
+   fração comida.
+
+   Aqui a narração ganha FAIXA PRÓPRIA e o canvas passa a terminar acima dela.
+   O canvas já usa `object-fit:contain`, então reduzir a altura disponível
+   apenas reduz o letterbox — o campo continua INTEIRO, só que sem nada por
+   cima. Nenhuma altura fixa no campo: só a reserva da faixa. */
+#app:has(#fieldcv) .field-wrap,
+#app:has(.mh) > .field-wrap { --cds-narr-h: 38px; }
+
+#app:has(#fieldcv) .field-wrap > .narr,
+#app:has(.mh) > .field-wrap > .narr {
+  height: var(--cds-narr-h);
+  min-height: var(--cds-narr-h);
+  padding-top: 0;
+  padding-bottom: 0;
+  display: flex;
+  align-items: center;
+  background: rgba(3, 9, 18, .94);   /* faixa sólida, não véu sobre o gramado */
+}
+
+/* `height:auto` fazia o canvas voltar a se dimensionar pela propria
+   `aspect-ratio` (703px a 1440 de largura) e estourar o teto do wrap — o
+   recorte pulou para 178px. Altura explicita e `aspect-ratio:auto`: quem
+   preserva a proporcao da imagem e o `object-fit:contain`, nao a caixa. */
+#app:has(#fieldcv) .field-wrap > #fieldcv,
+#app:has(.mh) > .field-wrap > #fieldcv {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  bottom: var(--cds-narr-h);
+  height: calc(100% - var(--cds-narr-h));
+  aspect-ratio: auto;
+  object-fit: contain;
+}
+
+/* ============================================================================
+ * Copa dos Sonhos · Redesign de partida · CASCA DESKTOP (cockpit)
+ *
+ * Transforma a pilha vertical atual em campo + painel lateral, SEM tocar no
+ * HTML de `render()` nem nos 41 patches de apresentacao. Tudo por CSS Grid
+ * sobre os mesmos nos, com os mesmos `id`s.
+ *
+ * Por que da certo em CSS puro: os filhos de #app (.mh, .spd-row, #statsb,
+ * #tline, .field-wrap, .mtabs, #tbody) sao todos irmaos diretos. O grid os
+ * reposiciona por area sem mover ninguem na arvore — os 11 nos do contrato de
+ * integracao (reports/ui/01-AUDITORIA-UI-ATUAL.md §3) continuam existindo e no
+ * lugar que as funcoes de paint esperam.
+ *
+ * `:has()` ja e dependencia do projeto (o CSS atual usa #app:has(#fieldcv)).
+ * Abaixo de --bp-shell a pilha mobile atual continua valendo, intocada.
+ * ========================================================================== */
+
+@media (min-width: 900px) {
+  /* ── grid de duas colunas: campo protagonista + painel contextual ────────
+     Areas nomeadas: o painel (side) abrange TODAS as linhas da coluna 2, entao
+     tem sempre a altura cheia da tela — independente da altura do campo (cujo
+     aspect-ratio, quando ancorado numa linha 1fr, encolhia a linha e deixava o
+     painel curto, cortando o conteudo). */
+  #app:has(#fieldcv) {
+    --side-w: clamp(var(--side-min), var(--side-pref), var(--side-max));
+    display: grid;
+    /* header (placar | velocidades) em cima; campo 1fr enche a coluna esquerda;
+       eventos+nav embaixo; painel (side) abrange todas as linhas -> altura cheia */
+    grid-template-columns: minmax(0, 1fr) var(--side-w);
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      "head   speed"
+      "field  side"
+      "events side"
+      "nav    side";
+    column-gap: var(--shell-gap);
+    row-gap: var(--sp-2);
+    padding: var(--shell-pad);
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  /* cabecalho: placar na coluna do campo; velocidades na propria celula (acima
+     do painel), NUNCA na mesma area que o placar — antes se sobrepunham ao time
+     visitante e os aceleradores sumiam */
+  #app:has(#fieldcv) > .mh      { grid-area: head;  border-radius: var(--r-md); border-bottom: 1px solid var(--ui-border); }
+  #app:has(#fieldcv) > .spd-row { grid-area: speed; align-self: center; justify-content: flex-end; flex-wrap: nowrap; gap: 5px; border-bottom: 0; border-radius: var(--r-md); background: transparent; padding: 0; }
+  /* aceleradores compactos para caberem na largura do painel (a ~1366 os botoes
+     transbordavam para a esquerda e invadiam o time visitante). O !important
+     vence a regra base de touch (pointer:coarse) que forcava min-width:44px. */
+  #app:has(#fieldcv) > .spd-row .spd {
+    min-width: 0 !important; min-height: 36px !important;
+    padding: 6px 9px !important; font-size: 11px;
+    flex: 0 1 auto;
+  }
+
+  /* campo: ENCHE a celula (coluna 1, linha 1fr) — mais largo e mais alto,
+     sem espaco morto. O canvas usa object-fit contain (pitch inteiro, sem corte);
+     a pequena faixa de letterbox some porque a celula ja fica perto de 2.048. */
+  #app:has(#fieldcv) > .field-wrap {
+    grid-area: field;
+    align-self: stretch; justify-self: stretch;
+    width: 100%; height: 100%; min-height: 0;
+    max-height: none; float: none;
+    border-radius: var(--r-md); overflow: hidden;
+    border: 1px solid var(--ui-border);
+    --cds-narr-h: 30px;   /* banda fina da narracao no rodape do campo */
+  }
+  #app:has(#fieldcv) > .field-wrap > #fieldcv {
+    position: absolute; top: 0; left: 0; right: 0;
+    bottom: var(--cds-narr-h); height: calc(100% - var(--cds-narr-h));
+    width: 100%; aspect-ratio: auto; object-fit: contain;
+  }
+  /* legenda dos lances: banda fina de 1 linha no rodape do campo (pedido do
+     usuario). Reusa .narr, que ja recebe a narracao corrente via updateNarr(). */
+  #app:has(#fieldcv) > .field-wrap > .narr {
+    display: flex; align-items: center;
+    position: absolute; left: 0; right: 0; bottom: 0;
+    height: var(--cds-narr-h); min-height: var(--cds-narr-h);
+    padding: 0 12px; margin: 0;
+    background: rgba(3, 9, 18, .96);
+    font: 700 12px var(--f-cond); letter-spacing: .3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* eventos: faixa unica logo abaixo do campo */
+  #app:has(#fieldcv) > #tline { grid-area: events; }
+
+  /* navegacao inferior compacta */
+  #app:has(#fieldcv) > .mtabs { grid-area: nav; border-radius: var(--r-md); }
+
+  /* ── PAINEL LATERAL CONTEXTUAL (o #tbody) ─────────────────────────────────
+     O #tbody deixa de ser um overlay sobre o campo e passa a ser o painel FIXO
+     da direita: seu conteudo TROCA conforme a aba (Visao geral / Estatisticas /
+     Adversario / Tatica), enquanto o campo fica sempre visivel a esquerda. E a
+     arquitetura master-detail pedida — e, sem sobreposicao, some de vez o vazamento
+     das barras `.bar` do Resumo sobre o gramado. */
+  #app:has(#fieldcv) > #tbody {
+    grid-area: side;
+    min-height: 0;
+    max-height: none;   /* o base capa .tbody em min(52vh,560px) (=494px a 950); aqui o painel vai a altura toda */
+    height: auto;
+    overflow-y: auto; overflow-x: hidden;
+    align-self: stretch; float: none;
+    background: var(--ui-surface-1);
+    border: 1px solid var(--ui-border);
+    border-radius: var(--r-lg);
+    padding: var(--sp-3);
+    scrollbar-gutter: stable;
+  }
+  /* o campo nao floata na casca-grid (o base o floata em >=980px) */
+  #app:has(#fieldcv) > .field-wrap { float: none; }
+  /* feed de lances em coluna unica dentro do painel estreito */
+  #app:has(#fieldcv) > #tbody .mfeed { grid-template-columns: 1fr; }
+  #app:has(#fieldcv) > #tbody > div { width: 100%; margin-inline: 0; }
+  /* a barra de posse ao vivo (#statsb) e redundante com a aba "Visao geral";
+     fica oculta no desktop, mas segue no DOM (contrato + updateStatsBar validos) */
+  #app:has(#fieldcv) > #statsb { display: none; }
+
+  /* conteudo do painel cabe numa coluna estreita. As grades do jogo foram
+     desenhadas para a largura cheia da tela; dentro do painel (~560px) elas
+     estouravam (o `@media(max-width:900px)` do base nao pega, pois o VIEWPORT e
+     largo, so o container e estreito). Aqui elas colapsam pela largura real. */
+  #app:has(#fieldcv) > #tbody .split-feed,
+  #app:has(#fieldcv) > #tbody .opp-layout,
+  #app:has(#fieldcv) > #tbody .ux-team-scoreboard,
+  #app:has(#fieldcv) > #tbody .stat-board { grid-template-columns: 1fr; }
+  /* os dois campinhos de finalizacao ficam LADO A LADO, um pouco MAIORES:
+     gap menor + a secao usa a largura cheia do painel (compensa o padding) */
+  #app:has(#fieldcv) > #tbody .ux-shotmaps {
+    grid-template-columns: 1fr 1fr; gap: var(--sp-1);
+    margin-inline: calc(-1 * var(--sp-2));
+  }
+  #app:has(#fieldcv) > #tbody .tactic-style-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+  #app:has(#fieldcv) > #tbody .ux-shell { gap: var(--sp-3); }
+
+  /* sub-nav Tatica|Elenco dentro da aba Tatica — grudada no topo ao rolar */
+  .tt-subnav {
+    display: flex; gap: var(--sp-2); margin-bottom: var(--sp-3);
+    position: sticky; top: 0; z-index: 2;
+    background: var(--ui-surface-1); padding-bottom: var(--sp-2);
+  }
+  .tt-sub {
+    flex: 1; padding: 9px 0; border-radius: var(--r-sm); cursor: pointer;
+    font: 800 12px var(--f-cond); letter-spacing: .8px; text-transform: uppercase;
+    border: 1px solid var(--ui-border); background: rgba(255,255,255,.04); color: var(--text-2);
+    transition: all var(--dur-fast) var(--ease);
+  }
+  .tt-sub.on {
+    background: linear-gradient(180deg, #ffe38a, var(--user) 55%, var(--user-2));
+    color: #241a00; border-color: transparent;
+  }
+
+  /* ── FIM DE JOGO ──────────────────────────────────────────────────────────
+     endOfPlay() troca o innerHTML de .spd-row pelo CARD DE RESULTADO (grande).
+     Na casca, .spd-row e uma celula pequena (area "speed") — o card estourava e
+     quebrava a tela. Aqui, quando o card existe, ele ocupa a AREA DO CAMPO
+     (centrado, rolando), e o campo vazio some. */
+  #app:has(#fieldcv):has(.result-card) > .field-wrap { display: none; }
+  #app:has(#fieldcv):has(.result-card) > .spd-row {
+    grid-area: field; align-self: center; justify-self: center;
+    width: min(100%, 560px); max-height: 100%; overflow-y: auto;
+    padding: 0; background: transparent; display: block;
+  }
+  #app:has(#fieldcv):has(.result-card) > .spd-row .result-card { width: 100%; }
+  /* o painel lateral sobe para preencher a coluna (area speed fica livre) */
+  #app:has(#fieldcv):has(.result-card) > #tbody { grid-row: 1 / -1; }
+
+  /* dica de "arraste para cima" nao faz sentido no desktop de duas colunas */
+  #app:has(#fieldcv) > .match-scroll-hint { display: none; }
+
+  /* ultrawide: nao deixa o painel esticar demais nem o campo virar faixa */
+  @media (min-width: 2200px) {
+    #app:has(#fieldcv) {
+      max-width: 2100px; margin-inline: auto;
+    }
+  }
+}
+
+/* ── TELA ESTATISTICAS: mapa de finalizacoes (2 times lado a lado) ────────── */
+.ux-shotmaps {
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2);
+}
+.ux-shotmap { margin: 0; min-width: 0; }
+.ux-shotmap figcaption {
+  font: 800 10px var(--f-cond); letter-spacing: .5px; text-transform: uppercase;
+  margin-bottom: var(--sp-1); display: flex; align-items: center; gap: 5px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* SO o campinho (filho direto do figure) enche a largura */
+.ux-shotmap > svg { width: 100%; height: auto; display: block; }
+/* a bandeira/estrela da legenda tinha 'width:100%' herdado e inflava a ~350px,
+   estourando a altura do painel — aqui fica pequena e fixa */
+.ux-shotmap figcaption svg,
+.ux-shotmap figcaption img { width: 14px; height: 14px; flex: 0 0 auto; }
+/* legenda verbosa do fieldSVG: compacta, sem quebrar em varias linhas */
+.ux-shotmap > div { font-size: 8.5px !important; line-height: 1.3; margin-top: 3px !important; }
+
+/* ============================================================================
+ * Copa dos Sonhos · Redesign de partida · PAINEIS DENSOS (estilo FM)
+ *
+ * O conteudo das abas (Visao geral / Estatisticas / Adversario / Tatica) foi
+ * desenhado para a largura cheia da tela; dentro do painel lateral (~440px) os
+ * cards ficavam GIGANTES e empilhados (o usuario reclamou: numeros enormes,
+ * lista de elenco empurrada pra fora). Aqui a densidade e reajustada por CSS,
+ * no escopo do painel — sem reescrever HTML. Nada gigante, nada vazio.
+ *
+ * So vale no desktop (painel existe); no mobile a pilha original continua.
+ * ========================================================================== */
+@media (min-width: 900px) {
+  #app:has(#fieldcv) > #tbody {
+    --pnl: 1;   /* marcador de escopo */
+  }
+  /* atalho de escopo */
+  #app:has(#fieldcv) > #tbody .ux-shell > section { padding: var(--sp-3); }
+
+  /* ── SECTION HEADERS compactos ─────────────────────────────────────────── */
+  #app:has(#fieldcv) > #tbody .ux-section-head { margin-bottom: var(--sp-2); }
+  #app:has(#fieldcv) > #tbody .ux-section-head .ttl { font-size: 12px; letter-spacing: .6px; }
+  #app:has(#fieldcv) > #tbody .ux-section-head .sub { font-size: 10px; }
+  #app:has(#fieldcv) > #tbody .ux-line-sep .ttl { font-size: 11px; }
+  #app:has(#fieldcv) > #tbody .ux-line-sep .sub { font-size: 10px; }
+
+  /* ── STAT-TILES: cards de KPI/resumo/elenco viram tiles pequenos ────────── */
+  #app:has(#fieldcv) > #tbody .ux-kpi-grid,
+  #app:has(#fieldcv) > #tbody .tactic-summary-grid,
+  #app:has(#fieldcv) > #tbody .ux-stat-hero {
+    grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+    gap: var(--sp-2); margin: 0 0 var(--sp-2);
+  }
+  #app:has(#fieldcv) > #tbody .ux-kpi,
+  #app:has(#fieldcv) > #tbody .ux-stat-chip,
+  #app:has(#fieldcv) > #tbody .tactic-summary-card { padding: 8px 9px; border-radius: 10px; }
+  #app:has(#fieldcv) > #tbody .ux-kpi .k,
+  #app:has(#fieldcv) > #tbody .ux-stat-chip .k,
+  #app:has(#fieldcv) > #tbody .tactic-summary-card .k { font-size: 9px; letter-spacing: .8px; }
+  #app:has(#fieldcv) > #tbody .ux-kpi .v,
+  #app:has(#fieldcv) > #tbody .ux-stat-chip .v,
+  #app:has(#fieldcv) > #tbody .tactic-summary-card .big { font-size: 17px !important; margin-top: 2px; }
+  #app:has(#fieldcv) > #tbody .ux-kpi .hint,
+  #app:has(#fieldcv) > #tbody .tactic-summary-card .sub { font-size: 9px; margin-top: 2px; }
+
+  /* ── COMPARACAO A×B mais densa ─────────────────────────────────────────── */
+  #app:has(#fieldcv) > #tbody .stat-group { padding: 10px 11px; border-radius: 12px; }
+  #app:has(#fieldcv) > #tbody .stat-group-title { margin-bottom: 8px; font-size: 11px; }
+  #app:has(#fieldcv) > #tbody .stat-row + .stat-row { margin-top: 7px; }
+  #app:has(#fieldcv) > #tbody .stat-value { font-size: 13px; }
+  #app:has(#fieldcv) > #tbody .stat-track { height: 5px; }
+
+  /* ── DESTAQUE / MVP compacto ───────────────────────────────────────────── */
+  #app:has(#fieldcv) > #tbody .ux-mvp-star { width: 34px; height: 34px; font-size: 16px; }
+  #app:has(#fieldcv) > #tbody .ux-mvp-card .name { font-size: 14px; }
+  #app:has(#fieldcv) > #tbody .ux-mvp-card .sub { font-size: 11px; }
+
+  /* ── LISTAS DE JOGADOR: linha compacta, sem card gigante ───────────────── */
+  #app:has(#fieldcv) > #tbody .ux-list-grid { gap: 6px; }
+  #app:has(#fieldcv) > #tbody .player-pill-card { padding: 7px 9px; border-radius: 10px; display: flex; align-items: center; gap: 9px; }
+  #app:has(#fieldcv) > #tbody .player-pill-card .ovr { font-size: 16px; width: 30px; }
+  #app:has(#fieldcv) > #tbody .player-pill-card .nm { font-size: 12px; }
+  #app:has(#fieldcv) > #tbody .player-pill-card .sb { font-size: 10px; }
+
+  /* ── SELETOR DE ESTILO (tatica) em linhas baixas ───────────────────────── */
+  #app:has(#fieldcv) > #tbody .stylerow { min-height: 0; padding: 9px 11px; gap: 9px; }
+  #app:has(#fieldcv) > #tbody .st-i { width: 30px; height: 30px; font-size: 15px; border-radius: 9px; }
+  #app:has(#fieldcv) > #tbody .st-t { font-size: 15px; }
+  #app:has(#fieldcv) > #tbody .st-d { font-size: 10px; margin-top: 3px; }
+
+  /* score core do resumo (Visao geral): reduz o placar duplicado do cabecalho */
+  #app:has(#fieldcv) > #tbody .ux-score-core .score { font-size: 30px; }
+}
+

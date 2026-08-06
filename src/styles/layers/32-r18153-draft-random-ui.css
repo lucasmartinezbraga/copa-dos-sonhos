@@ -1,0 +1,28 @@
+
+/* R18.15.3 · O campo e os controles de sorteio cabem juntos mesmo em telas
+   baixas. O ponto de interrogação é um botão real e acessível. */
+.draw-pot { appearance:none; -webkit-appearance:none; color:inherit; padding:0; cursor:pointer; touch-action:manipulation; }
+.draw-pot:focus-visible { outline:3px solid var(--azul); outline-offset:4px; }
+.draw-pot:active .ball { transform:scale(.92); }
+.draft-await-screen { min-height:calc(100dvh - 58px); padding-top:10px; padding-bottom:14px; gap:8px; overflow:auto; }
+.draft-await-screen .draw-stage { padding-top:0; flex:0 0 auto; }
+.draft-await-screen .draw-pot { width:112px; height:112px; margin:8px auto 4px; }
+.draft-await-screen .draw-pot .ball { width:58px; height:58px; }
+.draft-await-copy { font-size:12px; max-width:320px; margin:5px auto 0; line-height:1.35; }
+.draft-await-pitch { width:min(100%,560px); height:clamp(235px,40dvh,390px); aspect-ratio:auto !important; margin:2px auto 0; flex:0 0 auto; }
+.draft-await-actions { width:min(100%,560px); margin:0 auto; padding-top:4px; flex:0 0 auto; }
+@media (max-height:700px) {
+  .draft-await-screen { gap:4px; padding-top:6px; }
+  .draft-await-screen .draw-pot { width:88px; height:88px; margin:4px auto 2px; }
+  .draft-await-screen .draw-pot .ball { width:48px; height:48px; font-size:22px; }
+  .draft-await-copy { margin-top:2px; font-size:11px; }
+  .draft-await-pitch { height:clamp(210px,37dvh,285px); }
+  .draft-await-actions .btn { min-height:44px; padding:11px 14px; font-size:15px; }
+}
+@media (min-width:760px) {
+  .draft-await-screen { display:grid; grid-template-columns:minmax(220px,.72fr) minmax(360px,1.28fr); grid-template-rows:1fr auto; align-items:center; column-gap:20px; }
+  .draft-await-screen .draw-stage { grid-column:1; grid-row:1; }
+  .draft-await-pitch { grid-column:2; grid-row:1; width:100%; height:min(56dvh,520px); }
+  .draft-await-screen .benchbar { grid-column:1/-1; }
+  .draft-await-actions { grid-column:1/-1; grid-row:2; }
+}

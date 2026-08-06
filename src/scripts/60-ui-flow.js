@@ -6,6 +6,13 @@
    ========================================================================= */
 (function () {
 'use strict';
+/* AUDITORIA (Fases 0-9) - RNG visual deterministico: efeitos, confete,
+   narracao e audio nunca usam Math.random nem tocam o RNG seedado da
+   partida (nao consomem rolagens do motor). Sequencia propria e
+   reprodutivel entre execucoes. */
+let _vseed = 0x9E3779B9 >>> 0;
+function vrand(){ _vseed=(_vseed+0x6D2B79F5)>>>0; let t=_vseed; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return ((t^t>>>14)>>>0)/4294967296; }
+
 
 /* ------------------------------- ESTADO --------------------------------- */
 const G = window.G = {
@@ -18,18 +25,50 @@ const G = window.G = {
   draft: null,               // estado do draft
   lineup: [], bench: [],     // time final (cópias do squad ME)
   cup: null,
-  speed: 1.4,
+  /* §OS-78 · a partida comeca no botao 2X (valor interno 1.8; item 6 da fila).
+     A primeira tentativa usava 2.0 e nao correspondia a nenhum botao.
+     O documento mediu que
+     clockRate e botao de VOLUME, nao de velocidade de tela: mexer nele leva
+     gols de 1,81 para 4,38. A velocidade de exibicao e a unica alavanca de
+     tempo com custo zero em realismo — o mesmo jogo, desenhado mais rapido.
+     Os controles 1x/2x/4x/TURBO continuam la para voltar. */
+  speed: 1.8,
   screen: 'home',
 };
 
 const $ = sel => document.querySelector(sel);
 const app = () => $('#app');
-const rnd = a => a[Math.floor(Math.random() * a.length)];
+const rnd = a => a[Math.floor(vrand() * a.length)];
 
-window.flagSvg = function(f, size) {
+/* R18.15.3 · ALEATORIEDADE DE CAMPANHA
+   A roleta visual continua isolada e determinística, mas o conteúdo sorteado
+   no draft recebe uma seed nova a cada campanha. Isso impede a repetição da
+   mesma sequência sempre que o HTML é reaberto, sem consumir o RNG da partida. */
+let _campaignSeed = 0xA341316C >>> 0;
+function freshEntropySeed(){
+  try{
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+      const a = new Uint32Array(2); crypto.getRandomValues(a);
+      const v = (a[0] ^ Math.imul(a[1], 0x9E3779B9) ^ (Date.now()>>>0)) >>> 0;
+      return v || 1;
+    }
+  }catch(_){ }
+  const perf = typeof performance !== 'undefined' ? Math.floor(performance.now()*1000) : 0;
+  return (((Date.now()>>>0) ^ perf ^ ((_vseed<<7)>>>0)) >>> 0) || 1;
+}
+function seedCampaignRandom(seed){ _campaignSeed = (seed>>>0) || 1; return _campaignSeed; }
+function campaignRand(){
+  _campaignSeed ^= _campaignSeed << 13; _campaignSeed >>>= 0;
+  _campaignSeed ^= _campaignSeed >>> 17;
+  _campaignSeed ^= _campaignSeed << 5; _campaignSeed >>>= 0;
+  return _campaignSeed / 4294967296;
+}
+function campaignRnd(a){ return a && a.length ? a[Math.floor(campaignRand()*a.length)] : null; }
+
+window.flagSvg = function(f, size, noImg) {
   var s = size || 24;
   if (f === '⭐') return '<svg viewBox="0 0 24 24" width="' + s + '" height="' + s + '" fill="#ffcb45" style="vertical-align:middle;display:inline-block"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
-  
+
   var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   if (isMobile) {
     return '<span style="font-size:' + s + 'px; line-height: 1; vertical-align:middle; display:inline-block; font-family: apple color emoji, segoe ui emoji, noto color emoji, android emoji, emojisymbols, emojione mozilla, twemoji mozilla, segoe ui symbol;">' + f + '</span>';
@@ -40,6 +79,20 @@ window.flagSvg = function(f, size) {
   var cps = Array.from(String(f||''), function(ch){ return ch.codePointAt(0); });
   var englandTag = cps.indexOf(0xE0065)>=0 && cps.indexOf(0xE006E)>=0 && cps.indexOf(0xE0067)>=0;
   var scotlandTag = cps.indexOf(0xE0073)>=0 && cps.indexOf(0xE0063)>=0 && cps.indexOf(0xE0074)>=0;
+
+  // BANDEIRAS REAIS (desktop): imagem de bandeira derivada dos indicadores
+  // regionais do emoji (flagcdn). Se a imagem falhar (offline / rede que bloqueia),
+  // cai no SVG aproximado colorido — nunca em letras.
+  if (!noImg && !englandTag && !scotlandTag && cps.length >= 2 &&
+      cps[0] >= 0x1F1E6 && cps[0] <= 0x1F1FF && cps[1] >= 0x1F1E6 && cps[1] <= 0x1F1FF) {
+    var iso = String.fromCharCode(cps[0]-0x1F1E6+97) + String.fromCharCode(cps[1]-0x1F1E6+97);
+    var w = Math.round(s * 1.5);
+    return '<img src="https://flagcdn.com/' + iso + '.svg" width="' + w + '" height="' + s +
+      '" alt="' + iso.toUpperCase() + '" data-fb="' + f +
+      '" style="border-radius:2px;object-fit:cover;vertical-align:middle;display:inline-block;background:#26364f" ' +
+      'onerror="this.onerror=null;this.outerHTML=window.flagSvg(this.getAttribute(\'data-fb\'),' + s + ',true)">';
+  }
+
 
   // Desktop SVG
   if (f === '🇧🇷') return '<svg viewBox="0 0 32 20" width="' + (s*1.6) + '" height="' + s + '" style="border-radius:2px;vertical-align:middle;display:inline-block"><rect width="32" height="20" fill="#009739"/><path d="M16 2 L30 10 L16 18 L2 10 Z" fill="#fedf00"/><circle cx="16" cy="10" r="3.5" fill="#012169"/></svg>';
@@ -100,37 +153,104 @@ function go(name, arg) {
 window.UI = { go, toast, teamOvr, ovrClass, esc, header };
 
 document.addEventListener('click', e => {
-  const b = e.target.closest('[data-go]');
-  if (b) go(b.dataset.go);
+  const target = e.target && e.target.closest ? e.target : null;
+  const b = target ? target.closest('[data-go]') : null;
+  if (b) { e.preventDefault(); go(b.dataset.go); }
 });
 
-/* Tap móvel tolerante: o botão dispara no pointerup mesmo quando o WebView
-   deixa de sintetizar o click. Um deslocamento maior que 14px cancela a ação. */
+/* Tap móvel robusto: CLICK é a fonte principal. touchend existe apenas como
+   fallback para WebViews que não sintetizam click. Sem pointer capture e sem
+   cancelar a ação por microdeslocamentos naturais do dedo. */
 function bindMobileTap(el, action) {
-  if (!el) return;
-  let pid = null, x0 = 0, y0 = 0, moved = false, firedAt = -1e9;
-  el.addEventListener('pointerdown', ev => {
-    if (ev.pointerType === 'mouse') return;
-    pid = ev.pointerId; x0 = ev.clientX; y0 = ev.clientY; moved = false;
-    try { el.setPointerCapture(pid); } catch (_) {}
-  }, { passive: true });
-  el.addEventListener('pointermove', ev => {
-    if (ev.pointerId !== pid) return;
-    if (Math.hypot(ev.clientX - x0, ev.clientY - y0) > 14) moved = true;
-  }, { passive: true });
-  const end = ev => {
-    if (ev.pointerId !== pid) return;
-    const fire = !moved;
-    pid = null;
-    if (fire) { firedAt = performance.now(); action(ev); }
-  };
-  el.addEventListener('pointerup', end, { passive: true });
-  el.addEventListener('pointercancel', ev => { if (ev.pointerId === pid) pid = null; }, { passive: true });
+  if (!el || el.__cdsTapBound) return;
+  el.__cdsTapBound = true;
+  /* CLICK é a única ação autoritativa. O fallback global da R18.17.3.1 chama
+     el.click() somente em WebViews que não produzirem o click após o toque. */
   el.addEventListener('click', ev => {
-    if (performance.now() - firedAt < 600) { ev.preventDefault(); return; }
+    if (el.disabled || el.getAttribute('aria-disabled') === 'true') return;
     action(ev);
   });
 }
+
+/* R18.17.3.2 · ACIONAMENTO CRÍTICO DE INÍCIO NO iOS
+   Os três botões que iniciam trabalho pesado (draft, tela pré-jogo e partida)
+   não dependem mais apenas do click sintetizado pelo Safari nem de listener
+   delegado. Pointer-up, touch curto e click chegam à MESMA trava idempotente.
+   A ação só roda após dois frames, permitindo que "Iniciando…" seja pintado
+   antes de o banco/draft/MatchSim ocupar a thread principal. */
+function bindCriticalStart(el, action, busyText) {
+  if (!el || el.__cdsCriticalStartBound) return;
+  el.__cdsCriticalStartBound = true;
+  if (!el.getAttribute('type')) el.setAttribute('type', 'button');
+  const originalText = el.textContent;
+  let locked = false;
+  let gesture = null;
+
+  function restore() {
+    locked = false;
+    el.disabled = false;
+    el.removeAttribute('aria-busy');
+    el.classList.remove('cds-start-busy');
+    el.textContent = originalText;
+  }
+  function fail(err) {
+    restore();
+    const msg = 'Não foi possível iniciar: ' + ((err && err.message) || err || 'erro desconhecido');
+    try { toast(msg); } catch (_) {}
+    if (window.__showBootError) window.__showBootError(msg);
+  }
+  function execute(ev) {
+    if (locked || !el.isConnected || el.disabled || el.getAttribute('aria-disabled') === 'true') return;
+    if (ev && ev.type === 'click' && ev.detail === 0 && gesture && gesture.cancelled) return;
+    locked = true;
+    el.disabled = true;
+    el.setAttribute('aria-busy', 'true');
+    el.classList.add('cds-start-busy');
+    el.textContent = busyText || 'Iniciando…';
+    if (ev && ev.type === 'click') {
+      if (ev.cancelable) ev.preventDefault();
+      ev.stopPropagation();
+    }
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      try {
+        const result = action();
+        if (result === false) { restore(); return; }
+        if (result && typeof result.then === 'function') result.catch(fail);
+      } catch (err) { fail(err); }
+    }));
+  }
+  function begin(x, y, id) { gesture = { x, y, id, at: performance.now(), cancelled: false }; }
+  function move(x, y) {
+    if (!gesture) return;
+    if (Math.hypot(x - gesture.x, y - gesture.y) > 18) gesture.cancelled = true;
+  }
+  function finish(ev, x, y) {
+    const g = gesture; gesture = null;
+    if (!g || g.cancelled || performance.now() - g.at > 1500) return;
+    if (Math.hypot(x - g.x, y - g.y) > 18) return;
+    execute(ev);
+  }
+
+  el.addEventListener('click', execute, true);
+  if (window.PointerEvent) {
+    el.addEventListener('pointerdown', ev => begin(ev.clientX, ev.clientY, ev.pointerId), { passive: true });
+    el.addEventListener('pointermove', ev => move(ev.clientX, ev.clientY), { passive: true });
+    el.addEventListener('pointercancel', () => { if (gesture) gesture.cancelled = true; }, { passive: true });
+    el.addEventListener('pointerup', ev => finish(ev, ev.clientX, ev.clientY), { passive: true });
+  } else {
+    el.addEventListener('touchstart', ev => {
+      if (ev.touches && ev.touches.length === 1) begin(ev.touches[0].clientX, ev.touches[0].clientY, 1);
+    }, { passive: true });
+    el.addEventListener('touchmove', ev => {
+      if (ev.touches && ev.touches.length === 1) move(ev.touches[0].clientX, ev.touches[0].clientY);
+    }, { passive: true });
+    el.addEventListener('touchend', ev => {
+      const t = ev.changedTouches && ev.changedTouches[0];
+      if (t) finish(ev, t.clientX, t.clientY);
+    }, { passive: true });
+  }
+}
+window.bindCriticalStart = bindCriticalStart;
 
 /* ================================ HOME =================================== */
 SCREENS.home = function () {
@@ -143,7 +263,7 @@ SCREENS.home = function () {
       </header>
       <main class="home-main-v2">
         <section class="home-copy-v2">
-          <span class="home-status"><i></i> Motor 3.0 · futebol simulado lance a lance</span>
+          <span class="home-status"><i></i> Motor visual 5.8.2 · persistência de Copa ativa</span>
           <h1 class="display home-title-v2">Copa dos<span>Sonhos</span></h1>
           <p class="home-lead-v2">Escolha um craque de cada seleção histórica, construa um time impossível e leve suas lendas por uma Copa completa. Aqui, nome não ganha jogo: posição, atributos e decisões táticas aparecem dentro de campo.</p>
           <div class="home-facts"><span class="home-fact">369 seleções históricas</span><span class="home-fact">1934 → 2026</span><span class="home-fact">Momentos decisivos jogáveis</span></div>
@@ -151,7 +271,7 @@ SCREENS.home = function () {
             ${saved?'<button type="button" class="btn btn-gold" id="bt-continue">Continuar minha Copa</button>':''}
             <button type="button" class="btn ${saved?'btn-ghost':'btn-gold'}" id="bt-start">${saved?'Criar novo time':'Montar meu time'}</button>
             <button type="button" class="btn btn-ghost" id="bt-about">Como funciona</button>
-            <button class="home-mode-v2" data-go="freekick" aria-label="Abrir o Desafio de Faltas">
+            <button type="button" class="home-mode-v2" data-go="freekick" aria-label="Abrir o Desafio de Faltas">
               <span class="hm-icon">↗</span><span class="hm-copy"><small>Novo modo de habilidade</small><b>Desafio de Faltas</b><span>Cinco cobranças com a mesma física usada na Copa.</span></span><span class="hm-go">›</span>
             </button>
           </div>
@@ -328,11 +448,12 @@ SCREENS.setup = function () {
     }
     document.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { G.formKey = b.dataset.f; G.varIdx = 0; render(); });
     document.querySelectorAll('[data-v]').forEach(b => b.onclick = () => { G.varIdx = +b.dataset.v; render(); });
-    $('#bt-draft').onclick = () => {
-      if (!G.style) { toast('Escolha um estilo de jogo!'); return; }
+    bindCriticalStart($('#bt-draft'), () => {
+      if (!G.style) { toast('Escolha um estilo de jogo!'); return false; }
       startDraft();
       go('draft');
-    };
+      return true;
+    }, 'Abrindo draft…');
   }
   render();
 };
@@ -343,10 +464,12 @@ function draftSlots() {
   return form.variations[G.varIdx % form.variations.length].slots;
 }
 function startDraft() {
+  const randomSeed = seedCampaignRandom(freshEntropySeed());
   G.draft = {
     rerolls: 4, used: new Set(), cur: null, await: true,
     slots: draftSlots().map(sl => ({ pos: sl.pos, x: sl.x, y: sl.y, p: null, from: null })),
     benchPicks: [], selP: null, selSlot: null, targetSlot: null, busy: false,
+    randomSeed, drawCount: 0, recentNations: [], drawHistory: [],
   };
   G.atkForm = G.formKey; G.defForm = G.formKey;
 }
@@ -380,8 +503,28 @@ function rollTeam(kind) {
     pool = all.filter(t => !d.used.has(keyOf(t)) && !(d.cur && t.c === d.cur.c && t.y === d.cur.y));
   }
   if (!pool.length) { d.used = new Set(); pool = all.slice(); }
-  d.cur = rnd(pool);
+  // UX-031: havendo slots vazios, prioriza times que TÊM peça compatível (evita travar)
+  const _need = d.slots.filter(s=>!s.p).map(s=>s.pos);
+  if (_need.length) {
+    const _taken = pickedIds();
+    const _good = pool.filter(t => (t.pl||[]).some(p=>!_taken.has(p.id) && _need.some(pos=>canPlay(p,pos))));
+    if (_good.length) pool = _good;
+  }
+  // Em sorteios automáticos, evita repetir uma nação que apareceu nas últimas
+  // quatro roletas quando ainda existem alternativas compatíveis. Rerolls
+  // explícitos preservam sua semântica de mesma Copa / mesma seleção.
+  if ((!kind || kind === 'auto') && d.recentNations && d.recentNations.length) {
+    const diverse = pool.filter(t => !d.recentNations.includes(t.nid));
+    if (diverse.length >= Math.min(4, pool.length)) pool = diverse;
+  }
+  d.cur = campaignRnd(pool) || pool[0];
   d.used.add(keyOf(d.cur));
+  d.drawCount = (d.drawCount || 0) + 1;
+  d.drawHistory = d.drawHistory || [];
+  d.drawHistory.push({sid:d.cur.sid,c:d.cur.c,y:d.cur.y,nid:d.cur.nid,kind:kind||'auto'});
+  d.recentNations = (d.recentNations || []).filter(n => n !== d.cur.nid);
+  d.recentNations.push(d.cur.nid);
+  if (d.recentNations.length > 4) d.recentNations.shift();
   d.selP = null;
 }
 function placePick(slotIdx, p) {
@@ -408,6 +551,12 @@ function selectPlayer(pid) {
   if (d.busy || d.await || !d.cur) return;
   const p = d.cur.pl.find(x => x.id === pid);
   if (!p) return;
+  // R18.15.2 · seleção reversível: tocar novamente no mesmo nome cancela.
+  if (d.selP && d.selP.id === p.id) {
+    d.selP = null;
+    renderDraft();
+    return;
+  }
   if (pickedIds().has(p.id)) { toast('Já está no seu time.'); return; }
   if (filled() >= 11) {                                     // fase banco
     if (d.benchPicks.length >= 7) { toast('Banco cheio (7/7)!'); return; }
@@ -455,6 +604,11 @@ function renderDraft(keepList) {
   const d = G.draft; if (!d) return;
   if (d.await || !d.cur) { renderAwait(); return; }
   const team = d.cur;
+  // UX-031: nunca trava — sem peça compatível p/ um slot vazio e sem rerolls,
+  // concede reroll de EMERGÊNCIA (roleta enviesada p/ time compatível em rollTeam).
+  if (d.cur && filled() < 11 && d.rerolls <= 0 && !_draftCanProgress(d)) {
+    d.rerolls = 1; toast('Reroll de emergência: elenco sem peça compatível.');
+  }
   const nPick = Math.min(filled() + 1, 11);
   const benchPhase = filled() >= 11;
   const hideOvr = (G.modo === 'classico') && !benchPhase;   // clássico: às cegas até fechar os 11
@@ -532,22 +686,24 @@ function renderAwait() {
   const benchPhase = filled() >= 11;
   app().innerHTML = `
     ${header(benchPhase ? `Banco ${d.benchPicks.length}/7` : `Escolha ${nPick}/11`)}
-    <div class="screen">
+    <div class="screen draft-await-screen">
       <div class="draw-stage">
         <div class="eyebrow">${filled() === 0 && !d.benchPicks.length ? 'Hora de montar o time' : 'Próxima seleção'}</div>
-        <div class="draw-pot"><div class="ball">?</div></div>
-        <p class="mut" style="font-size:13px;max-width:280px;margin:10px auto 0">Sorteie uma seleção histórica — você leva <b class="gold">um jogador</b> dela.</p>
+        <button type="button" class="draw-pot" id="bt-roll-pot" aria-label="Sortear seleção histórica"><span class="ball">?</span></button>
+        <p class="mut draft-await-copy">Toque no <b class="gold">?</b> ou no botão para sortear uma seleção histórica.</p>
       </div>
-      <div class="pitch sm" id="dpitch" style="margin-top:12px"><div class="mid"></div><div class="circle"></div></div>
+      <div class="pitch sm draft-await-pitch" id="dpitch"><div class="mid"></div><div class="circle"></div></div>
       ${benchPhase ? `<div class="benchbar" id="benchbar"></div>` : ''}
-      <div style="margin-top:auto;padding-top:14px">
+      <div class="draft-await-actions">
         <button class="btn btn-gold" id="bt-roll">🎲 Sortear seleção</button>
         ${filled() >= 11 ? `<button class="btn btn-blue" id="bt-tocup" style="margin-top:8px">Ir para a Copa ⚽</button>` : ''}
       </div>
     </div>`;
   paintPitch();
   if (benchPhase) paintBench();
-  $('#bt-roll').onclick = () => { d.await = false; rollTeam('auto'); renderDraft(); };
+  const doRoll = () => { if (d.busy || d.revealing) return; d.await = false; rollTeam('auto'); renderDraft(); };
+  $('#bt-roll').onclick = doRoll;
+  $('#bt-roll-pot').onclick = doRoll;
   const tc = $('#bt-tocup'); if (tc) tc.onclick = finishDraft;
 }
 function hintText() {
@@ -619,7 +775,7 @@ function paintList() {
     const got = taken.has(p.id);
     const compat = tSlot ? canPlay(p, tSlot.pos) : true;
     const isLegend = p.r >= 92;   // #8 — craques lendários ganham destaque dourado no draft
-    const cls = 'row' + (d.selP && d.selP.id === p.id ? ' sel' : '') + (tSlot && !compat && !got ? ' incompat' : '') + (got ? ' incompat' : '') + (isLegend ? ' legend-row' : '');
+    const cls = 'row' + (d.selP && d.selP.id === p.id ? ' sel' : '') + (tSlot && !compat && !got ? ' incompat' : '') + (got ? ' incompat' : '') + (isLegend && !hideOvr ? ' legend-row' : '');
     return `<div class="${cls}" data-pid="${p.id}">
       <span class="posb ${posGroup(p)}">${SLOT_PT[p.slot] || p.slot}</span>
       <div class="grow">
@@ -643,37 +799,75 @@ function paintActions() {
    nação + posição), o banco, os ajustes (estilo/eixos/formação) e a Copa inteira
    (G.cup é serializável — guarda times por SID, não objetos pesados). NÃO salva
    G.db (é reconstruída no boot a partir dos dados fixos). No load, recria o time
-   "ME" com os mesmos picks (registerPlayerTeam) e restaura a Copa. Tudo blindado:
-   qualquer erro no save/load é engolido e o jogo segue normal.
+   "ME" com os mesmos picks (registerPlayerTeam) e restaura a Copa. Erros são
+   recuperáveis, registrados em `G.lastSaveError` e exibidos ao usuário no load.
    Obs.: alguns previews de app não persistem localStorage — no Safari funciona. */
 const SAVE_KEY = 'copa_save';
 function saveGame() {
   try {
     if (!G.cup || !G.draft) return;
     const d = G.draft;
+    const SC = window.CDS_SAVE_CONTRACT;
     const save = {
-      v: 1, modo: G.modo, style: G.style, axes: G.axes, formKey: G.formKey, varIdx: G.varIdx,
+      v: SC ? SC.SAVE_VERSION : 2,
+      engineVersion: (window.CDS_PHASE10 && window.CDS_PHASE10.ENGINE_VERSION) || (typeof ENGINE_CALIBRATION !== 'undefined' && ENGINE_CALIBRATION.version) || 'unknown',
+      savedAt: { phase: G.cup.phase, round: G.cup.round },
+      instructions: G.instructions || null, instructionPreset: G.instructionPreset || null,
+      phaseRoles: G.phaseRoles || null, manager: G.manager || null,
+      phase10: (G.cup && G.cup.persistence) || null,
+      preparationSelection: (G.cup && G.cup.persistence && G.cup.persistence.teams && G.cup.persistence.teams.ME && G.cup.persistence.teams.ME.lastPreparation) || null,
+      modo: G.modo, style: G.style, axes: G.axes, formKey: G.formKey, varIdx: G.varIdx,
       picks: d.slots.map(sl => ({ p: sl.p, from: sl.from, x: sl.x, y: sl.y, pos: sl.pos })),
       benchPicks: d.benchPicks,
       cup: G.cup,
     };
-    localStorage.setItem(SAVE_KEY, JSON.stringify(save));
-  } catch (_) {}
+    const encoded = SC ? SC.encodeSave(save) : JSON.stringify(save);
+    if (!encoded) throw new Error('O contrato recusou o estado atual do save.');
+    localStorage.setItem(SAVE_KEY, encoded);
+    G.lastSaveError = null;
+  } catch (e) {
+    G.lastSaveError = String(e && e.message || e);
+    console.error('[Copa dos Sonhos] Falha ao salvar a Copa:', e);
+  }
 }
 window._saveCopa = saveGame;                       // pra o game.js chamar após cada partida
 function hasSave() { try { return !!localStorage.getItem(SAVE_KEY); } catch (_) { return false; } }
 function loadGame() {
   let save;
-  try { save = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch (_) { return false; }
-  if (!save || save.v !== 1 || !save.cup || !Array.isArray(save.picks) || save.picks.length < 11) return false;
+  try {
+    const SC = window.CDS_SAVE_CONTRACT;
+    const raw = localStorage.getItem(SAVE_KEY);
+    // contrato versionado: migra saves antigos (v1→v2), rejeita corrompidos
+    // e versões futuras com segurança — sem crash, sem progresso inventado.
+    save = SC ? SC.decodeSave(raw) : JSON.parse(raw);
+  } catch (e) {
+    G.lastSaveError = String(e && e.message || e);
+    console.warn('[Copa dos Sonhos] Save ilegível:', e);
+    return false;
+  }
+  if (!save || !save.cup || !Array.isArray(save.picks) || save.picks.length < 11) {
+    G.lastSaveError = 'Save ausente, corrompido ou incompatível.';
+    return false;
+  }
   try {
     G.modo = save.modo; G.style = save.style; G.axes = save.axes; G.formKey = save.formKey; G.varIdx = save.varIdx;
+    if (save.instructions) G.instructions = save.instructions;
+    if (save.instructionPreset) G.instructionPreset = save.instructionPreset;
+    if (save.phaseRoles) G.phaseRoles = save.phaseRoles;
+    if (save.manager) G.manager = save.manager;
     const me = CUP.registerPlayerTeam(G.db, save.picks.map(pk => ({ p: pk.p, from: pk.from })), save.benchPicks || []);
     G.lineup = save.picks.map((pk, i) => ({ p: me.pl[i], x: pk.x, y: pk.y, pos: pk.pos, from: pk.from }));
     G.bench = me.pl.slice(11);
     G.cup = save.cup;
+    if (save.phase10 && !G.cup.persistence) G.cup.persistence = save.phase10;
+    if (window.CDS_PHASE10) window.CDS_PHASE10.ensureCup(G.cup, G.db);
+    G.lastSaveError = null;
     return true;
-  } catch (e) { return false; }
+  } catch (e) {
+    G.lastSaveError = String(e && e.message || e);
+    console.warn('[Copa dos Sonhos] Não foi possível restaurar o save:', e);
+    return false;
+  }
 }
 
 function finishDraft() {
@@ -683,7 +877,13 @@ function finishDraft() {
   const me = CUP.registerPlayerTeam(G.db, picksOrdered, d.benchPicks);
   G.lineup = d.slots.map((sl, i) => ({ p: me.pl[i], x: sl.x, y: sl.y, pos: sl.pos, from: sl.from }));   // #7 leva a nação de origem (química)
   G.bench = me.pl.slice(11);
-  G.cup = CUP.createCup(G.db, 'ME');
+  // Seed nova por campanha: os 31 adversários, suas eras e os grupos deixam
+  // de repetir a mesma combinação a cada abertura do HTML. O valor fica
+  // gravado dentro da Copa para auditoria e para o save preservar o sorteio.
+  const cupDrawSeed = freshEntropySeed();
+  G.cup = CUP.createCup(G.db, 'ME', cupDrawSeed);
+  G.cup.drawSeed = cupDrawSeed >>> 0;
+  G.cup.draftSeed = d.randomSeed >>> 0;
   saveGame();   // L2: salva o progresso ao terminar o draft
   go('cup');
 }
@@ -692,8 +892,31 @@ function finishDraft() {
 let cupTab = 'rodada';
 SCREENS.cup = function () {
   const cup = G.cup, db = G.db;
+  const P10 = window.CDS_PHASE10 || null;
+  if (P10) P10.ensureCup(cup, db);
   const phaseName = { groups: ['1ª rodada', '2ª rodada', '3ª rodada'][cup.round] || 'Grupos',
     r16: 'Oitavas de final', qf: 'Quartas de final', sf: 'Semifinal', third: 'Disputa de 3º', final: 'FINAL', done: 'Fim da Copa' };
+
+  function preparationHtml() {
+    if (!P10 || !P10.needsPreparation(cup, cup.playerSid)) return '';
+    const ov = P10.teamOverview(cup, cup.playerSid, db.byId.ME);
+    const unavailable = ov.players.filter(x => !x.status.available);
+    return `<div class="card phase10-prep">
+      <div class="eyebrow">Preparação para a próxima partida</div>
+      <div class="display" style="font-size:21px;margin:5px 0 2px">Escolha uma prioridade</div>
+      <div class="mut" style="font-size:12px;margin-bottom:10px">Condição média ${Math.round(ov.averageCondition)}%${unavailable.length ? ` · ${unavailable.length} indisponível(is)` : ''}. Cada efeito vale apenas o próximo jogo e aparece no cálculo real.</div>
+      <div class="phase10-options">${P10.preparationOptions().map(o => `<button class="phase10-option" data-prep="${o.key}"><span class="ico">${o.icon}</span><span><b>${o.label}</b><small>${o.description}</small></span></button>`).join('')}</div>
+    </div>`;
+  }
+  function phase10StatusLine(p) {
+    if (!P10) return '';
+    const st = P10.status(cup,p,cup.playerSid);
+    if (st.injured) return `🩹 Lesionado · ${st.injuryMatches} jogo(s)`;
+    if (st.suspended) return `⛔ Suspenso · ${st.suspensionMatches} jogo(s)`;
+    const form = st.form >= 6.8 ? 'boa forma' : st.form < 5.9 ? 'má fase' : 'forma estável';
+    const streak = st.scoringStreak ? ` · ${st.scoringStreak} jogo(s) marcando` : '';
+    return `${st.condition}% condição · ${form}${streak}`;
+  }
 
   function nextMatchCard() {
     if (cup.phase === 'done') return champCard();
@@ -704,14 +927,15 @@ SCREENS.cup = function () {
     const m = CUP.playerMatchOfRound(cup);
     if (!m) return elimCard();
     const H = db.byId[m.h], A = db.byId[m.a];
-    return `<div class="card">
+    const pendingPrep = P10 && P10.needsPreparation(cup, cup.playerSid);
+    return `${preparationHtml()}<div class="card">
       <div class="eyebrow">${phaseName[cup.phase]}</div>
       <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;margin-top:8px;text-align:center">
         <div><div style="font-size:34px">${window.flagSvg(H.f, 30)}</div><div class="cond" style="font-size:13px">${esc(H.c)} ${H.y === 2026 && H.sid === 'ME' ? '' : H.y}</div></div>
         <div class="display" style="font-size:22px;color:var(--mut)">VS</div>
         <div><div style="font-size:34px">${window.flagSvg(A.f, 30)}</div><div class="cond" style="font-size:13px">${esc(A.c)} ${A.y === 2026 && A.sid === 'ME' ? '' : A.y}</div></div>
       </div>
-      <div style="margin-top:12px"><button class="btn btn-gold" id="bt-play">Jogar partida</button></div>
+      <div style="margin-top:12px"><button class="btn btn-gold" id="bt-play" ${pendingPrep?'disabled':''}>${pendingPrep?'Escolha a preparação acima':'Jogar partida'}</button></div>
     </div>`;
   }
   function elimCard() {
@@ -786,12 +1010,12 @@ SCREENS.cup = function () {
       <div class="eyebrow" style="margin:6px 2px">Titulares · OVR ${teamOvr(G.lineup)} · toque para ver atributos</div>
       ${G.lineup.map((l, i) => `<div class="row" data-exp="${i}">
         <span class="posb ${GRP_OF_LINE[LINE_OF[l.pos]] || 'mid'}">${SLOT_PT[l.pos]}</span>
-        <div class="grow"><div class="nm">${esc(l.p.n)}</div><div class="sb">${window.flagSvg(l.p.origin.f, 12)} ${esc(l.p.origin.c)} ${l.p.origin.y}</div></div>
+        <div class="grow"><div class="nm">${esc(l.p.n)}</div><div class="sb">${window.flagSvg(l.p.origin.f, 12)} ${esc(l.p.origin.c)} ${l.p.origin.y}${P10?' · '+phase10StatusLine(l.p):''}</div></div>
         <div class="ovr ${ovrClass(l.p.r)}">${l.p.r}</div>
       </div>${squadExp === i ? a8Panel(l.p, false) : ''}`).join('')}
       ${G.bench.length ? `<div class="eyebrow" style="margin:12px 2px 6px">Banco</div>` + G.bench.map(b => `<div class="row" style="cursor:default">
         <span class="posb ${GRP_OF_LINE[LINE_OF[b.slot]] || 'mid'}">${SLOT_PT[b.slot] || ''}</span>
-        <div class="grow"><div class="nm">${esc(b.n)}</div><div class="sb">${window.flagSvg(b.origin.f, 12)} ${esc(b.origin.c)} ${b.origin.y}</div></div>
+        <div class="grow"><div class="nm">${esc(b.n)}</div><div class="sb">${window.flagSvg(b.origin.f, 12)} ${esc(b.origin.c)} ${b.origin.y}${P10?' · '+phase10StatusLine(b):''}</div></div>
         <div class="ovr ${ovrClass(b.r)}">${b.r}</div>
       </div>`).join('') : ''}
     </div>`;
@@ -819,12 +1043,22 @@ SCREENS.cup = function () {
     document.querySelectorAll('[data-exp]').forEach(r => r.onclick = () => {
       squadExp = squadExp === +r.dataset.exp ? -1 : +r.dataset.exp; render();
     });
+    document.querySelectorAll('[data-prep]').forEach(b => b.onclick = () => {
+      if (!P10) return;
+      P10.choosePreparation(cup, cup.playerSid, b.dataset.prep, G.lineup, { squad:db.byId.ME, lineup:G.lineup, bench:G.bench });
+      saveGame();
+      toast('Preparação aplicada: ' + (P10.PREPARATIONS[b.dataset.prep]||{}).label);
+      render();
+    });
     const play = $('#bt-play');
-    if (play) play.onclick = () => go('match');
+    if (play) bindCriticalStart(play, () => { go('match'); return true; }, 'Preparando partida…');
     const simrest = $('#bt-simrest');
     if (simrest) simrest.onclick = () => {
-      simrest.disabled = true; const msg = $('#simmsg'); if (msg) msg.style.display = '';
-      setTimeout(() => { window.GAME.advanceAfterPlayerDone(); render(); }, 30);
+      simrest.disabled = true; const msg = $('#simmsg'); if (msg) { msg.style.display = ''; msg.textContent = 'Preparando simulação…'; }
+      setTimeout(async () => {
+        try { await window.GAME.advanceAfterPlayerDone((done,total) => { if (msg) msg.textContent = `Simulando partida ${done}/${total}…`; }); }
+        finally { render(); }
+      }, 30);
     };
   }
   render();
@@ -883,7 +1117,11 @@ function bootGame() {
       srand(Date.now() >>> 0);
       if (!window.DATA) throw new Error('Banco de dados incorporado não encontrado.');
       G.db = buildDB(window.DATA);           // trabalho pesado: SÓ depois do 1º frame
-      go('home');
+      document.documentElement.dataset.cdsBoot = 'ready';
+      const requestedRoute = window.__CDS_PENDING_ROUTE;
+      window.__CDS_PENDING_ROUTE = null;
+      if (requestedRoute === 'freekick' || SCREENS[requestedRoute]) go(requestedRoute);
+      else go('home');
     } catch (err) {
       const msg = 'Não foi possível iniciar o jogo: ' + ((err && err.message) || err);
       if (window.__showBootError) window.__showBootError(msg);
@@ -897,6 +1135,7 @@ function bootGame() {
     : function (f) { setTimeout(f, 16); };
   frame(function () { frame(heavyInit); });
 }
+window.__CDS_BOOT_NOW = bootGame;
 /* Gatilhos redundantes — todos idempotentes graças ao _bootStarted: */
 if (document.readyState === 'loading') {
   window.addEventListener('DOMContentLoaded', bootGame, { once: true });
@@ -909,5 +1148,4 @@ if (document.readyState === 'loading') {
    redisparar DOMContentLoaded. pageshow cobre exatamente esse caso. */
 window.addEventListener('pageshow', function () { if (!_bootStarted) bootGame(); });
 })();
-
 

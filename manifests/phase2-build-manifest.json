@@ -1,0 +1,150 @@
+{
+  "phase": 2,
+  "name": "Banco V3: posições, atributos, goleiros, traits e validação",
+  "baseline_file": "COPA DOS SONHOS - FASE 1 - ARQUITETURA MODULAR.html",
+  "baseline_sha256": "7878fa516eea86d97dbc376977f5e2786d5a2b573780067b5e81b47682b2a76e",
+  "head_script": {
+    "file": "src/scripts/00-head-bootstrap.js",
+    "bytes": 1404,
+    "sha256": "b40fc82a34f51868630c349598d63f9a4c77a92eff0614f722571496b5baf10f"
+  },
+  "styles": [
+    {
+      "file": "src/styles/00-foundation-and-common-ui.css",
+      "bytes": 33560,
+      "sha256": "f0361d951f723cdfa7c23bab3c952196348cc9717da6b015722081c446277f11"
+    },
+    {
+      "file": "src/styles/20-setup-and-draft.css",
+      "bytes": 4841,
+      "sha256": "540853fa89a83b5cc0a2a943007629fd38eac1418b1e573e85404b7d8c5cf9e7"
+    },
+    {
+      "file": "src/styles/30-match-core.css",
+      "bytes": 16702,
+      "sha256": "f1f3ef485405c0da03f97ae8358cca00b6664865043f830d3e95b6421b663d0a"
+    },
+    {
+      "file": "src/styles/40-match-desktop.css",
+      "bytes": 8530,
+      "sha256": "8a76074ae420be201dc3bc71ea988f31918c8c94368605e977f8b4487dee54f8"
+    },
+    {
+      "file": "src/styles/50-match-mobile.css",
+      "bytes": 9105,
+      "sha256": "e6b9c339bcdbdad1796aec74a60a87d0c5ad242a1915fe341aa29a8873308c5d"
+    },
+    {
+      "file": "src/styles/60-set-pieces.css",
+      "bytes": 8603,
+      "sha256": "9306772f311a30598a7b21554cbd51c38846049c14bbef264c10d81192e19ea6"
+    },
+    {
+      "file": "src/styles/70-responsive-overrides.css",
+      "bytes": 6538,
+      "sha256": "89ee303cb0f70eac91ef05d48e2e94a6c129be728d9c70b854e0a95f41a04053"
+    },
+    {
+      "file": "src/styles/75-typography-polish.css",
+      "bytes": 1512,
+      "sha256": "f947c60552e8cc467b832489f9558e57d71efa6fdc8a55326dbdd0e8b721e38c"
+    },
+    {
+      "file": "src/styles/80-prematch-base.css",
+      "bytes": 6957,
+      "sha256": "ceff2bd9ee095d50ff72b834575c1c15b46ed297ce8c003ccd19ef3985ddabdb"
+    },
+    {
+      "file": "src/styles/85-match-mobile-field-first.css",
+      "bytes": 2494,
+      "sha256": "69e718da75774bb2b11a5ad182d063a3db511aa1d2c346b3c5dcae3917c2de78"
+    },
+    {
+      "file": "src/styles/90-prematch-role-zones.css",
+      "bytes": 3252,
+      "sha256": "f74aa119ed863b7610ef6cb50fce6ae820c9e6485bdfb9db1410861827e3136e"
+    },
+    {
+      "file": "src/styles/91-ux-redesign.css",
+      "bytes": 5353,
+      "sha256": "efa4c880864b8975c6b10a0dd1fc1df4aeb751694b534885d96bf2ead86289db"
+    },
+    {
+      "file": "src/styles/92-ux-refinement.css",
+      "bytes": 7507,
+      "sha256": "7c3e1f513ea3037434a99340b01668a298271b13169802eb070724445b2784f2"
+    },
+    {
+      "file": "src/styles/93-prematch-redesign.css",
+      "bytes": 12384,
+      "sha256": "0186c95c45a2d71ae51c0401ad5337ea1ea125ab36d56fc8210344c552830ffd"
+    },
+    {
+      "file": "src/styles/99-final-overrides.css",
+      "bytes": 2643,
+      "sha256": "3e6a7ba40c474a7c625513266680609a7f1e9eececad229f0bbd0649de2380d2"
+    }
+  ],
+  "scripts": [
+    {
+      "file": "src/scripts/00-polyfills.js",
+      "bytes": 762,
+      "sha256": "dd027ac092b284ae8c39634de4f25263db1a3a1d29f6bf1c5069a7d81929ff96"
+    },
+    {
+      "file": "src/scripts/10-data.js",
+      "bytes": 414538,
+      "sha256": "aa5b3b7b161092a3d291f60334b7aed1bb2e3d6e4f159db15aedb4b03f42edb3"
+    },
+    {
+      "file": "src/scripts/20-core.js",
+      "bytes": 80771,
+      "sha256": "0cf0693a4ad149dfd936f7ac515e1d52b7843884db73f9ef2a9293b92504708b"
+    },
+    {
+      "file": "src/scripts/25-data-integrity-v3.js",
+      "bytes": 36680,
+      "sha256": "f9d6b545c05c109562f103d7b53f53418b286ab071cac4b27b667a598796cd57"
+    },
+    {
+      "file": "src/scripts/30-tactics.js",
+      "bytes": 5920,
+      "sha256": "25d62d15ceb0e8ef5a7f6f661069d3b5b55960da98e321f7d4c4ae7235e9d375"
+    },
+    {
+      "file": "src/scripts/40-match-engine-and-manager-ai.js",
+      "bytes": 157256,
+      "sha256": "5b5a464ff8c1ecd5d5b218d0151bd336714ec29cdd27140d2839dde1245d9acd"
+    },
+    {
+      "file": "src/scripts/50-tournament.js",
+      "bytes": 15405,
+      "sha256": "83a68e8be82a70cadbd15e6a32f3874120d658b9ce84a296656fd5a9be0166f7"
+    },
+    {
+      "file": "src/scripts/60-ui-flow.js",
+      "bytes": 52871,
+      "sha256": "8751aa74ade876b3ae39e1f33d2063cad18fcd0f8c261707efcaeafccc7e7388"
+    },
+    {
+      "file": "src/scripts/70-game-runtime-and-rendering.js",
+      "bytes": 203557,
+      "sha256": "4a7a0f771354401523bf401714814e1ab092011c7d417453cb3b1ee8c52fdcc6"
+    }
+  ],
+  "build_output": "dist/COPA DOS SONHOS - FASE 2 - BANCO V3 VALIDADO.html",
+  "module_order_is_contract": true,
+  "notes": [
+    "HTML final continua autocontido.",
+    "Banco bruto preservado; camada V3 aplicada após o decode legado.",
+    "Posições possuem primária, secundárias e emergenciais explícitas.",
+    "Goleiros possuem ficha granular completa, inclusive registros sem A8.",
+    "Pé e altura não curados são parâmetros de simulação marcados como estimados.",
+    "Validador fica disponível em window.CDS_DATA_AUDIT."
+  ],
+  "parent_phase": 1,
+  "parent_build_sha256": "7878fa516eea86d97dbc376977f5e2786d5a2b573780067b5e81b47682b2a76e",
+  "last_build_sha256": "0d495bf089a79654748405ff19bd7dc0e0f4bda06831663f6bca12fe48afa614",
+  "audit_file": "reports/phase2-audit.json",
+  "qa_file": "manifests/phase2-qa.json"
+}

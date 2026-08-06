@@ -9,6 +9,7 @@
 const root = typeof window !== 'undefined' ? window : globalThis;
 const C = (typeof module !== 'undefined' && module.exports) ? require('./core.js') : root;
 const M = (typeof module !== 'undefined' && module.exports) ? require('./match.js') : root;
+const P10 = (typeof module !== 'undefined' && module.exports) ? require('./49-phase10-cup-persistence.js') : (root.CDS_PHASE10 || null);
 const { R, Ri, chance, pick, shuffle, clamp, facet, autoLineup, FORMATION_KEYS } = C;
 
 const GROUP_NAMES = ['A','B','C','D','E','F','G','H'];
@@ -24,9 +25,15 @@ function drawField(db, playerSid) {
   const field = [player];
   for (const nid of nations) {
     if (field.length >= 32) break;
-    // sorteia uma era da nação, com leve viés para squads mais fortes
+    // Sorteia a era da nação com variedade real. Em 70% dos casos todas
+    // as Copas daquela seleção têm a mesma chance; em 30% preserva um viés
+    // leve para eras mais fortes. Assim o torneio não repete sempre os times
+    // históricos mais famosos, mas continua competitivo.
     const squads = byNation[nid].slice().sort((a, b) => b.r - a.r);
-    const ix = Math.min(squads.length - 1, Math.floor(Math.pow(R(), 1.6) * squads.length));
+    const uniformEra = R() < .70;
+    const ix = uniformEra
+      ? Math.min(squads.length - 1, Math.floor(R() * squads.length))
+      : Math.min(squads.length - 1, Math.floor(Math.pow(R(), 1.35) * squads.length));
     field.push(squads[ix]);
   }
   return field; // [0] é o jogador
@@ -130,13 +137,14 @@ function pickStyleFor(squad, oppSquad) {
   return baseStyle;
 }
 
-function teamFor(db, sid, oppSid) {
+function teamFor(db, sid, oppSid, cup) {
   const squad = db.byId[sid];
   const { fk, varIdx } = bestFormationFor(squad);
   const { lineup, bench } = autoLineup(squad, fk, varIdx);
   const oppSquad = oppSid ? db.byId[oppSid] : null;
   const style = pickStyleFor(squad, oppSquad);
-  return { squad, name: squad.c, flag: squad.f, color: '#2e9bff', lineup, bench, formKey: fk, style };
+  const team = { squad, name: squad.c, flag: squad.f, color: '#2e9bff', lineup, bench, formKey: fk, style };
+  return cup && P10 ? P10.prepareTeam(cup, team, sid, { user:false, stage:cup.phase }) : team;
 }
 
 // registra o time montado no draft como uma "seleção" jogável (sid 'ME')
@@ -182,17 +190,17 @@ function shootout(simOrTeams) {
     }
   }
   let i = 5;
-  while (score[0] === score[1] && i < 100) { 
-    take(0, i); 
+  while (score[0] === score[1] && i < 100) {
+    take(0, i);
     if (take(1, i)) {} // toma a segunda do par
-    i++; 
+    i++;
   }
   return { score, log };
 }
 
 // roda uma partida headless (IA×IA). ko=true permite prorrogação+pênaltis.
-function simQuick(db, hSid, aSid, ko) {
-  const A = teamFor(db, hSid, aSid), B = teamFor(db, aSid, hSid);
+function simQuick(db, hSid, aSid, ko, cup) {
+  const A = teamFor(db, hSid, aSid, cup), B = teamFor(db, aSid, hSid, cup);
   const scorers = [];
   const sim = new M.MatchSim(A, B, { onEvent: e => {
     if (e.type === 'goal' && e.by) scorers.push({ sid: e.by.team === 0 ? hSid : aSid, p: e.by.ref, min: e.minute || 0 });
@@ -207,6 +215,7 @@ function simQuick(db, hSid, aSid, ko) {
     while (!sim.isOver() && guard++ < 200000) sim.step(dt);
     if (sim.score[0] === sim.score[1]) pens = shootout(sim).score;
   }
+  if (cup && P10) P10.recordSimulation(cup, sim, [A, B], { stage:cup.phase });
   return { g: [sim.score[0], sim.score[1]], pens, scorers, stats: sim.stats };
 }
 
@@ -216,7 +225,7 @@ function createCup(db, playerSid, seed) {
   const field = drawField(db, playerSid);
   const groups = drawGroups(field);
   const cup = {
-    playerSid, phase: 'groups', round: 0,           // rodadas 0..2 de grupos
+    playerSid, drawSeed: seed == null ? null : (seed >>> 0), phase: 'groups', round: 0, // rodadas 0..2 de grupos
     groups: groups.map(g => ({ name: g.name, teams: g.teams.map(t => t.sid) })),
     results: {},                                     // results[gname] = [{h,a,g,round}]
     ko: null,                                        // bracket
@@ -228,6 +237,7 @@ function createCup(db, playerSid, seed) {
     const fx = groupFixtures({ teams: g.teams.map(sid => ({ sid })) });
     fx.forEach((round, ri) => round.forEach(m => cup.results[g.name].push({ h: m.h, a: m.a, g: null, round: ri })));
   }
+  if (P10) P10.ensureCup(cup, db);
   return cup;
 }
 
@@ -250,7 +260,7 @@ function playGroupRound(cup, db, skipPlayerMatch) {
       if (m.round !== round || m.g) continue;
       const isPlayers = (m.h === cup.playerSid || m.a === cup.playerSid);
       if (isPlayers && skipPlayerMatch) continue;
-      const res = simQuick(db, m.h, m.a, false);
+      const res = simQuick(db, m.h, m.a, false, cup);
       m.g = res.g; addScorers(cup, db, res);
       played.push({ ...m, group: g.name });
     }
@@ -310,7 +320,7 @@ function playKnockoutStage(cup, db, skipPlayerMatch) {
     if (m.g) continue;
     const isPlayers = (m.h === cup.playerSid || m.a === cup.playerSid);
     if (isPlayers && skipPlayerMatch) continue;
-    const res = simQuick(db, m.h, m.a, true);
+    const res = simQuick(db, m.h, m.a, true, cup);
     m.g = res.g; m.pens = res.pens; addScorers(cup, db, res);
     played.push(m);
   }
@@ -366,5 +376,4 @@ const API = {
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.CUP = API;
 })();
-
 
