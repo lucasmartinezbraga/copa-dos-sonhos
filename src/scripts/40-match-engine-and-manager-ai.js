@@ -19,6 +19,10 @@ const ADV4 = Object.freeze({
   context: Object.freeze({
     pressureRadius: 5.4,
     lateMinute: 74,
+    /* OS-201 · relogio em que o dreno de stamina foi calibrado. Serve so para
+       normalizar a fadiga por minuto de jogo; nao muda o relogio do jogo, que
+       vive em ENGINE_CALIBRATION.timing.clockRate. */
+    clockRateRef: 0.13,
     knockoutImportance: 0.08,
     fatigueExecution: 0.16,
     pressureExecution: 0.18,
@@ -525,7 +529,34 @@ class MatchSim {
       const moving = (p.vx*p.vx + p.vy*p.vy) > 4;
       const lateDrain = this.minute >= ADV4.context.lateMinute ? 1 + (this.minute-ADV4.context.lateMinute)/40 : 1;
       const pressDuty = (p===this.teams[p.team]._presser || (this.teams[p.team]._counterPressUntil||0)>this.t) ? 1.12 : 1;
-      p.stamina = clamp(p.stamina - (moving ? 0.055 : 0.012) * dt * (2 - getAttr(p,'resistencia')/100) * this.teams[p.team].fx.drain * lateDrain * pressDuty, 32, 100);
+      /* OS-201 · A FADIGA SEGUE O RELOGIO DA PARTIDA, NAO O DO SIMULADOR.
+         O dreno usava `dt` cru, ou seja dependia de quantos SEGUNDOS DE
+         SIMULACAO a partida levasse. Como `clockRate` decide justamente essa
+         relacao, baixar o relogio para caber mais jogo fazia o time acabar
+         exausto sem que nada no futebol tivesse mudado: medido, a stamina final
+         caia de 57,8 para 50,3 so por trocar 0,13 por 0,085.
+
+         Um jogador se cansa por jogar 90 minutos, nao por o simulador demorar.
+         Normalizando pelo clockRate de referencia (aquele em que este dreno foi
+         calibrado), o gasto passa a ser por minuto de jogo e o numero fica
+         igual em qualquer relogio — em 0,13 o fator e exatamente 1, entao a
+         normalizacao em si nao mexe na calibracao existente.
+
+         O MODULO do dreno, esse sim, foi reduzido em 27%: a stamina final media
+         era 57,4 contra um minimo de design de 64 (alvo 73), e isso valia tanto
+         no relogio antigo quanto no novo — era erro proprio, nao efeito do
+         clockRate. Times terminando a 57% faziam o futebol do fim de jogo pior
+         do que o desenho pedia. Com 0,040 / 0,0088 a media final fica em 63,9,
+         a um decimo do minimo de 64.
+
+         TENTEI AFROUXAR MAIS (0,0375 / 0,0083) para ganhar folga e REVERTI:
+         poe a stamina em 65,1, dentro da faixa, mas jogador mais inteiro muda
+         o jogo inteiro — o acerto ao alvo cai de 0,361 para 0,337 (min 0,34) e
+         o 0 a 0 sobe de 0,092 para 0,125 (max 0,12). Placar geral de 10/13
+         para 9/13. Ficar a um decimo do minimo numa metrica custa menos do que
+         derrubar duas outras. */
+      const clockNorm = CAL.timing.clockRate / ADV4.context.clockRateRef;
+      p.stamina = clamp(p.stamina - (moving ? 0.040 : 0.0088) * dt * clockNorm * (2 - getAttr(p,'resistencia')/100) * this.teams[p.team].fx.drain * lateDrain * pressDuty, 32, 100);
     }
     // desarme/bote passivo? NÃO. Só duelos (§5.5). Mas o presser tenta bote quando encosta.
     if (!this.ball.traveling && this.ball.owner) this._pressAndTackle(dt);

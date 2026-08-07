@@ -224,6 +224,14 @@ function rodarFatia(indices) {
       }
     }
     const linha = { i, seed, formacoes: [fh, fa], estilos: [sh, sa], placar: sim.score.slice() };
+    /* stamina final media dos jogadores em campo — o alvo de design
+       `averageEndingStamina` depende diretamente de quanto tempo de simulacao a
+       partida dura, entao e a metrica que mais sente o clockRate */
+    try {
+      const vivos = [];
+      for (const tm of sim.teams) for (const p of tm.players) if (p && !p.red) vivos.push(+p.stamina || 0);
+      linha.staminaFinal = vivos.length ? vivos.reduce((a, b) => a + b, 0) / vivos.length : null;
+    } catch (_) { linha.staminaFinal = null; }
     for (const k of CHAVES) linha[k] = (+sim.stats[0][k] || 0) + (+sim.stats[1][k] || 0);
     linha.eventos = ev;
     partidas.push(linha);
@@ -263,7 +271,8 @@ function agregar(partidas, sonda, extra) {
     ramos: sonda.os200 || {},
   };
   return Object.assign({ partidas: N, sementeBase: SEMENTE, incremento: INCREMENTO,
-    agregado, eventosPorPartida, fisica }, extra || {});
+    agregado, eventosPorPartida, fisica,
+    porPartida: partidas.map(p => ({ placar: p.placar, staminaFinal: p.staminaFinal })) }, extra || {});
 }
 
 /* -------------------------------------------------------------------- modos */
