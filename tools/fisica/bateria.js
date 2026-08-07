@@ -208,8 +208,17 @@ function rodarFatia(indices) {
     const sim = new MatchSim(mk(fh, sh, true), mk(fa, sa, false), { neutral: true, labMode: true });
     sim.teams[0].formKey = fh; sim.teams[1].formKey = fa;
     const ev = Object.create(null);
+    /* SEQUENCIA DE GOLS — para medir bola de neve.
+       Se o motor for justo e os dois times sao o MESMO elenco, a chance de o
+       proximo gol sair de quem ja esta na frente tem de ficar em ~50%. Acima
+       disso existe efeito acumulativo, e e ele que produz goleada. */
+    const golsSeq = [];
     const oEmit = sim._emit;
-    sim._emit = function (t) { ev[t] = (ev[t] || 0) + 1; return oEmit.apply(this, arguments); };
+    sim._emit = function (t, d) {
+      ev[t] = (ev[t] || 0) + 1;
+      if (t === 'goal' && d && d.by) golsSeq.push({ time: d.by.team, minuto: Math.floor(sim.minute) });
+      return oEmit.apply(this, arguments);
+    };
     instrumentar(sim, sonda);
     let s = 0; while (!sim.isOver() && s++ < 500000) sim.step(DT);
     sonda.somaSegundosSimulados = (sonda.somaSegundosSimulados || 0) + s * DT;
@@ -234,6 +243,7 @@ function rodarFatia(indices) {
     } catch (_) { linha.staminaFinal = null; }
     for (const k of CHAVES) linha[k] = (+sim.stats[0][k] || 0) + (+sim.stats[1][k] || 0);
     linha.eventos = ev;
+    linha.golsSeq = golsSeq;
     partidas.push(linha);
   }
   return { partidas, sonda };
@@ -272,7 +282,7 @@ function agregar(partidas, sonda, extra) {
   };
   return Object.assign({ partidas: N, sementeBase: SEMENTE, incremento: INCREMENTO,
     agregado, eventosPorPartida, fisica,
-    porPartida: partidas.map(p => ({ placar: p.placar, staminaFinal: p.staminaFinal })) }, extra || {});
+    porPartida: partidas.map(p => ({ placar: p.placar, staminaFinal: p.staminaFinal, golsSeq: p.golsSeq })) }, extra || {});
 }
 
 /* -------------------------------------------------------------------- modos */

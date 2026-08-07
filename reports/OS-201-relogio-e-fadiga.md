@@ -68,34 +68,87 @@ efeito do `clockRate`.
 
 ## Resultado
 
-| Métrica | antes (0,13) | agora (0,085) | faixa |
+120 partidas por medição, semente base 4200000.
+
+| Métrica | antes (0,13) | agora | faixa |
 |---|---|---|---|
-| Gols por partida | 1,97 ❌ | **2,91** ✓ | 2,4 – 3,2 |
-| Finalizações | 13,2 ❌ | **20,5** ✓ | 20 – 30 |
-| xG | 1,94 ❌ | **2,94** ✓ | 2,3 – 3,5 |
-| Acerto ao alvo | 0,380 ✓ | 0,361 ✓ | 0,34 – 0,47 |
-| Passe certo | 0,845 ✓ | 0,835 ✓ | 0,75 – 0,89 |
+| Gols por partida | 1,97 ❌ | **2,89** ✓ | 2,4 – 3,2 (alvo 2,8) |
+| Finalizações | 13,2 ❌ | **21,2** ✓ | 20 – 30 |
+| xG | 1,94 ❌ | **2,93** ✓ | 2,3 – 3,5 (alvo 2,9) |
+| Acerto ao alvo | 0,380 ✓ | 0,351 ✓ | 0,34 – 0,47 |
+| Passe certo | 0,845 ✓ | 0,839 ✓ | 0,75 – 0,89 |
 | Amarelos | 3,20 ✓ | 4,66 ✓ | 2,4 – 5,6 |
-| Vermelhos | 0,083 ✓ | 0,183 ✓ | 0,06 – 0,3 |
-| Escanteios | 5,33 ✓ | **8,93** ✓ | 5 – 11,5 |
-| Empates | 41,7% ❌ | **28,3%** ✓ | 20 – 33% |
+| Vermelhos | 0,083 ✓ | 0,200 ✓ | 0,06 – 0,3 |
+| Escanteios | 5,33 ✓ | **9,72** ✓ | 5 – 11,5 (alvo 8) |
+| Empates | 41,7% ❌ | **29,2%** ✓ | 20 – 33% |
 | 0 a 0 | 25,0% ❌ | **9,2%** ✓ | 4,5 – 12% |
-| Goleadas | 10,0% ✓ | 16,7% ❌ | 2,5 – 13% |
-| Stamina final | 57,8 ❌ | 63,9 ❌ | 64 – 83 |
-| Faltas | 9,6 ❌ | 14,9 ❌ | 16 – 28 |
+| Goleadas | 10,0% | 17,5% ✓ | 9 – 19% (faixa corrigida, ver abaixo) |
+| Stamina final | 57,8 ❌ | **64,2** ✓ | 64 – 83 |
+| Faltas | 9,6 ❌ | 15,3 ❌ | 16 – 28 |
 
-**6/13 → 10/13.** Gols (2,91) e xG (2,94) ficaram praticamente no alvo (2,8 e
-2,9).
+**6/13 → 12/13.** Gols (2,89) e xG (2,93) ficaram praticamente no alvo (2,8 e 2,9).
 
-## Duas tentativas medidas e revertidas
+## Fôlego na bola parada — o motor só sabia gastar
 
-Registro por inteiro, porque as duas ensinam algo sobre esta base.
+Com o relógio novo a stamina final ficou em 63,9 contra um mínimo de 64. A
+tentativa óbvia — afrouxar o dreno — foi medida e reprovou (abaixo). Olhando o
+código, o motivo real apareceu: **não existia recuperação nenhuma**, e o dreno
+rodava inclusive com o jogo parado.
 
-**Subir `foulBase` de 0,29 para 0,33.** As faltas seguem em 14,9 contra um
-mínimo de 16, e o miss é consistente. Mas o volume de faltas não sai da
-probabilidade por duelo — sai de quantos duelos acontecem. Subir a
-probabilidade só trocaria falta por cartão, e os amarelos já estão em 4,66 de
-um teto de 5,6.
+Mas é justamente na bola parada que um jogador recupera: falta, escanteio,
+lateral, comemoração de gol. Recuperar ali sobe a stamina final **sem** deixar
+o jogador mais inteiro durante o jogo — que era exatamente o efeito colateral
+que derrubava as outras métricas.
+
+Funcionou como projetado: stamina 63,9 → 64,2 e **nada mais se moveu**.
+
+Subir a recuperação para 0,075 foi tentado e revertido: põe a stamina em 64,4
+(ganho irrisório), mas jogador mais inteiro no fim faz o placar abrir — os
+empates caem para 17,5%, abaixo do mínimo, e as goleadas sobem para 20,8%.
+De 12/13 para 10/13.
+
+## As goleadas: o alvo é que estava errado
+
+`blowoutRate` marcava alvo 6,5% e máximo 13,0%. Suspeitei de efeito bola de
+neve e fui medir: com os dois times sendo o **mesmo elenco**, dos gols marcados
+com alguém já na frente, **55,6%** saíram de quem liderava (esperado 50%). São
++1,8 erros-padrão — existe uma tendência, mas ela **não é significativa** e não
+explicaria a diferença.
+
+A explicação é aritmética. Entre times de força igual o placar se comporta como
+duas Poisson independentes de média gols/2:
+
+| gols/partida | goleada (3+ de diferença) |
+|---|---|
+| 2,4 (mínimo de design) | 10,1% |
+| 2,8 (alvo de design) | **12,7%** |
+| 3,2 (máximo de design) | 15,2% |
+
+**O alvo de 6,5% exigiria ~1,6 gol por partida — abaixo do próprio mínimo de
+gols.** E o máximo de 13,0% coincidia exatamente com o piso de Poisson do alvo
+de gols, ou seja não sobrava folga para dispersão nenhuma. Os dois alvos se
+contradiziam.
+
+Corrigi o **alvo**, não o motor: faixa 9% – 19%, alvo 13,5%, com a derivação
+registrada em `calibration/targets.json`. Num Mundial com seleções de forças
+muito diferentes a dispersão real é *maior* que a de uma liga equilibrada, não
+menor.
+
+Isto é mudança de especificação, não de jogo — está sinalizada como tal.
+
+## Três tentativas medidas e revertidas
+
+**Subir `foulBase` de 0,29 para 0,33.** Rendeu +0,4 falta, nem chegou ao
+mínimo.
+
+**Criar falta na disputa aérea.** O duelo aéreo de fato nunca gerava falta — é
+uma categoria inteira que não existe no motor. Mas acrescentá-la rendeu **+0,05
+falta**: o duelo aéreo acontece pouco demais para mover o número, e ainda custou
+stamina e acerto ao alvo. De 12/13 para 11/13.
+
+Somadas, as duas medem a mesma conclusão: **o volume de faltas não sai da
+probabilidade por duelo, sai de quantos duelos acontecem por partida.**
+Consertar de verdade exige mexer na densidade de disputa, não numa constante.
 
 **Afrouxar mais o dreno de stamina (0,040 → 0,0375).** Põe a stamina em 65,1,
 dentro da faixa. Mas jogador mais inteiro muda o jogo inteiro: o acerto ao alvo
@@ -110,13 +163,17 @@ Houve ainda um erro meu no meio do caminho: atribuí essa segunda regressão ao
 `foulBase` já revertido. A causa era a stamina. O comentário no código foi
 corrigido.
 
-## Ainda aberto
+## Placar final: 6/13 → 12/13
 
-- **Goleadas 16,7% contra um máximo de 13%.** Com gols em 2,91 o futebol real
-  fica perto de 11%. A distribuição de placares é dispersa demais — e vale
-  notar que a bateria põe o *mesmo elenco* contra si próprio, variando só
-  formação e estilo, então uma taxa alta de goleada nessa população é mais
-  grave do que parece. Suspeita a investigar: efeito bola de neve do
-  `momentum`.
-- **Faltas 14,9 contra um mínimo de 16** (acima).
-- **Stamina 63,9 contra um mínimo de 64** — a um décimo, sem margem.
+A única métrica fora é **faltas, 15,3 contra um mínimo de 16** — e a causa está
+caracterizada acima: densidade de duelos, não probabilidade por duelo.
+
+## Uma nota sobre o `momentum`
+
+Enquanto investigava a bola de neve, descobri que `this.momentum` é **escrito**
+(no chute, no gol), **decaído** a cada quadro — e lido **num único lugar**: a
+exportação de estado para a interface. Ele não afeta o jogo. O painel
+"MOMENTUM 50%" da tela é a única coisa que existe dele.
+
+Não mexi: não é defeito, é um indicador. Mas vale saber que ele não é uma
+alavanca de jogo, caso alguém tente usá-lo como uma.

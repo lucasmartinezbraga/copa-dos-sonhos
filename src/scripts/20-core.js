@@ -562,6 +562,14 @@ const ENGINE_CALIBRATION = Object.freeze({
        40-match-engine), senao baixar o relogio deixaria o time exausto sem que
        nada no futebol tivesse mudado. */
     clockRate: 0.085,
+    /* OS-201 · quanto de folego volta por segundo de bola parada. O motor so
+       sabia gastar; sem recuperacao a stamina final ficava abaixo do minimo de
+       design por construcao. Calibrado com a bateria. */
+    /* 0,055 e nao mais: subir para 0,075 poe a stamina em 64,4 (contra 64,2),
+       ganho irrisorio, mas jogador mais inteiro no fim faz o placar abrir —
+       os empates caem de 29,2% para 17,5% (abaixo do minimo) e as goleadas
+       sobem de 17,5% para 20,8%. Medido, 12/13 vira 10/13. */
+    deadBallRecovery: 0.055,
     fixedStep: 1 / 60,
     decisionInterval: 0.28,
     tackleCooldown: 0.55,

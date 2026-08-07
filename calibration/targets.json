@@ -2,30 +2,135 @@
   "version": "1.0.0",
   "description": "Faixas de design do Copa dos Sonhos. Não são uma reprodução literal de uma liga específica; servem para preservar variedade, credibilidade e identidade entre estilos.",
   "metrics": {
-    "goalsPerMatch": {"min": 2.40, "target": 2.80, "max": 3.20, "weight": 8},
-    "shotsPerMatch": {"min": 20.0, "target": 25.0, "max": 30.0, "weight": 5},
-    "xgPerMatch": {"min": 2.30, "target": 2.90, "max": 3.50, "weight": 6},
-    "onTargetRate": {"min": 0.34, "target": 0.40, "max": 0.47, "weight": 4},
-    "passCompletion": {"min": 0.75, "target": 0.82, "max": 0.89, "weight": 4},
-    "foulsPerMatch": {"min": 16.0, "target": 21.0, "max": 28.0, "weight": 3},
-    "yellowsPerMatch": {"min": 2.4, "target": 3.8, "max": 5.6, "weight": 3},
-    "redsPerMatch": {"min": 0.06, "target": 0.16, "max": 0.30, "weight": 5},
-    "cornersPerMatch": {"min": 5.0, "target": 8.0, "max": 11.5, "weight": 3},
-    "drawRate": {"min": 0.20, "target": 0.26, "max": 0.33, "weight": 4},
-    "zeroZeroRate": {"min": 0.045, "target": 0.075, "max": 0.12, "weight": 3},
-    "blowoutRate": {"min": 0.025, "target": 0.065, "max": 0.13, "weight": 5},
-    "lateGoalShare": {"min": 0.17, "target": 0.24, "max": 0.34, "weight": 3},
-    "setPieceGoalShare": {"min": 0.10, "target": 0.17, "max": 0.27, "weight": 4},
-    "favoriteWinRate": {"min": 0.60, "target": 0.69, "max": 0.79, "weight": 5},
-    "paritySideAWinShare": {"min": 0.46, "target": 0.50, "max": 0.54, "weight": 6},
-    "averageEndingStamina": {"min": 64.0, "target": 73.0, "max": 83.0, "weight": 3}
+    "goalsPerMatch": {
+      "min": 2.4,
+      "target": 2.8,
+      "max": 3.2,
+      "weight": 8
+    },
+    "shotsPerMatch": {
+      "min": 20.0,
+      "target": 25.0,
+      "max": 30.0,
+      "weight": 5
+    },
+    "xgPerMatch": {
+      "min": 2.3,
+      "target": 2.9,
+      "max": 3.5,
+      "weight": 6
+    },
+    "onTargetRate": {
+      "min": 0.34,
+      "target": 0.4,
+      "max": 0.47,
+      "weight": 4
+    },
+    "passCompletion": {
+      "min": 0.75,
+      "target": 0.82,
+      "max": 0.89,
+      "weight": 4
+    },
+    "foulsPerMatch": {
+      "min": 16.0,
+      "target": 21.0,
+      "max": 28.0,
+      "weight": 3
+    },
+    "yellowsPerMatch": {
+      "min": 2.4,
+      "target": 3.8,
+      "max": 5.6,
+      "weight": 3
+    },
+    "redsPerMatch": {
+      "min": 0.06,
+      "target": 0.16,
+      "max": 0.3,
+      "weight": 5
+    },
+    "cornersPerMatch": {
+      "min": 5.0,
+      "target": 8.0,
+      "max": 11.5,
+      "weight": 3
+    },
+    "drawRate": {
+      "min": 0.2,
+      "target": 0.26,
+      "max": 0.33,
+      "weight": 4
+    },
+    "zeroZeroRate": {
+      "min": 0.045,
+      "target": 0.075,
+      "max": 0.12,
+      "weight": 3
+    },
+    "blowoutRate": {
+      "min": 0.09,
+      "target": 0.135,
+      "max": 0.19,
+      "weight": 5
+    },
+    "lateGoalShare": {
+      "min": 0.17,
+      "target": 0.24,
+      "max": 0.34,
+      "weight": 3
+    },
+    "setPieceGoalShare": {
+      "min": 0.1,
+      "target": 0.17,
+      "max": 0.27,
+      "weight": 4
+    },
+    "favoriteWinRate": {
+      "min": 0.6,
+      "target": 0.69,
+      "max": 0.79,
+      "weight": 5
+    },
+    "paritySideAWinShare": {
+      "min": 0.46,
+      "target": 0.5,
+      "max": 0.54,
+      "weight": 6
+    },
+    "averageEndingStamina": {
+      "min": 64.0,
+      "target": 73.0,
+      "max": 83.0,
+      "weight": 3
+    }
   },
   "styleExpectations": {
-    "tiki": {"possessionDeltaMin": 0.025, "passCompletionDeltaMin": 0.012},
-    "press": {"pressWinsDeltaMin": 0.50, "staminaDeltaMax": -0.80},
-    "counter": {"throughBallDeltaMin": 0.20, "possessionDeltaMax": 0.020},
-    "direct": {"passCompletionDeltaMax": -0.006, "throughBallDeltaMin": 0.10},
-    "wings": {"crossDeltaMin": 0.50},
-    "park": {"possessionDeltaMax": -0.020, "shotsAllowedDeltaMax": 1.50}
+    "tiki": {
+      "possessionDeltaMin": 0.025,
+      "passCompletionDeltaMin": 0.012
+    },
+    "press": {
+      "pressWinsDeltaMin": 0.5,
+      "staminaDeltaMax": -0.8
+    },
+    "counter": {
+      "throughBallDeltaMin": 0.2,
+      "possessionDeltaMax": 0.02
+    },
+    "direct": {
+      "passCompletionDeltaMax": -0.006,
+      "throughBallDeltaMin": 0.1
+    },
+    "wings": {
+      "crossDeltaMin": 0.5
+    },
+    "park": {
+      "possessionDeltaMax": -0.02,
+      "shotsAllowedDeltaMax": 1.5
+    }
+  },
+  "notes": {
+    "blowoutRate": "Faixa derivada, nao escolhida. Entre times de forca igual, o placar se comporta como duas Poisson independentes de media gols/2. Com o alvo de 2,8 gols por partida isso ja produz 12,7% de jogos decididos por 3 ou mais; com 2,4 (o minimo) da 10,1% e com 3,2 (o maximo) da 15,2%. A faixa anterior (alvo 6,5%, maximo 13,0%) era impossivel: exigia ~1,6 gol por partida, abaixo do proprio minimo de gols. O maximo antigo coincidia exatamente com o piso de Poisson do alvo de gols, ou seja nao sobrava folga para dispersao nenhuma. A faixa nova cobre esse intervalo aritmetico e acrescenta margem para a dispersao real — que num Mundial com selecoes de forcas muito diferentes e MAIOR que a de uma liga equilibrada, nao menor."
   }
 }

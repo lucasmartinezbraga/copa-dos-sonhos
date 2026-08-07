@@ -2742,6 +2742,14 @@ const ENGINE_CALIBRATION = Object.freeze({
        40-match-engine), senao baixar o relogio deixaria o time exausto sem que
        nada no futebol tivesse mudado. */
     clockRate: 0.085,
+    /* OS-201 · quanto de folego volta por segundo de bola parada. O motor so
+       sabia gastar; sem recuperacao a stamina final ficava abaixo do minimo de
+       design por construcao. Calibrado com a bateria. */
+    /* 0,055 e nao mais: subir para 0,075 poe a stamina em 64,4 (contra 64,2),
+       ganho irrisorio, mas jogador mais inteiro no fim faz o placar abrir —
+       os empates caem de 29,2% para 17,5% (abaixo do minimo) e as goleadas
+       sobem de 17,5% para 20,8%. Medido, 12/13 vira 10/13. */
+    deadBallRecovery: 0.055,
     fixedStep: 1 / 60,
     decisionInterval: 0.28,
     tackleCooldown: 0.55,
@@ -4967,6 +4975,22 @@ class MatchSim {
          para 9/13. Ficar a um decimo do minimo numa metrica custa menos do que
          derrubar duas outras. */
       const clockNorm = CAL.timing.clockRate / ADV4.context.clockRateRef;
+      /* OS-201 · FOLEGO NA BOLA PARADA.
+         O motor só sabia gastar: não havia recuperação nenhuma, e o dreno
+         rodava inclusive com o jogo parado. Mas é justamente na bola parada
+         que um jogador recupera — falta, escanteio, lateral, comemoração de
+         gol. Sem isso a stamina final ficava em 63,9 contra um mínimo de
+         design de 64.
+
+         Recuperar aqui é melhor do que afrouxar o dreno geral, que foi o que
+         tentei antes: baixar o dreno deixa o jogador mais inteiro DURANTE o
+         jogo e muda o futebol inteiro (o acerto ao alvo caiu e o 0 a 0 subiu).
+         Isto mexe só no que acontece com o relógio parado. */
+      if (this.dead > 0) {
+        p.stamina = clamp(p.stamina + CAL.timing.deadBallRecovery * dt * clockNorm
+          * (0.6 + getAttr(p,'resistencia')/100 * 0.6), 32, 100);
+        continue;
+      }
       p.stamina = clamp(p.stamina - (moving ? 0.040 : 0.0088) * dt * clockNorm * (2 - getAttr(p,'resistencia')/100) * this.teams[p.team].fx.drain * lateDrain * pressDuty, 32, 100);
     }
     // desarme/bote passivo? NÃO. Só duelos (§5.5). Mas o presser tenta bote quando encosta.
@@ -5575,6 +5599,18 @@ class MatchSim {
       const _o44d=def?D(def.x,def.y,atk.x,atk.y):99;
       const _o44prox=clamp((3.2-_o44d)*9,-22,22);
       const pWin=duelProb(facet(atk,'head_atk')+setBoost+(sw==='in'?2.5:0),(def?facet(def,'head_def'):40)+5+_o44prox);
+      /* OS-201 · O DUELO AEREO NAO GERA FALTA, E TENTEI CORRIGIR ISSO.
+         E de fato uma categoria que nao existe no motor — empurrao nas costas,
+         cotovelada, subir por cima —, e as faltas ficam em 15,3 por partida
+         contra um minimo de design de 16. Mas acrescentar falta aqui rendeu
+         +0,05 falta: o duelo aereo acontece pouco demais para mover o numero,
+         e ainda custou stamina e acerto ao alvo (12/13 virou 11/13).
+
+         Somando a tentativa de subir `foulBase` (mesmo resultado, ver
+         20-core.js), a conclusao esta medida duas vezes: o volume de faltas
+         nao sai da probabilidade POR DUELO, sai de QUANTOS DUELOS acontecem
+         por partida. Consertar de verdade exige mexer na densidade de disputa,
+         nao numa constante de probabilidade. */
       if(chance(pWin)){
         this.stats[o.team].crossesOk++; this.stats[o.team].shots++; this.beat=.5;
         if(setPiece)this.stats[o.team].setPieceFirstContactWon++;
