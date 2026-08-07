@@ -54,7 +54,13 @@
 </script>
 <!-- PONTO 3: charset/viewport foram promovidos para o topo do <head>; as
      cópias que existiam aqui foram removidas para não haver declaração dupla. -->
-<title>Copa dos Sonhos — R18.40A</title>
+<!-- Titulo SEM versao de proposito. Trinta e seis arquivos escrevem
+     `document.title`, cada um com o numero da sua release, e vence quem carrega
+     por ultimo — foi assim que este titulo estatico ficou preso em "R18.40A"
+     enquanto o jogo ja era R19.08. A versao agora e declarada num lugar so, na
+     ultima camada (88-os200-balistica-real.js), que tem a palavra final. Aqui
+     fica o nome, que nunca envelhece. -->
+<title>Copa dos Sonhos</title>
 <!-- TIPOGRAFIA: fontes 100% embutidas; nenhum request externo participa do boot. -->
 <style id="cds-inline-fonts">
 /* ══════════════════════════════════════════════════════════════════════
@@ -27902,6 +27908,19 @@ try { document.title = 'Copa dos Sonhos — R19.08'; } catch (_) {}
   P.getOS200Report = function () {
     return Object.assign({ versao: VERSAO }, this.__os200Diag || {});
   };
+
+  /* ─── identidade do build ──────────────────────────────────────────────────
+     Esta e a ultima camada do bundle, entao e a que tem a palavra final sobre
+     `document.title`. Antes disso, 36 arquivos escreviam o titulo com o numero
+     da propria release e o resultado dependia da ordem de carga; o titulo
+     estatico do HTML tinha ficado em "R18.40A" enquanto o jogo era R19.08.
+     Trocar a versao do jogo passa a ser mexer nesta linha. */
+  const VERSAO_JOGO = 'R19.09';
+  try {
+    root.CDS_BUILD_ID = VERSAO_JOGO;
+    root.CDS_VERSION = VERSAO_JOGO;
+    if (root.document) root.document.title = 'Copa dos Sonhos — ' + VERSAO_JOGO;
+  } catch (_) { /* sem DOM (bateria em Node): nada a fazer */ }
 
   root.CDS_OS200 = Object.freeze({
     versao: VERSAO,

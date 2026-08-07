@@ -158,7 +158,27 @@ function instrumentar(sim, sonda) {
 function sondaVazia() {
   return { voos: 0, somaApice: 0, maxApice: 0, voosAcimaDoTravessao: 0, somaTempoVoo: 0,
     cruzamentos: 0, somaZLinha: 0, maxZLinha: 0, porCimaDoTravessao: 0,
-    porCimaEntreOsPostes: 0, quiques: 0, os200: {} };
+    porCimaEntreOsPostes: 0, quiques: 0, somaSegundosSimulados: 0, partidasMedidas: 0, os200: {} };
+}
+
+/* Varredura de clockRate — SONDA, nao mudanca de jogo.
+   `ENGINE_CALIBRATION` e congelado, entao nao da para trocar o numero. O motor
+   avanca o relogio num lugar so (`if (this.dead <= 0) this.minute += dt *
+   clockRate`), entao reescalar o incremento por quadro reproduz exatamente
+   outro clockRate. O guarda de 0,1 evita reescalar os SALTOS de relogio
+   (intervalo, acrescimos), que nao sao incremento continuo. */
+const CLOCK_PADRAO = 0.13;
+function aplicarClock(taxa) {
+  if (!taxa || !Number.isFinite(taxa) || taxa === CLOCK_PADRAO) return;
+  const fator = taxa / CLOCK_PADRAO;
+  const P = MatchSim.prototype, passoOriginal = P.step;
+  P.step = function (dt) {
+    const antes = this.minute;
+    const r = passoOriginal.apply(this, arguments);
+    const d = this.minute - antes;
+    if (d > 0 && d < 0.1) this.minute = antes + d * fator;
+    return r;
+  };
 }
 
 /* --------------------------------------------------------------- populacao */
@@ -192,6 +212,8 @@ function rodarFatia(indices) {
     sim._emit = function (t) { ev[t] = (ev[t] || 0) + 1; return oEmit.apply(this, arguments); };
     instrumentar(sim, sonda);
     let s = 0; while (!sim.isOver() && s++ < 500000) sim.step(DT);
+    sonda.somaSegundosSimulados = (sonda.somaSegundosSimulados || 0) + s * DT;
+    sonda.partidasMedidas = (sonda.partidasMedidas || 0) + 1;
     /* Contadores da propria camada de fisica: dizem por qual ramo geometrico
        cada chute saiu, que e o que a sonda externa nao consegue ver. */
     if (typeof sim.getOS200Report === 'function') {
@@ -237,6 +259,7 @@ function agregar(partidas, sonda, extra) {
     porCimaEntreOsPostes: sonda.porCimaEntreOsPostes,
     quiques: sonda.quiques,
     quiquesPorPartida: +(sonda.quiques / N).toFixed(3),
+    segundosSimuladosPorPartida: +((sonda.somaSegundosSimulados || 0) / Math.max(1, sonda.partidasMedidas || N)).toFixed(1),
     ramos: sonda.os200 || {},
   };
   return Object.assign({ partidas: N, sementeBase: SEMENTE, incremento: INCREMENTO,
@@ -254,6 +277,7 @@ if (process.env.CDS_FATIA) {
        momento em que e instalada */
     if (msg.tune) define('CDS_OS200_TUNE', msg.tune);
     carregar(msg.build);
+    aplicarClock(msg.clockRate);
     const r = rodarFatia(msg.indices);
     process.send({ partidas: r.partidas, sonda: r.sonda });
     process.exit(0);
@@ -264,6 +288,7 @@ if (process.env.CDS_FATIA) {
   const W = Math.max(1, Number(argv.workers || 1));
   const indices = Array.from({ length: N }, (_, i) => i);
   const TUNE = argv.tune ? JSON.parse(String(argv.tune)) : null;
+  const CLOCK = argv.clockRate ? Number(argv.clockRate) : null;
 
   if (W === 1) {
     instalarAmbiente();
@@ -271,6 +296,7 @@ if (process.env.CDS_FATIA) {
     const realConsole = console;
     global.console = { log: noop, warn: noop, error: realConsole.error };
     const carga = carregar(build);
+    aplicarClock(CLOCK);
     const r = rodarFatia(indices);
     const out = agregar(r.partidas, r.sonda, { build: path.basename(build), sha256: carga.sha,
       scriptsCarregados: carga.ok, scriptsComErro: carga.erro, excecoes: carga.excecoes });
@@ -307,7 +333,7 @@ if (process.env.CDS_FATIA) {
           if (argv.out) fs.writeFileSync(argv.out, JSON.stringify(out, null, 2));
         }
       });
-      filho.send({ build: path.resolve(build), indices: fatia, tune: TUNE });
+      filho.send({ build: path.resolve(build), indices: fatia, tune: TUNE, clockRate: CLOCK });
     }
   }
 }

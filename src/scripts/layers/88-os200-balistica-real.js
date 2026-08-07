@@ -896,6 +896,19 @@
     return Object.assign({ versao: VERSAO }, this.__os200Diag || {});
   };
 
+  /* ─── identidade do build ──────────────────────────────────────────────────
+     Esta e a ultima camada do bundle, entao e a que tem a palavra final sobre
+     `document.title`. Antes disso, 36 arquivos escreviam o titulo com o numero
+     da propria release e o resultado dependia da ordem de carga; o titulo
+     estatico do HTML tinha ficado em "R18.40A" enquanto o jogo era R19.08.
+     Trocar a versao do jogo passa a ser mexer nesta linha. */
+  const VERSAO_JOGO = 'R19.09';
+  try {
+    root.CDS_BUILD_ID = VERSAO_JOGO;
+    root.CDS_VERSION = VERSAO_JOGO;
+    if (root.document) root.document.title = 'Copa dos Sonhos — ' + VERSAO_JOGO;
+  } catch (_) { /* sem DOM (bateria em Node): nada a fazer */ }
+
   root.CDS_OS200 = Object.freeze({
     versao: VERSAO,
     instalado: true,
