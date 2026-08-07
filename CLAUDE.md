@@ -23,6 +23,7 @@ tools/
   verify.py         presença, sintaxe e reprodutibilidade
   fisica/bateria.js    bateria paralela com sondas de física
   fisica/calibrar.py   varredura de calibração
+  fisica/placar.py     pontua a medição contra calibration/targets.json
 tests/
   fisica_balistica.js  teste de unidade da balística
   browser_smoke.js     sobe o bundle em Chromium de verdade
@@ -100,6 +101,19 @@ da meta, não de sorteio prévio — `pGoal` calibra a pontaria.
 Não reintroduza teto de altura em `_physicalTargetZ`: era ele que impedia
 qualquer chute de passar por cima do travessão. Detalhes e medições em
 `reports/OS-200-fisica-da-bola.md`.
+
+### Relógio e fadiga (OS-201)
+`ENGINE_CALIBRATION.timing.clockRate` é minutos de jogo por segundo de
+simulação. Está em **0,085**: em 0,13 o jogo não batia nenhum dos próprios
+mínimos de volume em `calibration/targets.json`.
+
+A fadiga é normalizada por `ADV4.context.clockRateRef` — ela mede **minuto de
+jogo**, não segundo de simulação. Se mexer no `clockRate`, não mexa no dreno
+junto: ele já é invariante.
+
+Meça com `tools/fisica/placar.py`, que pontua uma medição da bateria contra
+`calibration/targets.json`. Estado atual: 10/13. Laudo em
+`reports/OS-201-relogio-e-fadiga.md`.
 
 ### IA Adversária (Match Sim)
 Permanece no módulo MatchSim por enquanto porque usa estado privado (IIFE).

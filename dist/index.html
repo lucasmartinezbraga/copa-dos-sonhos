@@ -54,7 +54,13 @@
 </script>
 <!-- PONTO 3: charset/viewport foram promovidos para o topo do <head>; as
      cópias que existiam aqui foram removidas para não haver declaração dupla. -->
-<title>Copa dos Sonhos — R18.40A</title>
+<!-- Titulo SEM versao de proposito. Trinta e seis arquivos escrevem
+     `document.title`, cada um com o numero da sua release, e vence quem carrega
+     por ultimo — foi assim que este titulo estatico ficou preso em "R18.40A"
+     enquanto o jogo ja era R19.08. A versao agora e declarada num lugar so, na
+     ultima camada (88-os200-balistica-real.js), que tem a palavra final. Aqui
+     fica o nome, que nunca envelhece. -->
+<title>Copa dos Sonhos</title>
 <!-- TIPOGRAFIA: fontes 100% embutidas; nenhum request externo participa do boot. -->
 <style id="cds-inline-fonts">
 /* ══════════════════════════════════════════════════════════════════════
@@ -2720,7 +2726,30 @@ const ENGINE_CALIBRATION = Object.freeze({
     shotDuelSpread: 13.5,
   }),
   timing: Object.freeze({
-    clockRate: 0.13,
+    /* OS-201 · RELOGIO DA PARTIDA — minutos de jogo por segundo de simulacao.
+       Estava em 0,13, e nesse valor o jogo nao batia NENHUM dos proprios
+       minimos de `calibration/targets.json` em volume: 13,2 chutes (min 20),
+       9,6 faltas (min 16), 1,97 gol (min 2,4), e 41,7% de empates com 25% de
+       0 a 0 — consequencia direta de faltar jogo dentro dos 90 minutos.
+       Nao era compressao "arcade": era subnutricao.
+
+       Medido em varredura de 5 valores (tools/fisica/calibrar.py, 40 partidas
+       cada), 0,085 e onde o volume entra na faixa de design. Custo: a partida
+       passa de ~14,7 para ~22,8 minutos de observacao em 1X — mas o jogo abre
+       em 2X, entao na pratica sao ~11 minutos.
+
+       A fadiga foi desacoplada deste numero na mesma mudanca (OS-201 em
+       40-match-engine), senao baixar o relogio deixaria o time exausto sem que
+       nada no futebol tivesse mudado. */
+    clockRate: 0.085,
+    /* OS-201 · quanto de folego volta por segundo de bola parada. O motor so
+       sabia gastar; sem recuperacao a stamina final ficava abaixo do minimo de
+       design por construcao. Calibrado com a bateria. */
+    /* 0,055 e nao mais: subir para 0,075 poe a stamina em 64,4 (contra 64,2),
+       ganho irrisorio, mas jogador mais inteiro no fim faz o placar abrir —
+       os empates caem de 29,2% para 17,5% (abaixo do minimo) e as goleadas
+       sobem de 17,5% para 20,8%. Medido, 12/13 vira 10/13. */
+    deadBallRecovery: 0.055,
     fixedStep: 1 / 60,
     decisionInterval: 0.28,
     tackleCooldown: 0.55,
@@ -2740,6 +2769,12 @@ const ENGINE_CALIBRATION = Object.freeze({
   defending: Object.freeze({
     tackleAttemptRate: 12.0,
     boxAttemptRate: 4.2,
+    /* OS-201 · as faltas ficam em ~14,9 por partida contra um minimo de design
+       de 16 (alvo 21), e o miss e consistente em quatro medicoes. Nao mexido:
+       o volume de faltas nao sai deste numero, sai de quantos DUELOS acontecem
+       por partida — subir a probabilidade por duelo so trocaria falta por
+       cartao, e os amarelos ja estao em 4,7 de um teto de 5,6.
+       Fica registrado como pendencia real. */
     foulBase: 0.29,
     foulComposure: 0.12,
     yellowFirst: 0.18,
@@ -4403,6 +4438,10 @@ const ADV4 = Object.freeze({
   context: Object.freeze({
     pressureRadius: 5.4,
     lateMinute: 74,
+    /* OS-201 · relogio em que o dreno de stamina foi calibrado. Serve so para
+       normalizar a fadiga por minuto de jogo; nao muda o relogio do jogo, que
+       vive em ENGINE_CALIBRATION.timing.clockRate. */
+    clockRateRef: 0.13,
     knockoutImportance: 0.08,
     fatigueExecution: 0.16,
     pressureExecution: 0.18,
@@ -4909,7 +4948,50 @@ class MatchSim {
       const moving = (p.vx*p.vx + p.vy*p.vy) > 4;
       const lateDrain = this.minute >= ADV4.context.lateMinute ? 1 + (this.minute-ADV4.context.lateMinute)/40 : 1;
       const pressDuty = (p===this.teams[p.team]._presser || (this.teams[p.team]._counterPressUntil||0)>this.t) ? 1.12 : 1;
-      p.stamina = clamp(p.stamina - (moving ? 0.055 : 0.012) * dt * (2 - getAttr(p,'resistencia')/100) * this.teams[p.team].fx.drain * lateDrain * pressDuty, 32, 100);
+      /* OS-201 · A FADIGA SEGUE O RELOGIO DA PARTIDA, NAO O DO SIMULADOR.
+         O dreno usava `dt` cru, ou seja dependia de quantos SEGUNDOS DE
+         SIMULACAO a partida levasse. Como `clockRate` decide justamente essa
+         relacao, baixar o relogio para caber mais jogo fazia o time acabar
+         exausto sem que nada no futebol tivesse mudado: medido, a stamina final
+         caia de 57,8 para 50,3 so por trocar 0,13 por 0,085.
+
+         Um jogador se cansa por jogar 90 minutos, nao por o simulador demorar.
+         Normalizando pelo clockRate de referencia (aquele em que este dreno foi
+         calibrado), o gasto passa a ser por minuto de jogo e o numero fica
+         igual em qualquer relogio — em 0,13 o fator e exatamente 1, entao a
+         normalizacao em si nao mexe na calibracao existente.
+
+         O MODULO do dreno, esse sim, foi reduzido em 27%: a stamina final media
+         era 57,4 contra um minimo de design de 64 (alvo 73), e isso valia tanto
+         no relogio antigo quanto no novo — era erro proprio, nao efeito do
+         clockRate. Times terminando a 57% faziam o futebol do fim de jogo pior
+         do que o desenho pedia. Com 0,040 / 0,0088 a media final fica em 63,9,
+         a um decimo do minimo de 64.
+
+         TENTEI AFROUXAR MAIS (0,0375 / 0,0083) para ganhar folga e REVERTI:
+         poe a stamina em 65,1, dentro da faixa, mas jogador mais inteiro muda
+         o jogo inteiro — o acerto ao alvo cai de 0,361 para 0,337 (min 0,34) e
+         o 0 a 0 sobe de 0,092 para 0,125 (max 0,12). Placar geral de 10/13
+         para 9/13. Ficar a um decimo do minimo numa metrica custa menos do que
+         derrubar duas outras. */
+      const clockNorm = CAL.timing.clockRate / ADV4.context.clockRateRef;
+      /* OS-201 · FOLEGO NA BOLA PARADA.
+         O motor só sabia gastar: não havia recuperação nenhuma, e o dreno
+         rodava inclusive com o jogo parado. Mas é justamente na bola parada
+         que um jogador recupera — falta, escanteio, lateral, comemoração de
+         gol. Sem isso a stamina final ficava em 63,9 contra um mínimo de
+         design de 64.
+
+         Recuperar aqui é melhor do que afrouxar o dreno geral, que foi o que
+         tentei antes: baixar o dreno deixa o jogador mais inteiro DURANTE o
+         jogo e muda o futebol inteiro (o acerto ao alvo caiu e o 0 a 0 subiu).
+         Isto mexe só no que acontece com o relógio parado. */
+      if (this.dead > 0) {
+        p.stamina = clamp(p.stamina + CAL.timing.deadBallRecovery * dt * clockNorm
+          * (0.6 + getAttr(p,'resistencia')/100 * 0.6), 32, 100);
+        continue;
+      }
+      p.stamina = clamp(p.stamina - (moving ? 0.040 : 0.0088) * dt * clockNorm * (2 - getAttr(p,'resistencia')/100) * this.teams[p.team].fx.drain * lateDrain * pressDuty, 32, 100);
     }
     // desarme/bote passivo? NÃO. Só duelos (§5.5). Mas o presser tenta bote quando encosta.
     if (!this.ball.traveling && this.ball.owner) this._pressAndTackle(dt);
@@ -5517,6 +5599,18 @@ class MatchSim {
       const _o44d=def?D(def.x,def.y,atk.x,atk.y):99;
       const _o44prox=clamp((3.2-_o44d)*9,-22,22);
       const pWin=duelProb(facet(atk,'head_atk')+setBoost+(sw==='in'?2.5:0),(def?facet(def,'head_def'):40)+5+_o44prox);
+      /* OS-201 · O DUELO AEREO NAO GERA FALTA, E TENTEI CORRIGIR ISSO.
+         E de fato uma categoria que nao existe no motor — empurrao nas costas,
+         cotovelada, subir por cima —, e as faltas ficam em 15,3 por partida
+         contra um minimo de design de 16. Mas acrescentar falta aqui rendeu
+         +0,05 falta: o duelo aereo acontece pouco demais para mover o numero,
+         e ainda custou stamina e acerto ao alvo (12/13 virou 11/13).
+
+         Somando a tentativa de subir `foulBase` (mesmo resultado, ver
+         20-core.js), a conclusao esta medida duas vezes: o volume de faltas
+         nao sai da probabilidade POR DUELO, sai de QUANTOS DUELOS acontecem
+         por partida. Consertar de verdade exige mexer na densidade de disputa,
+         nao numa constante de probabilidade. */
       if(chance(pWin)){
         this.stats[o.team].crossesOk++; this.stats[o.team].shots++; this.beat=.5;
         if(setPiece)this.stats[o.team].setPieceFirstContactWon++;
@@ -27902,6 +27996,19 @@ try { document.title = 'Copa dos Sonhos — R19.08'; } catch (_) {}
   P.getOS200Report = function () {
     return Object.assign({ versao: VERSAO }, this.__os200Diag || {});
   };
+
+  /* ─── identidade do build ──────────────────────────────────────────────────
+     Esta e a ultima camada do bundle, entao e a que tem a palavra final sobre
+     `document.title`. Antes disso, 36 arquivos escreviam o titulo com o numero
+     da propria release e o resultado dependia da ordem de carga; o titulo
+     estatico do HTML tinha ficado em "R18.40A" enquanto o jogo era R19.08.
+     Trocar a versao do jogo passa a ser mexer nesta linha. */
+  const VERSAO_JOGO = 'R19.09';
+  try {
+    root.CDS_BUILD_ID = VERSAO_JOGO;
+    root.CDS_VERSION = VERSAO_JOGO;
+    if (root.document) root.document.title = 'Copa dos Sonhos — ' + VERSAO_JOGO;
+  } catch (_) { /* sem DOM (bateria em Node): nada a fazer */ }
 
   root.CDS_OS200 = Object.freeze({
     versao: VERSAO,

@@ -19,6 +19,10 @@ const ADV4 = Object.freeze({
   context: Object.freeze({
     pressureRadius: 5.4,
     lateMinute: 74,
+    /* OS-201 · relogio em que o dreno de stamina foi calibrado. Serve so para
+       normalizar a fadiga por minuto de jogo; nao muda o relogio do jogo, que
+       vive em ENGINE_CALIBRATION.timing.clockRate. */
+    clockRateRef: 0.13,
     knockoutImportance: 0.08,
     fatigueExecution: 0.16,
     pressureExecution: 0.18,
@@ -525,7 +529,50 @@ class MatchSim {
       const moving = (p.vx*p.vx + p.vy*p.vy) > 4;
       const lateDrain = this.minute >= ADV4.context.lateMinute ? 1 + (this.minute-ADV4.context.lateMinute)/40 : 1;
       const pressDuty = (p===this.teams[p.team]._presser || (this.teams[p.team]._counterPressUntil||0)>this.t) ? 1.12 : 1;
-      p.stamina = clamp(p.stamina - (moving ? 0.055 : 0.012) * dt * (2 - getAttr(p,'resistencia')/100) * this.teams[p.team].fx.drain * lateDrain * pressDuty, 32, 100);
+      /* OS-201 · A FADIGA SEGUE O RELOGIO DA PARTIDA, NAO O DO SIMULADOR.
+         O dreno usava `dt` cru, ou seja dependia de quantos SEGUNDOS DE
+         SIMULACAO a partida levasse. Como `clockRate` decide justamente essa
+         relacao, baixar o relogio para caber mais jogo fazia o time acabar
+         exausto sem que nada no futebol tivesse mudado: medido, a stamina final
+         caia de 57,8 para 50,3 so por trocar 0,13 por 0,085.
+
+         Um jogador se cansa por jogar 90 minutos, nao por o simulador demorar.
+         Normalizando pelo clockRate de referencia (aquele em que este dreno foi
+         calibrado), o gasto passa a ser por minuto de jogo e o numero fica
+         igual em qualquer relogio — em 0,13 o fator e exatamente 1, entao a
+         normalizacao em si nao mexe na calibracao existente.
+
+         O MODULO do dreno, esse sim, foi reduzido em 27%: a stamina final media
+         era 57,4 contra um minimo de design de 64 (alvo 73), e isso valia tanto
+         no relogio antigo quanto no novo — era erro proprio, nao efeito do
+         clockRate. Times terminando a 57% faziam o futebol do fim de jogo pior
+         do que o desenho pedia. Com 0,040 / 0,0088 a media final fica em 63,9,
+         a um decimo do minimo de 64.
+
+         TENTEI AFROUXAR MAIS (0,0375 / 0,0083) para ganhar folga e REVERTI:
+         poe a stamina em 65,1, dentro da faixa, mas jogador mais inteiro muda
+         o jogo inteiro — o acerto ao alvo cai de 0,361 para 0,337 (min 0,34) e
+         o 0 a 0 sobe de 0,092 para 0,125 (max 0,12). Placar geral de 10/13
+         para 9/13. Ficar a um decimo do minimo numa metrica custa menos do que
+         derrubar duas outras. */
+      const clockNorm = CAL.timing.clockRate / ADV4.context.clockRateRef;
+      /* OS-201 · FOLEGO NA BOLA PARADA.
+         O motor só sabia gastar: não havia recuperação nenhuma, e o dreno
+         rodava inclusive com o jogo parado. Mas é justamente na bola parada
+         que um jogador recupera — falta, escanteio, lateral, comemoração de
+         gol. Sem isso a stamina final ficava em 63,9 contra um mínimo de
+         design de 64.
+
+         Recuperar aqui é melhor do que afrouxar o dreno geral, que foi o que
+         tentei antes: baixar o dreno deixa o jogador mais inteiro DURANTE o
+         jogo e muda o futebol inteiro (o acerto ao alvo caiu e o 0 a 0 subiu).
+         Isto mexe só no que acontece com o relógio parado. */
+      if (this.dead > 0) {
+        p.stamina = clamp(p.stamina + CAL.timing.deadBallRecovery * dt * clockNorm
+          * (0.6 + getAttr(p,'resistencia')/100 * 0.6), 32, 100);
+        continue;
+      }
+      p.stamina = clamp(p.stamina - (moving ? 0.040 : 0.0088) * dt * clockNorm * (2 - getAttr(p,'resistencia')/100) * this.teams[p.team].fx.drain * lateDrain * pressDuty, 32, 100);
     }
     // desarme/bote passivo? NÃO. Só duelos (§5.5). Mas o presser tenta bote quando encosta.
     if (!this.ball.traveling && this.ball.owner) this._pressAndTackle(dt);
@@ -1133,6 +1180,18 @@ class MatchSim {
       const _o44d=def?D(def.x,def.y,atk.x,atk.y):99;
       const _o44prox=clamp((3.2-_o44d)*9,-22,22);
       const pWin=duelProb(facet(atk,'head_atk')+setBoost+(sw==='in'?2.5:0),(def?facet(def,'head_def'):40)+5+_o44prox);
+      /* OS-201 · O DUELO AEREO NAO GERA FALTA, E TENTEI CORRIGIR ISSO.
+         E de fato uma categoria que nao existe no motor — empurrao nas costas,
+         cotovelada, subir por cima —, e as faltas ficam em 15,3 por partida
+         contra um minimo de design de 16. Mas acrescentar falta aqui rendeu
+         +0,05 falta: o duelo aereo acontece pouco demais para mover o numero,
+         e ainda custou stamina e acerto ao alvo (12/13 virou 11/13).
+
+         Somando a tentativa de subir `foulBase` (mesmo resultado, ver
+         20-core.js), a conclusao esta medida duas vezes: o volume de faltas
+         nao sai da probabilidade POR DUELO, sai de QUANTOS DUELOS acontecem
+         por partida. Consertar de verdade exige mexer na densidade de disputa,
+         nao numa constante de probabilidade. */
       if(chance(pWin)){
         this.stats[o.team].crossesOk++; this.stats[o.team].shots++; this.beat=.5;
         if(setPiece)this.stats[o.team].setPieceFirstContactWon++;

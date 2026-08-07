@@ -546,7 +546,30 @@ const ENGINE_CALIBRATION = Object.freeze({
     shotDuelSpread: 13.5,
   }),
   timing: Object.freeze({
-    clockRate: 0.13,
+    /* OS-201 · RELOGIO DA PARTIDA — minutos de jogo por segundo de simulacao.
+       Estava em 0,13, e nesse valor o jogo nao batia NENHUM dos proprios
+       minimos de `calibration/targets.json` em volume: 13,2 chutes (min 20),
+       9,6 faltas (min 16), 1,97 gol (min 2,4), e 41,7% de empates com 25% de
+       0 a 0 — consequencia direta de faltar jogo dentro dos 90 minutos.
+       Nao era compressao "arcade": era subnutricao.
+
+       Medido em varredura de 5 valores (tools/fisica/calibrar.py, 40 partidas
+       cada), 0,085 e onde o volume entra na faixa de design. Custo: a partida
+       passa de ~14,7 para ~22,8 minutos de observacao em 1X — mas o jogo abre
+       em 2X, entao na pratica sao ~11 minutos.
+
+       A fadiga foi desacoplada deste numero na mesma mudanca (OS-201 em
+       40-match-engine), senao baixar o relogio deixaria o time exausto sem que
+       nada no futebol tivesse mudado. */
+    clockRate: 0.085,
+    /* OS-201 · quanto de folego volta por segundo de bola parada. O motor so
+       sabia gastar; sem recuperacao a stamina final ficava abaixo do minimo de
+       design por construcao. Calibrado com a bateria. */
+    /* 0,055 e nao mais: subir para 0,075 poe a stamina em 64,4 (contra 64,2),
+       ganho irrisorio, mas jogador mais inteiro no fim faz o placar abrir —
+       os empates caem de 29,2% para 17,5% (abaixo do minimo) e as goleadas
+       sobem de 17,5% para 20,8%. Medido, 12/13 vira 10/13. */
+    deadBallRecovery: 0.055,
     fixedStep: 1 / 60,
     decisionInterval: 0.28,
     tackleCooldown: 0.55,
@@ -566,6 +589,12 @@ const ENGINE_CALIBRATION = Object.freeze({
   defending: Object.freeze({
     tackleAttemptRate: 12.0,
     boxAttemptRate: 4.2,
+    /* OS-201 · as faltas ficam em ~14,9 por partida contra um minimo de design
+       de 16 (alvo 21), e o miss e consistente em quatro medicoes. Nao mexido:
+       o volume de faltas nao sai deste numero, sai de quantos DUELOS acontecem
+       por partida — subir a probabilidade por duelo so trocaria falta por
+       cartao, e os amarelos ja estao em 4,7 de um teto de 5,6.
+       Fica registrado como pendencia real. */
     foulBase: 0.29,
     foulComposure: 0.12,
     yellowFirst: 0.18,

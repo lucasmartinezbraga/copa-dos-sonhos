@@ -158,7 +158,27 @@ function instrumentar(sim, sonda) {
 function sondaVazia() {
   return { voos: 0, somaApice: 0, maxApice: 0, voosAcimaDoTravessao: 0, somaTempoVoo: 0,
     cruzamentos: 0, somaZLinha: 0, maxZLinha: 0, porCimaDoTravessao: 0,
-    porCimaEntreOsPostes: 0, quiques: 0, os200: {} };
+    porCimaEntreOsPostes: 0, quiques: 0, somaSegundosSimulados: 0, partidasMedidas: 0, os200: {} };
+}
+
+/* Varredura de clockRate — SONDA, nao mudanca de jogo.
+   `ENGINE_CALIBRATION` e congelado, entao nao da para trocar o numero. O motor
+   avanca o relogio num lugar so (`if (this.dead <= 0) this.minute += dt *
+   clockRate`), entao reescalar o incremento por quadro reproduz exatamente
+   outro clockRate. O guarda de 0,1 evita reescalar os SALTOS de relogio
+   (intervalo, acrescimos), que nao sao incremento continuo. */
+const CLOCK_PADRAO = 0.13;
+function aplicarClock(taxa) {
+  if (!taxa || !Number.isFinite(taxa) || taxa === CLOCK_PADRAO) return;
+  const fator = taxa / CLOCK_PADRAO;
+  const P = MatchSim.prototype, passoOriginal = P.step;
+  P.step = function (dt) {
+    const antes = this.minute;
+    const r = passoOriginal.apply(this, arguments);
+    const d = this.minute - antes;
+    if (d > 0 && d < 0.1) this.minute = antes + d * fator;
+    return r;
+  };
 }
 
 /* --------------------------------------------------------------- populacao */
@@ -188,10 +208,21 @@ function rodarFatia(indices) {
     const sim = new MatchSim(mk(fh, sh, true), mk(fa, sa, false), { neutral: true, labMode: true });
     sim.teams[0].formKey = fh; sim.teams[1].formKey = fa;
     const ev = Object.create(null);
+    /* SEQUENCIA DE GOLS — para medir bola de neve.
+       Se o motor for justo e os dois times sao o MESMO elenco, a chance de o
+       proximo gol sair de quem ja esta na frente tem de ficar em ~50%. Acima
+       disso existe efeito acumulativo, e e ele que produz goleada. */
+    const golsSeq = [];
     const oEmit = sim._emit;
-    sim._emit = function (t) { ev[t] = (ev[t] || 0) + 1; return oEmit.apply(this, arguments); };
+    sim._emit = function (t, d) {
+      ev[t] = (ev[t] || 0) + 1;
+      if (t === 'goal' && d && d.by) golsSeq.push({ time: d.by.team, minuto: Math.floor(sim.minute) });
+      return oEmit.apply(this, arguments);
+    };
     instrumentar(sim, sonda);
     let s = 0; while (!sim.isOver() && s++ < 500000) sim.step(DT);
+    sonda.somaSegundosSimulados = (sonda.somaSegundosSimulados || 0) + s * DT;
+    sonda.partidasMedidas = (sonda.partidasMedidas || 0) + 1;
     /* Contadores da propria camada de fisica: dizem por qual ramo geometrico
        cada chute saiu, que e o que a sonda externa nao consegue ver. */
     if (typeof sim.getOS200Report === 'function') {
@@ -202,8 +233,17 @@ function rodarFatia(indices) {
       }
     }
     const linha = { i, seed, formacoes: [fh, fa], estilos: [sh, sa], placar: sim.score.slice() };
+    /* stamina final media dos jogadores em campo — o alvo de design
+       `averageEndingStamina` depende diretamente de quanto tempo de simulacao a
+       partida dura, entao e a metrica que mais sente o clockRate */
+    try {
+      const vivos = [];
+      for (const tm of sim.teams) for (const p of tm.players) if (p && !p.red) vivos.push(+p.stamina || 0);
+      linha.staminaFinal = vivos.length ? vivos.reduce((a, b) => a + b, 0) / vivos.length : null;
+    } catch (_) { linha.staminaFinal = null; }
     for (const k of CHAVES) linha[k] = (+sim.stats[0][k] || 0) + (+sim.stats[1][k] || 0);
     linha.eventos = ev;
+    linha.golsSeq = golsSeq;
     partidas.push(linha);
   }
   return { partidas, sonda };
@@ -237,10 +277,12 @@ function agregar(partidas, sonda, extra) {
     porCimaEntreOsPostes: sonda.porCimaEntreOsPostes,
     quiques: sonda.quiques,
     quiquesPorPartida: +(sonda.quiques / N).toFixed(3),
+    segundosSimuladosPorPartida: +((sonda.somaSegundosSimulados || 0) / Math.max(1, sonda.partidasMedidas || N)).toFixed(1),
     ramos: sonda.os200 || {},
   };
   return Object.assign({ partidas: N, sementeBase: SEMENTE, incremento: INCREMENTO,
-    agregado, eventosPorPartida, fisica }, extra || {});
+    agregado, eventosPorPartida, fisica,
+    porPartida: partidas.map(p => ({ placar: p.placar, staminaFinal: p.staminaFinal, golsSeq: p.golsSeq })) }, extra || {});
 }
 
 /* -------------------------------------------------------------------- modos */
@@ -254,6 +296,7 @@ if (process.env.CDS_FATIA) {
        momento em que e instalada */
     if (msg.tune) define('CDS_OS200_TUNE', msg.tune);
     carregar(msg.build);
+    aplicarClock(msg.clockRate);
     const r = rodarFatia(msg.indices);
     process.send({ partidas: r.partidas, sonda: r.sonda });
     process.exit(0);
@@ -264,6 +307,7 @@ if (process.env.CDS_FATIA) {
   const W = Math.max(1, Number(argv.workers || 1));
   const indices = Array.from({ length: N }, (_, i) => i);
   const TUNE = argv.tune ? JSON.parse(String(argv.tune)) : null;
+  const CLOCK = argv.clockRate ? Number(argv.clockRate) : null;
 
   if (W === 1) {
     instalarAmbiente();
@@ -271,6 +315,7 @@ if (process.env.CDS_FATIA) {
     const realConsole = console;
     global.console = { log: noop, warn: noop, error: realConsole.error };
     const carga = carregar(build);
+    aplicarClock(CLOCK);
     const r = rodarFatia(indices);
     const out = agregar(r.partidas, r.sonda, { build: path.basename(build), sha256: carga.sha,
       scriptsCarregados: carga.ok, scriptsComErro: carga.erro, excecoes: carga.excecoes });
@@ -307,7 +352,7 @@ if (process.env.CDS_FATIA) {
           if (argv.out) fs.writeFileSync(argv.out, JSON.stringify(out, null, 2));
         }
       });
-      filho.send({ build: path.resolve(build), indices: fatia, tune: TUNE });
+      filho.send({ build: path.resolve(build), indices: fatia, tune: TUNE, clockRate: CLOCK });
     }
   }
 }
