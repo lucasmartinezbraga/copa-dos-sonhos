@@ -24,12 +24,18 @@ function carregarPlaywright() {
 const { chromium } = carregarPlaywright();
 const alvo = path.resolve(process.argv[2] || 'dist/index.html');
 
+/* Sem caminho fixo de binario: num runner do GitHub o Chromium fica noutro
+   lugar, e chumbar o caminho deste contentor faria o teste morrer fora daqui.
+   `CDS_CHROMIUM` cobre ambientes onde o binario nao esta onde o Playwright
+   espera; sem ela, o proprio Playwright resolve. */
+const executavel = process.env.CDS_CHROMIUM || undefined;
+
 (async () => {
   const erros = [];
   const consoleErros = [];
   const navegador = await chromium.launch({
     headless: true,
-    executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+    ...(executavel ? { executablePath: executavel } : {}),
     args: ['--no-sandbox'],
   });
   const pagina = await navegador.newPage({ viewport: { width: 1366, height: 768 } });

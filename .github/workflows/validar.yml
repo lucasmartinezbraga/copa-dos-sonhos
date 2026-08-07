@@ -1,0 +1,60 @@
+name: Validar
+
+# O repositorio nao tinha verificacao nenhuma em pull request: o unico workflow
+# existente disparava em push para a main, e ainda assim so quando ele proprio
+# mudava. Nada impedia um PR de quebrar o bundle, dessincronizar `dist/` de
+# `src/` ou derrubar a fisica.
+#
+# Este workflow roda as mesmas tres coisas que se roda na mao:
+#   tools/verify.py         — modulos, manifesto, sintaxe dos 89 blocos, build
+#                             reprodutivel e o teste de balistica
+#   tests/browser_smoke.js  — sobe o bundle em Chromium de verdade. As baterias
+#                             usam vm.runInThisContext, que NAO e como o
+#                             navegador carrega; so este prova que o jogo sobe.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+    # o passo de publicacao commita docs/ de volta na main; revalidar por causa
+    # disso so gastaria runner
+    paths-ignore:
+      - 'docs/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+
+      - name: Preparar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Módulos, manifesto, build e balística
+        run: python3 tools/verify.py
+
+      - name: Conferir que dist/ está em dia com src/
+        run: |
+          # verify.py ja regerou o bundle; se sobrou diferenca, o dist/ commitado
+          # nao corresponde ao src/ e o site publicaria algo nao revisado.
+          if ! git diff --quiet -- dist/; then
+            echo "::error::dist/ esta fora de sincronia com src/. Rode 'python3 tools/build.py' e commite o resultado."
+            git --no-pager diff --stat -- dist/
+            exit 1
+          fi
+
+      - name: Instalar Chromium
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+
+      - name: Provar que o jogo sobe no navegador
+        run: node tests/browser_smoke.js dist/index.html
