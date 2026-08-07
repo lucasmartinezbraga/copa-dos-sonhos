@@ -1,0 +1,1 @@
+window.CDS_R18183_BUILD=Object.freeze({version:'R18.18.3',baseline:'R18.18.2',label:'BLOQUEIOS, DEFESAS E ECOLOGIA DE ESCANTEIOS'});try{document.title='Copa dos Sonhos — R18.18.3';window.CDS_BUILD_ID='R18.18.3';}catch(_){}

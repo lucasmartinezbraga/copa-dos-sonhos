@@ -1,15 +1,37 @@
 name: Publicar site do jogo
 
+# O que este workflow fazia e por que mudou
+# -----------------------------------------
+# Ele buscava `dist/COPA DOS SONHOS - BUILD FINAL FASES 4 A 7 - V5.0.0.html`
+# de OUTRA branch (`agent/fases-4-7-final`) e publicava aquilo. Duas
+# consequencias:
+#
+#   1. o site servia um build V5.0.0 — nem o R19.08 nem qualquer trabalho
+#      posterior chegava a quem joga;
+#   2. o gatilho tinha `paths: [.github/workflows/publicar-site.yml]`, ou seja,
+#      so rodava quando o proprio arquivo do workflow mudava. Empurrar um jogo
+#      novo para a main nunca republicava nada.
+#
+# Agora o site sai do que esta versionado: o bundle e REMONTADO a partir de
+# `src/`, validado, e so entao publicado.
+
 on:
   push:
     branches:
       - main
     paths:
-      - .github/workflows/publicar-site.yml
+      - 'src/**'
+      - 'manifests/build-manifest.json'
+      - 'tools/**'
+      - '.github/workflows/publicar-site.yml'
   workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: publicar-site
+  cancel-in-progress: false
 
 jobs:
   publicar:
@@ -18,13 +40,43 @@ jobs:
       - name: Baixar repositório
         uses: actions/checkout@v4
         with:
+          # clone completo: o passo final faz `git push origin main`, e um
+          # clone raso e recusado pelo servidor ("shallow update not allowed")
           fetch-depth: 0
 
-      - name: Buscar build funcional do jogo
+      - name: Preparar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Remontar o bundle a partir de src/
+        run: python3 tools/build.py
+
+      - name: Conferir que dist/ está em dia com src/
         run: |
-          git fetch origin agent/fases-4-7-final
+          # dist/ e gerado. Se o commit trouxe src/ sem regerar o bundle, o
+          # site publicaria algo que ninguem revisou.
+          if ! git diff --quiet -- dist/; then
+            echo "::error::dist/ esta fora de sincronia com src/. Rode 'python3 tools/build.py' e commite o resultado."
+            git --no-pager diff --stat -- dist/
+            exit 1
+          fi
+
+      - name: Validar módulos, manifesto e balística
+        run: python3 tools/verify.py
+
+      - name: Instalar Chromium
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+
+      - name: Provar que o jogo sobe no navegador
+        run: node tests/browser_smoke.js dist/index.html
+
+      - name: Preparar docs/
+        run: |
           mkdir -p docs
-          git show 'origin/agent/fases-4-7-final:dist/COPA DOS SONHOS - BUILD FINAL FASES 4 A 7 - V5.0.0.html' > docs/index.html
+          cp dist/index.html docs/index.html
           touch docs/.nojekyll
 
       - name: Validar HTML publicado
@@ -39,6 +91,8 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add docs/index.html docs/.nojekyll
           if ! git diff --cached --quiet; then
-            git commit -m 'Publica build 5.0.0 no site'
+            git commit -m "Publica o build de ${GITHUB_SHA::7} no site"
             git push origin main
+          else
+            echo 'Site ja esta atualizado.'
           fi

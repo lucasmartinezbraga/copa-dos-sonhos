@@ -1,0 +1,1 @@
+window.CDS_R1818_BUILD=Object.freeze({version:'R18.18',baseline:'R18.17.3.2',label:'PROGRESSAO OFENSIVA E CRIACAO DE CHANCES'});try{document.title='Copa dos Sonhos — R18.18';window.CDS_BUILD_ID='R18.18';}catch(_){}

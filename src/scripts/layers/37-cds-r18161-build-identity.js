@@ -1,0 +1,2 @@
+
+(function(){try{window.CDS_BUILD_ID='R18.16.1';window.CDS_VERSION='5.12.0-R18.16.1-EXECUCAO-REAL-NA-AREA';document.title='Copa dos Sonhos — R18.16.1';window.CDS_R18161_BUILD=Object.freeze({baseline:'R18.16-PLANEJAMENTO-AREA',flagsBaseline:'R18.15.6-BANDEIRAS-REAIS',restartLaw:'R18.15.5',boxMovementPlanning:true,physicalRuns:true,eventDriven:true,frozenPlan:true,continuousAttributes:true,roles:6,noTeleport:true,noGlobalSpeedBonus:true,noXgChange:true,maxTargetShiftMeters:.72});}catch(_){}})();

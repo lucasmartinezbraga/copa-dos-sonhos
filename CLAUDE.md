@@ -4,24 +4,30 @@
 - **Tipo**: Jogo web de simulação de futebol
 - **Arquitetura**: Modular (scripts e CSS separados em desenvolvimento, bundled em produção)
 - **Build**: Python (tools/build.py gera HTML único autocontido)
-- **Status**: Fase 1 concluída — baseline 4.0 preservado byte a byte
-- **Garantia**: O build final é idêntico ao reference/baseline
+- **Status**: R19.08 importado para `src/` e reprodutível pelo build (OS-200)
+- **Garantia**: `tools/build.py` remonta o bundle a partir de `src/` e
+  `tools/verify.py` confere sintaxe de todos os 89 blocos
 
 ## Estrutura
 ```
 src/
-  scripts/        8 módulos JS + bootstrap
-  styles/         15 módulos CSS
-  index.dev.html  versão com arquivos externos (desenvolvimento)
-  index.template.html template para build
+  scripts/          9 módulos do core, na ordem obrigatória
+  scripts/layers/   as camadas empilhadas (uma por bloco <script>)
+  styles/           módulos CSS do core
+  styles/layers/    blocos <style> do bundle
+  index.template.html  esqueleto com um marcador por bloco
 tools/
-  build.py        gera dist/index.html
-  verify.py       valida hash e sintaxe
+  build.py          remonta dist/index.html a partir do manifesto
+  split_build.py    divide um HTML monolítico em template + blocos
+  import_build.py   importa um bundle novo para dentro de src/
+  verify.py         presença, sintaxe e reprodutibilidade
+  fisica/bateria.js    bateria paralela com sondas de física
+  fisica/calibrar.py   varredura de calibração
 tests/
-  browser_smoke.py    testa build final
-  dev_server_smoke.py testa versão modular
-manifests/        metadata, hashes, responsabilidades
-reference/        baseline imutável (4.0)
+  fisica_balistica.js  teste de unidade da balística
+  browser_smoke.js     sobe o bundle em Chromium de verdade
+manifests/        ordem dos blocos e do core
+reports/          medições e laudos
 ```
 
 ## Workflow de Desenvolvimento
@@ -31,8 +37,23 @@ reference/        baseline imutável (4.0)
 2. **Nunca** edite `dist/` diretamente
 3. Rode `python3 tools/build.py` para gerar novo HTML
 4. Rode `python3 tools/verify.py` para validar
-5. Teste com `python3 tests/browser_smoke.py`
+5. Teste com `node tests/browser_smoke.js`
 6. Commit no Git
+
+### Se mexer no motor de partida ou na física
+Rode a bateria antes e depois e **compare os números**, nunca só o "passou":
+
+```bash
+node tools/fisica/bateria.js --build=dist/index.html --matches=48 --workers=8 \
+  --out=reports/minha-medicao.json
+```
+
+Ela é compatível em semente com `tools/r1840/bateria.js`, então os agregados
+são comparáveis com as baterias históricas. Referência atual em
+`reports/fisica-os200.json` e o laudo em `reports/OS-200-fisica-da-bola.md`.
+
+Para varrer parâmetros sem reconstruir o bundle, use `CDS_OS200_TUNE` via
+`tools/fisica/calibrar.py --grade '[...]'`.
 
 ### Versão de desenvolvimento (iteração rápida):
 - Use `src/index.dev.html` com servidor local
@@ -56,7 +77,29 @@ reference/        baseline imutável (4.0)
 - Alterar ordem do manifesto sem validar
 - Ignorar avisos de verify.py
 
+## Como adicionar uma camada nova
+1. Crie o arquivo em `src/scripts/layers/`
+2. Acrescente o marcador `/*__CDS_BLOCK_N__*/` em `src/index.template.html`
+3. Registre o bloco em `manifests/build-manifest.json`
+4. Build + verify
+
+**Cuidado com escopo:** o core é uma IIFE. `facet`, `chance`, `R`, `clamp`,
+`FL`, `FW`, `getAttr` e `lerp` são globais e podem ser usados direto; `CAL`
+**não é** — leia a calibração por `ENGINE_CALIBRATION`. As baterias carregam o
+bundle com `vm.runInThisContext`, que não é como o navegador carrega: só
+`tests/browser_smoke.js` prova que o jogo sobe de verdade.
+
 ## Decisões Arquiteturais
+
+### Física da bola (OS-200)
+A trajetória vem de integração numérica real (gravidade, arrasto, quique) na
+camada `88-os200-balistica-real.js`, que **substitui** `_planPhysicalSegment` e
+`_trajectoryPoint` em vez de encadeá-los. O desfecho do chute vem da geometria
+da meta, não de sorteio prévio — `pGoal` calibra a pontaria.
+
+Não reintroduza teto de altura em `_physicalTargetZ`: era ele que impedia
+qualquer chute de passar por cima do travessão. Detalhes e medições em
+`reports/OS-200-fisica-da-bola.md`.
 
 ### IA Adversária (Match Sim)
 Permanece no módulo MatchSim por enquanto porque usa estado privado (IIFE).
@@ -106,4 +149,4 @@ Se falhar, não faça commit.
 
 ---
 
-**Última atualização**: 2026-07-18
+**Última atualização**: 2026-08-06

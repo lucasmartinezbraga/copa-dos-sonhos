@@ -204,6 +204,12 @@ function eligibleSlotsV2(posCode){
   return [...set];
 }
 function canPlay(player, slot){ return player.elig.indexOf(slot) !== -1; }
+function _draftCanProgress(d){
+  if(!d||!d.cur||!d.cur.pl) return true;
+  const taken = pickedIds();
+  const avail = d.cur.pl.filter(p=>!taken.has(p.id));
+  return d.slots.filter(s=>!s.p).every(s=> avail.some(p=>canPlay(p,s.pos)));
+}
 function primaryLine(posCode){
   const t = posCode.split('|')[0];
   return t === 'GK' ? 'GK' : t === 'DF' ? 'DEF' : t === 'FW' ? 'FWD' : 'MID';
@@ -510,7 +516,7 @@ const GRAN_MAP = {
    e o motor usam a mesma escala 0..100, sem uma segunda nota invisível e
    saturada em 99. Os blocos separam intenção, execução e resultado. */
 const ENGINE_CALIBRATION = Object.freeze({
-  version: '4.0.1',
+  version: '4.3.2',
   attributes: Object.freeze({
     /* ═══ BALANCEAMENTO · ONDE O ATRIBUTO MANDA E ONDE A SORTE ENTRA ═════
        O motor decide TUDO por sigmoide de duelo: P = 1/(1+e^(-Δ/spread)),
@@ -540,7 +546,8 @@ const ENGINE_CALIBRATION = Object.freeze({
     shotDuelSpread: 13.5,
   }),
   timing: Object.freeze({
-    clockRate: 0.24,
+    clockRate: 0.13,
+    fixedStep: 1 / 60,
     decisionInterval: 0.28,
     tackleCooldown: 0.55,
   }),
@@ -557,22 +564,19 @@ const ENGINE_CALIBRATION = Object.freeze({
     maxError: 0.24,
   }),
   defending: Object.freeze({
-    /* Valores idênticos ao 4.0.0: os cartões saíram do código do motor para
-       cá (estrutura da Fase 3), mas recalibrá-los exige bateria validada no
-       laboratório — nenhum número muda antes do relatório de regressão. */
-    tackleAttemptRate: 45.0,
-    boxAttemptRate: 16.0,
+    tackleAttemptRate: 12.0,
+    boxAttemptRate: 4.2,
     foulBase: 0.29,
     foulComposure: 0.12,
-    yellowFirst: 0.19,
-    yellowSecond: 0.10,
-    straightRed: 0.003,
+    yellowFirst: 0.18,
+    yellowSecond: 0.05,
+    straightRed: 0.0008,
   }),
   shooting: Object.freeze({
     distanceXg: Object.freeze([
       [6, 0.48], [11, 0.27], [16, 0.135], [22, 0.064], [30, 0.032], [Infinity, 0.015],
     ]),
-    conversionScale: 2.20,
+    conversionScale: 2.25,
     /* BALANCEAMENTO · finalizador e goleiro com voz de verdade:
        · skillInfluence 0.90 → 1.05: o termo (FIN−GK)/100 modula a conversão
          em ±~26% na faixa típica (antes ±22%). A POSIÇÃO do chute continua
@@ -589,10 +593,25 @@ const ENGINE_CALIBRATION = Object.freeze({
     skillInfluence: 1.05,
     minGoalChance: 0.006,
     maxGoalChance: 0.58,
-    savedShare: 0.05,
+    savedShare: 0.20,
     keeperSaveInfluence: 0.21,
     blockedShare: 0.18,
     postShare: 0.055,
+  }),
+  restarts: Object.freeze({
+    /* CALIBRAÇÃO (auditoria v5.2.2): escanteios mediam 4.08/partida com a
+       faixa de design em 5.0–11.5. Shares elevados ~25% de forma distribuída
+       — desvios, bloqueios e bolas na trave passam a morrer mais na linha de
+       fundo, como no futebol real (~10/jogo). Validado por bateria de 100
+       partidas antes do commit. */
+    lowCrossSaveCorner: 0.55,
+    failedCrossCorner: 0.76,
+    aerialSaveCorner: 0.58,
+    aerialBlockCorner: 0.70,
+    shotSaveCorner: 0.68,
+    shotBlockCorner: 0.66,
+    postCorner: 0.64,
+    freeKickSaveCorner: 0.68,
   }),
   targets: Object.freeze({
     goals: Object.freeze([1.8, 2.8]),
@@ -692,13 +711,35 @@ function resolveFreeKickPhysics(takerSkill, keeperSkill, dtg, input){
      mediano (fator de habilidade 1.2 → 1.5 no gol-base): batedor 90 contra
      goleiro 75 sobe de ~6,1% para ~6,4% de base antes dos multiplicadores
      de execução — e o execution (52% habilidade) segue mandando no erro. */
-  const baseGoal = clamp(.052 * (1 + (takerSkill - keeperSkill)/100 * 1.5), .015, .13);
-  const pGoal = clamp(baseGoal * (.55 + execution*.95 + corner*.36 + curveQ*.18), .015, .25);
+  /* §OS-101 · o gol de falta direta.
+     Medido amostrando esta funcao 50 000 vezes por cenario: batedor 90 x
+     goleiro 75 convertia 4,17%, mediano 3,13%, fraco 2,02%. A referencia real
+     e ~8-10% para especialista, ~5-6% no geral e ~3-5% para o mediano — e,
+     pior que o patamar, a SEPARACAO por atributo era de apenas 2,06x, ou
+     seja o atributo quase nao decidia quem faz gol de falta.
+     O comentario acima esta defasado: ele fala em ~6,1% de base, e a conta
+     antiga dava 3,85% com batedor 90 contra goleiro 75. Confie na amostragem
+     da funcao pura, nao no comentario.
+     ARMADILHA: `pGoal` entra em `stats.xg` ANTES do sorteio, entao isto NAO e
+     neutro no ECO-02 — cada ponto percentual custa ~0,036 de xG por partida. */
+  const baseGoal = clamp(0.048 * (1 + (takerSkill - keeperSkill)/100 * 2.2), .012, 0.13);
+  const pGoal = clamp(baseGoal * (.52 + execution*.82 + corner*.28 + curveQ*.14), .010, .140);
   let result;
   if (offTarget) result = 'miss';
   else if (chance(wallRisk)) result = 'wall';
   else if (chance(pGoal)) result = 'goal';
-  else result = chance(clamp(.58 + keeperSkill/220 - corner*.28, .28,.82)) ? 'save' : 'miss';
+  /* §OS-89 · a falta direta quase nunca ia para fora.
+     Medido amostrando esta funcao 50 000 vezes por cenario: do total,
+     `fora` ficava em ~14,7% e `defesa` em ~64% — e do que passa a barreira
+     e nao e gol, praticamente TUDO virava defesa. Com goleiro 75 a conta
+     antiga dava .58 + 75/220 = 0,921 e o clamp SATURAVA no teto de 0,82: o
+     atributo do goleiro deixava de pesar. Referencia real de falta direta:
+     fora ~35-40%, defesa ~30-35%.
+     CALIBRADA em cima da medicao, nao de palpite. A primeira tentativa usou
+     base .17 e corrigiu DEMAIS: `fora` foi de 14,7% para 50,5%, passando da
+     referencia real. Base .35 poe a divisao perto de defesa ~40% e fora ~38%,
+     com a barreira nos 18% que ja existiam. */
+  else result = chance(clamp(.35 + keeperSkill/300 - corner*.20, .20,.70)) ? 'save' : 'miss';
   return {
     result, pGoal, manual, idealPower, powerQ, curveQ, corner,
     visual:{ aimX, aimY, actualX, actualY, power, curve, execution }
@@ -1314,23 +1355,24 @@ const STYLE_FX = {
   counter: { l:'Contra-Ataque', d:'Bloco baixo, transição letal.',      line:-0.060, tackle:0.88, far:1.00, cross:1.00, drain:0.95 },
   press:   { l:'Gegenpressing', d:'Pressão alta. Custa fôlego.',        line:+0.020, tackle:1.30, far:1.00, cross:1.00, drain:1.18 },
   direct:  { l:'Jogo Direto',   d:'Bola longa e cruzamento.',           line:-0.010, tackle:1.00, far:1.25, cross:1.35, drain:1.00 },
-  wings:   { l:'Pelas Alas',    d:'Amplitude máxima pelos lados.',      line: 0.000, tackle:1.00, far:0.90, cross:1.45, drain:1.00 },
+  wings:   { l:'Pelas Alas',    d:'Amplitude máxima pelos lados.',      line: 0.000, tackle:1.00, far:0.90, cross:1.55, drain:1.00 },
   balanced:{ l:'Equilibrado',   d:'Sem extremos: joga o que o jogo pede.',line: 0.000, tackle:1.05, far:0.95, cross:1.05, drain:1.02 },
   park:    { l:'Retranca',      d:'Ferrolho: defende com todos, sai no susto.',line:-0.095, tackle:1.10, far:1.10, cross:0.95, drain:0.90 },
 };
+STYLE_FX.direct.cross=1.05; STYLE_FX.park.cross=1.3; STYLE_FX.wings.cross=1.85;
 const STYLE_KEYS = Object.keys(STYLE_FX);
 const STYLE_NEUTRO = { l:'Equilibrado', d:'', line:0, tackle:1, far:1, cross:1, drain:1 };
 
 /* Eixos táticos padrão por estilo (preset 0..100, 50 neutro). O jogador parte
    daqui e afina. Compartilhado entre o motor (match.js) e a UI. */
 const STYLE_AXES = {
-  tiki:     { line: 68, press: 60, width: 40, tempo: 25, posture: 62 },
-  counter:  { line: 30, press: 40, width: 45, tempo: 82, posture: 42 },
+  tiki:     { line: 60, press: 52, width: 42, tempo: 30, posture: 55 },
+  counter:  { line: 34, press: 44, width: 48, tempo: 72, posture: 49 },
   press:    { line: 66, press: 92, width: 50, tempo: 60, posture: 66 },
   direct:   { line: 46, press: 52, width: 62, tempo: 85, posture: 58 },
   wings:    { line: 50, press: 50, width: 90, tempo: 60, posture: 60 },
   balanced: { line: 50, press: 50, width: 50, tempo: 50, posture: 50 },
-  park:     { line: 12, press: 40, width: 42, tempo: 55, posture: 20 },
+  park:     { line: 18, press: 42, width: 34, tempo: 95, posture: 40 },
 };
 
 /* ------------------------- ESCALACAO AUTOMATICA ------------------------ */
@@ -1470,5 +1512,3 @@ const __CORE = {
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = __CORE;
 if (typeof window !== 'undefined') Object.assign(window, __CORE);
-
-

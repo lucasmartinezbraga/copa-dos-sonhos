@@ -1,0 +1,8 @@
+
+#app button,#app .btn,#app [role="button"],#app [data-go]{touch-action:manipulation;-webkit-touch-callout:none;-webkit-tap-highlight-color:rgba(255,203,69,.18);pointer-events:auto}
+#app button::before,#app button::after,#app .btn::before,#app .btn::after,#app [role="button"]::before,#app [role="button"]::after{pointer-events:none}
+#app button:disabled,#app [aria-disabled="true"]{touch-action:auto}
+.cds-start-busy{opacity:.82!important;cursor:wait!important;transform:none!important;filter:saturate(.8)}
+.pm26-start.cds-start-busy,.btn-gold.cds-start-busy{position:relative}
+.pm26-start.cds-start-busy::after,.btn-gold.cds-start-busy::after{content:"";display:inline-block;width:13px;height:13px;margin-left:9px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;vertical-align:-2px;animation:cdsStartSpin .7s linear infinite}
+@keyframes cdsStartSpin{to{transform:rotate(360deg)}}
