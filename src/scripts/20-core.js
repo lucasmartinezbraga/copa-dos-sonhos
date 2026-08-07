@@ -569,7 +569,7 @@ const ENGINE_CALIBRATION = Object.freeze({
        ganho irrisorio, mas jogador mais inteiro no fim faz o placar abrir —
        os empates caem de 29,2% para 17,5% (abaixo do minimo) e as goleadas
        sobem de 17,5% para 20,8%. Medido, 12/13 vira 10/13. */
-    deadBallRecovery: 0.055,
+    deadBallRecovery: 0.062,
     fixedStep: 1 / 60,
     decisionInterval: 0.28,
     tackleCooldown: 0.55,

@@ -32,7 +32,11 @@ const G = window.G = {
      gols de 1,81 para 4,38. A velocidade de exibicao e a unica alavanca de
      tempo com custo zero em realismo — o mesmo jogo, desenhado mais rapido.
      Os controles 1x/2x/4x/TURBO continuam la para voltar. */
-  speed: 1.8,
+  /* OS-202 · padrao 3X. Com o relogio novo (OS-201) a partida tem 1.366 s de
+     simulacao: em 1,8 dava 12,6 min, longo demais para o formato. 3X entrega
+     ~7,6 min, mais curto ate que os ~8,2 min de antes da mudanca de relogio —
+     e sem tocar em quanto futebol acontece, que e coisa do clockRate. */
+  speed: 3.0,
   screen: 'home',
 };
 

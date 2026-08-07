@@ -16,11 +16,20 @@ function vrand(){ _vseed=(_vseed+0x6D2B79F5)>>>0; let t=_vseed; t=Math.imul(t^t>
 const $ = s => document.querySelector(s);
 
 /* ─── VELOCIDADES ────────────────────────────────────────────────────── */
+/* OS-202 · OS ROTULOS PASSAM A DIZER A VERDADE.
+   "2X" aplicava 1,8; "4X" aplicava 3,6. Nenhum batia com o proprio nome, e isso
+   atrapalha justamente quem tenta decidir quanto tempo quer gastar por partida.
+   Agora o numero do botao E o multiplicador.
+
+   O 4X virou 3X porque e ele o padrao: com o relogio da OS-201 a partida tem
+   1.366 s de simulacao, entao 3X entrega ~7,6 min — perto dos ~8,2 min que o
+   jogo tinha antes, e na faixa de "key highlights" do Football Manager. TURBO
+   segue para quem quer varrer a Copa. */
 const SPEEDS = [
-  { k: '1X',    v: 1.0 },
-  { k: '2X',    v: 1.8 },
-  { k: '4X',    v: 3.6 },
-  { k: 'TURBO', v: 6.0 },
+  { k: '1X',    v: 1.0 },   // ~22,8 min por partida
+  { k: '2X',    v: 2.0 },   // ~11,4 min
+  { k: '3X',    v: 3.0 },   // ~7,6 min  (padrao)
+  { k: 'TURBO', v: 6.0 },   // ~3,8 min
 ];
 
 /* ─── NARRAÇÃO pt-BR ──────────────────────────────────────────────────── */

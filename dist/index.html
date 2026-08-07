@@ -2749,7 +2749,7 @@ const ENGINE_CALIBRATION = Object.freeze({
        ganho irrisorio, mas jogador mais inteiro no fim faz o placar abrir —
        os empates caem de 29,2% para 17,5% (abaixo do minimo) e as goleadas
        sobem de 17,5% para 20,8%. Medido, 12/13 vira 10/13. */
-    deadBallRecovery: 0.055,
+    deadBallRecovery: 0.062,
     fixedStep: 1 / 60,
     decisionInterval: 0.28,
     tackleCooldown: 0.55,
@@ -7888,7 +7888,13 @@ class MatchSim {
 
   _defendTarget(tm, p, b, presser) {
     const dir = tm.attackDir;
-    if (p === presser) return [b.x, b.y];               // único presser vai à bola
+    /* OS-202 · ATENCAO: este ramo NAO roda. A camada R13
+       (17-cds-r13-football-observer-cadence.js) intercepta `p === presser` e
+       retorna sem chamar o core, mandando o marcador para 1,25 m do lado do
+       proprio gol. Editar aqui nao muda nada — a correcao de perseguicao vive
+       na ultima camada. Ja perdi uma rodada de medicao acreditando que este
+       codigo valia. */
+    if (p === presser) return [b.x, b.y];               // unico presser vai a bola
     // ANTECIPAÇÃO (§6): com a bola em voo, quem está perto da linha ataca o ponto
     if (b.traveling && b.kind === 'pass' && b.from && b.target && p !== tm._cover) {
       const fx2 = b.from.x, fy2 = b.from.y, txl = b.target.x, tyl = b.target.y;
@@ -10039,7 +10045,11 @@ const G = window.G = {
      gols de 1,81 para 4,38. A velocidade de exibicao e a unica alavanca de
      tempo com custo zero em realismo — o mesmo jogo, desenhado mais rapido.
      Os controles 1x/2x/4x/TURBO continuam la para voltar. */
-  speed: 1.8,
+  /* OS-202 · padrao 3X. Com o relogio novo (OS-201) a partida tem 1.366 s de
+     simulacao: em 1,8 dava 12,6 min, longo demais para o formato. 3X entrega
+     ~7,6 min, mais curto ate que os ~8,2 min de antes da mudanca de relogio —
+     e sem tocar em quanto futebol acontece, que e coisa do clockRate. */
+  speed: 3.0,
   screen: 'home',
 };
 
@@ -11174,11 +11184,20 @@ function vrand(){ _vseed=(_vseed+0x6D2B79F5)>>>0; let t=_vseed; t=Math.imul(t^t>
 const $ = s => document.querySelector(s);
 
 /* ─── VELOCIDADES ────────────────────────────────────────────────────── */
+/* OS-202 · OS ROTULOS PASSAM A DIZER A VERDADE.
+   "2X" aplicava 1,8; "4X" aplicava 3,6. Nenhum batia com o proprio nome, e isso
+   atrapalha justamente quem tenta decidir quanto tempo quer gastar por partida.
+   Agora o numero do botao E o multiplicador.
+
+   O 4X virou 3X porque e ele o padrao: com o relogio da OS-201 a partida tem
+   1.366 s de simulacao, entao 3X entrega ~7,6 min — perto dos ~8,2 min que o
+   jogo tinha antes, e na faixa de "key highlights" do Football Manager. TURBO
+   segue para quem quer varrer a Copa. */
 const SPEEDS = [
-  { k: '1X',    v: 1.0 },
-  { k: '2X',    v: 1.8 },
-  { k: '4X',    v: 3.6 },
-  { k: 'TURBO', v: 6.0 },
+  { k: '1X',    v: 1.0 },   // ~22,8 min por partida
+  { k: '2X',    v: 2.0 },   // ~11,4 min
+  { k: '3X',    v: 3.0 },   // ~7,6 min  (padrao)
+  { k: 'TURBO', v: 6.0 },   // ~3,8 min
 ];
 
 /* ─── NARRAÇÃO pt-BR ──────────────────────────────────────────────────── */
@@ -28016,6 +28035,108 @@ try { document.title = 'Copa dos Sonhos — R19.08'; } catch (_) {}
     constantes: { G, K_ARRASTO, RESTITUICAO, ATRITO_QUIQUE, ATRITO_ROLAGEM, POSTE, TRAVESSAO },
     principios: ['integracao_real', 'sem_teto_de_altura', 'geometria_decide_o_desfecho'],
   });
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script id="cds-os202-perseguicao">
+/* ════════════════════════════════════════════════════════════════════════════
+   OS-202 · O MARCADOR CORTA O ANGULO
+   ════════════════════════════════════════════════════════════════════════════
+
+   O PROBLEMA, MEDIDO
+   ------------------
+   As faltas ficam em 15,3 por partida contra um minimo de design de 16, e duas
+   tentativas anteriores (subir `foulBase`, criar falta na disputa aerea)
+   provaram que o volume nao sai da probabilidade POR DUELO — sai de QUANTOS
+   DUELOS acontecem. Entao fui medir o funil do duelo, em 10 partidas:
+
+     com bola dominada           11.520 quadros  (28,2% do jogo)
+       presser FORA do raio       7.641          <- 66% do tempo util
+       presser no raio, cooldown    345
+       presser no raio, liberado  1.744          <- so aqui pode haver duelo
+
+     distancia media presser -> portador   7,55 m
+     raio de bote                          3,01 m
+
+   O marcador designado passa o jogo a 7,55 m do portador enquanto o bote so
+   acontece dentro de 3,01 m. Ele e escolhido, mandado, e nao chega.
+
+   POR QUE NAO CHEGA
+   -----------------
+   O alvo dele era a posicao da bola deslocada 1,25 m para o lado do proprio
+   gol (camada R13). Isso e perseguicao pura: mirar onde o portador ESTA. Contra
+   alguem de velocidade parecida a distancia nao fecha nunca — e a corrida do
+   cachorro atras do carro. Defensor de verdade mira onde o portador VAI estar.
+
+   ONDE ISTO TINHA QUE MORAR
+   -------------------------
+   No core, `_defendTarget` tem um ramo `if (p === presser) return [b.x, b.y]`
+   que parece o lugar certo e NAO E: a camada R13 intercepta o presser antes e
+   retorna sem chamar o core. Editei o core primeiro, medi, e os numeros vieram
+   identicos — o mesmo tipo de engano que ja tinha aparecido com o arrasto da
+   R13. Por isso a correcao vive aqui, na ultima camada, que tem a palavra
+   final.
+
+   O QUE MUDA
+   ----------
+   O ponto de encontro passa a levar em conta a velocidade do portador. O quanto
+   antecipar sai da propria distancia — quanto mais longe, mais tempo a corrida
+   leva —, limitado a meio segundo de leitura: a primeira versao usava o tempo
+   cheio de aproximacao e mandava o marcador para 9,3 m adiante da bola, o que
+   e passar batido, nao cortar o angulo.
+
+   O lado do proprio gol da R13 e preservado: pressionar por tras seria trocar
+   proximidade por marcacao falsa.
+   ════════════════════════════════════════════════════════════════════════════ */
+(function (root) {
+  'use strict';
+  const M = root && root.MatchSim;
+  if (!M || !M.prototype || M.prototype.__OS202__) return;
+  const P = M.prototype;
+  P.__OS202__ = true;
+
+  const FL = Number(root.FL) || 105, FW = Number(root.FW) || 68;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const finito = (v, d) => Number.isFinite(v) ? v : (d === undefined ? 0 : d);
+  const _getAttr = (typeof getAttr === 'function') ? getAttr : () => 60;
+
+  const T = (root && root.CDS_OS202_TUNE) || {};
+  const num = (v, padrao) => Number.isFinite(v) ? v : padrao;
+
+  /* Teto de antecipacao, em segundos de corrida. Meio segundo e o corte de
+     angulo; mais que isso vira passar batido. */
+  const LEAD_MAX = num(T.leadMax, 0.55);
+  /* Deslocamento para o lado do proprio gol, herdado da R13. */
+  const GOAL_SIDE = num(T.goalSide, 1.25);
+
+  const oldDefend = P._defendTarget;
+  P._defendTarget = function (tm, p, b, presser) {
+    if (p !== presser || !b || !b.owner || b.owner.team === tm.side || b.traveling) {
+      return oldDefend.apply(this, arguments);
+    }
+    const dono = b.owner;
+    if (dono === p) return oldDefend.apply(this, arguments);
+
+    const gap = Math.hypot(dono.x - p.x, dono.y - p.y);
+    const vmax = Math.max(3, finito(p.maxSpd, 7));
+    /* leitura de jogo: quem antecipa bem escolhe melhor o ponto de encontro */
+    const leitura = 0.50 + (finito(_getAttr(p, 'antecipacao'), 60)
+      + finito(_getAttr(p, 'posicionamento'), 60)) / 200 * 0.50;
+    const lead = clamp(gap / vmax, 0, LEAD_MAX) * leitura;
+
+    /* ponto de encontro */
+    let ax = dono.x + finito(dono.vx) * lead;
+    let ay = dono.y + finito(dono.vy) * lead;
+
+    /* e o mesmo lado de gol da R13, para nao marcar pelas costas */
+    const vx = tm.goal.x - ax, vy = tm.goal.y - ay;
+    const L = Math.max(0.1, Math.hypot(vx, vy));
+    ax += vx / L * GOAL_SIDE;
+    ay += vy / L * GOAL_SIDE;
+
+    return [clamp(ax, 1, FL - 1), clamp(ay, 1, FW - 1)];
+  };
+
+  root.CDS_OS202 = Object.freeze({ versao: 'OS-202', instalado: true, leadMax: LEAD_MAX });
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
 </body></html>
