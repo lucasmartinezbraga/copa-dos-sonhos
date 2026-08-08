@@ -597,7 +597,14 @@ const ENGINE_CALIBRATION = Object.freeze({
        Fica registrado como pendencia real. */
     foulBase: 0.29,
     foulComposure: 0.12,
-    yellowFirst: 0.18,
+    /* CARTAO POR FALTA (OS-206).
+       Estava em 0,18 e entregava 0,279 cartao por falta depois do multiplicador
+       de risco — contra 0,177 do futebol real (~3,9 amarelos para ~22 faltas).
+       A distorcao ficou invisivel enquanto o jogo tinha 15,5 faltas por
+       partida: o numero de cartoes saia certo por compensacao de dois erros.
+       Quando a OS-206 levou as faltas para 22 (dentro da faixa real de 19-26),
+       os cartoes estouraram e mostraram a taxa verdadeira. */
+    yellowFirst: 0.125,
     yellowSecond: 0.05,
     straightRed: 0.0008,
   }),
