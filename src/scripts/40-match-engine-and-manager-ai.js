@@ -3469,7 +3469,13 @@ class MatchSim {
 
   _defendTarget(tm, p, b, presser) {
     const dir = tm.attackDir;
-    if (p === presser) return [b.x, b.y];               // único presser vai à bola
+    /* OS-202 · ATENCAO: este ramo NAO roda. A camada R13
+       (17-cds-r13-football-observer-cadence.js) intercepta `p === presser` e
+       retorna sem chamar o core, mandando o marcador para 1,25 m do lado do
+       proprio gol. Editar aqui nao muda nada — a correcao de perseguicao vive
+       na ultima camada. Ja perdi uma rodada de medicao acreditando que este
+       codigo valia. */
+    if (p === presser) return [b.x, b.y];               // unico presser vai a bola
     // ANTECIPAÇÃO (§6): com a bola em voo, quem está perto da linha ataca o ponto
     if (b.traveling && b.kind === 'pass' && b.from && b.target && p !== tm._cover) {
       const fx2 = b.from.x, fy2 = b.from.y, txl = b.target.x, tyl = b.target.y;

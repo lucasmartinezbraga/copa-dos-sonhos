@@ -115,6 +115,18 @@ Meça com `tools/fisica/placar.py`, que pontua uma medição da bateria contra
 `calibration/targets.json`. Estado atual: 10/13. Laudo em
 `reports/OS-201-relogio-e-fadiga.md`.
 
+### Perseguição e ritmo (OS-202)
+O marcador antecipa o portador em vez de correr atrás — `_defendTarget` na
+camada `89-os202-perseguicao-do-marcador.js`.
+
+**Cuidado:** o ramo `if (p === presser)` do core **não roda** — a camada R13 o
+intercepta antes. Já perdi uma rodada de medição editando lá.
+
+Os botões de velocidade agora dizem a verdade (o rótulo é o multiplicador) e o
+padrão é 3X, ~7,6 min por partida. Tempo de tela se resolve na velocidade, não
+no `clockRate`: este decide quanto futebol acontece, aquela decide quão rápido
+você assiste. Laudo em `reports/OS-202-perseguicao-e-ritmo.md`.
+
 ### IA Adversária (Match Sim)
 Permanece no módulo MatchSim por enquanto porque usa estado privado (IIFE).
 - Será separada após contratos públicos e testes específicos
