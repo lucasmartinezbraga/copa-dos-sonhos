@@ -2315,6 +2315,13 @@ class MatchSim {
     const fang = ang;
     b.vx = Math.cos(fang) * spd; b.vy = Math.sin(fang) * spd;
     // ARCO baixo no passe rasteiro (bola no pé, não lob) — só lançamento sobe de verdade
+    // CUIDADO (OS-203): estes 0,12 eram decorativos — `z` só existia para o
+    // desenho. Desde a OS-200 a camada 88 lê este valor como ALTURA DE SAÍDA
+    // real e integra a queda: o passe rasteiro virava um salto de 14 cm seguido
+    // de quiques de 4 cm e 1 cm. Quem consome isto é `_startTravel` da camada
+    // 07 (`origin.z = b.z`), e o regime rasteiro da camada 88 agora achata a
+    // origem para o gramado. Não conserte aqui: mexer nos 0,12 mexe também na
+    // origem do CHUTE, que está calibrada.
     b.z = passKind === 'launch' ? 0.3 : 0.12;
     b.vz = (kind === 'shot') ? 1.0 : (passKind === 'launch' ? 7 : passKind === 'through' ? 1.2 : 0.4);
     b._timeout = dist / spd + 0.35;    // timeout de segurança generoso para chutes longos

@@ -102,6 +102,25 @@ Não reintroduza teto de altura em `_physicalTargetZ`: era ele que impedia
 qualquer chute de passar por cima do travessão. Detalhes e medições em
 `reports/OS-200-fisica-da-bola.md`.
 
+### O passe rasteiro não decola (OS-203)
+O regime `rasteira` sai com `theta = 0` **e** achata a origem para `o.z = 0`.
+Os dois juntos, senão a bola quica: com `z₀ = 0,12` (que o core escreve em
+`b.z` logo antes de chamar a camada) o passe fazia um salto de 14 cm e dois
+quiques, 54 vezes por minuto de jogo.
+
+**Não conserte no core.** Aqueles 0,12 também são a origem do CHUTE, e a mira
+está calibrada em cima deles. O achatamento é por regime, na camada 88.
+
+Regra geral que já custou três rodadas de medição: **número decorativo vira
+número físico quando o integrador liga.** Antes da OS-200 `z` só servia para
+desenhar. Laudo em `reports/OS-203-a-bola-para-de-pingar.md`.
+
+### A bateria não vê a tela
+`tools/fisica/bateria.js` roda com `vm.runInThisContext` e não desenha nada —
+a bola pingando atravessou uma OS inteira sem aparecer em métrica alguma. Para
+o que o jogador vê, use `tools/fisica/tela/` (Chromium de verdade). Se mexeu em
+trajetória, rode `pinga.js` junto com a bateria.
+
 ### Relógio e fadiga (OS-201)
 `ENGINE_CALIBRATION.timing.clockRate` é minutos de jogo por segundo de
 simulação. Está em **0,085**: em 0,13 o jogo não batia nenhum dos próprios

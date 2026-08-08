@@ -327,7 +327,20 @@
      mantemos a saida rasteira e procuramos a velocidade que faz a bola chegar.
      Se a pedida nao chega (o arrasto e a rolagem comem muito numa bola batida
      longe), ela sobe, que e exatamente o que um jogador faz. */
-  const ELEV_RASTEIRA = 0.03; // ~1,7 graus: a bola sai rente, nao colada
+  /* OS-203 · A BOLA RASTEIRA NAO DECOLA.
+     A versao anterior saia a 0,03 rad (~1,7 graus) "rente, nao colada". Com
+     integracao real isso e um LANCAMENTO, nao um passe: medido numa partida de
+     verdade, todo passe rasteiro fazia um salto de 14 cm, quicava em 4 cm,
+     quicava em 1 cm — a razao entre os saltos e exatamente RESTITUICAO^2 =
+     0,3025, e o traco de tela mostrava o par (0,141 m / 0,043 m) se repetindo a
+     cada passe. Sao 54 subidas por minuto de jogo, 92% delas abaixo de 30 cm:
+     a bola atravessava o campo saltitando como pedra ricocheteando na agua.
+
+     Zero e o valor certo, nao um valor pequeno: com theta = 0 e z = 0 o
+     integrador entra no ramo de rolagem no primeiro passo e a bola nunca deixa
+     o gramado — ela rola, perde velocidade para o arrasto e para a resistencia
+     de rolagem, e chega viva do outro lado. Que e o que um passe rasteiro e. */
+  const ELEV_RASTEIRA = 0;
   const CHEGADA_MINIMA = num(T.chegadaMinima, 7.5); // m/s de bola viva na chegada
 
   function resolverRasteira(o, alvo, vel) {
@@ -468,6 +481,16 @@
       z: alvoZ,
     };
     const regime = regimeDe(kind, passKind, meta, alvoZ);
+    /* OS-203 · a origem do passe rasteiro e o gramado, e nao a altura decorativa
+       que o core deixa em `ball.z`. O core faz `b.z = 0,12` logo antes de nos
+       chamar (40-match-engine, "ARCO baixo no passe rasteiro"), um numero da
+       epoca em que `z` so servia para desenhar. Lido como altura de saida real,
+       ele e uma queda de 12 cm: sozinho responde por 0,12 dos 0,141 m de apice
+       medidos, e e ele que faz a bola quicar em todo passe. Um passe no chao
+       comeca no chao. Chute e bola alta continuam saindo da altura que o motor
+       informou — la os 12 cm sao a bola no pe, e a calibracao da mira depende
+       disso. */
+    if (regime === RASTEIRA) o.z = 0;
     const pedida = Math.max(8, finito(speed, 28));
     /* No chute a forca e do jogador e nao se negocia: se ele nao tem perna
        para pousar a bola onde mirou, ela cruza mais baixo do que ele queria —
