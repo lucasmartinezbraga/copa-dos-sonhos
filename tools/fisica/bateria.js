@@ -155,10 +155,28 @@ function instrumentar(sim, sonda) {
   };
 }
 
+/* RITMO POR FAIXA DE 15 MINUTOS.
+   O futebol real cresce ate o fim: ~10% dos gols saem antes dos 15 minutos e
+   ~24% dos 76 em diante. Medido aqui, o jogo faz o contrario — 20% na primeira
+   faixa e 12% na ultima. Ha duas explicacoes possiveis e elas pedem consertos
+   opostos: ou o fim de jogo recebe MENOS TEMPO DE SIMULACAO por minuto de
+   relogio (bug de relogio), ou recebe o mesmo tempo e produz MENOS ACAO
+   (modelo de fadiga). Sem separar as duas nao da para consertar, entao a
+   bateria passa a contar as duas coisas por faixa. */
+const FAIXAS = 6;                    // 0-15, 16-30, 31-45, 46-60, 61-75, 76+
+const faixaDe = (min) => Math.max(0, Math.min(FAIXAS - 1, Math.floor((+min || 0) / 15)));
+
 function sondaVazia() {
   return { voos: 0, somaApice: 0, maxApice: 0, voosAcimaDoTravessao: 0, somaTempoVoo: 0,
     cruzamentos: 0, somaZLinha: 0, maxZLinha: 0, porCimaDoTravessao: 0,
-    porCimaEntreOsPostes: 0, quiques: 0, somaSegundosSimulados: 0, partidasMedidas: 0, os200: {} };
+    porCimaEntreOsPostes: 0, quiques: 0, somaSegundosSimulados: 0, partidasMedidas: 0, os200: {},
+    /* por faixa de 15 min de relogio de jogo */
+    segPorFaixa: new Array(FAIXAS).fill(0),
+    chutesPorFaixa: new Array(FAIXAS).fill(0),
+    golsPorFaixa: new Array(FAIXAS).fill(0),
+    passesPorFaixa: new Array(FAIXAS).fill(0),
+    somaStaminaPorFaixa: new Array(FAIXAS).fill(0),
+    amostrasStaminaPorFaixa: new Array(FAIXAS).fill(0) };
 }
 
 /* Varredura de clockRate — SONDA, nao mudanca de jogo.
@@ -220,7 +238,27 @@ function rodarFatia(indices) {
       return oEmit.apply(this, arguments);
     };
     instrumentar(sim, sonda);
-    let s = 0; while (!sim.isOver() && s++ < 500000) sim.step(DT);
+    /* laco com contagem por faixa: tempo, chutes, gols e passes sao lidos como
+       DELTA dos contadores do proprio motor, entao nao ha risco de contar
+       diferente do agregado. */
+    let s = 0;
+    let cShots = 0, cGoals = 0, cPasses = 0, amostraStamina = 0;
+    const soma = (k) => (+sim.stats[0][k] || 0) + (+sim.stats[1][k] || 0);
+    while (!sim.isOver() && s++ < 500000) {
+      const f = faixaDe(sim.minute);
+      sim.step(DT);
+      sonda.segPorFaixa[f] += DT;
+      const nShots = soma('shots'), nGoals = soma('goals'), nPasses = soma('passes');
+      sonda.chutesPorFaixa[f] += nShots - cShots; cShots = nShots;
+      sonda.golsPorFaixa[f] += nGoals - cGoals; cGoals = nGoals;
+      sonda.passesPorFaixa[f] += nPasses - cPasses; cPasses = nPasses;
+      /* stamina custa um laco de 22, entao amostra a cada ~4 s de simulacao */
+      if (++amostraStamina % 120 === 0) {
+        let soma2 = 0, n2 = 0;
+        for (const tm of sim.teams) for (const p of tm.players) if (p && !p.red) { soma2 += (+p.stamina || 0); n2++; }
+        if (n2) { sonda.somaStaminaPorFaixa[f] += soma2 / n2; sonda.amostrasStaminaPorFaixa[f]++; }
+      }
+    }
     sonda.somaSegundosSimulados = (sonda.somaSegundosSimulados || 0) + s * DT;
     sonda.partidasMedidas = (sonda.partidasMedidas || 0) + 1;
     /* Contadores da propria camada de fisica: dizem por qual ramo geometrico
@@ -280,6 +318,25 @@ function agregar(partidas, sonda, extra) {
     segundosSimuladosPorPartida: +((sonda.somaSegundosSimulados || 0) / Math.max(1, sonda.partidasMedidas || N)).toFixed(1),
     ramos: sonda.os200 || {},
   };
+
+  /* ritmo por faixa de 15 min: separa "menos tempo simulado" de "menos acao" */
+  const seg = sonda.segPorFaixa || [];
+  if (seg.length) {
+    const tot = seg.reduce((a, b) => a + b, 0) || 1;
+    fisica.ritmoPorFaixa = seg.map((s, i) => ({
+      faixa: i < 5 ? `${i * 15 + (i ? 1 : 0)}-${i * 15 + 15}` : '76+',
+      segundosPorPartida: +(s / N).toFixed(1),
+      fracaoDoTempo: +(s / tot).toFixed(4),
+      chutes: +((sonda.chutesPorFaixa[i] || 0) / N).toFixed(2),
+      gols: +((sonda.golsPorFaixa[i] || 0) / N).toFixed(3),
+      passes: +((sonda.passesPorFaixa[i] || 0) / N).toFixed(1),
+      /* as duas taxas que interessam: por MINUTO DE JOGO, nao por partida */
+      chutesPorMinutoDeJogo: +((sonda.chutesPorFaixa[i] || 0) / N / 15).toFixed(3),
+      golsPorMinutoDeJogo: +((sonda.golsPorFaixa[i] || 0) / N / 15).toFixed(4),
+      staminaMedia: sonda.amostrasStaminaPorFaixa[i]
+        ? +(sonda.somaStaminaPorFaixa[i] / sonda.amostrasStaminaPorFaixa[i]).toFixed(1) : null,
+    }));
+  }
   return Object.assign({ partidas: N, sementeBase: SEMENTE, incremento: INCREMENTO,
     agregado, eventosPorPartida, fisica,
     porPartida: partidas.map(p => ({ placar: p.placar, staminaFinal: p.staminaFinal, golsSeq: p.golsSeq })) }, extra || {});
@@ -339,6 +396,11 @@ if (process.env.CDS_FATIA) {
             for (const j of Object.keys(m.sonda.os200 || {})) {
               sondaTotal.os200[j] = (sondaTotal.os200[j] || 0) + m.sonda.os200[j];
             }
+          } else if (Array.isArray(sondaTotal[k])) {
+            /* contadores por faixa: soma termo a termo. `+=` em array produz
+               concatenacao de string ("0,0" + "1,2"), silenciosa e fatal. */
+            const v = m.sonda[k] || [];
+            for (let j = 0; j < sondaTotal[k].length; j++) sondaTotal[k][j] += (+v[j] || 0);
           } else if (k.startsWith('max')) sondaTotal[k] = Math.max(sondaTotal[k], m.sonda[k]);
           else sondaTotal[k] += m.sonda[k];
         }

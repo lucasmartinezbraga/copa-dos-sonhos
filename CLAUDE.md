@@ -115,6 +115,21 @@ Regra geral que já custou três rodadas de medição: **número decorativo vira
 número físico quando o integrador liga.** Antes da OS-200 `z` só servia para
 desenhar. Laudo em `reports/OS-203-a-bola-para-de-pingar.md`.
 
+### Dois placares diferentes (OS-204)
+`tools/fisica/placar.py` mede contra `calibration/targets.json` — as faixas do
+próprio projeto, 13 métricas. **11/13.**
+
+`tools/fisica/futebol_real.py` mede contra o futebol de elite — 21 métricas,
+incluindo laterais, impedimentos e o minuto em que os gols saem. **10/21.**
+Passar no primeiro não implica passar no segundo: a lista de design nunca
+perguntou quantos laterais acontecem.
+
+Maior desvio conhecido: **o jogo esvazia em vez de crescer.** 22% dos gols
+saem antes dos 15 minutos e 12,5% depois dos 76 — no futebol real é o inverso.
+Não é bug de relógio (o tempo simulado por faixa está medido e é uniforme): é
+a fadiga, uniforme demais, com r = 0,814 entre stamina e taxa de chutes.
+Laudo em `reports/OS-204-teste-do-futebol-real.md`.
+
 ### A bateria não vê a tela
 `tools/fisica/bateria.js` roda com `vm.runInThisContext` e não desenha nada —
 a bola pingando atravessou uma OS inteira sem aparecer em métrica alguma. Para
