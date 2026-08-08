@@ -127,11 +127,59 @@ Encurtar a partida subindo o `clockRate` desfaria o conserto da OS-201 — está
 medido que em 0,13 o jogo entrega 13 chutes e 25% de 0 a 0. **Tempo de tela se
 resolve na velocidade, não no relógio.**
 
+## A espera anda mais rápido que o jogo
+
+Os 12,2% de bola parada (166 s de 1.361) não são futebol — são tiro de meta,
+lateral, arrumação de escanteio, reinício de falta. É o trecho em que quem
+assiste sente que nada acontece.
+
+Esse trecho passou a correr 3,5× mais rápido. **Comemoração de gol e minijogo
+de bola parada ficam de fora**: o laço de render já congela o simulador nos
+dois (`celebrating` e `penActive`), então o que sobra é só a espera
+burocrática. Câmera lenta também fica de fora — ela existe justamente para
+alguém olhar.
+
+É **só apresentação**: o simulador recebe os mesmos passos, na mesma ordem, e o
+resultado da partida não muda em nada. Nenhuma recalibração foi necessária.
+
+Medido no navegador, cronometrando o relógio da partida contra o relógio de
+parede: **6,3 minutos** para uma partida de 90 minutos. Estimativa antes do
+adiantamento era 7,6 — o ganho foi maior que o previsto.
+
+| | minutos de tela |
+|---|---|
+| Antes desta sessão (1,8× e clockRate 0,13) | 8,2 |
+| Depois da OS-201, padrão antigo | 12,6 |
+| **Agora (3X + espera adiantada)** | **6,3** |
+
+## O campo desperdiça 28% da altura que ocupa
+
+Olhando os quadros, uma faixa preta aparece embaixo do gramado em todos eles.
+Medido no navegador:
+
+```
+canvas, backing store   973 × 475   (proporção 2,048)
+canvas, caixa CSS       986 × 672   (proporção 1,467)
+object-fit              contain
+desenho preenche        99,8% do backing
+```
+
+**Não há deformação** — `contain` preserva a proporção, e isso está certo. Mas o
+conteúdo só precisa de 986×481 dentro de uma caixa de 986×672: sobram ~191 px
+divididos entre cima e baixo, ou seja **28% da área reservada ao campo é
+preto**.
+
+O projeto já tinha encontrado essa família de bug antes (a nota em
+`02-inline.css:1441` documenta uma regra legada `height:72vh` deformando o
+campo) e corrigiu **dentro do media query de paisagem no celular**. No desktop
+a caixa continua mais alta do que o conteúdo pede.
+
+Não corrigido: é mudança de layout que precisa ser conferida em vários pontos
+de quebra, e não em um só.
+
 ## Ainda aberto
 
 - **Stamina 63,6 e acerto ao alvo 0,339**, ambos na casa decimal do mínimo.
-- **12,2% da partida é bola parada.** Adiantar automaticamente esse trecho
-  cortaria ~1 minuto sem tirar nada de futebol — é o que o Football Manager faz
-  ao pular para os destaques. Não implementado.
+- **28% da altura do campo é faixa preta** (acima), com a medição pronta.
 - **55,6% do tempo a bola está viajando.** É consequência de física real, mas
   vale investigar se o motor passa mais do que deveria.

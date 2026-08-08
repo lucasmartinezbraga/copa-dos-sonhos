@@ -25,6 +25,9 @@ const $ = s => document.querySelector(s);
    1.366 s de simulacao, entao 3X entrega ~7,6 min — perto dos ~8,2 min que o
    jogo tinha antes, e na faixa de "key highlights" do Football Manager. TURBO
    segue para quem quer varrer a Copa. */
+/* OS-203 · quanto a bola parada corre a mais que o jogo. */
+const ADIANTA_PARADA = 3.5;
+
 const SPEEDS = [
   { k: '1X',    v: 1.0 },   // ~22,8 min por partida
   { k: '2X',    v: 2.0 },   // ~11,4 min
@@ -1753,7 +1756,21 @@ function startLoop() {
     if (matchOver) fastForwardFullTime(now);
     if (!finished && !paused && !celebrating && !penActive) {
       if (!matchOver) {
-        acc += dt * (slowmo ? Math.min(G.speed, 1) * slowmo.f : G.speed);
+        /* OS-203 · A ESPERA ANDA MAIS RAPIDO QUE O JOGO.
+           Medido: 12,2% da partida (166 s de 1.361) e bola parada — tiro de
+           meta, lateral, arrumacao de escanteio, reinicio de falta. Nao e
+           futebol, e espera, e e o tipo de trecho em que quem assiste sente
+           que nada acontece.
+
+           Comemoracao de gol e minijogo de bola parada NAO entram aqui: o
+           bloco inteiro ja e barrado por `celebrating` e `penActive` acima,
+           entao o que sobra e so a espera burocratica. Camera lenta tambem
+           fica de fora — ela existe justamente para alguem olhar.
+
+           Isto e SO apresentacao: o simulador recebe os mesmos passos, na
+           mesma ordem. O resultado da partida nao muda em nada. */
+        const _espera = (sim && sim.dead > 0 && !slowmo) ? ADIANTA_PARADA : 1;
+        acc += dt * (slowmo ? Math.min(G.speed, 1) * slowmo.f : G.speed) * _espera;
         const h = 1/60; let g = 0;
         while (acc >= h && g++ < 500) {
           sim.step(h); acc -= h; minorCd = Math.max(0, minorCd - h);
