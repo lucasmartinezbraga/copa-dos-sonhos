@@ -27861,7 +27861,17 @@ try { document.title = 'Copa dos Sonhos — R19.08'; } catch (_) {}
     const q = qualidadeGk(gk);
     const reacao = 0.16 + (1 - q) * 0.14;   // 0,16 s a 0,30 s
     const vMergulho = 4.1 + q * 2.3;        // m/s de deslocamento com mergulho
-    const envergadura = 1.05 + q * 0.55;    // alcance de bracos e pernas
+    /* ENVERGADURA — alcance da ponta dos dedos ao centro de massa, mergulhando.
+       Estava em 1,05 a 1,60 m e isso e menos do que um goleiro alcanca parado:
+       a envergadura de braços de um profissional passa de 1,85 m, ou seja ~0,93 m
+       de cada lado do tronco, e o mergulho estende bem mais que isso.
+
+       Medido com 1,05-1,60: de 1.805 chutes que entraram na boca do gol, 613
+       (34%) ficaram FORA DE ALCANCE — gol sem o goleiro encostar. E dos que ele
+       alcancava, a folga media era de 0,24 m, ou seja ele chegava raspando.
+       A cobertura total (mergulho x tempo + envergadura) dava 3,76 m contra
+       3,66 m de meia-boca: nao fechava o canto. */
+    const envergadura = num(T.envergaduraBase, 1.05) + q * num(T.envergaduraQ, 0.55);
 
     /* Interceptacao ao longo da trajetoria, e nao so no plano do gol. A versao
        anterior media a distancia do goleiro ate o ponto onde a bola CRUZA a
@@ -27882,7 +27892,18 @@ try { document.title = 'Copa dos Sonhos — R19.08'; } catch (_) {}
       if (s.z > alcanceZ) continue;
       const preciso = Math.max(0, dist2d(gk.x, gk.y, s.x, s.y) - envergadura);
       const folga = vMergulho * disponivel - preciso;
-      if (folga >= 0) { achado = { ponto: s, folga, disponivel }; break; }
+      /* A MELHOR CHANCE, NAO A PRIMEIRA.
+         O laco parava no PRIMEIRO instante teoricamente alcancavel — e esse
+         instante tem folga proxima de zero por construcao, porque e exatamente
+         onde o alcance passa a existir. Com `p = DEFESA_BASE + folga*...`, todo
+         chute era resolvido no pior ponto possivel da defesa.
+
+         O sintoma que denunciou isso: aumentar a envergadura de 1,05 para 1,45
+         PIOROU o jogo (gols 3,27 -> 3,40). Mais alcance antecipava o encontro
+         para um ponto ainda mais apertado, em vez de dar conforto ao goleiro.
+         Um goleiro nao mergulha no primeiro milissegundo em que poderia
+         encostar: ele escolhe onde chega melhor. */
+      if (folga >= 0 && (!achado || folga > achado.folga)) achado = { ponto: s, folga, disponivel };
     }
 
     const d = this.__os200Diag || (this.__os200Diag = {});
