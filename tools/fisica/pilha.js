@@ -137,18 +137,33 @@ if (!global.MatchSim) { console.error('motor nao carregou'); process.exit(2); }
 const db = buildDB(DATA);
 const FORMS = Object.keys(FORMATIONS);
 const squad = db.squads.find(s => s.c === 'Brasil' && Number(s.y) === 1970) || db.squads[0];
-const mk = (f, h) => {
-  const p = autoLineup(squad, f, 0);
-  return { squad, name: h ? 'A' : 'B', flag: squad.f, color: '#fff',
-    lineup: p.lineup, bench: p.bench, formKey: f, style: 'balanced' };
+const STYLES = (typeof STYLE_KEYS !== 'undefined' && Array.isArray(STYLE_KEYS))
+  ? STYLE_KEYS.slice() : ['balanced','tiki','direct','press','counter','wings','park'];
+const SQUADS = db.squads;
+const mk = (f, st, sq, h) => {
+  const p = autoLineup(sq, f, 0);
+  return { squad: sq, name: h ? 'A' : 'B', flag: sq.f, color: '#fff',
+    lineup: p.lineup, bench: p.bench, formKey: f, style: st };
 };
 global.console = { log: noop, warn: noop, error: realConsole.error };
 for (let k = 0; k < N; k++) {
   srand(4200000 + k * 7919);
-  const sim = new MatchSim(mk(FORMS[k % FORMS.length], true), mk(FORMS[(k + 3) % FORMS.length], false),
-    { neutral: true, labMode: true });
+  /* Varia formacao, ESTILO e FORCA dos times, e nao usa labMode: caminhos so
+     alcancaveis em penalti, prorrogacao, substituicao, lesao ou estilo
+     especifico apareciam como MORTOS numa amostra de 2 partidas iguais. */
+  const sim = new MatchSim(
+    mk(FORMS[k % FORMS.length], STYLES[k % STYLES.length], SQUADS[(k * 7) % SQUADS.length], true),
+    mk(FORMS[(k + 3) % FORMS.length], STYLES[(k * 3 + 1) % STYLES.length], SQUADS[(k * 13 + 5) % SQUADS.length], false),
+    { neutral: true });
   let n = 0;
   while (!sim.isOver() && n++ < 500000) sim.step(1 / 30);
+  /* prorrogacao e disputa de penaltis: ramos que uma partida normal nao toca */
+  if (k % 3 === 0 && typeof sim.beginExtraTime === 'function' && sim.score[0] === sim.score[1]) {
+    sim.beginExtraTime();
+    let m = 0; while (!sim.isOver() && m++ < 500000) sim.step(1 / 30);
+  }
+  /* substituicao: idem */
+  try { if (sim.teams[0].bench && sim.teams[0].bench.length) sim.substitute(0, 10, sim.teams[0].bench[0]); } catch (_) {}
 }
 global.console = realConsole;
 
@@ -198,3 +213,5 @@ for (const [b, ms] of Object.entries(mortasPorBloco).sort((a,c)=>c[1].length-a[1
 const soAudit = REG.filter(e=>e.estado==='MORTA'&&/^get/.test(e.metodo)).length;
 console.log(`\n  destas, ${soAudit} sao metodos get* (diagnostico que ninguem chama)`);
 console.log(`  sobram ${REG.filter(e=>e.estado==='MORTA'&&!/^get/.test(e.metodo)).length} sobrescritas de COMPORTAMENTO mortas`);
+
+if (process.env.CDS_PILHA_JSON) require('fs').writeFileSync(process.env.CDS_PILHA_JSON, JSON.stringify(REG.map(e=>({bloco:e.bloco,metodo:e.metodo,estado:e.estado,chamadas:e.chamadas})),null,1));
