@@ -1,0 +1,6879 @@
+{
+  "partidas": 300,
+  "sementeBase": 4200000,
+  "incremento": 7919,
+  "agregado": {
+    "shots": {
+      "media": 23.723,
+      "desvio": 7.199,
+      "min": 5,
+      "max": 43
+    },
+    "onTarget": {
+      "media": 7.627,
+      "desvio": 3.367,
+      "min": 1,
+      "max": 17
+    },
+    "goals": {
+      "media": 3.267,
+      "desvio": 1.914,
+      "min": 0,
+      "max": 10
+    },
+    "xg": {
+      "media": 3.12,
+      "desvio": 1.202,
+      "min": 0.5038844842949944,
+      "max": 6.469348317794668
+    },
+    "corners": {
+      "media": 11.103,
+      "desvio": 4.459,
+      "min": 2,
+      "max": 27
+    },
+    "fouls": {
+      "media": 22.32,
+      "desvio": 5.253,
+      "min": 6,
+      "max": 42
+    },
+    "yellow": {
+      "media": 4.52,
+      "desvio": 1.991,
+      "min": 0,
+      "max": 11
+    },
+    "red": {
+      "media": 0.243,
+      "desvio": 0.48,
+      "min": 0,
+      "max": 2
+    },
+    "passes": {
+      "media": 386.13,
+      "desvio": 48.047,
+      "min": 247,
+      "max": 472
+    },
+    "passOk": {
+      "media": 315.797,
+      "desvio": 43.768,
+      "min": 201,
+      "max": 417
+    },
+    "tackles": {
+      "media": 50.51,
+      "desvio": 9.574,
+      "min": 26,
+      "max": 83
+    },
+    "offsides": {
+      "media": 5.107,
+      "desvio": 3.856,
+      "min": 0,
+      "max": 20
+    },
+    "throwIns": {
+      "media": 15.953,
+      "desvio": 6.498,
+      "min": 3,
+      "max": 42
+    },
+    "goalKicks": {
+      "media": 12.963,
+      "desvio": 4.633,
+      "min": 2,
+      "max": 26
+    }
+  },
+  "eventosPorPartida": {
+    "action_contact": 413.82,
+    "action_interrupted": 19.443,
+    "action_prepare": 433.307,
+    "bad_pass": 39.973,
+    "blocked": 7.63,
+    "clear_out": 1.577,
+    "clearance_out": 0.007,
+    "containment": 208.347,
+    "corner": 11.103,
+    "corner_delivery": 10.757,
+    "cross": 26.563,
+    "cross_livre": 0.443,
+    "cross_ruim": 4.297,
+    "defensive_error": 0.743,
+    "dribble": 33.64,
+    "falta_atras_cobrada": 14.53,
+    "falta_cobrada": 15.173,
+    "finish_choice": 15.283,
+    "foot_clearance": 1.35,
+    "foul": 22.32,
+    "freekick": 3.717,
+    "freekick_routine": 6.957,
+    "gk_bad_distribution": 3.39,
+    "gk_claim": 7.96,
+    "gk_claim_miss": 0.653,
+    "gk_punch": 0.87,
+    "gk_sweep": 6.21,
+    "gk_sweep_failed": 0.143,
+    "goal": 3.267,
+    "goal_kick": 12.963,
+    "halftime": 1,
+    "header_clear": 9.057,
+    "header_shot": 2.297,
+    "injury": 0.283,
+    "intercept": 20.747,
+    "intercept_attempt_aborted": 8.543,
+    "kickoff": 1,
+    "long_pass": 0.82,
+    "looseControl": 44.52,
+    "loose_duel": 3.62,
+    "low_cross_no_contact": 3.323,
+    "low_cross_shot": 2.237,
+    "manager_change": 11.63,
+    "manager_evaluation": 11.147,
+    "manager_plan": 2,
+    "manager_reversal": 0.17,
+    "match_phase": 751.01,
+    "miscontrol_out": 1.58,
+    "miss": 7.99,
+    "offside": 5.107,
+    "offside_restart": 5.107,
+    "offside_trap": 21.01,
+    "pass": 315.353,
+    "pen_miss": 0.013,
+    "penalty": 0.19,
+    "post": 0.297,
+    "post_recovery_decision": 1.05,
+    "pressure": 496.39,
+    "red": 0.243,
+    "run_break": 24.733,
+    "run_burst": 33.71,
+    "save": 4.347,
+    "shot_deferred": 13.927,
+    "shot_taken": 15.283,
+    "sub": 3.613,
+    "tackle": 45.91,
+    "tackle_attempt": 79.597,
+    "tackle_missed": 15.737,
+    "tactical_shift": 7.65,
+    "through": 21.007,
+    "throw_in": 15.953,
+    "touchline_duel": 0.3,
+    "visual_contact": 504.727,
+    "visual_contact_failed": 4.143,
+    "yellow": 4.287
+  },
+  "fisica": {
+    "voos": 140900,
+    "apiceMedio": 0.563,
+    "apiceMaximo": 13.493,
+    "voosAcimaDoTravessao": 13137,
+    "tempoVooMedio": 1.105,
+    "cruzamentosDaLinha": 3003,
+    "zMedioNaLinha": 0.898,
+    "zMaximoNaLinha": 1.764,
+    "passaramPorCimaDoTravessao": 0,
+    "porCimaEntreOsPostes": 0,
+    "quiques": 1037,
+    "quiquesPorPartida": 3.457,
+    "segundosSimuladosPorPartida": 1382.1,
+    "ramos": {
+      "chutes": 5945,
+      "gols": 878,
+      "defesas": 927,
+      "traves": 91,
+      "fora": 2255,
+      "porCima": 603,
+      "bloqueios": 1794,
+      "curtos": 0,
+      "somaForca": 167964.80869575276,
+      "defTentativas": 1805,
+      "defSomaTempoBola": 1140.7069676262693,
+      "defSomaDistLinha": 11033.1733479592,
+      "defSomaFolga": 283.36294950905665,
+      "defSomaP": 948.2003461019716,
+      "defForaDeAlcance": 613,
+      "travesQueSairam": 33
+    },
+    "ritmoPorFaixa": [
+      {
+        "faixa": "0-15",
+        "segundosPorPartida": 215.8,
+        "fracaoDoTempo": 0.1562,
+        "chutes": 4.13,
+        "gols": 0.603,
+        "passes": 56,
+        "chutesPorMinutoDeJogo": 0.275,
+        "golsPorMinutoDeJogo": 0.0402,
+        "staminaMedia": 97
+      },
+      {
+        "faixa": "16-30",
+        "segundosPorPartida": 208.8,
+        "fracaoDoTempo": 0.1511,
+        "chutes": 3.95,
+        "gols": 0.537,
+        "passes": 55.6,
+        "chutesPorMinutoDeJogo": 0.263,
+        "golsPorMinutoDeJogo": 0.0358,
+        "staminaMedia": 91
+      },
+      {
+        "faixa": "31-45",
+        "segundosPorPartida": 205.6,
+        "fracaoDoTempo": 0.1487,
+        "chutes": 3.71,
+        "gols": 0.493,
+        "passes": 55.2,
+        "chutesPorMinutoDeJogo": 0.247,
+        "golsPorMinutoDeJogo": 0.0329,
+        "staminaMedia": 85.2
+      },
+      {
+        "faixa": "46-60",
+        "segundosPorPartida": 260.6,
+        "fracaoDoTempo": 0.1885,
+        "chutes": 4.49,
+        "gols": 0.613,
+        "passes": 73.9,
+        "chutesPorMinutoDeJogo": 0.299,
+        "golsPorMinutoDeJogo": 0.0409,
+        "staminaMedia": 79
+      },
+      {
+        "faixa": "61-75",
+        "segundosPorPartida": 203.8,
+        "fracaoDoTempo": 0.1475,
+        "chutes": 3.41,
+        "gols": 0.513,
+        "passes": 58.8,
+        "chutesPorMinutoDeJogo": 0.228,
+        "golsPorMinutoDeJogo": 0.0342,
+        "staminaMedia": 73.3
+      },
+      {
+        "faixa": "76+",
+        "segundosPorPartida": 287.5,
+        "fracaoDoTempo": 0.208,
+        "chutes": 4.04,
+        "gols": 0.507,
+        "passes": 86.6,
+        "chutesPorMinutoDeJogo": 0.269,
+        "golsPorMinutoDeJogo": 0.0338,
+        "staminaMedia": 68.3
+      }
+    ]
+  },
+  "porPartida": [
+    {
+      "placar": [
+        1,
+        4
+      ],
+      "staminaFinal": 60.70253973080714,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 17
+        },
+        {
+          "time": 1,
+          "minuto": 21
+        },
+        {
+          "time": 1,
+          "minuto": 31
+        },
+        {
+          "time": 1,
+          "minuto": 35
+        },
+        {
+          "time": 1,
+          "minuto": 82
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        1
+      ],
+      "staminaFinal": 64.56275411019438,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 6
+        },
+        {
+          "time": 0,
+          "minuto": 72
+        },
+        {
+          "time": 1,
+          "minuto": 86
+        }
+      ]
+    },
+    {
+      "placar": [
+        4,
+        1
+      ],
+      "staminaFinal": 61.38633164892793,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 17
+        },
+        {
+          "time": 0,
+          "minuto": 41
+        },
+        {
+          "time": 0,
+          "minuto": 45
+        },
+        {
+          "time": 0,
+          "minuto": 46
+        },
+        {
+          "time": 0,
+          "minuto": 64
+        }
+      ]
+    },
+    {
+      "placar": [
+        4,
+        5
+      ],
+      "staminaFinal": 62.6365826212412,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 3
+        },
+        {
+          "time": 0,
+          "minuto": 6
+        },
+        {
+          "time": 0,
+          "minuto": 6
+        },
+        {
+          "time": 1,
+          "minuto": 12
+        },
+        {
+          "time": 1,
+          "minuto": 17
+        },
+        {
+          "time": 0,
+          "minuto": 63
+        },
+        {
+          "time": 1,
+          "minuto": 70
+        },
+        {
+          "time": 0,
+          "minuto": 94
+        },
+        {
+          "time": 1,
+          "minuto": 98
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        1
+      ],
+      "staminaFinal": 68.61606362360953,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 64
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        3
+      ],
+      "staminaFinal": 67.98826559589554,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 7
+        },
+        {
+          "time": 1,
+          "minuto": 24
+        },
+        {
+          "time": 0,
+          "minuto": 46
+        },
+        {
+          "time": 1,
+          "minuto": 80
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        3
+      ],
+      "staminaFinal": 63.515220994244935,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 50
+        },
+        {
+          "time": 1,
+          "minuto": 63
+        },
+        {
+          "time": 1,
+          "minuto": 70
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        2
+      ],
+      "staminaFinal": 60.997761051100525,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 46
+        },
+        {
+          "time": 1,
+          "minuto": 65
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        4
+      ],
+      "staminaFinal": 66.40662397599168,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 35
+        },
+        {
+          "time": 1,
+          "minuto": 67
+        },
+        {
+          "time": 1,
+          "minuto": 82
+        },
+        {
+          "time": 1,
+          "minuto": 85
+        },
+        {
+          "time": 1,
+          "minuto": 88
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        2
+      ],
+      "staminaFinal": 59.07716829943725,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 3
+        },
+        {
+          "time": 1,
+          "minuto": 24
+        },
+        {
+          "time": 0,
+          "minuto": 76
+        },
+        {
+          "time": 0,
+          "minuto": 83
+        },
+        {
+          "time": 1,
+          "minuto": 89
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        1
+      ],
+      "staminaFinal": 62.070148409016184,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 29
+        },
+        {
+          "time": 0,
+          "minuto": 40
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        1
+      ],
+      "staminaFinal": 65.62705027723119,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 1
+        },
+        {
+          "time": 0,
+          "minuto": 22
+        },
+        {
+          "time": 0,
+          "minuto": 30
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        0
+      ],
+      "staminaFinal": 71.06919643667347,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 16
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        0
+      ],
+      "staminaFinal": 68.70817487720535,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 61
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        0
+      ],
+      "staminaFinal": 60.431223558546435,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 8
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        2
+      ],
+      "staminaFinal": 64.19300249048497,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 16
+        },
+        {
+          "time": 1,
+          "minuto": 35
+        },
+        {
+          "time": 0,
+          "minuto": 53
+        },
+        {
+          "time": 1,
+          "minuto": 56
+        },
+        {
+          "time": 0,
+          "minuto": 94
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        3
+      ],
+      "staminaFinal": 60.817371448905625,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 7
+        },
+        {
+          "time": 1,
+          "minuto": 15
+        },
+        {
+          "time": 1,
+          "minuto": 29
+        },
+        {
+          "time": 1,
+          "minuto": 53
+        },
+        {
+          "time": 0,
+          "minuto": 81
+        },
+        {
+          "time": 0,
+          "minuto": 83
+        }
+      ]
+    },
+    {
+      "placar": [
+        5,
+        4
+      ],
+      "staminaFinal": 60.035394725655344,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 4
+        },
+        {
+          "time": 0,
+          "minuto": 5
+        },
+        {
+          "time": 0,
+          "minuto": 22
+        },
+        {
+          "time": 1,
+          "minuto": 29
+        },
+        {
+          "time": 0,
+          "minuto": 31
+        },
+        {
+          "time": 0,
+          "minuto": 40
+        },
+        {
+          "time": 0,
+          "minuto": 45
+        },
+        {
+          "time": 1,
+          "minuto": 70
+        },
+        {
+          "time": 1,
+          "minuto": 72
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        0
+      ],
+      "staminaFinal": 63.73586014719835,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 61
+        },
+        {
+          "time": 0,
+          "minuto": 69
+        },
+        {
+          "time": 0,
+          "minuto": 71
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        0
+      ],
+      "staminaFinal": 68.95034992585418,
+      "golsSeq": []
+    },
+    {
+      "placar": [
+        0,
+        3
+      ],
+      "staminaFinal": 67.91998316173594,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 37
+        },
+        {
+          "time": 1,
+          "minuto": 40
+        },
+        {
+          "time": 1,
+          "minuto": 62
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        1
+      ],
+      "staminaFinal": 64.16784652202452,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 38
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        2
+      ],
+      "staminaFinal": 66.41828375946903,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 34
+        },
+        {
+          "time": 1,
+          "minuto": 62
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        1
+      ],
+      "staminaFinal": 60.496284006081325,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 20
+        },
+        {
+          "time": 0,
+          "minuto": 43
+        },
+        {
+          "time": 0,
+          "minuto": 62
+        },
+        {
+          "time": 1,
+          "minuto": 64
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        3
+      ],
+      "staminaFinal": 60.96207309722894,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 4
+        },
+        {
+          "time": 1,
+          "minuto": 63
+        },
+        {
+          "time": 0,
+          "minuto": 75
+        },
+        {
+          "time": 1,
+          "minuto": 76
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        2
+      ],
+      "staminaFinal": 64.98444889926918,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 22
+        },
+        {
+          "time": 0,
+          "minuto": 46
+        },
+        {
+          "time": 1,
+          "minuto": 59
+        },
+        {
+          "time": 0,
+          "minuto": 86
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        0
+      ],
+      "staminaFinal": 68.84947713115336,
+      "golsSeq": []
+    },
+    {
+      "placar": [
+        3,
+        1
+      ],
+      "staminaFinal": 61.25377905193199,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 28
+        },
+        {
+          "time": 0,
+          "minuto": 38
+        },
+        {
+          "time": 1,
+          "minuto": 45
+        },
+        {
+          "time": 0,
+          "minuto": 61
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        3
+      ],
+      "staminaFinal": 65.58972611599651,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 47
+        },
+        {
+          "time": 1,
+          "minuto": 53
+        },
+        {
+          "time": 1,
+          "minuto": 60
+        },
+        {
+          "time": 1,
+          "minuto": 69
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        3
+      ],
+      "staminaFinal": 64.13974231692339,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 2
+        },
+        {
+          "time": 1,
+          "minuto": 9
+        },
+        {
+          "time": 0,
+          "minuto": 39
+        },
+        {
+          "time": 1,
+          "minuto": 41
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        0
+      ],
+      "staminaFinal": 64.09683252181537,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 1
+        },
+        {
+          "time": 0,
+          "minuto": 39
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        1
+      ],
+      "staminaFinal": 66.85682808377585,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 42
+        },
+        {
+          "time": 0,
+          "minuto": 82
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        0
+      ],
+      "staminaFinal": 63.938920725597626,
+      "golsSeq": []
+    },
+    {
+      "placar": [
+        3,
+        0
+      ],
+      "staminaFinal": 68.11664377147895,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 6
+        },
+        {
+          "time": 0,
+          "minuto": 10
+        },
+        {
+          "time": 0,
+          "minuto": 60
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        1
+      ],
+      "staminaFinal": 68.0493438786831,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 6
+        },
+        {
+          "time": 0,
+          "minuto": 70
+        },
+        {
+          "time": 0,
+          "minuto": 79
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        1
+      ],
+      "staminaFinal": 60.65528095551483,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 42
+        },
+        {
+          "time": 1,
+          "minuto": 53
+        },
+        {
+          "time": 0,
+          "minuto": 88
+        },
+        {
+          "time": 0,
+          "minuto": 92
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        2
+      ],
+      "staminaFinal": 62.16570007732542,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 16
+        },
+        {
+          "time": 1,
+          "minuto": 85
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        1
+      ],
+      "staminaFinal": 63.83665978749392,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 10
+        },
+        {
+          "time": 0,
+          "minuto": 91
+        }
+      ]
+    },
+    {
+      "placar": [
+        4,
+        0
+      ],
+      "staminaFinal": 63.4325565653167,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 7
+        },
+        {
+          "time": 0,
+          "minuto": 19
+        },
+        {
+          "time": 0,
+          "minuto": 49
+        },
+        {
+          "time": 0,
+          "minuto": 85
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        0
+      ],
+      "staminaFinal": 68.15883219941321,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 65
+        },
+        {
+          "time": 0,
+          "minuto": 66
+        },
+        {
+          "time": 0,
+          "minuto": 72
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        0
+      ],
+      "staminaFinal": 66.65535175045169,
+      "golsSeq": []
+    },
+    {
+      "placar": [
+        0,
+        0
+      ],
+      "staminaFinal": 68.42290701794398,
+      "golsSeq": []
+    },
+    {
+      "placar": [
+        2,
+        2
+      ],
+      "staminaFinal": 66.7819155098321,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 56
+        },
+        {
+          "time": 0,
+          "minuto": 63
+        },
+        {
+          "time": 0,
+          "minuto": 86
+        },
+        {
+          "time": 1,
+          "minuto": 97
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        2
+      ],
+      "staminaFinal": 65.44592099108213,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 15
+        },
+        {
+          "time": 0,
+          "minuto": 19
+        },
+        {
+          "time": 1,
+          "minuto": 82
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        2
+      ],
+      "staminaFinal": 54.81267311567297,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 6
+        },
+        {
+          "time": 0,
+          "minuto": 7
+        },
+        {
+          "time": 1,
+          "minuto": 54
+        },
+        {
+          "time": 0,
+          "minuto": 56
+        },
+        {
+          "time": 0,
+          "minuto": 71
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        1
+      ],
+      "staminaFinal": 64.04364056762647,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 18
+        },
+        {
+          "time": 0,
+          "minuto": 22
+        },
+        {
+          "time": 1,
+          "minuto": 27
+        },
+        {
+          "time": 0,
+          "minuto": 71
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        0
+      ],
+      "staminaFinal": 66.2810510499873,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 93
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        1
+      ],
+      "staminaFinal": 67.82264195966398,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 1
+        },
+        {
+          "time": 1,
+          "minuto": 84
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        0
+      ],
+      "staminaFinal": 65.59943988752129,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 2
+        },
+        {
+          "time": 0,
+          "minuto": 6
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        2
+      ],
+      "staminaFinal": 63.01467886394837,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 38
+        },
+        {
+          "time": 0,
+          "minuto": 63
+        },
+        {
+          "time": 1,
+          "minuto": 74
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        3
+      ],
+      "staminaFinal": 67.0341315315383,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 24
+        },
+        {
+          "time": 1,
+          "minuto": 35
+        },
+        {
+          "time": 0,
+          "minuto": 60
+        },
+        {
+          "time": 1,
+          "minuto": 81
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        2
+      ],
+      "staminaFinal": 60.2264133854161,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 1
+        },
+        {
+          "time": 1,
+          "minuto": 14
+        },
+        {
+          "time": 0,
+          "minuto": 49
+        }
+      ]
+    },
+    {
+      "placar": [
+        4,
+        3
+      ],
+      "staminaFinal": 61.83507391421473,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 5
+        },
+        {
+          "time": 0,
+          "minuto": 7
+        },
+        {
+          "time": 0,
+          "minuto": 44
+        },
+        {
+          "time": 0,
+          "minuto": 51
+        },
+        {
+          "time": 1,
+          "minuto": 65
+        },
+        {
+          "time": 0,
+          "minuto": 87
+        },
+        {
+          "time": 1,
+          "minuto": 93
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        2
+      ],
+      "staminaFinal": 69.22056205649945,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 14
+        },
+        {
+          "time": 1,
+          "minuto": 20
+        },
+        {
+          "time": 0,
+          "minuto": 52
+        },
+        {
+          "time": 0,
+          "minuto": 92
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        2
+      ],
+      "staminaFinal": 68.11731837105134,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 7
+        },
+        {
+          "time": 1,
+          "minuto": 36
+        },
+        {
+          "time": 1,
+          "minuto": 49
+        },
+        {
+          "time": 0,
+          "minuto": 61
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        2
+      ],
+      "staminaFinal": 69.14037691158208,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 0
+        },
+        {
+          "time": 1,
+          "minuto": 29
+        },
+        {
+          "time": 1,
+          "minuto": 37
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        2
+      ],
+      "staminaFinal": 57.76444939142688,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 9
+        },
+        {
+          "time": 1,
+          "minuto": 73
+        },
+        {
+          "time": 0,
+          "minuto": 87
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        0
+      ],
+      "staminaFinal": 70.29247472952272,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 96
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        2
+      ],
+      "staminaFinal": 58.73871833532951,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 33
+        },
+        {
+          "time": 1,
+          "minuto": 35
+        },
+        {
+          "time": 0,
+          "minuto": 71
+        },
+        {
+          "time": 0,
+          "minuto": 87
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        1
+      ],
+      "staminaFinal": 61.722842397250815,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 72
+        },
+        {
+          "time": 1,
+          "minuto": 90
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        0
+      ],
+      "staminaFinal": 65.23636056658694,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 47
+        },
+        {
+          "time": 0,
+          "minuto": 65
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        4
+      ],
+      "staminaFinal": 65.23632328567454,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 10
+        },
+        {
+          "time": 0,
+          "minuto": 30
+        },
+        {
+          "time": 1,
+          "minuto": 38
+        },
+        {
+          "time": 1,
+          "minuto": 41
+        },
+        {
+          "time": 1,
+          "minuto": 57
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        2
+      ],
+      "staminaFinal": 69.54989638571193,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 62
+        },
+        {
+          "time": 1,
+          "minuto": 70
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        1
+      ],
+      "staminaFinal": 58.16086711432149,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 5
+        },
+        {
+          "time": 0,
+          "minuto": 27
+        },
+        {
+          "time": 0,
+          "minuto": 39
+        },
+        {
+          "time": 0,
+          "minuto": 68
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        0
+      ],
+      "staminaFinal": 65.30402263919426,
+      "golsSeq": []
+    },
+    {
+      "placar": [
+        4,
+        0
+      ],
+      "staminaFinal": 57.0360366397927,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 16
+        },
+        {
+          "time": 0,
+          "minuto": 19
+        },
+        {
+          "time": 0,
+          "minuto": 19
+        },
+        {
+          "time": 0,
+          "minuto": 57
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        3
+      ],
+      "staminaFinal": 61.08828339902708,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 2
+        },
+        {
+          "time": 1,
+          "minuto": 4
+        },
+        {
+          "time": 1,
+          "minuto": 31
+        },
+        {
+          "time": 0,
+          "minuto": 42
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        4
+      ],
+      "staminaFinal": 67.87866601272941,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 3
+        },
+        {
+          "time": 0,
+          "minuto": 7
+        },
+        {
+          "time": 1,
+          "minuto": 9
+        },
+        {
+          "time": 0,
+          "minuto": 24
+        },
+        {
+          "time": 1,
+          "minuto": 26
+        },
+        {
+          "time": 1,
+          "minuto": 58
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        1
+      ],
+      "staminaFinal": 66.82952218581882,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 8
+        },
+        {
+          "time": 0,
+          "minuto": 35
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        3
+      ],
+      "staminaFinal": 69.53524873496156,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 41
+        },
+        {
+          "time": 1,
+          "minuto": 62
+        },
+        {
+          "time": 1,
+          "minuto": 68
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        0
+      ],
+      "staminaFinal": 61.37999858603566,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 4
+        }
+      ]
+    },
+    {
+      "placar": [
+        5,
+        1
+      ],
+      "staminaFinal": 62.80355209177557,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 46
+        },
+        {
+          "time": 0,
+          "minuto": 53
+        },
+        {
+          "time": 0,
+          "minuto": 58
+        },
+        {
+          "time": 1,
+          "minuto": 60
+        },
+        {
+          "time": 0,
+          "minuto": 73
+        },
+        {
+          "time": 0,
+          "minuto": 97
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        1
+      ],
+      "staminaFinal": 56.793147106416704,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 1
+        },
+        {
+          "time": 0,
+          "minuto": 2
+        }
+      ]
+    },
+    {
+      "placar": [
+        4,
+        4
+      ],
+      "staminaFinal": 64.0816077948205,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 32
+        },
+        {
+          "time": 0,
+          "minuto": 35
+        },
+        {
+          "time": 1,
+          "minuto": 45
+        },
+        {
+          "time": 0,
+          "minuto": 56
+        },
+        {
+          "time": 1,
+          "minuto": 59
+        },
+        {
+          "time": 0,
+          "minuto": 59
+        },
+        {
+          "time": 1,
+          "minuto": 72
+        },
+        {
+          "time": 0,
+          "minuto": 84
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        0
+      ],
+      "staminaFinal": 63.79842668756458,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 9
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        1
+      ],
+      "staminaFinal": 71.02283171039556,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 87
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        2
+      ],
+      "staminaFinal": 66.06949957074168,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 0
+        },
+        {
+          "time": 1,
+          "minuto": 43
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        1
+      ],
+      "staminaFinal": 61.247328925863435,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 17
+        },
+        {
+          "time": 0,
+          "minuto": 72
+        },
+        {
+          "time": 0,
+          "minuto": 73
+        },
+        {
+          "time": 1,
+          "minuto": 83
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        3
+      ],
+      "staminaFinal": 63.00600061177825,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 18
+        },
+        {
+          "time": 1,
+          "minuto": 18
+        },
+        {
+          "time": 1,
+          "minuto": 42
+        },
+        {
+          "time": 0,
+          "minuto": 69
+        },
+        {
+          "time": 1,
+          "minuto": 80
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        1
+      ],
+      "staminaFinal": 61.65000689447598,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 76
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        8
+      ],
+      "staminaFinal": 64.28340112052794,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 2
+        },
+        {
+          "time": 1,
+          "minuto": 3
+        },
+        {
+          "time": 1,
+          "minuto": 5
+        },
+        {
+          "time": 1,
+          "minuto": 22
+        },
+        {
+          "time": 0,
+          "minuto": 23
+        },
+        {
+          "time": 1,
+          "minuto": 31
+        },
+        {
+          "time": 1,
+          "minuto": 34
+        },
+        {
+          "time": 1,
+          "minuto": 40
+        },
+        {
+          "time": 0,
+          "minuto": 80
+        },
+        {
+          "time": 1,
+          "minuto": 93
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        1
+      ],
+      "staminaFinal": 65.87589596816423,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 42
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        0
+      ],
+      "staminaFinal": 65.98410247424907,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 54
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        2
+      ],
+      "staminaFinal": 66.64050247928837,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 8
+        },
+        {
+          "time": 1,
+          "minuto": 19
+        },
+        {
+          "time": 1,
+          "minuto": 52
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        3
+      ],
+      "staminaFinal": 62.921561226953116,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 9
+        },
+        {
+          "time": 0,
+          "minuto": 16
+        },
+        {
+          "time": 0,
+          "minuto": 34
+        },
+        {
+          "time": 1,
+          "minuto": 48
+        },
+        {
+          "time": 1,
+          "minuto": 86
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        3
+      ],
+      "staminaFinal": 64.70608278491933,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 20
+        },
+        {
+          "time": 1,
+          "minuto": 21
+        },
+        {
+          "time": 0,
+          "minuto": 48
+        },
+        {
+          "time": 1,
+          "minuto": 60
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        2
+      ],
+      "staminaFinal": 65.28474425677658,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 13
+        },
+        {
+          "time": 0,
+          "minuto": 64
+        },
+        {
+          "time": 1,
+          "minuto": 71
+        },
+        {
+          "time": 0,
+          "minuto": 78
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        1
+      ],
+      "staminaFinal": 61.005255730801856,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 59
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        1
+      ],
+      "staminaFinal": 63.693586238853186,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 25
+        },
+        {
+          "time": 1,
+          "minuto": 58
+        },
+        {
+          "time": 0,
+          "minuto": 85
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        0
+      ],
+      "staminaFinal": 68.09854387075163,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 2
+        },
+        {
+          "time": 0,
+          "minuto": 22
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        0
+      ],
+      "staminaFinal": 67.44592212471527,
+      "golsSeq": []
+    },
+    {
+      "placar": [
+        3,
+        1
+      ],
+      "staminaFinal": 57.94893279185098,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 8
+        },
+        {
+          "time": 1,
+          "minuto": 20
+        },
+        {
+          "time": 0,
+          "minuto": 22
+        },
+        {
+          "time": 0,
+          "minuto": 82
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        4
+      ],
+      "staminaFinal": 68.68494610504455,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 7
+        },
+        {
+          "time": 1,
+          "minuto": 11
+        },
+        {
+          "time": 1,
+          "minuto": 23
+        },
+        {
+          "time": 1,
+          "minuto": 34
+        }
+      ]
+    },
+    {
+      "placar": [
+        4,
+        1
+      ],
+      "staminaFinal": 61.55451329797101,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 0
+        },
+        {
+          "time": 1,
+          "minuto": 1
+        },
+        {
+          "time": 0,
+          "minuto": 12
+        },
+        {
+          "time": 0,
+          "minuto": 22
+        },
+        {
+          "time": 0,
+          "minuto": 92
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        1
+      ],
+      "staminaFinal": 62.248154561870585,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 67
+        },
+        {
+          "time": 1,
+          "minuto": 85
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        5
+      ],
+      "staminaFinal": 63.07078604627782,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 3
+        },
+        {
+          "time": 1,
+          "minuto": 5
+        },
+        {
+          "time": 1,
+          "minuto": 9
+        },
+        {
+          "time": 1,
+          "minuto": 44
+        },
+        {
+          "time": 1,
+          "minuto": 48
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        2
+      ],
+      "staminaFinal": 70.20443200990745,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 58
+        },
+        {
+          "time": 1,
+          "minuto": 65
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        4
+      ],
+      "staminaFinal": 64.9067787814065,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 5
+        },
+        {
+          "time": 1,
+          "minuto": 14
+        },
+        {
+          "time": 1,
+          "minuto": 43
+        },
+        {
+          "time": 1,
+          "minuto": 64
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        2
+      ],
+      "staminaFinal": 60.28488718739331,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 69
+        },
+        {
+          "time": 1,
+          "minuto": 85
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        2
+      ],
+      "staminaFinal": 68.24320603029898,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 14
+        },
+        {
+          "time": 1,
+          "minuto": 43
+        },
+        {
+          "time": 1,
+          "minuto": 53
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        2
+      ],
+      "staminaFinal": 59.10300461105971,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 4
+        },
+        {
+          "time": 1,
+          "minuto": 16
+        },
+        {
+          "time": 1,
+          "minuto": 90
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        0
+      ],
+      "staminaFinal": 61.59075493068806,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 33
+        },
+        {
+          "time": 0,
+          "minuto": 51
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        2
+      ],
+      "staminaFinal": 64.4776401180076,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 47
+        },
+        {
+          "time": 1,
+          "minuto": 49
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        1
+      ],
+      "staminaFinal": 67.40785744935513,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 17
+        },
+        {
+          "time": 1,
+          "minuto": 29
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        2
+      ],
+      "staminaFinal": 66.94353163313359,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 22
+        },
+        {
+          "time": 1,
+          "minuto": 32
+        },
+        {
+          "time": 0,
+          "minuto": 49
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        0
+      ],
+      "staminaFinal": 60.334800683355624,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 38
+        },
+        {
+          "time": 0,
+          "minuto": 79
+        },
+        {
+          "time": 0,
+          "minuto": 90
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        3
+      ],
+      "staminaFinal": 59.6472867681859,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 43
+        },
+        {
+          "time": 1,
+          "minuto": 59
+        },
+        {
+          "time": 0,
+          "minuto": 60
+        },
+        {
+          "time": 1,
+          "minuto": 75
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        1
+      ],
+      "staminaFinal": 64.43937921628098,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 26
+        },
+        {
+          "time": 1,
+          "minuto": 29
+        },
+        {
+          "time": 0,
+          "minuto": 76
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        1
+      ],
+      "staminaFinal": 62.83528694115815,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 23
+        },
+        {
+          "time": 0,
+          "minuto": 49
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        2
+      ],
+      "staminaFinal": 68.4681675190472,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 7
+        },
+        {
+          "time": 1,
+          "minuto": 47
+        },
+        {
+          "time": 1,
+          "minuto": 52
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        3
+      ],
+      "staminaFinal": 70.00928125781189,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 24
+        },
+        {
+          "time": 0,
+          "minuto": 46
+        },
+        {
+          "time": 1,
+          "minuto": 54
+        },
+        {
+          "time": 1,
+          "minuto": 63
+        },
+        {
+          "time": 0,
+          "minuto": 92
+        },
+        {
+          "time": 1,
+          "minuto": 97
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        1
+      ],
+      "staminaFinal": 71.85019582745794,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 18
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        3
+      ],
+      "staminaFinal": 59.78612107173955,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 4
+        },
+        {
+          "time": 1,
+          "minuto": 5
+        },
+        {
+          "time": 0,
+          "minuto": 32
+        },
+        {
+          "time": 1,
+          "minuto": 39
+        },
+        {
+          "time": 1,
+          "minuto": 87
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        4
+      ],
+      "staminaFinal": 62.469434058239386,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 8
+        },
+        {
+          "time": 1,
+          "minuto": 9
+        },
+        {
+          "time": 1,
+          "minuto": 18
+        },
+        {
+          "time": 0,
+          "minuto": 19
+        },
+        {
+          "time": 1,
+          "minuto": 75
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        5
+      ],
+      "staminaFinal": 59.58581198524617,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 1
+        },
+        {
+          "time": 0,
+          "minuto": 16
+        },
+        {
+          "time": 1,
+          "minuto": 18
+        },
+        {
+          "time": 1,
+          "minuto": 40
+        },
+        {
+          "time": 1,
+          "minuto": 43
+        },
+        {
+          "time": 1,
+          "minuto": 53
+        },
+        {
+          "time": 0,
+          "minuto": 70
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        2
+      ],
+      "staminaFinal": 63.69900624257057,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 5
+        },
+        {
+          "time": 0,
+          "minuto": 55
+        },
+        {
+          "time": 1,
+          "minuto": 80
+        },
+        {
+          "time": 1,
+          "minuto": 81
+        }
+      ]
+    },
+    {
+      "placar": [
+        4,
+        1
+      ],
+      "staminaFinal": 65.47120644443062,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 24
+        },
+        {
+          "time": 1,
+          "minuto": 26
+        },
+        {
+          "time": 0,
+          "minuto": 32
+        },
+        {
+          "time": 0,
+          "minuto": 54
+        },
+        {
+          "time": 0,
+          "minuto": 54
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        1
+      ],
+      "staminaFinal": 66.04306539335165,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 11
+        },
+        {
+          "time": 1,
+          "minuto": 80
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        6
+      ],
+      "staminaFinal": 71.28872386864008,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 25
+        },
+        {
+          "time": 1,
+          "minuto": 33
+        },
+        {
+          "time": 1,
+          "minuto": 34
+        },
+        {
+          "time": 1,
+          "minuto": 45
+        },
+        {
+          "time": 1,
+          "minuto": 46
+        },
+        {
+          "time": 1,
+          "minuto": 54
+        },
+        {
+          "time": 1,
+          "minuto": 79
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        3
+      ],
+      "staminaFinal": 60.3786133072069,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 8
+        },
+        {
+          "time": 0,
+          "minuto": 21
+        },
+        {
+          "time": 0,
+          "minuto": 47
+        },
+        {
+          "time": 0,
+          "minuto": 68
+        },
+        {
+          "time": 1,
+          "minuto": 90
+        },
+        {
+          "time": 1,
+          "minuto": 92
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        2
+      ],
+      "staminaFinal": 65.06164912174728,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 90
+        },
+        {
+          "time": 1,
+          "minuto": 94
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        0
+      ],
+      "staminaFinal": 59.67152153057078,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 48
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        1
+      ],
+      "staminaFinal": 64.39337607352917,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 5
+        },
+        {
+          "time": 0,
+          "minuto": 15
+        }
+      ]
+    },
+    {
+      "placar": [
+        5,
+        0
+      ],
+      "staminaFinal": 64.16213064981275,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 12
+        },
+        {
+          "time": 0,
+          "minuto": 32
+        },
+        {
+          "time": 0,
+          "minuto": 63
+        },
+        {
+          "time": 0,
+          "minuto": 70
+        },
+        {
+          "time": 0,
+          "minuto": 74
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        1
+      ],
+      "staminaFinal": 71.40103418125362,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 1
+        },
+        {
+          "time": 0,
+          "minuto": 22
+        },
+        {
+          "time": 0,
+          "minuto": 65
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        1
+      ],
+      "staminaFinal": 67.68633852733288,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 55
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        2
+      ],
+      "staminaFinal": 60.322179402164075,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 61
+        },
+        {
+          "time": 1,
+          "minuto": 70
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        2
+      ],
+      "staminaFinal": 60.865037480368485,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 35
+        },
+        {
+          "time": 1,
+          "minuto": 49
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        1
+      ],
+      "staminaFinal": 66.36771513465915,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 82
+        },
+        {
+          "time": 0,
+          "minuto": 87
+        },
+        {
+          "time": 1,
+          "minuto": 94
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        2
+      ],
+      "staminaFinal": 61.95234635121446,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 8
+        },
+        {
+          "time": 1,
+          "minuto": 17
+        },
+        {
+          "time": 0,
+          "minuto": 18
+        },
+        {
+          "time": 0,
+          "minuto": 45
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        2
+      ],
+      "staminaFinal": 66.0324919143602,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 1
+        },
+        {
+          "time": 1,
+          "minuto": 2
+        },
+        {
+          "time": 0,
+          "minuto": 18
+        },
+        {
+          "time": 1,
+          "minuto": 25
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        1
+      ],
+      "staminaFinal": 66.41835122197114,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 3
+        },
+        {
+          "time": 0,
+          "minuto": 5
+        },
+        {
+          "time": 0,
+          "minuto": 28
+        },
+        {
+          "time": 0,
+          "minuto": 33
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        1
+      ],
+      "staminaFinal": 70.57439031113398,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 1
+        },
+        {
+          "time": 0,
+          "minuto": 87
+        }
+      ]
+    },
+    {
+      "placar": [
+        4,
+        1
+      ],
+      "staminaFinal": 58.36848706794958,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 14
+        },
+        {
+          "time": 0,
+          "minuto": 47
+        },
+        {
+          "time": 0,
+          "minuto": 55
+        },
+        {
+          "time": 0,
+          "minuto": 85
+        },
+        {
+          "time": 1,
+          "minuto": 92
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        0
+      ],
+      "staminaFinal": 65.85698442675847,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 18
+        },
+        {
+          "time": 0,
+          "minuto": 65
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        3
+      ],
+      "staminaFinal": 61.394388314080054,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 2
+        },
+        {
+          "time": 1,
+          "minuto": 21
+        },
+        {
+          "time": 1,
+          "minuto": 47
+        },
+        {
+          "time": 1,
+          "minuto": 64
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        2
+      ],
+      "staminaFinal": 61.741098107116606,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 15
+        },
+        {
+          "time": 0,
+          "minuto": 29
+        },
+        {
+          "time": 0,
+          "minuto": 43
+        },
+        {
+          "time": 1,
+          "minuto": 72
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        1
+      ],
+      "staminaFinal": 70.38792550320825,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 32
+        },
+        {
+          "time": 0,
+          "minuto": 33
+        },
+        {
+          "time": 0,
+          "minuto": 34
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        0
+      ],
+      "staminaFinal": 70.78746825404514,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 59
+        },
+        {
+          "time": 0,
+          "minuto": 68
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        4
+      ],
+      "staminaFinal": 66.6571755498309,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 4
+        },
+        {
+          "time": 1,
+          "minuto": 21
+        },
+        {
+          "time": 0,
+          "minuto": 24
+        },
+        {
+          "time": 0,
+          "minuto": 42
+        },
+        {
+          "time": 1,
+          "minuto": 57
+        },
+        {
+          "time": 1,
+          "minuto": 66
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        2
+      ],
+      "staminaFinal": 61.33683280406269,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 9
+        },
+        {
+          "time": 0,
+          "minuto": 42
+        },
+        {
+          "time": 1,
+          "minuto": 70
+        },
+        {
+          "time": 1,
+          "minuto": 81
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        1
+      ],
+      "staminaFinal": 67.82996709518038,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 38
+        },
+        {
+          "time": 0,
+          "minuto": 49
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        0
+      ],
+      "staminaFinal": 60.55643654314131,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 46
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        3
+      ],
+      "staminaFinal": 58.35524925960471,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 15
+        },
+        {
+          "time": 1,
+          "minuto": 54
+        },
+        {
+          "time": 1,
+          "minuto": 72
+        },
+        {
+          "time": 0,
+          "minuto": 75
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        0
+      ],
+      "staminaFinal": 66.70619256368694,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 47
+        },
+        {
+          "time": 0,
+          "minuto": 66
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        1
+      ],
+      "staminaFinal": 69.5593256070815,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 77
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        3
+      ],
+      "staminaFinal": 65.43365174299367,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 5
+        },
+        {
+          "time": 1,
+          "minuto": 10
+        },
+        {
+          "time": 1,
+          "minuto": 41
+        },
+        {
+          "time": 1,
+          "minuto": 57
+        },
+        {
+          "time": 0,
+          "minuto": 64
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        3
+      ],
+      "staminaFinal": 60.19614732789955,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 9
+        },
+        {
+          "time": 1,
+          "minuto": 11
+        },
+        {
+          "time": 1,
+          "minuto": 48
+        },
+        {
+          "time": 0,
+          "minuto": 55
+        },
+        {
+          "time": 0,
+          "minuto": 82
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        3
+      ],
+      "staminaFinal": 61.216844101159275,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 18
+        },
+        {
+          "time": 1,
+          "minuto": 38
+        },
+        {
+          "time": 1,
+          "minuto": 70
+        },
+        {
+          "time": 1,
+          "minuto": 94
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        2
+      ],
+      "staminaFinal": 58.74466928021688,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 24
+        },
+        {
+          "time": 1,
+          "minuto": 61
+        },
+        {
+          "time": 0,
+          "minuto": 75
+        },
+        {
+          "time": 0,
+          "minuto": 91
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        3
+      ],
+      "staminaFinal": 59.75173573974864,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 41
+        },
+        {
+          "time": 1,
+          "minuto": 47
+        },
+        {
+          "time": 1,
+          "minuto": 51
+        },
+        {
+          "time": 0,
+          "minuto": 66
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        0
+      ],
+      "staminaFinal": 66.89161935554539,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 10
+        },
+        {
+          "time": 0,
+          "minuto": 55
+        },
+        {
+          "time": 0,
+          "minuto": 77
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        1
+      ],
+      "staminaFinal": 67.25580837110518,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 41
+        },
+        {
+          "time": 1,
+          "minuto": 48
+        },
+        {
+          "time": 0,
+          "minuto": 49
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        2
+      ],
+      "staminaFinal": 70.42068437847563,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 6
+        },
+        {
+          "time": 1,
+          "minuto": 46
+        }
+      ]
+    },
+    {
+      "placar": [
+        8,
+        1
+      ],
+      "staminaFinal": 55.33188227271266,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 2
+        },
+        {
+          "time": 1,
+          "minuto": 3
+        },
+        {
+          "time": 0,
+          "minuto": 25
+        },
+        {
+          "time": 0,
+          "minuto": 38
+        },
+        {
+          "time": 0,
+          "minuto": 40
+        },
+        {
+          "time": 0,
+          "minuto": 50
+        },
+        {
+          "time": 0,
+          "minuto": 48
+        },
+        {
+          "time": 0,
+          "minuto": 69
+        },
+        {
+          "time": 0,
+          "minuto": 76
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        0
+      ],
+      "staminaFinal": 63.64749673134989,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 54
+        }
+      ]
+    },
+    {
+      "placar": [
+        5,
+        2
+      ],
+      "staminaFinal": 60.451017993023584,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 8
+        },
+        {
+          "time": 1,
+          "minuto": 19
+        },
+        {
+          "time": 0,
+          "minuto": 45
+        },
+        {
+          "time": 0,
+          "minuto": 47
+        },
+        {
+          "time": 0,
+          "minuto": 47
+        },
+        {
+          "time": 1,
+          "minuto": 53
+        },
+        {
+          "time": 0,
+          "minuto": 85
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        1
+      ],
+      "staminaFinal": 62.7470670278584,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 58
+        },
+        {
+          "time": 0,
+          "minuto": 79
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        0
+      ],
+      "staminaFinal": 69.73240664819345,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 46
+        },
+        {
+          "time": 0,
+          "minuto": 47
+        },
+        {
+          "time": 0,
+          "minuto": 50
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        1
+      ],
+      "staminaFinal": 69.10485688128762,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 83
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        3
+      ],
+      "staminaFinal": 69.40877834327523,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 38
+        },
+        {
+          "time": 1,
+          "minuto": 47
+        },
+        {
+          "time": 0,
+          "minuto": 67
+        },
+        {
+          "time": 1,
+          "minuto": 81
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        5
+      ],
+      "staminaFinal": 64.81642291411495,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 2
+        },
+        {
+          "time": 1,
+          "minuto": 28
+        },
+        {
+          "time": 1,
+          "minuto": 29
+        },
+        {
+          "time": 1,
+          "minuto": 31
+        },
+        {
+          "time": 1,
+          "minuto": 65
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        1
+      ],
+      "staminaFinal": 63.38667266689986,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 35
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        3
+      ],
+      "staminaFinal": 59.04681820240534,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 20
+        },
+        {
+          "time": 1,
+          "minuto": 35
+        },
+        {
+          "time": 1,
+          "minuto": 52
+        },
+        {
+          "time": 0,
+          "minuto": 60
+        },
+        {
+          "time": 0,
+          "minuto": 92
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        3
+      ],
+      "staminaFinal": 63.667210864888304,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 23
+        },
+        {
+          "time": 1,
+          "minuto": 45
+        },
+        {
+          "time": 1,
+          "minuto": 47
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        3
+      ],
+      "staminaFinal": 61.96373660128468,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 7
+        },
+        {
+          "time": 1,
+          "minuto": 30
+        },
+        {
+          "time": 1,
+          "minuto": 32
+        },
+        {
+          "time": 0,
+          "minuto": 66
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        1
+      ],
+      "staminaFinal": 65.21620788531439,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 41
+        },
+        {
+          "time": 0,
+          "minuto": 47
+        },
+        {
+          "time": 1,
+          "minuto": 82
+        }
+      ]
+    },
+    {
+      "placar": [
+        5,
+        2
+      ],
+      "staminaFinal": 66.39842889530698,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 12
+        },
+        {
+          "time": 0,
+          "minuto": 27
+        },
+        {
+          "time": 0,
+          "minuto": 35
+        },
+        {
+          "time": 1,
+          "minuto": 49
+        },
+        {
+          "time": 0,
+          "minuto": 65
+        },
+        {
+          "time": 1,
+          "minuto": 76
+        },
+        {
+          "time": 0,
+          "minuto": 96
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        2
+      ],
+      "staminaFinal": 59.52325306523492,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 2
+        },
+        {
+          "time": 1,
+          "minuto": 62
+        },
+        {
+          "time": 1,
+          "minuto": 73
+        },
+        {
+          "time": 0,
+          "minuto": 74
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        2
+      ],
+      "staminaFinal": 67.924137042302,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 57
+        },
+        {
+          "time": 1,
+          "minuto": 66
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        3
+      ],
+      "staminaFinal": 60.07944992299556,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 1
+        },
+        {
+          "time": 0,
+          "minuto": 11
+        },
+        {
+          "time": 1,
+          "minuto": 33
+        },
+        {
+          "time": 0,
+          "minuto": 51
+        },
+        {
+          "time": 1,
+          "minuto": 50
+        }
+      ]
+    },
+    {
+      "placar": [
+        4,
+        2
+      ],
+      "staminaFinal": 61.348640750161,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 12
+        },
+        {
+          "time": 1,
+          "minuto": 39
+        },
+        {
+          "time": 0,
+          "minuto": 66
+        },
+        {
+          "time": 0,
+          "minuto": 71
+        },
+        {
+          "time": 0,
+          "minuto": 80
+        },
+        {
+          "time": 0,
+          "minuto": 85
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        0
+      ],
+      "staminaFinal": 66.39249737498751,
+      "golsSeq": []
+    },
+    {
+      "placar": [
+        1,
+        2
+      ],
+      "staminaFinal": 69.52160456978598,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 46
+        },
+        {
+          "time": 1,
+          "minuto": 46
+        },
+        {
+          "time": 1,
+          "minuto": 50
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        1
+      ],
+      "staminaFinal": 65.99888986042266,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 15
+        },
+        {
+          "time": 1,
+          "minuto": 55
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        0
+      ],
+      "staminaFinal": 63.080867435075994,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 47
+        },
+        {
+          "time": 0,
+          "minuto": 50
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        0
+      ],
+      "staminaFinal": 65.48833112648242,
+      "golsSeq": []
+    },
+    {
+      "placar": [
+        0,
+        2
+      ],
+      "staminaFinal": 56.952868943324845,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 24
+        },
+        {
+          "time": 1,
+          "minuto": 47
+        }
+      ]
+    },
+    {
+      "placar": [
+        4,
+        5
+      ],
+      "staminaFinal": 61.53270147224418,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 2
+        },
+        {
+          "time": 1,
+          "minuto": 11
+        },
+        {
+          "time": 1,
+          "minuto": 26
+        },
+        {
+          "time": 1,
+          "minuto": 27
+        },
+        {
+          "time": 0,
+          "minuto": 34
+        },
+        {
+          "time": 0,
+          "minuto": 43
+        },
+        {
+          "time": 1,
+          "minuto": 48
+        },
+        {
+          "time": 0,
+          "minuto": 65
+        },
+        {
+          "time": 0,
+          "minuto": 72
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        0
+      ],
+      "staminaFinal": 63.56391533378399,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 89
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        5
+      ],
+      "staminaFinal": 67.55626499293383,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 19
+        },
+        {
+          "time": 1,
+          "minuto": 26
+        },
+        {
+          "time": 1,
+          "minuto": 44
+        },
+        {
+          "time": 1,
+          "minuto": 47
+        },
+        {
+          "time": 1,
+          "minuto": 69
+        },
+        {
+          "time": 0,
+          "minuto": 90
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        2
+      ],
+      "staminaFinal": 67.51101144962132,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 54
+        },
+        {
+          "time": 1,
+          "minuto": 64
+        }
+      ]
+    },
+    {
+      "placar": [
+        4,
+        2
+      ],
+      "staminaFinal": 58.58675156694305,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 5
+        },
+        {
+          "time": 0,
+          "minuto": 22
+        },
+        {
+          "time": 1,
+          "minuto": 36
+        },
+        {
+          "time": 0,
+          "minuto": 48
+        },
+        {
+          "time": 1,
+          "minuto": 53
+        },
+        {
+          "time": 0,
+          "minuto": 59
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        0
+      ],
+      "staminaFinal": 66.35890831423868,
+      "golsSeq": []
+    },
+    {
+      "placar": [
+        2,
+        2
+      ],
+      "staminaFinal": 57.21059360292027,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 14
+        },
+        {
+          "time": 0,
+          "minuto": 16
+        },
+        {
+          "time": 1,
+          "minuto": 26
+        },
+        {
+          "time": 0,
+          "minuto": 93
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        3
+      ],
+      "staminaFinal": 64.0505502908334,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 8
+        },
+        {
+          "time": 1,
+          "minuto": 48
+        },
+        {
+          "time": 0,
+          "minuto": 56
+        },
+        {
+          "time": 0,
+          "minuto": 62
+        },
+        {
+          "time": 1,
+          "minuto": 63
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        4
+      ],
+      "staminaFinal": 63.826370587016186,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 23
+        },
+        {
+          "time": 1,
+          "minuto": 40
+        },
+        {
+          "time": 1,
+          "minuto": 67
+        },
+        {
+          "time": 1,
+          "minuto": 70
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        3
+      ],
+      "staminaFinal": 67.48156177393786,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 5
+        },
+        {
+          "time": 1,
+          "minuto": 24
+        },
+        {
+          "time": 0,
+          "minuto": 30
+        },
+        {
+          "time": 1,
+          "minuto": 40
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        0
+      ],
+      "staminaFinal": 74.36652357158978,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 41
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        0
+      ],
+      "staminaFinal": 60.83268243099412,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 50
+        },
+        {
+          "time": 0,
+          "minuto": 81
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        1
+      ],
+      "staminaFinal": 63.36976637482024,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 10
+        },
+        {
+          "time": 0,
+          "minuto": 25
+        },
+        {
+          "time": 0,
+          "minuto": 49
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        0
+      ],
+      "staminaFinal": 60.76609125540536,
+      "golsSeq": []
+    },
+    {
+      "placar": [
+        3,
+        1
+      ],
+      "staminaFinal": 65.28472933238356,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 1
+        },
+        {
+          "time": 0,
+          "minuto": 6
+        },
+        {
+          "time": 0,
+          "minuto": 20
+        },
+        {
+          "time": 1,
+          "minuto": 56
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        2
+      ],
+      "staminaFinal": 65.35025057384074,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 1
+        },
+        {
+          "time": 0,
+          "minuto": 29
+        },
+        {
+          "time": 1,
+          "minuto": 71
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        3
+      ],
+      "staminaFinal": 69.37682270795848,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 3
+        },
+        {
+          "time": 0,
+          "minuto": 54
+        },
+        {
+          "time": 1,
+          "minuto": 68
+        },
+        {
+          "time": 1,
+          "minuto": 69
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        0
+      ],
+      "staminaFinal": 71.05499234395354,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 11
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        2
+      ],
+      "staminaFinal": 57.94787808463741,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 20
+        },
+        {
+          "time": 1,
+          "minuto": 60
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        7
+      ],
+      "staminaFinal": 66.22553131782898,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 16
+        },
+        {
+          "time": 1,
+          "minuto": 21
+        },
+        {
+          "time": 1,
+          "minuto": 35
+        },
+        {
+          "time": 1,
+          "minuto": 43
+        },
+        {
+          "time": 1,
+          "minuto": 47
+        },
+        {
+          "time": 1,
+          "minuto": 46
+        },
+        {
+          "time": 1,
+          "minuto": 58
+        },
+        {
+          "time": 1,
+          "minuto": 62
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        4
+      ],
+      "staminaFinal": 59.749061546833424,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 48
+        },
+        {
+          "time": 1,
+          "minuto": 64
+        },
+        {
+          "time": 1,
+          "minuto": 67
+        },
+        {
+          "time": 1,
+          "minuto": 71
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        1
+      ],
+      "staminaFinal": 63.787702900995576,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 33
+        },
+        {
+          "time": 0,
+          "minuto": 36
+        },
+        {
+          "time": 0,
+          "minuto": 81
+        },
+        {
+          "time": 1,
+          "minuto": 85
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        2
+      ],
+      "staminaFinal": 66.90379495094791,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 13
+        },
+        {
+          "time": 1,
+          "minuto": 30
+        },
+        {
+          "time": 0,
+          "minuto": 42
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        0
+      ],
+      "staminaFinal": 70.38364259682176,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 11
+        },
+        {
+          "time": 0,
+          "minuto": 37
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        1
+      ],
+      "staminaFinal": 68.23407755323397,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 49
+        },
+        {
+          "time": 0,
+          "minuto": 60
+        },
+        {
+          "time": 1,
+          "minuto": 68
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        2
+      ],
+      "staminaFinal": 61.15356584336984,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 1
+        },
+        {
+          "time": 1,
+          "minuto": 50
+        },
+        {
+          "time": 1,
+          "minuto": 69
+        },
+        {
+          "time": 0,
+          "minuto": 97
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        1
+      ],
+      "staminaFinal": 64.63916098935492,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 14
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        4
+      ],
+      "staminaFinal": 58.255642057013475,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 10
+        },
+        {
+          "time": 1,
+          "minuto": 21
+        },
+        {
+          "time": 1,
+          "minuto": 22
+        },
+        {
+          "time": 0,
+          "minuto": 23
+        },
+        {
+          "time": 1,
+          "minuto": 50
+        },
+        {
+          "time": 0,
+          "minuto": 59
+        },
+        {
+          "time": 0,
+          "minuto": 94
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        1
+      ],
+      "staminaFinal": 62.90648070540507,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 52
+        },
+        {
+          "time": 0,
+          "minuto": 95
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        1
+      ],
+      "staminaFinal": 64.69818690676468,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 6
+        },
+        {
+          "time": 0,
+          "minuto": 12
+        },
+        {
+          "time": 0,
+          "minuto": 31
+        },
+        {
+          "time": 0,
+          "minuto": 39
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        0
+      ],
+      "staminaFinal": 64.51179024876055,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 51
+        },
+        {
+          "time": 0,
+          "minuto": 80
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        1
+      ],
+      "staminaFinal": 68.50057460067025,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 28
+        },
+        {
+          "time": 0,
+          "minuto": 30
+        },
+        {
+          "time": 0,
+          "minuto": 36
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        2
+      ],
+      "staminaFinal": 57.47182497011742,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 19
+        },
+        {
+          "time": 1,
+          "minuto": 45
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        2
+      ],
+      "staminaFinal": 63.5345001799674,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 22
+        },
+        {
+          "time": 1,
+          "minuto": 41
+        },
+        {
+          "time": 1,
+          "minuto": 66
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        1
+      ],
+      "staminaFinal": 61.007354083101966,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 19
+        },
+        {
+          "time": 0,
+          "minuto": 27
+        },
+        {
+          "time": 1,
+          "minuto": 45
+        },
+        {
+          "time": 0,
+          "minuto": 51
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        0
+      ],
+      "staminaFinal": 63.12591456133689,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 32
+        },
+        {
+          "time": 0,
+          "minuto": 62
+        },
+        {
+          "time": 0,
+          "minuto": 77
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        5
+      ],
+      "staminaFinal": 59.34896994400783,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 0
+        },
+        {
+          "time": 0,
+          "minuto": 5
+        },
+        {
+          "time": 1,
+          "minuto": 6
+        },
+        {
+          "time": 1,
+          "minuto": 59
+        },
+        {
+          "time": 1,
+          "minuto": 64
+        },
+        {
+          "time": 1,
+          "minuto": 69
+        },
+        {
+          "time": 0,
+          "minuto": 77
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        2
+      ],
+      "staminaFinal": 64.40868475760594,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 21
+        },
+        {
+          "time": 1,
+          "minuto": 47
+        }
+      ]
+    },
+    {
+      "placar": [
+        4,
+        2
+      ],
+      "staminaFinal": 64.78710839324725,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 13
+        },
+        {
+          "time": 1,
+          "minuto": 14
+        },
+        {
+          "time": 1,
+          "minuto": 23
+        },
+        {
+          "time": 0,
+          "minuto": 41
+        },
+        {
+          "time": 0,
+          "minuto": 42
+        },
+        {
+          "time": 0,
+          "minuto": 76
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        2
+      ],
+      "staminaFinal": 61.249011962905755,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 13
+        },
+        {
+          "time": 1,
+          "minuto": 16
+        },
+        {
+          "time": 0,
+          "minuto": 61
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        4
+      ],
+      "staminaFinal": 63.33195557473451,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 27
+        },
+        {
+          "time": 1,
+          "minuto": 42
+        },
+        {
+          "time": 1,
+          "minuto": 48
+        },
+        {
+          "time": 0,
+          "minuto": 48
+        },
+        {
+          "time": 1,
+          "minuto": 61
+        },
+        {
+          "time": 1,
+          "minuto": 68
+        },
+        {
+          "time": 0,
+          "minuto": 95
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        1
+      ],
+      "staminaFinal": 59.55916079612319,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 23
+        },
+        {
+          "time": 1,
+          "minuto": 38
+        },
+        {
+          "time": 0,
+          "minuto": 89
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        0
+      ],
+      "staminaFinal": 63.16097063274241,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 24
+        },
+        {
+          "time": 0,
+          "minuto": 30
+        },
+        {
+          "time": 0,
+          "minuto": 83
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        1
+      ],
+      "staminaFinal": 61.79868641716933,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 1
+        },
+        {
+          "time": 0,
+          "minuto": 10
+        },
+        {
+          "time": 1,
+          "minuto": 51
+        },
+        {
+          "time": 0,
+          "minuto": 72
+        }
+      ]
+    },
+    {
+      "placar": [
+        5,
+        1
+      ],
+      "staminaFinal": 67.36260279234143,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 4
+        },
+        {
+          "time": 0,
+          "minuto": 5
+        },
+        {
+          "time": 0,
+          "minuto": 9
+        },
+        {
+          "time": 0,
+          "minuto": 30
+        },
+        {
+          "time": 1,
+          "minuto": 51
+        },
+        {
+          "time": 0,
+          "minuto": 68
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        4
+      ],
+      "staminaFinal": 67.19749262716158,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 18
+        },
+        {
+          "time": 1,
+          "minuto": 53
+        },
+        {
+          "time": 1,
+          "minuto": 88
+        },
+        {
+          "time": 1,
+          "minuto": 90
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        6
+      ],
+      "staminaFinal": 59.063490023771045,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 2
+        },
+        {
+          "time": 1,
+          "minuto": 8
+        },
+        {
+          "time": 0,
+          "minuto": 28
+        },
+        {
+          "time": 0,
+          "minuto": 40
+        },
+        {
+          "time": 1,
+          "minuto": 54
+        },
+        {
+          "time": 1,
+          "minuto": 55
+        },
+        {
+          "time": 1,
+          "minuto": 75
+        },
+        {
+          "time": 1,
+          "minuto": 95
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        2
+      ],
+      "staminaFinal": 64.28300345396609,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 1
+        },
+        {
+          "time": 1,
+          "minuto": 46
+        },
+        {
+          "time": 1,
+          "minuto": 65
+        },
+        {
+          "time": 0,
+          "minuto": 71
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        1
+      ],
+      "staminaFinal": 58.04207208256324,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 25
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        0
+      ],
+      "staminaFinal": 62.07559799979022,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 58
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        2
+      ],
+      "staminaFinal": 64.4058499816651,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 53
+        },
+        {
+          "time": 0,
+          "minuto": 56
+        },
+        {
+          "time": 1,
+          "minuto": 91
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        1
+      ],
+      "staminaFinal": 71.30548463421515,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 11
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        3
+      ],
+      "staminaFinal": 73.52241660907019,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 22
+        },
+        {
+          "time": 1,
+          "minuto": 58
+        },
+        {
+          "time": 1,
+          "minuto": 89
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        2
+      ],
+      "staminaFinal": 59.59615904571559,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 7
+        },
+        {
+          "time": 0,
+          "minuto": 57
+        },
+        {
+          "time": 1,
+          "minuto": 84
+        },
+        {
+          "time": 1,
+          "minuto": 90
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        3
+      ],
+      "staminaFinal": 62.639701016254115,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 7
+        },
+        {
+          "time": 1,
+          "minuto": 59
+        },
+        {
+          "time": 1,
+          "minuto": 63
+        },
+        {
+          "time": 1,
+          "minuto": 69
+        }
+      ]
+    },
+    {
+      "placar": [
+        4,
+        1
+      ],
+      "staminaFinal": 57.33311818064699,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 2
+        },
+        {
+          "time": 1,
+          "minuto": 20
+        },
+        {
+          "time": 0,
+          "minuto": 28
+        },
+        {
+          "time": 0,
+          "minuto": 54
+        },
+        {
+          "time": 0,
+          "minuto": 73
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        1
+      ],
+      "staminaFinal": 64.02265405580805,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 95
+        },
+        {
+          "time": 0,
+          "minuto": 95
+        }
+      ]
+    },
+    {
+      "placar": [
+        4,
+        0
+      ],
+      "staminaFinal": 60.34503401986911,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 3
+        },
+        {
+          "time": 0,
+          "minuto": 12
+        },
+        {
+          "time": 0,
+          "minuto": 65
+        },
+        {
+          "time": 0,
+          "minuto": 74
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        3
+      ],
+      "staminaFinal": 63.276261225754524,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 36
+        },
+        {
+          "time": 0,
+          "minuto": 43
+        },
+        {
+          "time": 1,
+          "minuto": 46
+        },
+        {
+          "time": 0,
+          "minuto": 51
+        },
+        {
+          "time": 1,
+          "minuto": 94
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        2
+      ],
+      "staminaFinal": 71.64558090316683,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 13
+        },
+        {
+          "time": 0,
+          "minuto": 39
+        },
+        {
+          "time": 1,
+          "minuto": 73
+        },
+        {
+          "time": 0,
+          "minuto": 80
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        2
+      ],
+      "staminaFinal": 57.681137153562936,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 34
+        },
+        {
+          "time": 0,
+          "minuto": 64
+        },
+        {
+          "time": 1,
+          "minuto": 81
+        },
+        {
+          "time": 1,
+          "minuto": 94
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        3
+      ],
+      "staminaFinal": 65.4507700896243,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 14
+        },
+        {
+          "time": 0,
+          "minuto": 30
+        },
+        {
+          "time": 1,
+          "minuto": 39
+        },
+        {
+          "time": 1,
+          "minuto": 43
+        },
+        {
+          "time": 0,
+          "minuto": 54
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        0
+      ],
+      "staminaFinal": 59.2402823212987,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 27
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        2
+      ],
+      "staminaFinal": 64.1461471385838,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 1
+        },
+        {
+          "time": 1,
+          "minuto": 9
+        },
+        {
+          "time": 1,
+          "minuto": 13
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        1
+      ],
+      "staminaFinal": 66.58180314986319,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 22
+        },
+        {
+          "time": 1,
+          "minuto": 51
+        },
+        {
+          "time": 0,
+          "minuto": 66
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        1
+      ],
+      "staminaFinal": 70.11163149900183,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 9
+        },
+        {
+          "time": 0,
+          "minuto": 10
+        },
+        {
+          "time": 0,
+          "minuto": 49
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        0
+      ],
+      "staminaFinal": 70.68931810886241,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 41
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        6
+      ],
+      "staminaFinal": 61.061184116528814,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 6
+        },
+        {
+          "time": 1,
+          "minuto": 9
+        },
+        {
+          "time": 1,
+          "minuto": 27
+        },
+        {
+          "time": 1,
+          "minuto": 37
+        },
+        {
+          "time": 1,
+          "minuto": 48
+        },
+        {
+          "time": 1,
+          "minuto": 61
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        0
+      ],
+      "staminaFinal": 67.45260691151296,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 7
+        },
+        {
+          "time": 0,
+          "minuto": 68
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        0
+      ],
+      "staminaFinal": 60.22631094540455,
+      "golsSeq": []
+    },
+    {
+      "placar": [
+        0,
+        5
+      ],
+      "staminaFinal": 60.7481476688107,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 8
+        },
+        {
+          "time": 1,
+          "minuto": 18
+        },
+        {
+          "time": 1,
+          "minuto": 33
+        },
+        {
+          "time": 1,
+          "minuto": 55
+        },
+        {
+          "time": 1,
+          "minuto": 84
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        2
+      ],
+      "staminaFinal": 59.76647232399132,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 32
+        },
+        {
+          "time": 1,
+          "minuto": 33
+        },
+        {
+          "time": 1,
+          "minuto": 39
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        0
+      ],
+      "staminaFinal": 66.03270062214847,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 22
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        0
+      ],
+      "staminaFinal": 69.7538967149736,
+      "golsSeq": []
+    },
+    {
+      "placar": [
+        4,
+        2
+      ],
+      "staminaFinal": 60.98562205551588,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 0
+        },
+        {
+          "time": 0,
+          "minuto": 6
+        },
+        {
+          "time": 0,
+          "minuto": 47
+        },
+        {
+          "time": 0,
+          "minuto": 62
+        },
+        {
+          "time": 1,
+          "minuto": 81
+        },
+        {
+          "time": 1,
+          "minuto": 85
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        2
+      ],
+      "staminaFinal": 65.55376812667187,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 6
+        },
+        {
+          "time": 1,
+          "minuto": 48
+        },
+        {
+          "time": 1,
+          "minuto": 77
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        2
+      ],
+      "staminaFinal": 64.73790830544108,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 21
+        },
+        {
+          "time": 1,
+          "minuto": 21
+        },
+        {
+          "time": 1,
+          "minuto": 71
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        1
+      ],
+      "staminaFinal": 67.49291162162417,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 51
+        },
+        {
+          "time": 0,
+          "minuto": 79
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        4
+      ],
+      "staminaFinal": 61.994011483415925,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 1
+        },
+        {
+          "time": 1,
+          "minuto": 21
+        },
+        {
+          "time": 0,
+          "minuto": 24
+        },
+        {
+          "time": 1,
+          "minuto": 25
+        },
+        {
+          "time": 0,
+          "minuto": 35
+        },
+        {
+          "time": 1,
+          "minuto": 74
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        1
+      ],
+      "staminaFinal": 69.19622625612813,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 7
+        },
+        {
+          "time": 1,
+          "minuto": 48
+        },
+        {
+          "time": 0,
+          "minuto": 67
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        1
+      ],
+      "staminaFinal": 66.03136620139968,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 55
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        0
+      ],
+      "staminaFinal": 61.99886000758682,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 38
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        0
+      ],
+      "staminaFinal": 64.08937102633556,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 2
+        },
+        {
+          "time": 0,
+          "minuto": 11
+        },
+        {
+          "time": 0,
+          "minuto": 62
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        3
+      ],
+      "staminaFinal": 59.99181953991815,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 6
+        },
+        {
+          "time": 0,
+          "minuto": 16
+        },
+        {
+          "time": 0,
+          "minuto": 26
+        },
+        {
+          "time": 1,
+          "minuto": 52
+        },
+        {
+          "time": 1,
+          "minuto": 62
+        },
+        {
+          "time": 0,
+          "minuto": 86
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        1
+      ],
+      "staminaFinal": 62.860052209357384,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 6
+        },
+        {
+          "time": 0,
+          "minuto": 23
+        }
+      ]
+    },
+    {
+      "placar": [
+        4,
+        3
+      ],
+      "staminaFinal": 65.74126338317123,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 3
+        },
+        {
+          "time": 0,
+          "minuto": 17
+        },
+        {
+          "time": 1,
+          "minuto": 32
+        },
+        {
+          "time": 0,
+          "minuto": 43
+        },
+        {
+          "time": 0,
+          "minuto": 58
+        },
+        {
+          "time": 1,
+          "minuto": 63
+        },
+        {
+          "time": 1,
+          "minuto": 82
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        0
+      ],
+      "staminaFinal": 70.67505666639664,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 58
+        },
+        {
+          "time": 0,
+          "minuto": 72
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        5
+      ],
+      "staminaFinal": 66.35644943839245,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 21
+        },
+        {
+          "time": 1,
+          "minuto": 33
+        },
+        {
+          "time": 0,
+          "minuto": 41
+        },
+        {
+          "time": 1,
+          "minuto": 53
+        },
+        {
+          "time": 0,
+          "minuto": 66
+        },
+        {
+          "time": 1,
+          "minuto": 77
+        },
+        {
+          "time": 1,
+          "minuto": 93
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        2
+      ],
+      "staminaFinal": 63.69530154017703,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 7
+        },
+        {
+          "time": 1,
+          "minuto": 40
+        },
+        {
+          "time": 1,
+          "minuto": 58
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        0
+      ],
+      "staminaFinal": 66.59031500406967,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 43
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        2
+      ],
+      "staminaFinal": 62.50222452375272,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 24
+        },
+        {
+          "time": 0,
+          "minuto": 75
+        },
+        {
+          "time": 1,
+          "minuto": 76
+        },
+        {
+          "time": 0,
+          "minuto": 96
+        }
+      ]
+    },
+    {
+      "placar": [
+        4,
+        2
+      ],
+      "staminaFinal": 59.72851201537504,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 5
+        },
+        {
+          "time": 1,
+          "minuto": 22
+        },
+        {
+          "time": 0,
+          "minuto": 33
+        },
+        {
+          "time": 0,
+          "minuto": 46
+        },
+        {
+          "time": 0,
+          "minuto": 74
+        },
+        {
+          "time": 1,
+          "minuto": 87
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        0
+      ],
+      "staminaFinal": 64.24438390229255,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 5
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        1
+      ],
+      "staminaFinal": 67.0895631356006,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 27
+        },
+        {
+          "time": 0,
+          "minuto": 30
+        },
+        {
+          "time": 0,
+          "minuto": 83
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        3
+      ],
+      "staminaFinal": 67.98815768079798,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 20
+        },
+        {
+          "time": 1,
+          "minuto": 48
+        },
+        {
+          "time": 1,
+          "minuto": 63
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        1
+      ],
+      "staminaFinal": 62.004427006051905,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 47
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        1
+      ],
+      "staminaFinal": 67.38447058881789,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 0
+        },
+        {
+          "time": 0,
+          "minuto": 46
+        },
+        {
+          "time": 0,
+          "minuto": 78
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        1
+      ],
+      "staminaFinal": 64.46919055840588,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 7
+        },
+        {
+          "time": 0,
+          "minuto": 34
+        },
+        {
+          "time": 1,
+          "minuto": 49
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        2
+      ],
+      "staminaFinal": 63.716472425940474,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 56
+        },
+        {
+          "time": 1,
+          "minuto": 71
+        },
+        {
+          "time": 0,
+          "minuto": 86
+        },
+        {
+          "time": 0,
+          "minuto": 91
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        2
+      ],
+      "staminaFinal": 61.50143041239157,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 46
+        },
+        {
+          "time": 1,
+          "minuto": 47
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        1
+      ],
+      "staminaFinal": 68.7371758865015,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 30
+        },
+        {
+          "time": 0,
+          "minuto": 59
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        3
+      ],
+      "staminaFinal": 67.870605027524,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 18
+        },
+        {
+          "time": 1,
+          "minuto": 19
+        },
+        {
+          "time": 1,
+          "minuto": 44
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        2
+      ],
+      "staminaFinal": 63.040006245000136,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 2
+        },
+        {
+          "time": 1,
+          "minuto": 55
+        },
+        {
+          "time": 0,
+          "minuto": 71
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        1
+      ],
+      "staminaFinal": 71.03718751719906,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 25
+        },
+        {
+          "time": 1,
+          "minuto": 95
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        1
+      ],
+      "staminaFinal": 60.14792767744229,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 7
+        },
+        {
+          "time": 0,
+          "minuto": 79
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        4
+      ],
+      "staminaFinal": 62.29134509275337,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 7
+        },
+        {
+          "time": 0,
+          "minuto": 23
+        },
+        {
+          "time": 0,
+          "minuto": 56
+        },
+        {
+          "time": 1,
+          "minuto": 64
+        },
+        {
+          "time": 0,
+          "minuto": 68
+        },
+        {
+          "time": 1,
+          "minuto": 77
+        },
+        {
+          "time": 1,
+          "minuto": 86
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        0
+      ],
+      "staminaFinal": 61.24992222355605,
+      "golsSeq": []
+    },
+    {
+      "placar": [
+        0,
+        1
+      ],
+      "staminaFinal": 70.27480122447275,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 73
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        1
+      ],
+      "staminaFinal": 64.00083869931409,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 18
+        },
+        {
+          "time": 0,
+          "minuto": 21
+        },
+        {
+          "time": 0,
+          "minuto": 32
+        },
+        {
+          "time": 0,
+          "minuto": 66
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        2
+      ],
+      "staminaFinal": 59.91942865458597,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 16
+        },
+        {
+          "time": 0,
+          "minuto": 57
+        },
+        {
+          "time": 1,
+          "minuto": 60
+        }
+      ]
+    },
+    {
+      "placar": [
+        4,
+        2
+      ],
+      "staminaFinal": 66.88545195832035,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 15
+        },
+        {
+          "time": 0,
+          "minuto": 18
+        },
+        {
+          "time": 0,
+          "minuto": 34
+        },
+        {
+          "time": 0,
+          "minuto": 44
+        },
+        {
+          "time": 1,
+          "minuto": 56
+        },
+        {
+          "time": 0,
+          "minuto": 60
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        1
+      ],
+      "staminaFinal": 65.00199300478123,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 10
+        },
+        {
+          "time": 0,
+          "minuto": 13
+        },
+        {
+          "time": 0,
+          "minuto": 52
+        }
+      ]
+    },
+    {
+      "placar": [
+        5,
+        0
+      ],
+      "staminaFinal": 63.62933433519195,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 7
+        },
+        {
+          "time": 0,
+          "minuto": 12
+        },
+        {
+          "time": 0,
+          "minuto": 31
+        },
+        {
+          "time": 0,
+          "minuto": 91
+        },
+        {
+          "time": 0,
+          "minuto": 92
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        1
+      ],
+      "staminaFinal": 63.2600191026629,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 81
+        },
+        {
+          "time": 1,
+          "minuto": 89
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        2
+      ],
+      "staminaFinal": 66.14068965416963,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 14
+        },
+        {
+          "time": 1,
+          "minuto": 17
+        },
+        {
+          "time": 0,
+          "minuto": 30
+        },
+        {
+          "time": 1,
+          "minuto": 65
+        }
+      ]
+    },
+    {
+      "placar": [
+        4,
+        0
+      ],
+      "staminaFinal": 69.27700466876796,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 28
+        },
+        {
+          "time": 0,
+          "minuto": 31
+        },
+        {
+          "time": 0,
+          "minuto": 76
+        },
+        {
+          "time": 0,
+          "minuto": 87
+        }
+      ]
+    },
+    {
+      "placar": [
+        3,
+        1
+      ],
+      "staminaFinal": 63.1412907532708,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 2
+        },
+        {
+          "time": 1,
+          "minuto": 16
+        },
+        {
+          "time": 0,
+          "minuto": 20
+        },
+        {
+          "time": 0,
+          "minuto": 31
+        }
+      ]
+    },
+    {
+      "placar": [
+        0,
+        0
+      ],
+      "staminaFinal": 68.5236420889032,
+      "golsSeq": []
+    },
+    {
+      "placar": [
+        1,
+        2
+      ],
+      "staminaFinal": 59.494885882546825,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 2
+        },
+        {
+          "time": 1,
+          "minuto": 63
+        },
+        {
+          "time": 1,
+          "minuto": 68
+        }
+      ]
+    },
+    {
+      "placar": [
+        1,
+        0
+      ],
+      "staminaFinal": 65.41721547654774,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 29
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        1
+      ],
+      "staminaFinal": 68.74259975497945,
+      "golsSeq": [
+        {
+          "time": 0,
+          "minuto": 24
+        },
+        {
+          "time": 1,
+          "minuto": 46
+        },
+        {
+          "time": 0,
+          "minuto": 90
+        }
+      ]
+    },
+    {
+      "placar": [
+        2,
+        3
+      ],
+      "staminaFinal": 68.01608531492896,
+      "golsSeq": [
+        {
+          "time": 1,
+          "minuto": 13
+        },
+        {
+          "time": 1,
+          "minuto": 21
+        },
+        {
+          "time": 0,
+          "minuto": 22
+        },
+        {
+          "time": 1,
+          "minuto": 36
+        },
+        {
+          "time": 0,
+          "minuto": 38
+        }
+      ]
+    }
+  ],
+  "build": "index.html",
+  "segundos": 1306.8,
+  "workers": 8
+}

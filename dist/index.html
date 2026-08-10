@@ -5787,6 +5787,25 @@ class MatchSim {
     const opps = this.teams[1 - o.team].players.filter(p => !p.red);
     const cands = [];
     const vis = getAttr(o, 'visao');
+    /* ═══ A1 · O PASSADOR ENXERGA A LINHA DE IMPEDIMENTO ═══════════════════
+       Medido: 10,0 impedimentos por partida contra 2,5–6 do futebol de elite.
+       A causa não é a marcação — é que ela nunca era EVITADA. `_pass` marca o
+       impedimento com probabilidade travada em 0,97, e `_offsideLine()` já
+       existia e estava correto, mas era consultado apenas pela MOVIMENTAÇÃO
+       (`_attackTarget`, e as camadas 36/43/60). Nesta função, que escolhe o
+       passe com 25 termos, a linha não entrava em nenhum deles: o portador
+       jogava a bola no companheiro impedido e o juiz marcava depois.
+
+       No futebol real o mecanismo dominante é o inverso — o passe não sai. É
+       isso que este termo acrescenta. Ele não impede o impedimento: encarece.
+       Erro de leitura continua existindo, e continua sendo mais comum em quem
+       lê pior o jogo.
+
+       Calculado UMA vez por decisão: dentro do laço seria O(n²). */
+    const linhaImped = this._offsideLine(o.team);
+    /* quem lê melhor o jogo evita mais — visão e decisão, os mesmos atributos
+       que o resto de `_bestPass` já usa */
+    const leituraLinha = clamp((vis * 0.5 + getAttr(o, 'decisao') * 0.5) / 100, 0.30, 1);
     for (const m of mates) {
       const dist = D(o.x, o.y, m.x, m.y);
       if (dist < 3.5 || dist > 62) continue;
@@ -5796,6 +5815,15 @@ class MatchSim {
       if (dist > 30 && vis < clamp(54 + (dist - 30) * 1.15, 54, 90)) continue;
       const progressM = dir > 0 ? (m.x - o.x) : (o.x - m.x);
       const progN = progressM / FL;
+      /* A1 · custo do impedimento. Mesma geometria que `_pass` usa para marcar
+         (:1746): só passe para frente conta, e a margem é medida contra o
+         penúltimo adversário. `-1.2` inclui a zona de quase-impedimento, onde o
+         passador de verdade já hesita. */
+      let penaImped = 0;
+      if (progressM > 2) {
+        const margem = (dir > 0 ? m.x : FL - m.x) - linhaImped;
+        if (margem > -1.2) penaImped = clamp(0.85 + margem * 0.62, 0, 3.1) * (0.55 + leituraLinha * 0.85);
+      }
       let mk = 1e9; for (const d of opps){ const dd = D(m.x,m.y,d.x,d.y); if (dd<mk) mk=dd; }
       const space = clamp(mk / 11, 0, 1);
       let risk = this._laneRisk(o, m, opps);
@@ -5894,7 +5922,8 @@ class MatchSim {
         + (/artilheiro|sombra|atacante/.test(rid) && progressM > 4 ? 0.24 * space : 0)
         + (rid === 'fc_alvo' && progressM > 0 ? 0.13 * clamp(getAttr(m,'fisico')/80, .65, 1.2) : 0);
       const score = progN * progWc * mood.risk + space * spaceW - risk * riskTol + boxBonus - backPen * (2 - mood.risk) - pingPen - farPen + hunger + tendB + legendPull + comboB + lateralBonus + switchBonus + smartPass + roleBonus + roleChoice
-        + facet(o,'pass')/100 * 0.3 + decisionNoise + throughThreat * ADV4.through.maxDecisionBonus + roleSynergy;
+        + facet(o,'pass')/100 * 0.3 + decisionNoise + throughThreat * ADV4.through.maxDecisionBonus + roleSynergy
+        - penaImped;
       // DIMENSÃO TEMPORAL do campo: corredor em movimento tem valor SUBINDO —
       // projeta 0.65s à frente pela velocidade real e mede o ganho de espaço+progresso.
       let proj = score;
