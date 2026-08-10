@@ -27336,7 +27336,11 @@ try { document.title = 'Copa dos Sonhos — R19.08'; } catch (_) {}
      partida. A escala abaixo e a razao medida entre gol realizado e pGoal
      acumulado, para a coluna de xG voltar a significar gols esperados.
      Refaça a medicao se mexer em ERRO_BASE, DEFESA_BASE ou FORCA_ESCALA. */
-  const XG_ESCALA = num(T.xgEscala, 0.70);
+  /* A2 · RE-DERIVADA depois que o modelo de defesa mudou, como o parágrafo
+     acima manda. Com o goleiro escolhendo a melhor folga em vez da primeira,
+     a razão gol/pGoal caiu: 300 partidas davam xG 3,15 para 2,93 gols, e a
+     coluna passou a superestimar de novo. 0,70 × 2,93/3,15 = 0,651. */
+  const XG_ESCALA = num(T.xgEscala, 0.651);
   P._os200EscalaXg = function () { return XG_ESCALA; };
 
   /* Ruido em forma de sino, somando dois uniformes. E limitado em [-1,1], o

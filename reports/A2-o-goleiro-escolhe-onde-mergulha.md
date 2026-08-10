@@ -58,7 +58,7 @@ Nenhuma constante de calibração foi tocada. A envergadura ficou no valor
 original (1,05 + q × 0,55), agora varrível por `CDS_OS200_TUNE` para quem
 quiser medir de novo.
 
-## Resultado — 120 partidas
+## Resultado — confirmado em 300 partidas
 
 | | antes (A1) | depois | faixa |
 |---|---|---|---|
@@ -68,6 +68,23 @@ quiser medir de novo.
 | P média de defesa | 0,795 | **0,886** | |
 | Finalizações | 23,72 | 23,93 | 22–28 ✓ |
 | **Placar de design** | 11/13 | **12/13** | |
+| **Placar do futebol real** | 12/21 | **15/21** | |
+
+Números de 300 partidas: gols 2,930 · gol por chute no alvo 0,380 · conversão
+0,124 · acerto ao alvo 0,326 · finalizações 23,67 · impedimentos 5,05.
+
+Entraram na faixa do futebol real de uma vez: **gols, conversão, gol por chute
+no alvo, acerto ao alvo, chutes no alvo, impedimentos, goleadas e 0 a 0**.
+
+### A escala de xG teve de ser re-derivada
+
+A camada 88 já avisava: *"Refaça a medição se mexer em ERRO_BASE, DEFESA_BASE ou
+FORCA_ESCALA."* O conserto do goleiro é uma mudança no modelo de defesa, então a
+razão entre gol realizado e `pGoal` acumulado mudou — 300 partidas davam xG 3,15
+para 2,93 gols.
+
+`XG_ESCALA` = 0,70 × 2,93/3,15 = **0,651**. Depois disso, xG 3,01 para 2,858
+gols. Não é ajuste de gosto: a constante é, por definição, essa razão medida.
 
 Fora de alcance segue em 34,0% — o conserto não deu alcance nenhum ao goleiro.
 Ele apenas deixou de ser obrigado a mergulhar no pior momento.
