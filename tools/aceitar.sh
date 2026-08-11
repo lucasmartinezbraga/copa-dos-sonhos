@@ -25,7 +25,9 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 
 PARTIDAS="${PARTIDAS:-300}"
-WORKERS="${WORKERS:-8}"
+# Medido: com mais workers do que nucleos a bateria fica 2-3x mais lenta e nao
+# muda o resultado (verificado com 3, 4 e 8 workers: as 14 metricas identicas).
+WORKERS="${WORKERS:-$(nproc 2>/dev/null || echo 4)}"
 ANTES="reports/_aceitar-antes.json"
 DEPOIS="reports/_aceitar-depois.json"
 REFERENCIA="reports/REFERENCIA.json"
@@ -91,6 +93,9 @@ case "${1:-}" in
 
   --fixar)
     [ -f "$DEPOIS" ] || { vermelho "nao ha $DEPOIS para promover."; exit 1; }
+    # A referencia SO pode ser uma medicao do build atual. Ja aconteceu de ela
+    # ser um arquivo antigo, medido antes da ultima mudanca de calibracao, e o
+    # --identico passou a reprovar mudancas inocentes.
     cp "$DEPOIS" "$REFERENCIA"
     verde "REFERENCIA atualizada. So faca isto quando a mudanca foi ACEITA."
     ;;

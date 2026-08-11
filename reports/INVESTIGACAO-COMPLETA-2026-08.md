@@ -2516,7 +2516,7 @@ lances.
 
 ---
 
-## D25 🟡 `_ballTravel` isenta explicitamente o desvio de sair do campo
+## D25 🟡 ✅ `_ballTravel` isenta explicitamente o desvio de sair do campo
 
 **Endereço:** `src/scripts/40-match-engine-and-manager-ai.js:2416`
 
@@ -2562,6 +2562,44 @@ saída natural. Verificar `naturalOutDeflections` antes e depois.
 
 **Nota de ordem:** este é o mais barato dos três consertos de D08 e deve ser o
 **primeiro** a ser tentado — uma linha, efeito medível, reversão trivial.
+
+### ✅ FEITO — e o resultado contraria este texto
+
+A exceção foi removida. **As 14 métricas ficaram idênticas ao dígito** em 40
+partidas pareadas. Zero movimento.
+
+A sonda `tools/fisica/ramo-d25.js` explica por quê [MEDIDO, 12 partidas]:
+
+```
+quadros por partida com bola de DESVIO viajando fora do campo   77,50
+quadros por partida com bola de CHUTE  viajando fora do campo   11,92
+
+_ballOut chamado com a bola VIAJANDO                             0,00
+_ballOut chamado com a bola ROLANDO                              7,92
+_ballOut chamado com a bola PARADA                              19,58
+```
+
+**A linha editada não é alcançada no caso do desvio.** Existem 77,5 quadros por
+partida em que uma bola de desvio está fora do campo, e `_ballOut` nunca é
+chamado a partir do voo — as saídas já vinham por `_looseRoll` e por bola
+parada, um quadro depois. Alguma das quatro sobrescritas de `_ballTravel`
+resolve o segmento antes de o corpo do motor chegar ali.
+
+> **Foi a sexta vez que editar o motor não produziu efeito.** Desta vez a
+> `pilha.js` foi consultada antes e disse "VIVA" para as quatro sobrescritas —
+> e ela estava certa: elas chamam a de baixo. O que ela **não** responde é se
+> um caminho específico dentro do método é alcançado. VIVA é uma propriedade do
+> método, não de cada linha dele.
+
+**Consequência para D08, e é a que importa:** a premissa de que o desvio
+escapava da máquina de reinício está **errada**. A bola desviada que cruza a
+linha já vira reinício, um quadro depois. O orçamento de laterais **não** se
+abre por aqui — resta a direção do alvo (D08 propriamente dito), agora sem
+esta muleta.
+
+**O que fica no código:** a exceção `deflect` saiu e o comentário passou a
+explicar por que `shot` tem razão de ser e `deflect` não tinha. É documentação,
+não conserto — e está declarado como tal.
 
 ---
 
@@ -2819,7 +2857,7 @@ depende de métodos que estão prestes a mudar de lugar é trabalho dobrado.
 
 ---
 
-## D32 🟡 A armadilha de escopo que derruba camadas novas
+## D32 🟡 ✅ A armadilha de escopo que derruba camadas novas
 
 **Endereço:** todo arquivo em `src/scripts/layers/`
 
@@ -2852,6 +2890,42 @@ for arquivo in glob('src/scripts/layers/*.js'):
 **Risco.** Nenhum. É lint.
 
 **Ganho.** Elimina uma classe inteira de erro que só aparece no navegador.
+
+### ✅ FEITO — e o lint pegou uma violação viva na primeira execução
+
+O lint entrou como passo 6 de `tools/verify.py`. Na primeira vez que rodou,
+reprovou o build:
+
+```
+ERRO: camada usando CAL, que nao existe nesse escopo — use ENGINE_CALIBRATION:
+  src/scripts/layers/66-cds-os39-block-on-flight.js:8  root.CAL.
+```
+
+O código era este, e o comentário ao lado dele **já dizia que `CAL` não é
+global**:
+
+```js
+/* CAL nao e global: fica no escopo do modulo do motor. 0.66 e o valor de
+   CAL.restarts.shotBlockCorner em :2780. */
+var CORNER_SHARE=(root.CAL&&root.CAL.restarts&&root.CAL.restarts.shotBlockCorner)||0.66;
+```
+
+**`window.CAL` é `undefined`** [MEDIDO, em Chromium real]. O acesso guardado
+nunca acertava: caía no `0.66` codificado, em silêncio. Ou seja,
+`restarts.shotBlockCorner` estava **desconectado da calibração** — mexer nele em
+`20-core.js` não teria efeito nenhum nesta camada.
+
+O defeito era invisível porque o padrão codificado por acaso é igual ao valor
+calibrado. Corrigido para ler `ENGINE_CALIBRATION`; o lint impede a
+reintrodução.
+
+> É a forma mais silenciosa do padrão 4 (substituição de contrato): não é uma
+> camada descartando o que a outra escreveu, é uma camada **nunca lendo** o que
+> ela pensa que lê. Um `||` de fallback transforma um erro de escopo em um
+> número congelado.
+
+**Vale varrer o resto do código atrás de outros fallbacks assim** — todo
+`(a && a.b) || literal` é um candidato a valor congelado.
 
 ---
 

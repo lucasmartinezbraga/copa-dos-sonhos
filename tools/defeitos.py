@@ -257,15 +257,25 @@ DEFEITOS = [
       criterio=["letterbox <=4% nas 4 resolucoes","olhar.js: as 4 linhas do campo visiveis"],
       depende=[], risco="a recomendacao MENOS fundamentada do documento"),
 
- dict(id="D25", sev="higiene", fase="F1", estado="aberto",
+ dict(id="D25", sev="higiene", fase="F1", estado="feito",
       titulo="_ballTravel isenta 'deflect' de sair do campo, sem justificativa",
-      locais=[dict(arquivo=MOTOR, linha=2416, ancora="if(b.kind!=='shot'&&b.kind!=='deflect'&&")],
+      locais=[dict(arquivo=MOTOR, linha=2416, ancora="D25 · `deflect` NÃO tinha.")],
       evidencia="o comentario justifica a excecao para 'shot' (o alvo do gol fica alem da linha) e nao justifica 'deflect'",
       dono="core alcancado; 07/08/16/17 sao VIVAS",
       intercepta=["07","08","16","17"],
       criterio=["throwIns >=17,4","corners +-0,50"],
       depende=[],
-      risco="medio. FACA ESTE PRIMEIRO de todos os de D08: uma linha, efeito medivel, reversao trivial."),
+      risco="medio. FACA ESTE PRIMEIRO de todos os de D08: uma linha, efeito medivel, reversao trivial.",
+      feito_em=("FEITO E SEM EFEITO MEDIDO. A excecao foi removida (o comentario dela agora "
+                "explica por que 'shot' tem razao de ser e 'deflect' nao tinha), mas as 14 "
+                "metricas ficaram IDENTICAS ao digito em 40 partidas pareadas. "
+                "A sonda tools/fisica/ramo-d25.js explica: ha 77,5 quadros por partida com "
+                "bola de desvio viajando FORA do campo, e _ballOut e chamado em voo ZERO "
+                "vezes — as saidas ja vinham por _looseRoll (7,9/partida) e por bola parada "
+                "(19,6/partida). A linha editada nao e alcancada no caso do desvio: alguma "
+                "das 4 sobrescritas de _ballTravel resolve o segmento antes. "
+                "CONSEQUENCIA PARA D08: a premissa de que o desvio escapava da maquina de "
+                "reinicio esta ERRADA. O orcamento de laterais nao se abre por aqui.")),
 
  dict(id="D26", sev="higiene", fase="F4", estado="aberto",
       titulo="decideT escrito em tres lugares e reescrito todo quadro pela camada 17",
@@ -318,13 +328,21 @@ DEFEITOS = [
       criterio=["contratos publicos + testes especificos antes de separar"],
       depende=["D17"], risco="separar um modulo que depende de metodos prestes a mudar de lugar e trabalho dobrado"),
 
- dict(id="D32", sev="higiene", fase="F1", estado="aberto",
+ dict(id="D32", sev="higiene", fase="F1", estado="feito",
       titulo="Armadilha de escopo: CAL nao existe dentro de uma camada",
-      locais=[dict(arquivo=CORE, linha=518, ancora="const ENGINE_CALIBRATION = Object.freeze({")],
+      locais=[dict(arquivo=CORE, linha=518, ancora="const ENGINE_CALIBRATION = Object.freeze({"),
+              dict(arquivo=L+"66-cds-os39-block-on-flight.js", linha=8, ancora="var _CALIB=root.ENGINE_CALIBRATION;")],
       evidencia="o erro pode passar pela bateria (vm.runInThisContext) e so aparecer no navegador",
       dono="todas as camadas", intercepta=[],
       criterio=["verify.py reprova 'CAL.' em src/scripts/layers/"],
-      depende=[], risco="nenhum: e lint"),
+      depende=[], risco="nenhum: e lint",
+      feito_em=("lint em tools/verify.py (passo 6). Na PRIMEIRA execucao ele pegou uma "
+                "violacao real e viva: a camada 66 lia restarts.shotBlockCorner por "
+                "`root.CAL && ...`, que NUNCA acerta porque window.CAL e undefined "
+                "(medido). Caia no 0,66 codificado em silencio — a calibracao estava "
+                "desconectada e mexer no 20-core.js nao teria efeito ali. O padrao por "
+                "acaso era igual ao valor calibrado, entao o defeito era invisivel. "
+                "Corrigido para ENGINE_CALIBRATION; o lint impede a reintroducao.")),
 
  dict(id="D33", sev="higiene", fase="F4", estado="aberto",
       titulo="Treze arquivos, 81 linhas, que so publicam numero de versao",

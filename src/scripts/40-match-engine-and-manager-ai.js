@@ -2411,9 +2411,19 @@ class MatchSim {
     }
     const reached=D(b.x,b.y,b.target.x,b.target.y)<=.42;
 
-    // Passes continuam usando a regra normal de saída. Chutes podem atravessar
-    // a linha de fundo porque o alvo de gol fica ligeiramente além da linha.
-    if(b.kind!=='shot'&&b.kind!=='deflect'&&(b.y<0||b.y>FW||b.x<0||b.x>FL)){
+    /* Passes continuam usando a regra normal de saída. Chutes podem atravessar
+       a linha de fundo porque o alvo de gol fica ligeiramente além da linha —
+       essa exceção tem razão de ser.
+
+       D25 · `deflect` NÃO tinha. Foi acrescentado à condição sem justificativa,
+       e o efeito era que uma bola desviada podia cruzar a linha e continuar
+       viajando até `onArrive`, sem virar reinício. As camadas 45 e 47 chegam a
+       reescrever alvos de desvio para FORA do campo de propósito
+       (`naturalTarget` manda para −0,85 / FW+0,85); com a isenção, esses alvos
+       não produziam lateral nenhum — a bola pousava fora e `_looseBall` +
+       `_contestLoose` devolviam a posse a quem estivesse por perto.
+       Um desvio que cruza a linha é um reinício, como qualquer outro. */
+    if(b.kind!=='shot'&&(b.y<0||b.y>FW||b.x<0||b.x>FL)){
       this._ballOut();return;
     }
 

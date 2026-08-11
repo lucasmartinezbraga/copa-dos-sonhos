@@ -4,9 +4,17 @@
 var M=root.MatchSim;if(!M||!M.prototype||M.prototype.__CDS_OS39__)return;
 var P=M.prototype;try{Object.defineProperty(P,'__CDS_OS39__',{value:true});}catch(_){P.__CDS_OS39__=true;}
 var ALC=2.8, BASE=0.90, QUEDA=0.28;
-/* CAL nao e global: fica no escopo do modulo do motor. 0.66 e o valor de
-   CAL.restarts.shotBlockCorner em :2780. */
-var CORNER_SHARE=(root.CAL&&root.CAL.restarts&&root.CAL.restarts.shotBlockCorner)||0.66;
+/* D32 · `CAL` nao existe no escopo de uma camada — e do modulo do motor, que e
+   uma IIFE. O acesso guardado que estava aqui (`root.CAL && ...`) NUNCA acertava:
+   `window.CAL` e `undefined`, medido. Ele caia no 0.66 codificado, em silencio,
+   e a calibracao ficava desconectada: mexer em restarts.shotBlockCorner no
+   20-core.js nao teria efeito nenhum nesta camada.
+   Hoje o padrao coincidia com o valor calibrado, entao o defeito era invisivel.
+   A leitura correta e por ENGINE_CALIBRATION. O lint em tools/verify.py agora
+   reprova o build se alguem reintroduzir a forma antiga. */
+var _CALIB=root.ENGINE_CALIBRATION;
+var CORNER_SHARE=(_CALIB&&_CALIB.restarts&&_CALIB.restarts.shotBlockCorner);
+if(typeof CORNER_SHARE!=='number')CORNER_SHARE=0.66;
 var oldST=P._startTravel;
 if(typeof oldST!=='function')return;
 

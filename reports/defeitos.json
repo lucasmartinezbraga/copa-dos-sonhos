@@ -7,8 +7,8 @@
  },
  "total": 34,
  "por_estado": {
-  "aberto": 24,
-  "feito": 4,
+  "aberto": 22,
+  "feito": 6,
   "parcial": 1,
   "decidir": 2,
   "guarda-corpo": 2,
@@ -45,7 +45,7 @@
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 2465,
      "ancora": "_deflectTo(x, y, spd) {",
-     "linha_atual": 2465
+     "linha_atual": 2475
     }
    ],
    "evidencia": "150,40 chamadas por partida caem no integrador de g=20 (57,05 _deflectTo + 93,35 _looseBall)",
@@ -83,7 +83,7 @@
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 2489,
      "ancora": "const zone = cands.filter",
-     "linha_atual": 2509
+     "linha_atual": 2519
     }
    ],
    "evidencia": "21,3 entregas por partida com o mais proximo a mais de 3 m; 22,2 bolas pousando fora e resgatadas a 6,8 m",
@@ -154,7 +154,7 @@
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 2483,
      "ancora": "// jogador mais próximo assume após breve disputa",
-     "linha_atual": 2497
+     "linha_atual": 2507
     },
     {
      "arquivo": "src/scripts/layers/08-cds-p04-physical-reception-584-r6.js",
@@ -295,7 +295,7 @@
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 2787,
      "ancora": "this._deflectTo(clamp(this.ball.x-tmA.attackDir*R(1,5),2,FL-2)",
-     "linha_atual": 2798
+     "linha_atual": 2808
     }
    ],
    "evidencia": "85,8% dos alvos a mais de 8 m da lateral; 16,8 alvos/partida mirados para fora ~ 15,9 laterais medidos",
@@ -367,13 +367,13 @@
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 2548,
      "ancora": "else m.settle=lerp(CAL.possession.firstTouchMax",
-     "linha_atual": 2559
+     "linha_atual": 2569
     },
     {
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 2582,
      "ancora": "this.decideT=0.28;",
-     "linha_atual": 2593
+     "linha_atual": 2603
     }
    ],
    "evidencia": "settle (0,10-0,34) + decideT (0,28) = 0,38-0,62 s; mediana medida 0,43 s antes da OS-206",
@@ -460,7 +460,7 @@
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 2483,
      "ancora": "// jogador mais próximo assume após breve disputa",
-     "linha_atual": 2497
+     "linha_atual": 2507
     }
    ],
    "evidencia": "22,2 bolas por partida pousando fora e entregues a alguem a 6,8 m",
@@ -657,7 +657,7 @@
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 3193,
      "ancora": "this._integrate(p, tx, ty, dt, freeze);",
-     "linha_atual": 3204
+     "linha_atual": 3214
     },
     {
      "arquivo": "src/scripts/layers/07-cds-physics-timeline-581.js",
@@ -768,7 +768,7 @@
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 3193,
      "ancora": "this._integrate(p, tx, ty, dt, freeze);",
-     "linha_atual": 3204
+     "linha_atual": 3214
     }
    ],
    "evidencia": "forma.js, 1.198 amostras: comprimento 37,8 com bola -> 37,4 sem; largura 49,4 -> 45,2",
@@ -918,14 +918,14 @@
    "id": "D25",
    "sev": "higiene",
    "fase": "F1",
-   "estado": "aberto",
+   "estado": "feito",
    "titulo": "_ballTravel isenta 'deflect' de sair do campo, sem justificativa",
    "locais": [
     {
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 2416,
-     "ancora": "if(b.kind!=='shot'&&b.kind!=='deflect'&&",
-     "linha_atual": 2416
+     "ancora": "D25 · `deflect` NÃO tinha.",
+     "linha_atual": 2418
     }
    ],
    "evidencia": "o comentario justifica a excecao para 'shot' (o alvo do gol fica alem da linha) e nao justifica 'deflect'",
@@ -942,11 +942,12 @@
    ],
    "depende": [],
    "risco": "medio. FACA ESTE PRIMEIRO de todos os de D08: uma linha, efeito medivel, reversao trivial.",
+   "feito_em": "FEITO E SEM EFEITO MEDIDO. A excecao foi removida (o comentario dela agora explica por que 'shot' tem razao de ser e 'deflect' nao tinha), mas as 14 metricas ficaram IDENTICAS ao digito em 40 partidas pareadas. A sonda tools/fisica/ramo-d25.js explica: ha 77,5 quadros por partida com bola de desvio viajando FORA do campo, e _ballOut e chamado em voo ZERO vezes — as saidas ja vinham por _looseRoll (7,9/partida) e por bola parada (19,6/partida). A linha editada nao e alcancada no caso do desvio: alguma das 4 sobrescritas de _ballTravel resolve o segmento antes. CONSEQUENCIA PARA D08: a premissa de que o desvio escapava da maquina de reinicio esta ERRADA. O orcamento de laterais nao se abre por aqui.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
     "linha_inicio": 2519,
-    "linha_fim": 2567,
-    "titulo": "D25 🟡 `_ballTravel` isenta explicitamente o desvio de sair do campo"
+    "linha_fim": 2605,
+    "titulo": "D25 🟡 ✅ `_ballTravel` isenta explicitamente o desvio de sair do campo"
    }
   },
   {
@@ -966,7 +967,7 @@
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 2582,
      "ancora": "this.decideT=0.28;",
-     "linha_atual": 2593
+     "linha_atual": 2603
     }
    ],
    "evidencia": "a curva de sobrevivencia da posse tem um vale exatamente em 0,28 s — o relogio de decisao vazando para a estatistica",
@@ -986,8 +987,8 @@
    "risco": "medio: mexe no ritmo de decisao",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2568,
-    "linha_fim": 2621,
+    "linha_inicio": 2606,
+    "linha_fim": 2659,
     "titulo": "D26 🟡 `decideT` é escrito em dois lugares e reescrito todo quadro"
    }
   },
@@ -1015,8 +1016,8 @@
    "risco": "dois erros se compensavam: poucas faltas + cartoes demais por falta",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2622,
-    "linha_fim": 2671,
+    "linha_inicio": 2660,
+    "linha_fim": 2709,
     "titulo": "D27 🟠 As faltas não saem do parâmetro — saem do número de duelos"
    }
   },
@@ -1044,8 +1045,8 @@
    "risco": "nenhum: e documentacao",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2672,
-    "linha_fim": 2714,
+    "linha_inicio": 2710,
+    "linha_fim": 2752,
     "titulo": "D28 🟡 `deadBallRecovery` — a calibração mais frágil do jogo"
    }
   },
@@ -1075,8 +1076,8 @@
    "risco": "fazer DEPOIS de D08 ou o alvo tera de mudar duas vezes",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2715,
-    "linha_fim": 2753,
+    "linha_inicio": 2753,
+    "linha_fim": 2791,
     "titulo": "D29 🟡 Escanteios acima da faixa de design, dentro da faixa real"
    }
   },
@@ -1107,8 +1108,8 @@
    "risco": "baixo se medido antes",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2754,
-    "linha_fim": 2790,
+    "linha_inicio": 2792,
+    "linha_fim": 2828,
     "titulo": "D30 🟡 O minigame de bola parada está desligado desde a R18"
    }
   },
@@ -1123,7 +1124,7 @@
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": null,
      "ancora": "function chooseOut(tm,mode)",
-     "linha_atual": 4400
+     "linha_atual": 4410
     }
    ],
    "evidencia": "usa estado privado da IIFE; e a maior fatia nao lida deste documento",
@@ -1138,8 +1139,8 @@
    "risco": "separar um modulo que depende de metodos prestes a mudar de lugar e trabalho dobrado",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2791,
-    "linha_fim": 2821,
+    "linha_inicio": 2829,
+    "linha_fim": 2859,
     "titulo": "D31 🟡 A IA de treinador mora dentro do módulo do motor"
    }
   },
@@ -1147,7 +1148,7 @@
    "id": "D32",
    "sev": "higiene",
    "fase": "F1",
-   "estado": "aberto",
+   "estado": "feito",
    "titulo": "Armadilha de escopo: CAL nao existe dentro de uma camada",
    "locais": [
     {
@@ -1155,6 +1156,12 @@
      "linha": 518,
      "ancora": "const ENGINE_CALIBRATION = Object.freeze({",
      "linha_atual": 518
+    },
+    {
+     "arquivo": "src/scripts/layers/66-cds-os39-block-on-flight.js",
+     "linha": 8,
+     "ancora": "var _CALIB=root.ENGINE_CALIBRATION;",
+     "linha_atual": 15
     }
    ],
    "evidencia": "o erro pode passar pela bateria (vm.runInThisContext) e so aparecer no navegador",
@@ -1165,11 +1172,12 @@
    ],
    "depende": [],
    "risco": "nenhum: e lint",
+   "feito_em": "lint em tools/verify.py (passo 6). Na PRIMEIRA execucao ele pegou uma violacao real e viva: a camada 66 lia restarts.shotBlockCorner por `root.CAL && ...`, que NUNCA acerta porque window.CAL e undefined (medido). Caia no 0,66 codificado em silencio — a calibracao estava desconectada e mexer no 20-core.js nao teria efeito ali. O padrao por acaso era igual ao valor calibrado, entao o defeito era invisivel. Corrigido para ENGINE_CALIBRATION; o lint impede a reintroducao.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2822,
-    "linha_fim": 2842,
-    "titulo": "D32 🟡 A armadilha de escopo que derruba camadas novas"
+    "linha_inicio": 2860,
+    "linha_fim": 2880,
+    "titulo": "D32 🟡 ✅ A armadilha de escopo que derruba camadas novas"
    }
   },
   {
@@ -1196,8 +1204,8 @@
    "risco": "baixo mas nao zero: algo pode ler por nome",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2858,
-    "linha_fim": 2892,
+    "linha_inicio": 2932,
+    "linha_fim": 2966,
     "titulo": "D33 🟡 Doze arquivos que só publicam número de versão"
    }
   },
@@ -1219,8 +1227,8 @@
    "risco": "ALTO se alguem apagar as 81 direto. O primeiro plano escreveu este numero como se fosse fato — era teto.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2893,
-    "linha_fim": 2933,
+    "linha_inicio": 2967,
+    "linha_fim": 3007,
     "titulo": "D34 🔴 Até 81 sobrescritas nunca alcançadas"
    }
   }

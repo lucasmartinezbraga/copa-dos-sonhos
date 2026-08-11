@@ -36,6 +36,42 @@ def falhar(msg: str) -> None:
     raise SystemExit(f"ERRO: {msg}")
 
 
+def _sem_comentarios(codigo: str) -> str:
+    """Remove /* */ e // para o lint nao reclamar de texto explicativo."""
+    import re
+    codigo = re.sub(r"/\*.*?\*/", "", codigo, flags=re.S)
+    return re.sub(r"//[^\n]*", "", codigo)
+
+
+def lint_escopo_das_camadas() -> None:
+    """D32 · `CAL` nao existe no escopo de uma camada.
+
+    O core e uma IIFE: `facet`, `chance`, `R`, `clamp`, `FL`, `FW`, `getAttr`,
+    `lerp`, `D` e `srand` sao globais e podem ser usados direto numa camada.
+    `CAL` NAO E — a calibracao se le por `ENGINE_CALIBRATION`.
+
+    Isto e pior do que parece: `window.CAL` e `undefined` (medido), entao um
+    acesso guardado como `root.CAL && root.CAL.x || padrao` nao quebra — ele
+    cai no padrao em silencio, e o valor calibrado deixa de ter efeito. Foi
+    exatamente o que aconteceu na camada 66, onde `restarts.shotBlockCorner`
+    estava desconectado da calibracao e ninguem percebeu porque o padrao
+    codificado por acaso era igual.
+    """
+    import re
+    ruins: list[str] = []
+    padrao = re.compile(r"(?<![\w.$])(?:root\.|window\.|globalThis\.)?CAL\s*[.\[]")
+    for arq in sorted((ROOT / "src/scripts/layers").glob("*.js")):
+        codigo = _sem_comentarios(arq.read_text(encoding="utf-8"))
+        for m in padrao.finditer(codigo):
+            linha = codigo[: m.start()].count("\n") + 1
+            ruins.append(f"{arq.relative_to(ROOT)}:{linha}  {m.group(0).strip()}")
+    if ruins:
+        falhar("camada usando CAL, que nao existe nesse escopo — use "
+               "ENGINE_CALIBRATION:\n  " + "\n  ".join(ruins))
+    print(f"OK: nenhuma das {len(list((ROOT / 'src/scripts/layers').glob('*.js')))} "
+          f"camadas referencia CAL fora do escopo")
+
+
 def main() -> None:
     manifest = json.loads((ROOT / "manifests/build-manifest.json").read_text(encoding="utf-8"))
 
@@ -85,6 +121,9 @@ def main() -> None:
         sys.stderr.write(cp.stderr)
         falhar("teste de balistica reprovou")
     print("OK: balistica validada")
+
+    # 6. escopo das camadas (D32)
+    lint_escopo_das_camadas()
 
 
 if __name__ == "__main__":
