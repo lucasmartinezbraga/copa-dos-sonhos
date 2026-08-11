@@ -130,6 +130,36 @@ Não é bug de relógio (o tempo simulado por faixa está medido e é uniforme):
 a fadiga, uniforme demais, com r = 0,814 entre stamina e taxa de chutes.
 Laudo em `reports/OS-204-teste-do-futebol-real.md`.
 
+## ⚑ COMECE POR AQUI
+
+Antes de qualquer trabalho neste código, leia **`reports/LEIA-PRIMEIRO.md`**
+(duas páginas). Ele contém as quatro regras que não se negociam e o ciclo
+completo de uma mudança.
+
+| arquivo | o que é |
+|---|---|
+| `reports/LEIA-PRIMEIRO.md` | **briefing de duas páginas** — leia inteiro |
+| `reports/defeitos.json` | os 34 defeitos em formato legível por máquina, com âncoras que não envelhecem |
+| `reports/INVESTIGACAO-COMPLETA-2026-08.md` | o documento completo (~107 páginas). **Não leia inteiro** — vá à seção do defeito que você vai consertar |
+| `tools/aceitar.sh` | **o único comando que decide se uma mudança entra** |
+
+```bash
+node tools/fisica/pilha.js dist/index.html 14   # quem e o dono do metodo?
+bash tools/aceitar.sh --antes                   # mede antes
+# ... edite src/, nunca dist/ ...
+bash tools/aceitar.sh --depois                  # constroi, testa, mede, compara
+```
+
+Para mudanças que **não devem** mudar comportamento (apagar código morto,
+promover método, extrair função), use `--depois --identico`: ele exige as 14
+métricas idênticas ao dígito.
+
+`python3 tools/defeitos.py --check` valida que os endereços do catálogo ainda
+apontam para o código certo. Ele roda dentro do `aceitar.sh` e **falha** quando
+o documento envelhece — é assim que o catálogo não vira ficção.
+
+---
+
 ### ANTES de editar qualquer método do core, rode isto
 
 ```bash

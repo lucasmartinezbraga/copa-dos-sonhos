@@ -1941,26 +1941,44 @@ mudar de comprimento, o parâmetro está composto errado.
 
 Os casos confirmados [MEDIDO com `pilha.js`]:
 
-| método | dono real | o core... |
+| método | dono real | a versão morta está... |
 |---|---|---|
-| `_integrate` | camada 16 (`r12`) | nunca roda |
-| `_defendTarget` | camada 17 (`r13`) responde por todos os ramos | o ramo `if (p === presser)` nunca roda |
-| `_planPhysicalSegment` | camada 88 (`os200`) | nunca roda |
-| `_trajectoryPoint` | camada 88 | nunca roda |
-| `_physicalTargetZ` | camada 88 | nunca roda |
-| `_looseBall` (caso vivo) | camada 08 (`p04`) | quase nunca roda |
+| `_integrate` | camada 16 (`r12`), TERMINAL | **no core** |
+| `_defendTarget` | camada 17 (`r13`) responde por todos os ramos | **no core** — o ramo `if (p === presser)` nunca roda |
+| `_looseBall` (caso vivo) | camada 08 (`p04`) | **no core** |
+| `_planPhysicalSegment` | camada 88 (`os200`) | **na camada 07** — ver correção abaixo |
+| `_trajectoryPoint` | camada 88 | **na camada 07** |
+| `_physicalTargetZ` | camada 88 | **na camada 07** |
 
-**A mudança proposta.** Mover a implementação da camada para o core e apagar a
-versão morta. O jogo fica idêntico e o arquivo passa a dizer a verdade.
+> ### ⚠ Correção — v2 deste documento
+>
+> A primeira versão desta tabela afirmava que os três métodos de física tinham
+> uma **versão morta no core**. **Está errado: eles nunca existiram no core.**
+> `grep -c "_planPhysicalSegment\|_trajectoryPoint\|_physicalTargetZ"` em
+> `40-match-engine-and-manager-ai.js` retorna **0**. Eles nascem na camada 07
+> (`physics-timeline`) e são substituídos pelas camadas 20, 77 e 88.
+>
+> O código morto existe, mas mora **na camada 07**, não no motor. A promoção
+> continua valendo — muda o arquivo de origem, não a ação.
+>
+> **Como o erro apareceu:** a validação de âncoras de `tools/defeitos.py` exige
+> que cada endereço do catálogo aponte para um trecho literal que existe
+> exatamente uma vez no arquivo declarado. A âncora `_physicalTargetZ` no motor
+> não casou com nada, e o script falhou. É exatamente para isso que ele existe.
+
+**A mudança proposta.** Mover a implementação da camada dona para o arquivo que
+deveria abrigá-la e apagar a versão morta. O jogo fica idêntico e o código passa
+a dizer a verdade sobre si mesmo.
 
 **Ordem sugerida**, do mais seguro ao menos:
 
-1. `_physicalTargetZ`, `_trajectoryPoint`, `_planPhysicalSegment` (camada 88) —
-   a mais segura, porque a camada 88 é a mais nova e a melhor documentada.
-2. `_defendTarget` (camada 17) — cuidado: **nove** camadas sobrescrevem este
-   método; a 17 é terminal, mas 89 (`os202`) roda por fora dela.
-3. `_integrate` (camada 16) — só depois de D16.
-4. `_looseBall` (camada 08) — só depois de D12.
+1. `_physicalTargetZ`, `_trajectoryPoint`, `_planPhysicalSegment` — consolidar
+   na camada 88 e apagar as versões da 07. A mais segura: a 88 é a mais nova e
+   a melhor documentada, e nada disso toca o motor.
+2. `_defendTarget` (camada 17 → core) — cuidado: **nove** camadas sobrescrevem
+   este método; a 17 é terminal, mas 89 (`os202`) roda por fora dela.
+3. `_integrate` (camada 16 → core) — só depois de D16.
+4. `_looseBall` (camada 08 → core) — só depois de D12.
 
 **Risco.** Baixo em comportamento, alto em atrito de merge: são movimentos
 grandes de código. Fazer **um por commit**, com as 14 métricas idênticas ao
@@ -3372,9 +3390,9 @@ classe de erro que custou cinco rodadas.
 D17, um método por commit, nesta ordem:
 
 ```
-1. _physicalTargetZ        (camada 88 -> core)
-2. _trajectoryPoint        (camada 88 -> core)
-3. _planPhysicalSegment    (camada 88 -> core)
+1. _physicalTargetZ        (apagar a versao morta da camada 07)
+2. _trajectoryPoint        (apagar a versao morta da camada 07)
+3. _planPhysicalSegment    (apagar a versao morta da camada 07)
 4. _defendTarget           (camada 17 -> core)   CUIDADO: 89 roda por fora
 5. _integrate              (camada 16 -> core)   so depois de D16
 6. _looseBall              (camada 08 -> core)   so depois de D12
