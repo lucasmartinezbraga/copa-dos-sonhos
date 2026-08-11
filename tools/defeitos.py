@@ -62,7 +62,7 @@ DEFEITOS = [
       criterio=["as 14 metricas IDENTICAS ao digito (nao '+-2 SE')"],
       depende=[], risco="o mais baixo do catalogo"),
 
- dict(id="D04", sev="higiene", fase="F1", estado="aberto",
+ dict(id="D04", sev="higiene", fase="F1", estado="feito",
       titulo="_looseBall do core esta morto e nao parece",
       locais=[dict(arquivo=MOTOR, linha=2483, ancora="// jogador mais próximo assume após breve disputa"),
               dict(arquivo=L+"08-cds-p04-physical-reception-584-r6.js", linha=767, ancora="P._looseBall = function p04LooseBall(x, y) {")],
@@ -70,7 +70,10 @@ DEFEITOS = [
       dono="camada 08 (p04) intercepta e NAO chama o core quando a bola esta viva",
       intercepta=["08","17","45","47","49"],
       criterio=["metricas identicas (a mudanca e comentario)"],
-      depende=[], risco="nenhum"),
+      depende=[], risco="nenhum",
+      feito_em=("aviso escrito no core acima de _looseBall. Verificado com "
+                "aceitar.sh --depois --identico: as 14 metricas IDENTICAS ao digito. "
+                "E o exemplo trabalhado do ciclo completo.")),
 
  dict(id="D05", sev="futebol", fase="—", estado="feito",
       titulo="Passe rasteiro decolava (14 cm de salto, 2 quiques)",

@@ -2480,6 +2480,17 @@ class MatchSim {
     b.receiver = null;
   }
 
+  /* ⚠ D04 · ESTE CORPO QUASE NUNCA RODA.
+     A camada 08 (`p04-physical-reception`) intercepta `_looseBall` e, com a
+     bola viva e alvo a mais de 0,14 m, converte a chamada num desvio físico e
+     RETORNA SEM CHAMAR AQUI. O que você quer editar provavelmente está lá.
+
+       node tools/fisica/pilha.js dist/index.html 14   # confirme o dono
+       python3 tools/defeito.py D04                    # ficha + código atual
+
+     Histórico: a tentativa A4 editou este corpo e não moveu 0,15 SE em nenhuma
+     das 14 métricas. Foi a quinta vez que editar o motor não fez nada. Ver
+     reports/A4-tentativa-revertida.md e a seção 2.5 da investigação. */
   _looseBall(x, y) {
     const b = this.ball; b.owner = null; b.traveling = false; b.meta = null;
     b.x = x; b.y = y; b.z = 0; b.vx = 0; b.vy = 0;

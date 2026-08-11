@@ -142,6 +142,10 @@ completo de uma mudança.
 | `reports/defeitos.json` | os 34 defeitos em formato legível por máquina, com âncoras que não envelhecem |
 | `reports/INVESTIGACAO-COMPLETA-2026-08.md` | o documento completo (~107 páginas). **Não leia inteiro** — vá à seção do defeito que você vai consertar |
 | `tools/aceitar.sh` | **o único comando que decide se uma mudança entra** |
+| `AGENTS.md` (raiz) | o mesmo contrato, para agentes fora do Claude Code |
+| `reports/PROMPT-PARA-IA.md` | três prompts prontos para colar numa IA |
+| `tools/doutor.sh` | o ambiente está pronto? rode antes de tudo |
+| `tools/defeito.py` | carrega UM defeito: ficha + código atual + seção |
 
 ```bash
 node tools/fisica/pilha.js dist/index.html 14   # quem e o dono do metodo?

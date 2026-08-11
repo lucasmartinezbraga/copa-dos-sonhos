@@ -1132,7 +1132,7 @@ higiene é o que separa este projeto de mais vinte releases de acreção.
 
 ---
 
-## D04 🟡 O `_looseBall` do core está morto e não parece
+## D04 🟡 ✅ O `_looseBall` do core está morto e não parece
 
 **Endereço:** `src/scripts/40-match-engine-and-manager-ai.js:2483`
 
@@ -1182,6 +1182,39 @@ está em D17, e depende de F5.
 
 **Critério de aceite:** `sha256` do bundle muda, as 14 métricas ficam
 idênticas.
+
+### ✅ FEITO — e é o exemplo trabalhado do ciclo completo
+
+Este defeito foi executado de ponta a ponta como demonstração do protocolo:
+
+```
+bash tools/aceitar.sh --antes      -> build, verify, ancoras, balistica,
+                                      browser_smoke (8/8), bateria
+   ... aviso escrito no core, acima de _looseBall ...
+bash tools/aceitar.sh --depois --identico
+
+metrica          antes    depois     delta     veredito
+shots           23.700    23.700    +0.000     IDENTICO
+onTarget         7.650     7.650    +0.000     IDENTICO
+goals            2.850     2.850    +0.000     IDENTICO
+xg               3.006     3.006    +0.000     IDENTICO
+corners          9.750     9.750    +0.000     IDENTICO
+fouls           21.375    21.375    +0.000     IDENTICO
+yellow           4.175     4.175    +0.000     IDENTICO
+red              0.325     0.325    +0.000     IDENTICO
+passes         381.800   381.800    +0.000     IDENTICO
+passOk         313.475   313.475    +0.000     IDENTICO
+tackles         50.850    50.850    +0.000     IDENTICO
+offsides         4.800     4.800    +0.000     IDENTICO
+throwIns        15.475    15.475    +0.000     IDENTICO
+goalKicks       12.850    12.850    +0.000     IDENTICO
+
+APROVADO: as 14 metricas identicas ao digito, como esperado.
+```
+
+**Use isto como template.** É o formato de prova que qualquer mudança de
+higiene (D03, D17, D18, D33) tem de apresentar: não "passou nos testes", e sim
+as quatorze linhas com delta zero.
 
 ---
 
