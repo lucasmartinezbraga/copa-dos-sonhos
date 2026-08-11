@@ -3,10 +3,16 @@
 **Duas páginas. Leia inteiras antes de abrir qualquer arquivo.**
 
 Se você é uma IA e alguém te mandou `INVESTIGACAO-COMPLETA-2026-08.md`:
-**não leia as 107 páginas.** São ~31 mil palavras e você vai gastar contexto
-que precisa para trabalhar. Leia este arquivo, carregue
-`reports/defeitos.json`, e vá ao documento **só** na seção do defeito que você
-foi encarregado de consertar.
+**não leia as 107 páginas.** São ~31 mil palavras e você vai gastar contexto que
+precisa para trabalhar. O caminho é:
+
+```bash
+python3 tools/defeito.py --proximo     # o que fazer agora
+python3 tools/defeito.py D25           # a ficha, o CODIGO ATUAL e so a secao relevante
+```
+
+Leia este arquivo inteiro (2 páginas), depois carregue **só** o defeito em que
+você vai trabalhar. O documento completo é referência, não leitura de entrada.
 
 ---
 
@@ -89,7 +95,27 @@ era o **objetivo** da sua mudança, registre isso no commit e siga. O ponto não
 
 ---
 
-## 3. Como usar `reports/defeitos.json`
+## 3. Como carregar um defeito (o comando que substitui a leitura)
+
+```bash
+python3 tools/defeito.py --proximo     # o que fazer agora, sem dependencia pendente
+python3 tools/defeito.py --lista       # os 34, uma linha cada
+python3 tools/defeito.py --fase F1     # so os de uma fase
+python3 tools/defeito.py D08           # UM defeito, completo
+python3 tools/defeito.py D08 --so-codigo
+```
+
+`tools/defeito.py D08` devolve três coisas de uma vez:
+
+1. **a ficha** — dono real, camadas que interceptam, evidência medida, critério
+   de aceite, dependências, risco;
+2. **o código como ele está agora**, localizado por âncora e não por número de
+   linha — com aviso explícito se o código andou desde que o texto foi escrito;
+3. **a seção do documento**, extraída por intervalo de linhas.
+
+É por isso que você não precisa abrir as 4.900 linhas.
+
+## 4. Como usar `reports/defeitos.json`
 
 ```bash
 python3 tools/defeitos.py          # valida as ancoras e regrava o indice
@@ -124,7 +150,7 @@ silencioso.
 
 ---
 
-## 4. Por onde começar
+## 5. Por onde começar
 
 A ordem está em `defeitos.json` no campo `fase`, e o raciocínio completo no
 Volume V do documento. O resumo:
@@ -145,7 +171,7 @@ de D08 precisa ser revista antes de investir mais.
 
 ---
 
-## 5. Três coisas que este projeto aprendeu do jeito caro
+## 6. Três coisas que este projeto aprendeu do jeito caro
 
 **Número decorativo vira número físico quando o integrador liga.** `b.z = 0.12`
 existiu por versões só para desenhar a bola acima do gramado. No dia em que a
@@ -165,7 +191,7 @@ perigo é a taxa de 100% de quem não mede.
 
 ---
 
-## 6. O que este projeto ainda não sabe sobre si mesmo
+## 7. O que este projeto ainda não sabe sobre si mesmo
 
 Leia antes de afirmar qualquer coisa sobre estas áreas:
 
@@ -182,7 +208,7 @@ O documento marca toda afirmação com `[LIDO]`, `[MEDIDO]` ou `[HIPÓTESE]`.
 
 ---
 
-## 7. O ciclo completo, para copiar e colar
+## 8. O ciclo completo, para copiar e colar
 
 ```bash
 # 0. quem e o dono do metodo que voce vai editar?

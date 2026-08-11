@@ -15,6 +15,12 @@
   "adiado": 1
  },
  "leia_primeiro": "reports/LEIA-PRIMEIRO.md",
+ "como_ler_um_defeito": "python3 tools/defeito.py D08   # entrada, secao do documento e o CODIGO ATUAL",
+ "comece_por": {
+  "id": "D25",
+  "porque": "Uma linha, efeito medivel, reversao trivial. Se throwIns NAO subir com ela, a hipotese central de D08 precisa ser revista antes de investir em D01 e na camada nova. E o teste mais barato da tese mais cara."
+ },
+ "aviso": "NAO leia o documento inteiro: sao ~4.900 linhas. Use tools/defeito.py para carregar so o defeito em que voce vai trabalhar.",
  "protocolo_obrigatorio": [
   "node tools/fisica/pilha.js dist/index.html 14   # QUEM E O DONO do metodo",
   "bash tools/aceitar.sh --antes",
@@ -58,7 +64,13 @@
     "throwIns nao pode cair"
    ],
    "depende": [],
-   "risco": "medio: b._timeout deixa de valer; vigie quiques e porCimaDoTravessao"
+   "risco": "medio: b._timeout deixa de valer; vigie quiques e porCimaDoTravessao",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 847,
+    "linha_fim": 957,
+    "titulo": "D01 🔴 Duas físicas de bola convivem no mesmo jogo"
+   }
   },
   {
    "id": "D02",
@@ -88,7 +100,13 @@
    "depende": [
     "D01"
    ],
-   "risco": "ALTO: a bola pode morrer no meio do campo. Rodar pinga.js e narrar 5 partidas."
+   "risco": "ALTO: a bola pode morrer no meio do campo. Rodar pinga.js e narrar 5 partidas.",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 958,
+    "linha_fim": 1054,
+    "titulo": "D02 🟠 O `_contestLoose` entrega a bola sem limite de distância"
+   }
   },
   {
    "id": "D03",
@@ -117,7 +135,13 @@
     "as 14 metricas IDENTICAS ao digito (nao '+-2 SE')"
    ],
    "depende": [],
-   "risco": "o mais baixo do catalogo"
+   "risco": "o mais baixo do catalogo",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 1055,
+    "linha_fim": 1134,
+    "titulo": "D03 🟡 Cerca de 190 linhas mortas dentro do arquivo mais importante"
+   }
   },
   {
    "id": "D04",
@@ -152,7 +176,13 @@
     "metricas identicas (a mudanca e comentario)"
    ],
    "depende": [],
-   "risco": "nenhum"
+   "risco": "nenhum",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 1135,
+    "linha_fim": 1187,
+    "titulo": "D04 🟡 O `_looseBall` do core está morto e não parece"
+   }
   },
   {
    "id": "D05",
@@ -177,7 +207,13 @@
     "feito"
    ],
    "depende": [],
-   "risco": "nao consertar no core: os 0,12 sao a origem do CHUTE"
+   "risco": "nao consertar no core: os 0,12 sao a origem do CHUTE",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 1188,
+    "linha_fim": 1230,
+    "titulo": "D05 🟠 ✅ O passe rasteiro decolava — e a lição vale mais que o conserto"
+   }
   },
   {
    "id": "D06",
@@ -202,7 +238,13 @@
     "feito"
    ],
    "depende": [],
-   "risco": "XG_ESCALA teve de ser re-derivada (0,651)"
+   "risco": "XG_ESCALA teve de ser re-derivada (0,651)",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 1231,
+    "linha_fim": 1305,
+    "titulo": "D06 🟠 ✅ O goleiro mergulhava no primeiro instante alcançável"
+   }
   },
   {
    "id": "D07",
@@ -227,7 +269,13 @@
     "feito"
    ],
    "depende": [],
-   "risco": "removeu um freio: +0,42 gol, que expos D06"
+   "risco": "removeu um freio: +0,42 gol, que expos D06",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 1306,
+    "linha_fim": 1359,
+    "titulo": "D07 🟠 ✅ O passador não enxergava a linha de impedimento"
+   }
   },
   {
    "id": "D08",
@@ -268,7 +316,13 @@
     "D02",
     "D12"
    ],
-   "risco": "ALTO. Tetos: throwIns<=48. Camada nova precisa ficar ABAIXO de 45/47/49 no manifesto."
+   "risco": "ALTO. Tetos: throwIns<=48. Camada nova precisa ficar ABAIXO de 45/47/49 no manifesto.",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 1360,
+    "linha_fim": 1524,
+    "titulo": "D08 🟠 O defeito mais distante do futebol: os laterais pela metade"
+   }
   },
   {
    "id": "D09",
@@ -293,7 +347,13 @@
    "depende": [
     "D08"
    ],
-   "risco": "nenhum: nao ha mudanca, e verificacao"
+   "risco": "nenhum: nao ha mudanca, e verificacao",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 1525,
+    "linha_fim": 1548,
+    "titulo": "D09 🟡 O portão da camada 45 é quase decorativo"
+   }
   },
   {
    "id": "D10",
@@ -328,7 +388,13 @@
    "depende": [
     "D26"
    ],
-   "risco": "medio"
+   "risco": "medio",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 1549,
+    "linha_fim": 1592,
+    "titulo": "D10 🟠 ✅ A posse durava 0,43 s — em duas linhas que não se conheciam"
+   }
   },
   {
    "id": "D11",
@@ -368,7 +434,13 @@
     "zero variaveis de contrato com nome de release"
    ],
    "depende": [],
-   "risco": "medio: remover chance() desalinha o RNG; compare distribuicoes, nao partidas"
+   "risco": "medio: remover chance() desalinha o RNG; compare distribuicoes, nao partidas",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 1593,
+    "linha_fim": 1695,
+    "titulo": "D11 🔴 Sorteio censurado nº 1 — o chute que é sorteado para ser vetado"
+   }
   },
   {
    "id": "D12",
@@ -405,7 +477,13 @@
    "depende": [
     "D02"
    ],
-   "risco": "medio: mais reinicios = mais bola parada; vigie passes"
+   "risco": "medio: mais reinicios = mais bola parada; vigie passes",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 1696,
+    "linha_fim": 1777,
+    "titulo": "D12 🔴 Sorteio censurado nº 2 — a bola mandada para a lateral, e recolhida"
+   }
   },
   {
    "id": "D13",
@@ -435,7 +513,13 @@
    "depende": [
     "D01"
    ],
-   "risco": "ALTO para onTargetRate, que ja esta em 0,326. Varrer sigmaGraus com calibrar.py."
+   "risco": "ALTO para onTargetRate, que ja esta em 0,326. Varrer sigmaGraus com calibrar.py.",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 1778,
+    "linha_fim": 1841,
+    "titulo": "D13 🟠 Sorteio censurado nº 3 — o erro de chute, sorteado grande e comprimido"
+   }
   },
   {
    "id": "D14",
@@ -474,7 +558,13 @@
     "<=2 contencoes ao final"
    ],
    "depende": [],
-   "risco": "medio, controlado pela ordem: assercao (segura) antes de remocao"
+   "risco": "medio, controlado pela ordem: assercao (segura) antes de remocao",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 1842,
+    "linha_fim": 1879,
+    "titulo": "D14 🔴 Sete contenções em `step` que consertam bugs nunca procurados"
+   }
   },
   {
    "id": "D15",
@@ -501,7 +591,13 @@
    "depende": [
     "D14"
    ],
-   "risco": "baixo enquanto for so diagnostico"
+   "risco": "baixo enquanto for so diagnostico",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 1904,
+    "linha_fim": 1932,
+    "titulo": "D15 🟡 As 255 linhas de antiteleporte"
+   }
   },
   {
    "id": "D16",
@@ -541,7 +637,13 @@
    "depende": [
     "D14"
    ],
-   "risco": "medio-alto: mexe em movimentacao. Rodar forma.js antes e depois."
+   "risco": "medio-alto: mexe em movimentacao. Rodar forma.js antes e depois.",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 1933,
+    "linha_fim": 2010,
+    "titulo": "D16 🔴 Quatro camadas mentem para o integrador porque falta um parâmetro"
+   }
   },
   {
    "id": "D17",
@@ -579,7 +681,13 @@
    "depende": [
     "D16"
    ],
-   "risco": "baixo em comportamento, alto em atrito. UM metodo por commit."
+   "risco": "baixo em comportamento, alto em atrito. UM metodo por commit.",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2011,
+    "linha_fim": 2073,
+    "titulo": "D17 🟡 Promover quem já é dono do método"
+   }
   },
   {
    "id": "D18",
@@ -605,7 +713,13 @@
     "_cross <=60 linhas ao final"
    ],
    "depende": [],
-   "risco": "baixo por commit, alto se feito de uma vez. Nunca mais de um bloco por commit."
+   "risco": "baixo por commit, alto se feito de uma vez. Nunca mais de um bloco por commit.",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2074,
+    "linha_fim": 2120,
+    "titulo": "D18 🟡 `_cross` tem 255 linhas e nove correções embutidas"
+   }
   },
   {
    "id": "D19",
@@ -634,7 +748,13 @@
    "depende": [
     "D17"
    ],
-   "risco": "ALTO: toca todo lance. NAO medir junto com D20 (200 partidas de intervalo)."
+   "risco": "ALTO: toca todo lance. NAO medir junto com D20 (200 partidas de intervalo).",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2121,
+    "linha_fim": 2207,
+    "titulo": "D19 🟠 A partida murcha em vez de crescer"
+   }
   },
   {
    "id": "D20",
@@ -670,7 +790,13 @@
    "depende": [
     "D19"
    ],
-   "risco": "ALTO. _comprimirBloco desloca ALVO, nunca corpo — senao cai no bug que a camada 84 contem."
+   "risco": "ALTO. _comprimirBloco desloca ALVO, nunca corpo — senao cai no bug que a camada 84 contem.",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2208,
+    "linha_fim": 2297,
+    "titulo": "D20 🟠 O bloco não compacta quando o time perde a bola"
+   }
   },
   {
    "id": "D21",
@@ -693,7 +819,13 @@
     "decisao registrada em calibration/targets.json"
    ],
    "depende": [],
-   "risco": "AVISO: a fadiga ja e invariante ao clockRate. Se mexer no relogio, NAO mexa no dreno junto."
+   "risco": "AVISO: a fadiga ja e invariante ao clockRate. Se mexer no relogio, NAO mexa no dreno junto.",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2298,
+    "linha_fim": 2359,
+    "titulo": "D21 🔴 `clockRate`: 23 minutos de física para 90 minutos de partida"
+   }
   },
   {
    "id": "D22",
@@ -721,7 +853,13 @@
    "depende": [
     "D13"
    ],
-   "risco": "baixo: pode se resolver sozinho com D13"
+   "risco": "baixo: pode se resolver sozinho com D13",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2360,
+    "linha_fim": 2396,
+    "titulo": "D22 🟠 Acerto ao alvo abaixo do mínimo de design"
+   }
   },
   {
    "id": "D23",
@@ -737,7 +875,13 @@
     "goleadas <=6% apos qualquer mudanca de D19 ou D20"
    ],
    "depende": [],
-   "risco": "deadBallRecovery +0,02 ja derrubou empates de 29,2% para 17,5%"
+   "risco": "deadBallRecovery +0,02 ja derrubou empates de 29,2% para 17,5%",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2397,
+    "linha_fim": 2445,
+    "titulo": "D23 🟡 A bola de neve: o placar abre demais?"
+   }
   },
   {
    "id": "D24",
@@ -761,7 +905,13 @@
     "olhar.js: as 4 linhas do campo visiveis"
    ],
    "depende": [],
-   "risco": "a recomendacao MENOS fundamentada do documento"
+   "risco": "a recomendacao MENOS fundamentada do documento",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2446,
+    "linha_fim": 2485,
+    "titulo": "D24 🔵 Tarja preta: 24% a 43% da caixa do campo"
+   }
   },
   {
    "id": "D25",
@@ -790,7 +940,13 @@
     "corners +-0,50"
    ],
    "depende": [],
-   "risco": "medio. FACA ESTE PRIMEIRO de todos os de D08: uma linha, efeito medivel, reversao trivial."
+   "risco": "medio. FACA ESTE PRIMEIRO de todos os de D08: uma linha, efeito medivel, reversao trivial.",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2486,
+    "linha_fim": 2534,
+    "titulo": "D25 🟡 `_ballTravel` isenta explicitamente o desvio de sair do campo"
+   }
   },
   {
    "id": "D26",
@@ -826,7 +982,13 @@
    "depende": [
     "D14"
    ],
-   "risco": "medio: mexe no ritmo de decisao"
+   "risco": "medio: mexe no ritmo de decisao",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2535,
+    "linha_fim": 2588,
+    "titulo": "D26 🟡 `decideT` é escrito em dois lugares e reescrito todo quadro"
+   }
   },
   {
    "id": "D27",
@@ -849,7 +1011,13 @@
     "qualquer mudanca no numero de duelos reverifica faltas E cartoes JUNTOS"
    ],
    "depende": [],
-   "risco": "dois erros se compensavam: poucas faltas + cartoes demais por falta"
+   "risco": "dois erros se compensavam: poucas faltas + cartoes demais por falta",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2589,
+    "linha_fim": 2638,
+    "titulo": "D27 🟠 As faltas não saem do parâmetro — saem do número de duelos"
+   }
   },
   {
    "id": "D28",
@@ -872,7 +1040,13 @@
     "calibration/sensibilidade.json existe com o delta medido de cada constante"
    ],
    "depende": [],
-   "risco": "nenhum: e documentacao"
+   "risco": "nenhum: e documentacao",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2639,
+    "linha_fim": 2681,
+    "titulo": "D28 🟡 `deadBallRecovery` — a calibração mais frágil do jogo"
+   }
   },
   {
    "id": "D29",
@@ -897,7 +1071,13 @@
    "depende": [
     "D08"
    ],
-   "risco": "fazer DEPOIS de D08 ou o alvo tera de mudar duas vezes"
+   "risco": "fazer DEPOIS de D08 ou o alvo tera de mudar duas vezes",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2682,
+    "linha_fim": 2720,
+    "titulo": "D29 🟡 Escanteios acima da faixa de design, dentro da faixa real"
+   }
   },
   {
    "id": "D30",
@@ -923,7 +1103,13 @@
     "pilha.js diz se 63/64 rodam, ANTES de decidir"
    ],
    "depende": [],
-   "risco": "baixo se medido antes"
+   "risco": "baixo se medido antes",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2721,
+    "linha_fim": 2757,
+    "titulo": "D30 🟡 O minigame de bola parada está desligado desde a R18"
+   }
   },
   {
    "id": "D31",
@@ -948,7 +1134,13 @@
    "depende": [
     "D17"
    ],
-   "risco": "separar um modulo que depende de metodos prestes a mudar de lugar e trabalho dobrado"
+   "risco": "separar um modulo que depende de metodos prestes a mudar de lugar e trabalho dobrado",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2758,
+    "linha_fim": 2788,
+    "titulo": "D31 🟡 A IA de treinador mora dentro do módulo do motor"
+   }
   },
   {
    "id": "D32",
@@ -971,7 +1163,13 @@
     "verify.py reprova 'CAL.' em src/scripts/layers/"
    ],
    "depende": [],
-   "risco": "nenhum: e lint"
+   "risco": "nenhum: e lint",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2789,
+    "linha_fim": 2809,
+    "titulo": "D32 🟡 A armadilha de escopo que derruba camadas novas"
+   }
   },
   {
    "id": "D33",
@@ -994,7 +1192,13 @@
     "metricas identicas"
    ],
    "depende": [],
-   "risco": "baixo mas nao zero: algo pode ler por nome"
+   "risco": "baixo mas nao zero: algo pode ler por nome",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2825,
+    "linha_fim": 2859,
+    "titulo": "D33 🟡 Doze arquivos que só publicam número de versão"
+   }
   },
   {
    "id": "D34",
@@ -1011,7 +1215,13 @@
     "<=15 em zero ao final"
    ],
    "depende": [],
-   "risco": "ALTO se alguem apagar as 81 direto. O primeiro plano escreveu este numero como se fosse fato — era teto."
+   "risco": "ALTO se alguem apagar as 81 direto. O primeiro plano escreveu este numero como se fosse fato — era teto.",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2860,
+    "linha_fim": 2900,
+    "titulo": "D34 🔴 Até 81 sobrescritas nunca alcançadas"
+   }
   }
  ]
 }

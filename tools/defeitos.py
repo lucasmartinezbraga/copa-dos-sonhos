@@ -341,6 +341,48 @@ DEFEITOS = [
       risco="ALTO se alguem apagar as 81 direto. O primeiro plano escreveu este numero como se fosse fato — era teto."),
 ]
 
+DOCUMENTO = "reports/INVESTIGACAO-COMPLETA-2026-08.md"
+
+
+def mapear_secoes() -> tuple[dict[str, dict], list[str]]:
+    """Descobre onde cada defeito mora DENTRO do documento.
+
+    O documento tem ~4.900 linhas. Uma IA nao deve le-lo inteiro: deve pedir uma
+    secao. Este mapa e recalculado a cada execucao, entao nunca envelhece — e a
+    validacao cruzada abaixo falha se o catalogo e o documento discordarem, que
+    e o unico jeito de os dois nao virarem ficcao um do outro.
+    """
+    import re
+    erros: list[str] = []
+    doc = (RAIZ / DOCUMENTO)
+    if not doc.exists():
+        return {}, [f"documento nao existe: {DOCUMENTO}"]
+    linhas = doc.read_text(encoding="utf8").split("\n")
+    # todo cabecalho de nivel 1 ou 2 encerra a secao anterior
+    marcos: list[tuple[int, str | None]] = []
+    for i, ln in enumerate(linhas, start=1):
+        m = re.match(r"^## (D\d\d) ", ln)
+        if m:
+            marcos.append((i, m.group(1)))
+        elif re.match(r"^#{1,2} [^#]", ln):
+            marcos.append((i, None))
+
+    secoes: dict[str, dict] = {}
+    for idx, (linha, ident) in enumerate(marcos):
+        if ident is None:
+            continue
+        fim = marcos[idx + 1][0] - 1 if idx + 1 < len(marcos) else len(linhas)
+        secoes[ident] = {"arquivo": DOCUMENTO, "linha_inicio": linha,
+                         "linha_fim": fim, "titulo": linhas[linha - 1].lstrip("# ")}
+
+    ids_catalogo = {d["id"] for d in DEFEITOS}
+    for i in sorted(ids_catalogo - set(secoes)):
+        erros.append(f"{i}: existe no catalogo e NAO tem secao no documento")
+    for i in sorted(set(secoes) - ids_catalogo):
+        erros.append(f"{i}: tem secao no documento e NAO existe no catalogo")
+    return secoes, erros
+
+
 # ── validacao ────────────────────────────────────────────────────────────────
 def validar() -> list[str]:
     erros = []
@@ -367,6 +409,11 @@ def validar() -> list[str]:
 
 def main() -> int:
     erros = validar()
+    secoes, erros_secao = mapear_secoes()
+    erros += erros_secao
+    for d in DEFEITOS:
+        if d["id"] in secoes:
+            d["secao"] = secoes[d["id"]]
     for e in erros:
         print("ERRO:", e, file=sys.stderr)
     if erros:
@@ -385,6 +432,15 @@ def main() -> int:
         "total": len(DEFEITOS),
         "por_estado": por_estado,
         "leia_primeiro": "reports/LEIA-PRIMEIRO.md",
+        "como_ler_um_defeito": "python3 tools/defeito.py D08   # entrada, secao do documento e o CODIGO ATUAL",
+        "comece_por": {
+            "id": "D25",
+            "porque": ("Uma linha, efeito medivel, reversao trivial. Se throwIns NAO subir com "
+                       "ela, a hipotese central de D08 precisa ser revista antes de investir "
+                       "em D01 e na camada nova. E o teste mais barato da tese mais cara."),
+        },
+        "aviso": ("NAO leia o documento inteiro: sao ~4.900 linhas. Use tools/defeito.py "
+                  "para carregar so o defeito em que voce vai trabalhar."),
         "protocolo_obrigatorio": [
             "node tools/fisica/pilha.js dist/index.html 14   # QUEM E O DONO do metodo",
             "bash tools/aceitar.sh --antes",
@@ -396,9 +452,10 @@ def main() -> int:
     destino = RAIZ / "reports" / "defeitos.json"
     if "--check" not in sys.argv:
         destino.write_text(json.dumps(saida, ensure_ascii=False, indent=1), encoding="utf8")
-        print(f"ok: {len(DEFEITOS)} defeitos, {sum(len(d['locais']) for d in DEFEITOS)} ancoras validadas -> {destino}")
+        print(f"ok: {len(DEFEITOS)} defeitos, {sum(len(d['locais']) for d in DEFEITOS)} ancoras "
+              f"validadas, {len(secoes)} secoes mapeadas -> {destino}")
     else:
-        print(f"ok: {len(DEFEITOS)} defeitos, todas as ancoras unicas e presentes")
+        print(f"ok: {len(DEFEITOS)} defeitos, ancoras unicas, {len(secoes)} secoes casando com o documento")
     return 0
 
 

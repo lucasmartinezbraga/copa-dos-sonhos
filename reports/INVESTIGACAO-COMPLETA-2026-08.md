@@ -13,6 +13,57 @@
 
 ---
 
+## ⚙ SE VOCÊ É UM AGENTE / IA: PARE E LEIA ESTAS 30 LINHAS
+
+**Não leia este arquivo inteiro.** São 4.900 linhas e ~31 mil palavras. Ler
+tudo gasta o contexto de que você precisa para trabalhar, e 95% não tem relação
+com a tarefa que te deram.
+
+**Consuma este documento por comando, não por leitura:**
+
+```bash
+python3 tools/defeito.py --proximo     # o que fazer agora, sem dependencia pendente
+python3 tools/defeito.py --lista       # os 34 defeitos, uma linha cada
+python3 tools/defeito.py D08           # UM defeito: ficha + secao + CODIGO ATUAL
+python3 tools/defeito.py D08 --so-codigo
+```
+
+`tools/defeito.py` devolve, num lugar só: a ficha do catálogo (dono real,
+critério de aceite, dependências, risco), a seção correspondente deste
+documento extraída por intervalo de linhas, e **o código como ele está agora**
+— localizado por âncora de texto, não por número de linha. Se o código andou
+desde que este texto foi escrito, ele te avisa na hora.
+
+**A ordem obrigatória de leitura, se você tem pouco contexto:**
+
+| ordem | arquivo | tamanho |
+|---|---|---|
+| 1 | `reports/LEIA-PRIMEIRO.md` | 2 páginas — as quatro regras |
+| 2 | `python3 tools/defeito.py <ID>` | ~100 linhas — o seu defeito |
+| 3 | este documento, **só** se você precisar do raciocínio completo | 4.900 linhas |
+
+**As três coisas que mais quebram trabalho aqui:**
+
+1. **Editar o core e nada acontecer.** Já ocorreu **cinco vezes**. Uma camada
+   pode substituir o método e não chamar a versão de baixo. Rode
+   `node tools/fisica/pilha.js dist/index.html 14` **antes** de editar, e leia
+   o campo `dono` da ficha do defeito.
+2. **Editar `dist/`.** É gerado. Edite `src/`.
+3. **Commitar sem medir.** `bash tools/aceitar.sh --antes` / `--depois` faz
+   build, testes, bateria de 300 partidas e os dois placares num comando.
+
+**Convenção de confiança — respeite-a em qualquer coisa que você acrescentar:**
+
+`[LIDO]` = li o código · `[MEDIDO]` = rodei e contei · `[HIPÓTESE]` = inferência,
+pode estar errada. Há **11 hipóteses abertas** listadas na seção 8.5. Não as
+cite como fato.
+
+**Índice legível por máquina:** `reports/defeitos.json` — regerado e validado
+por `python3 tools/defeitos.py`, que **falha** se algum endereço deste documento
+deixar de apontar para o código certo.
+
+---
+
 ## AVISO DE LEITURA — leia esta página antes de qualquer outra
 
 Este documento tem uma regra da qual ele não abre mão:
@@ -762,6 +813,34 @@ Legenda de severidade:
 - 🟠 **futebol** — o jogo fica menos parecido com futebol
 - 🟡 **higiene** — não muda o jogo, muda a chance de errar na próxima edição
 - 🔵 **tela** — o jogador vê
+
+### Como carregar um defeito sem ler este volume
+
+Cada seção abaixo começa com `## D<nn> ` na coluna zero e termina no próximo
+cabeçalho. `tools/defeitos.py` mapeia esse intervalo a cada execução e grava em
+`reports/defeitos.json`, então **o mapa nunca envelhece** — e a validação falha
+se algum `D<nn>` existir num lado e não no outro.
+
+```bash
+python3 tools/defeito.py D08     # a ficha, esta secao, e o CODIGO ATUAL
+```
+
+Os campos de cada ficha, na ordem em que aparecem:
+
+| campo | o que responde |
+|---|---|
+| **Endereço** | `arquivo:linha` — pode envelhecer; a âncora no JSON não |
+| **Código atual** | transcrito literalmente, não parafraseado |
+| **O defeito** | o que está errado, em uma frase |
+| **A evidência** | o número medido que sustenta a frase |
+| **A mudança proposta** | o código |
+| **Quem intercepta** | as camadas que rodam por cima — **leia sempre** |
+| **Risco** | o que pode quebrar, e como perceber |
+| **Critério de aceite** | o número que precisa se mover, e quanto |
+
+O campo **"quem intercepta"** é o mais importante de todos. Cinco vezes nesta
+linha de trabalho o motor foi editado e nada aconteceu, porque uma camada acima
+interceptava o método (seção 2.5).
 
 ---
 
