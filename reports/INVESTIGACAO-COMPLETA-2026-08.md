@@ -844,7 +844,7 @@ interceptava o método (seção 2.5).
 
 ---
 
-## D01 🔴 Duas físicas de bola convivem no mesmo jogo
+## D01 🔴 ✅ Duas físicas de bola convivem — mas não onde este documento dizia
 
 **Endereço:** `src/scripts/40-match-engine-and-manager-ai.js:2396` e `:2465`
 
@@ -886,7 +886,45 @@ Mas ela só governa **segmentos planejados**. `_deflectTo` não planeja nada:
 escreve `vx`, `vy`, `vz = 1.5` na mão e devolve o controle a `_ballTravel`, que
 integra com **g = 20 m/s²** — o dobro da gravidade real.
 
-**A evidência** [MEDIDO, 40 partidas, `tools/fisica/direcao.js`]:
+> ## ⚠ CORREÇÃO — esta seção estava errada
+>
+> O texto abaixo, até o fim da subseção de evidência, **está mantido como foi
+> escrito** para que a correção seja auditável. Ele afirmava que `_deflectTo`
+> deixava a bola sem plano físico e que ~150 lances por partida caíam no
+> integrador de g = 20. **Medido: zero.**
+>
+> `tools/fisica/ramo-g20.js`, 12 partidas:
+>
+> ```
+> quadros de voo COM plano fisico (g = 9,81)
+>   pass      13.822,33 por partida
+>   deflect    1.588,92
+>   shot         377,08
+>   total     15.788,33
+>
+> quadros de voo SEM plano, que cairiam no core (g = 20)      0,00
+> percentual no integrador errado                             0,0%
+> ```
+>
+> **Por quê:** `07-cds-physics-timeline-581.js:86` envolve `_deflectTo`, chama o
+> core e **em seguida cria o plano** com `_planPhysicalSegment(origin, {x,y,z:0},
+> 'deflect', …)` — que pertence à camada 88, com g = 9,81 e arrasto quadrático.
+> O desvio sempre teve balística real. A linha `b.vz -= 20 * dt` de
+> `_ballTravel` é **código morto**, da mesma família do D03.
+>
+> **A segunda física existe, mas em outro lugar:** `_looseRoll`, a bola
+> *rolando*. `tools/fisica/ramo-rolagem.js` mediu **39,25 quadros por partida**
+> integrando com g = 20, com a bola a **0,995 m de altura média e até 2,685 m** —
+> é a sobra alta caindo com o dobro da gravidade. Esse é o defeito real, e é
+> uma linha.
+>
+> **O que isso muda no plano:** D01 era pré-requisito declarado de D02 e D08.
+> Como o desvio nunca teve física errada, a cadeia F2 perde essa justificativa.
+> Somado ao D25 (sem efeito) e à âncora morta que o D03 revelou, são **três**
+> peças de evidência da mesma rodada contra a formulação original do D08.
+
+**A evidência** [MEDIDO, 40 partidas, `tools/fisica/direcao.js`] — *o texto
+original, agora sabidamente incorreto na interpretação*:
 
 ```
 _deflectTo chamado           57,05 por partida
@@ -895,9 +933,8 @@ _looseBall chamado           93,35 por partida
 total no ciclo errado       150,40 por partida
 ```
 
-Cento e cinquenta lances por partida com gravidade dobrada, e são **exatamente
-os lances que mais aparecem na área**: rebote de defesa, desvio de bloqueio,
-corte de cabeça, alívio do zagueiro.
+As chamadas existem — o número está certo. **A interpretação estava errada:**
+elas não caem no integrador de g = 20.
 
 Um número para dimensionar: com g = 20, uma bola desviada com `vz = 1,5 m/s`
 sobe **11,3 cm** e volta ao chão em 0,15 s. Com g = 9,81 ela sobe 22,9 cm e
@@ -3550,8 +3587,16 @@ faixa.
 | 3 | **D09** | (verificação) o portão da camada 45 passa a disparar |
 | 4 | **D29** | reconciliar a faixa de escanteios, **depois** de D08 |
 
-**A dependência dura:** D01 tem de estar pronto. Um alívio mirado para a
-lateral com g = 20 m/s² cai como pedra e o jogador vê.
+> **⚠ Esta dependência caiu.** O texto abaixo dizia que D01 era pré-requisito
+> porque um alívio mirado para a lateral cairia com g = 20. **Medido: o desvio
+> sempre teve balística real** (ver a correção em D01). A cadeia F2 não depende
+> mais de D01, e a justificativa física do D08 desaparece junto.
+>
+> **O que sobra do D08 é só o fenômeno**, que continua medido e de pé: 85,8%
+> dos alvos a mais de 8 m da lateral, e 16,8 alvos mirados para fora ≈ 15,9
+> laterais. A explicação de *por que* eles são mirados para dentro precisa ser
+> refeita do zero — três peças de evidência desta rodada derrubaram a anterior:
+> o D25 sem efeito, a âncora morta que o D03 revelou, e agora o D01.
 
 **Os três riscos, com teto numérico cada:**
 

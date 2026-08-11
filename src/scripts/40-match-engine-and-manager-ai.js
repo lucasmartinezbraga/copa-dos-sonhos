@@ -2205,7 +2205,17 @@ class MatchSim {
       }
     }
 
-    // Física contínua da bola.
+    /* ⚠ D01 · ESTA INTEGRAÇÃO NÃO RODA. MEDIDO: 0 quadros em 12 partidas.
+       A camada 07 (physics-timeline) só chama este corpo quando a bola NÃO tem
+       `_physicsPlan` — e ela mesma cria o plano para passe, chute e desvio, com
+       a balística real da camada 88 (g = 9,81, arrasto quadrático). Sobram zero
+       quadros para o g = 20 daqui.
+       O documento afirmava que este era o segundo integrador em uso, governando
+       ~57 desvios por partida. Era HIPÓTESE e estava errada; a sonda
+       `tools/fisica/ramo-g20.js` mediu 1.588,92 quadros de desvio por partida,
+       TODOS com plano físico. A segunda física existe, mas em `_looseRoll`.
+       Não apagado por enquanto: 12 partidas não exercitam pênalti decisivo nem
+       prorrogação, e este é o único caminho se um plano falhar. */
     b.x += b.vx * dt; b.y += b.vy * dt;
     b.z += b.vz * dt; b.vz -= 20 * dt;
     if (b.z < 0) { b.z = 0; b.vz = -b.vz * 0.4; }
@@ -2347,7 +2357,14 @@ class MatchSim {
     // R7: a bola não perde toda a energia em poucos quadros. Ainda desacelera,
     // mas continua rolando o bastante para a disputa parecer natural.
     b.vx = (b.vx || 0) * (1 - 0.92 * dt); b.vy = (b.vy || 0) * (1 - 0.92 * dt);
-    if (b.z > 0 || (b.vz || 0) !== 0) { b.z += (b.vz || 0) * dt; b.vz = (b.vz || 0) - 20 * dt; if (b.z <= 0) { b.z = 0; b.vz = 0; } }
+    /* D01 · AQUI está a segunda física, e não em `_ballTravel`.
+       Medido com `tools/fisica/ramo-rolagem.js`: 39,25 quadros por partida
+       integram esta linha, com a bola a 0,995 m de altura média e até 2,685 m.
+       É a sobra alta caindo — e caía com o DOBRO da gravidade real, enquanto
+       todo o resto do jogo usa g = 9,81 desde a OS-200.
+       A restituição continua zero de propósito: aqui a bola pousa e passa a
+       rolar; quique é assunto do plano físico, não da sobra. */
+    if (b.z > 0 || (b.vz || 0) !== 0) { b.z += (b.vz || 0) * dt; b.vz = (b.vz || 0) - 9.81 * dt; if (b.z <= 0) { b.z = 0; b.vz = 0; } }
     // fora de campo
     if (b.x < -0.5 || b.x > FL + 0.5 || b.y < -0.5 || b.y > FW + 0.5) { this._ballOut(); return; }
     // jogador mais próximo coleta ao alcançar

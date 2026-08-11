@@ -33,15 +33,24 @@ L = "src/scripts/layers/"
 # ancora: trecho literal que tem de aparecer EXATAMENTE UMA VEZ no arquivo.
 # linha:  onde estava quando o documento foi escrito (referencia, pode envelhecer).
 DEFEITOS = [
- dict(id="D01", sev="estrutural", fase="F1", estado="aberto",
-      titulo="Duas fisicas de bola convivem (g=20 no core, g=9,81 na camada 88)",
-      locais=[dict(arquivo=MOTOR, linha=2396, ancora="b.z += b.vz * dt; b.vz -= 20 * dt;"),
+ dict(id="D01", sev="estrutural", fase="F1", estado="feito",
+      titulo="Duas fisicas de bola — em _looseRoll, nao em _ballTravel (premissa corrigida)",
+      locais=[dict(arquivo=MOTOR, linha=2210, ancora="ESTA INTEGRAÇÃO NÃO RODA"),
+              dict(arquivo=MOTOR, linha=2350, ancora="AQUI está a segunda física"),
               dict(arquivo=MOTOR, linha=2465, ancora="_deflectTo(x, y, spd) {")],
       evidencia="150,40 chamadas por partida caem no integrador de g=20 (57,05 _deflectTo + 93,35 _looseBall)",
       dono="core e o dono da fisica do desvio; 45/47/49 so reescrevem o ALVO",
       intercepta=["07","17","45","47","49"],
-      criterio=["chamadas com g=20 -> 0","corners +-0,50","goals +-0,20","throwIns nao pode cair"],
-      depende=[], risco="medio: b._timeout deixa de valer; vigie quiques e porCimaDoTravessao"),
+      criterio=["quadros de voo sem plano fisico: 0 (MEDIDO, ja era 0)","corners +-0,50","goals +-0,20"],
+      depende=[], risco="baixo: a mudanca real e uma linha em _looseRoll",
+      feito_em=("PREMISSA CORRIGIDA. A sonda tools/fisica/ramo-g20.js mediu ZERO quadros de voo "
+                "sem plano fisico em 12 partidas — o desvio SEMPRE teve balistica real, porque a "
+                "camada 07 cria o plano logo depois de chamar o core. A linha b.vz -= 20*dt de "
+                "_ballTravel e codigo morto. A segunda fisica estava em _looseRoll: 39,25 quadros "
+                "por partida, bola a 0,995 m de altura media e ate 2,685 m, caindo com o DOBRO da "
+                "gravidade. Corrigido para 9,81 la; a linha morta do _ballTravel ficou anotada. "
+                "CONSEQUENCIA: D01 era pre-requisito de D02 e D08 — a cadeia F2 perde essa "
+                "justificativa.")),
 
  dict(id="D02", sev="futebol", fase="F1", estado="aberto",
       titulo="_contestLoose entrega a bola sem teto de distancia",
