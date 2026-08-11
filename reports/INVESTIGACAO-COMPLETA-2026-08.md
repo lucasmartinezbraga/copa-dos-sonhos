@@ -1052,7 +1052,7 @@ partidas com `tools/fisica/narrar.js` antes de aceitar.
 
 ---
 
-## D03 🟡 Cerca de 190 linhas mortas dentro do arquivo mais importante
+## D03 🟡 ✅ Cerca de 190 linhas mortas dentro do arquivo mais importante
 
 **Endereços:** `40-match-engine-and-manager-ai.js:369`, `:1095`, `:1208`, `:2019`
 
@@ -1125,6 +1125,48 @@ Qualquer diferença significa que a região não era morta.
 
 **Critério de aceite:** as 14 métricas com semente 4200000 e 300 partidas
 **exatamente iguais**, ao dígito.
+
+### ✅ FEITO — 176 linhas removidas
+
+| região | linhas |
+|---|---|
+| `_requestSetPiece` — corpo depois do `return false;` | 17 |
+| `_cross`, ramo rasteiro | 10 |
+| `_cross`, ramo aéreo (defesa, bloqueio, rebote) | 30 |
+| `_shoot` — saveCut, blockCut, postCut, OS-18, OS-23 | 136 |
+| **total** | **176** |
+
+O arquivo foi de **5.262 para 5.086 linhas**.
+
+**Os quatro guardas `if(this._os200ResolverChute)` saíram junto.** Eles existiam
+para que o motor "se comportasse como antes" caso a camada de física não
+estivesse carregada — uma rede que nunca foi usada e que escondia o caminho
+morto. Agora a chamada é direta: se a camada 88 faltar, o chute lança erro
+visível em vez de ser resolvido por um caminho que ninguém mede há 20 releases.
+O `browser_smoke` já reprova um build sem a camada 88, então a rede era
+redundante com um teste que existe.
+
+### O que a limpeza revelou sobre D08
+
+A validação de âncoras reprovou **três** endereços do catálogo depois da
+remoção — e um deles era do **D08**:
+
+```
+ERRO: D08: ancora SUMIU: 'else this._deflectTo(clamp(this.ball.x-hdDir*R(2,6),2,FL-2)'
+```
+
+Aquele ponto de chamada estava **dentro do ramo aéreo morto**. Ou seja: dos
+cinco pontos de chamada de `_deflectTo` que o D08 listava como evidência da
+direção grampeada para dentro, **pelo menos um nunca executou**. Sobra um único
+`clamp(..., 2, FL-2)` vivo no motor — o alívio na barreira, em `_freeKick`. Os
+demais estão nas camadas.
+
+> **A contagem de pontos de chamada do D08 precisa ser refeita antes de atacá-lo.**
+> Somada ao resultado negativo do D25, esta é a segunda peça de evidência da
+> mesma rodada que enfraquece a formulação original daquele defeito. O fenômeno
+> medido continua de pé — 85,8% dos alvos a mais de 8 m da lateral, 16,8 alvos
+> mirados para fora ≈ 15,9 laterais — mas **a explicação de onde ele nasce
+> estava parcialmente errada.**
 
 **Por que fazer.** Porque o próximo leitor de `_shoot` vai gastar meia hora
 entendendo lógica que não roda — e pode "consertar" um bug ali. É higiene, e
@@ -2707,7 +2749,7 @@ juntos, porque eles estão acoplados por uma razão, não por uma soma.
 
 ---
 
-## D28 🟡 `deadBallRecovery` — a calibração mais frágil do jogo
+## D28 🟡 ✅ `deadBallRecovery` — a calibração mais frágil do jogo
 
 **Endereço:** `src/scripts/20-core.js:572`
 
@@ -2747,6 +2789,24 @@ conhecimento existe só em comentários espalhados.
 | `XG_ESCALA` | 0,700 → 0,651 | xG alinhado ao gol medido |
 
 **Risco.** Nenhum — é documentação.
+
+### ✅ FEITO — `calibration/sensibilidade.json`
+
+Dez constantes, cada uma com o **delta medido** e a lição que deixou. O
+conhecimento existia espalhado em comentários de `20-core.js` e das camadas;
+agora está num arquivo só, consultável antes de qualquer ajuste.
+
+As três mais perigosas:
+
+| constante | delta | efeito |
+|---|---|---|
+| `deadBallRecovery` | +0,020 | design 12/13 → **10/13** |
+| envergadura do goleiro | 1,05 → 1,45 | gols 3,27 → 3,40 (**piorou**) |
+| `LIMITE_AVANCO` (camada 90) | 0,50 → 1,00 | design 11/13 → **6/13** |
+
+O arquivo também registra as de **baixa** sensibilidade — os cinco erros de
+passe nunca moveram uma métrica sozinhos nesta série — para que ninguém gaste
+uma rodada de medição ali.
 
 ---
 

@@ -1,0 +1,105 @@
+{
+  "versao": "1.0.0",
+  "descricao": "D28 · quanto cada constante move o jogo. Este conhecimento existia so em comentarios espalhados por 20-core.js e pelas camadas; aqui ele fica num lugar so, com o delta MEDIDO de cada uma. Consulte antes de tocar em qualquer uma delas.",
+  "como_ler": "delta = a variacao testada. efeito = o que aconteceu, medido em bateria. Nao sao estimativas.",
+  "regra": "Toda constante marcada sensibilidade=alta exige bateria de 300 partidas antes e depois. Nenhuma delas se ajusta 'no olho'.",
+  "constantes": [
+    {
+      "nome": "timing.deadBallRecovery",
+      "onde": "src/scripts/20-core.js",
+      "valor": 0.062,
+      "sensibilidade": "alta",
+      "delta_testado": "+0,020 (0,055 -> 0,075)",
+      "efeito": "stamina final 64,2 -> 64,4 (irrisorio), MAS empates 29,2% -> 17,5% (abaixo do minimo) e goleadas 17,5% -> 20,8%. Placar de design 12/13 -> 10/13.",
+      "licao": "jogador mais inteiro no fim faz o placar abrir. O efeito nao esta na stamina, esta na distribuicao de resultados."
+    },
+    {
+      "nome": "timing.clockRate",
+      "onde": "src/scripts/20-core.js",
+      "valor": 0.085,
+      "sensibilidade": "alta",
+      "delta_testado": "0,130 -> 0,085",
+      "efeito": "em 0,13 o jogo nao batia NENHUM dos proprios minimos de volume: 13,2 chutes (min 20), 9,6 faltas (min 16), 1,97 gol (min 2,4), 41,7% de empates com 25% de 0 a 0.",
+      "licao": "nao era compressao 'arcade', era subnutricao. Ver D21: e uma decisao de produto, nao um numero de ajuste.",
+      "aviso": "a fadiga e normalizada por ADV4.context.clockRateRef e ja e INVARIANTE a este numero. Se mexer no relogio, NAO mexa no dreno junto."
+    },
+    {
+      "nome": "defending.yellowFirst",
+      "onde": "src/scripts/20-core.js",
+      "valor": 0.125,
+      "sensibilidade": "media",
+      "delta_testado": "0,180 -> 0,125",
+      "efeito": "cartao por falta 0,279 -> 0,177 (futebol real: 0,177).",
+      "licao": "a distorcao ficou INVISIVEL enquanto o jogo tinha 15,5 faltas por partida — o numero final de cartoes saia certo por compensacao de dois erros. So apareceu quando a OS-206 levou as faltas para 22."
+    },
+    {
+      "nome": "shooting.conversionScale",
+      "onde": "src/scripts/20-core.js",
+      "valor": 2.25,
+      "sensibilidade": "alta",
+      "delta_testado": "2,25 -> 2,05",
+      "efeito": "gols -0,4 por partida.",
+      "licao": "e o multiplicador direto da conversao; qualquer mudanca no modelo de defesa (D06) exige re-derivar XG_ESCALA junto."
+    },
+    {
+      "nome": "XG_ESCALA",
+      "onde": "src/scripts/layers/88-os200-balistica-real.js",
+      "valor": 0.651,
+      "sensibilidade": "derivada",
+      "delta_testado": "0,700 -> 0,651",
+      "efeito": "xG 3,15 para 2,93 gols -> xG 3,01 para 2,858 gols.",
+      "licao": "NAO e ajuste de gosto: por definicao esta constante E a razao medida entre gol realizado e pGoal acumulado. Muda o modelo de defesa, muda ela.",
+      "aviso": "reports/REFERENCIA.json ja foi invalidado uma vez por ter sido medido com 0,70 e commitado junto com a mudanca para 0,651."
+    },
+    {
+      "nome": "envergadura do goleiro",
+      "onde": "src/scripts/layers/88-os200-balistica-real.js",
+      "valor": "1,05 + q x 0,55",
+      "sensibilidade": "alta",
+      "delta_testado": "1,05 -> 1,45",
+      "efeito": "gols 3,27 -> 3,40 e golPorChuteNoAlvo 0,428 -> 0,436. PIOROU.",
+      "licao": "o sinal mais barato do projeto: quando aumentar um recurso piora o resultado, o modelo esta usando o recurso do jeito errado. Foi este resultado invertido que revelou D06 — o goleiro mergulhava no PRIMEIRO instante alcancavel, nao no melhor."
+    },
+    {
+      "nome": "restarts.shotBlockCorner",
+      "onde": "src/scripts/20-core.js",
+      "valor": 0.66,
+      "sensibilidade": "media",
+      "delta_testado": "nao testado isoladamente",
+      "efeito": "os 8 shares de escanteio foram elevados ~25% na auditoria v5.2.2, levando escanteios de 4,08 para ~10 por partida.",
+      "aviso": "D32 · esta constante estava DESCONECTADA da camada 66, que a lia por `root.CAL` (undefined) e caia num 0,66 codificado. Corrigido; o lint de tools/verify.py impede a reintroducao."
+    },
+    {
+      "nome": "attributes.duelSpread",
+      "onde": "src/scripts/20-core.js",
+      "valor": 10.5,
+      "sensibilidade": "media",
+      "delta_testado": "11,5 -> 10,5",
+      "efeito": "+10 de vantagem passava 70,3% e passa a 72,4%; +15 vai a 80,7%.",
+      "licao": "e o 'volume da sorte'. Spread alto achata a curva (a moeda pesa mais); baixo deixa o atributo ditar. Um 90 ainda perde ~1 em 5 duelos para um 75."
+    },
+    {
+      "nome": "possession.firstTouchMin / firstTouchMax",
+      "onde": "src/scripts/20-core.js",
+      "valor": "0,10 a 0,34",
+      "sensibilidade": "alta",
+      "delta_testado": "ver D10",
+      "efeito": "somados ao decideT=0,28 escrito em _giveBall, davam 0,38-0,62 s de posse. Mediana medida: 0,43 s.",
+      "aviso": "o orcamento de posse esta repartido entre DOIS lugares que nao se conhecem. Mexer so aqui nao resolve."
+    },
+    {
+      "nome": "LIMITE_AVANCO (plano do portador)",
+      "onde": "src/scripts/layers/90-os206-plano-do-portador.js",
+      "valor": 0.50,
+      "sensibilidade": "alta",
+      "delta_testado": "1,00 (campo inteiro) -> 0,50 (proprio campo)",
+      "efeito": "com 1,00 o placar de design foi de 11/13 para 6/13. O jogo quebrou.",
+      "licao": "um time que segura a bola NO CAMPO DO ADVERSARIO nao ataca. Quase nenhuma mudanca de comportamento e uniforme no campo."
+    }
+  ],
+  "constantes_de_baixa_sensibilidade": [
+    "attributes.lineJitter, keeperJitter, traitEffect — ruido determinista por jogador (hash do nome); e variacao de elenco, nao de rolagem",
+    "passing.* — os cinco erros de passe; nunca moveram uma metrica sozinhos nas medicoes desta serie",
+    "timing.fixedStep, tackleCooldown — nao testados isoladamente"
+  ]
+}

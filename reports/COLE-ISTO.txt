@@ -59,6 +59,11 @@ AS QUATRO REGRAS QUE NAO SE NEGOCIAM
    Antes de editar:  node tools/fisica/pilha.js dist/index.html 14
    E leia o campo DONO da ficha do defeito.
 
+   LIMITE DA FERRAMENTA: ela diz se o METODO e alcancado, nao se UMA LINHA
+   dentro dele e. Na sexta vez (D25) ela respondeu VIVA e estava certa — o
+   metodo rodava, a linha editada nao. Quando o alvo e uma linha, instrumente
+   aquela linha; tools/fisica/ramo-d25.js e o modelo, 40 linhas.
+
 2. EDITE src/, NUNCA dist/.
    dist/index.html e gerado por python3 tools/build.py. Edicao direta ali
    e apagada no proximo build.

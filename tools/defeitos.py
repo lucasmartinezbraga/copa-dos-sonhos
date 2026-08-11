@@ -52,14 +52,19 @@ DEFEITOS = [
       criterio=["entregas com folga >3 m: 21,3 -> <=3","passes >=370","throwIns sobe"],
       depende=["D01"], risco="ALTO: a bola pode morrer no meio do campo. Rodar pinga.js e narrar 5 partidas."),
 
- dict(id="D03", sev="higiene", fase="F1", estado="aberto",
+ dict(id="D03", sev="higiene", fase="F1", estado="feito",
       titulo="~190 linhas mortas guardadas por return antecipado dentro do motor",
-      locais=[dict(arquivo=MOTOR, linha=369, ancora="_requestSetPiece(kind, data, execute) {"),
+      locais=[dict(arquivo=MOTOR, linha=369, ancora="_requestSetPiece() { return false; }"),
               dict(arquivo=MOTOR, linha=2019, ancora="this._os200ResolverChute(o,{g,tm,gk,atk,gkF,pGoal,")],
       evidencia="pilha.js: contagem zero nos ramos antigos em 14 partidas; o guarda nunca e falso num build de tools/build.py",
       dono="nao alcancavel por definicao",
       intercepta=[],
       criterio=["as 14 metricas IDENTICAS ao digito (nao '+-2 SE')"],
+      feito_em=("176 linhas removidas do motor: 17 em _requestSetPiece, 10 no ramo rasteiro "
+                "de _cross, 30 no ramo aereo e 136 em _shoot. Os quatro guardas "
+                "`if(this._os200ResolverChute)` sairam junto — a ausencia da camada 88 agora "
+                "vira erro visivel em vez de um chute resolvido por um caminho nao medido. "
+                "5.262 -> 5.086 linhas."),
       depende=[], risco="o mais baixo do catalogo"),
 
  dict(id="D04", sev="higiene", fase="F1", estado="feito",
@@ -98,9 +103,11 @@ DEFEITOS = [
 
  dict(id="D08", sev="futebol", fase="F2", estado="aberto",
       titulo="Laterais pela metade — a direcao do desvio e sempre para dentro",
-      locais=[dict(arquivo=MOTOR, linha=1240, ancora="else this._deflectTo(clamp(this.ball.x-hdDir*R(2,6),2,FL-2)"),
-              dict(arquivo=MOTOR, linha=2787, ancora="this._deflectTo(clamp(this.ball.x-tmA.attackDir*R(1,5),2,FL-2)")],
-      evidencia="85,8% dos alvos a mais de 8 m da lateral; 16,8 alvos/partida mirados para fora ~ 15,9 laterais medidos",
+      locais=[dict(arquivo=MOTOR, linha=2622, ancora="this._deflectTo(clamp(this.ball.x-tmA.attackDir*R(1,5),2,FL-2)")],
+      evidencia=("85,8% dos alvos a mais de 8 m da lateral; 16,8 alvos/partida mirados para fora ~ 15,9 laterais medidos. "
+                 "CORRECAO apos D03: dos 5 pontos de chamada que este defeito listava, UM estava dentro do ramo "
+                 "morto de _cross e sumiu com a limpeza. O clamp sobrevivente no motor e o do alivio na barreira; "
+                 "os demais estao nas camadas. Recontar antes de atacar D08."),
       dono="pontos de chamada no motor, com clamp(...,2,FL-2)",
       intercepta=["45","47","49"],
       criterio=["throwIns 15,91 -> 30-45","corners >=10,68","passes >=379,7","goals +-0,20","futebol real >=16/21"],
@@ -295,12 +302,15 @@ DEFEITOS = [
       criterio=["qualquer mudanca no numero de duelos reverifica faltas E cartoes JUNTOS"],
       depende=[], risco="dois erros se compensavam: poucas faltas + cartoes demais por falta"),
 
- dict(id="D28", sev="higiene", fase="F0", estado="aberto",
+ dict(id="D28", sev="higiene", fase="F0", estado="feito",
       titulo="deadBallRecovery: delta de 0,02 move o placar de design em 2 pontos",
       locais=[dict(arquivo=CORE, linha=572, ancora="deadBallRecovery: 0.062")],
       evidencia="0,055 -> 0,075: empates 29,2% -> 17,5%, goleadas 17,5% -> 20,8%, design 12/13 -> 10/13",
       dono="—", intercepta=[],
       criterio=["calibration/sensibilidade.json existe com o delta medido de cada constante"],
+      feito_em=("calibration/sensibilidade.json · 10 constantes com o delta MEDIDO de cada "
+                "uma e a licao que ela deixou. O conhecimento existia so em comentarios "
+                "espalhados; agora esta num lugar so."),
       depende=[], risco="nenhum: e documentacao"),
 
  dict(id="D29", sev="higiene", fase="F2", estado="aberto",
@@ -313,7 +323,7 @@ DEFEITOS = [
 
  dict(id="D30", sev="higiene", fase="F1", estado="decidir",
       titulo="Minigame de bola parada desligado desde a R18",
-      locais=[dict(arquivo=MOTOR, linha=369, ancora="_requestSetPiece(kind, data, execute) {")],
+      locais=[dict(arquivo=MOTOR, linha=369, ancora="_requestSetPiece() { return false; }")],
       evidencia="15 linhas mortas + 2 pontos de chamada que testam input==null sem necessidade + camadas 63/64 (255 linhas) de status desconhecido",
       dono="produto",
       intercepta=["63","64"],

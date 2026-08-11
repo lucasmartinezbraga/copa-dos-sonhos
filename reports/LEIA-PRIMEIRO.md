@@ -20,6 +20,13 @@ você vai trabalhar. O documento completo é referência, não leitura de entrad
 
 ### Regra 1 · Descubra quem é o dono do método ANTES de editar
 
+> **E saiba o limite da ferramenta.** `pilha.js` responde se o **método** é
+> alcançado, não se **uma linha dentro dele** é. Foi assim que o D25 virou a
+> sexta edição do motor sem efeito: as quatro sobrescritas de `_ballTravel`
+> eram VIVAS — corretamente — e mesmo assim a linha editada nunca executava.
+> Quando o alvo é uma linha específica, instrumente aquela linha. A sonda
+> `tools/fisica/ramo-d25.js` é o modelo: 40 linhas, resposta em 2 minutos.
+
 ```bash
 node tools/fisica/pilha.js dist/index.html 14
 ```
@@ -165,9 +172,22 @@ Volume V do documento. O resumo:
 | **F5** | promover os donos terminais | D17 (um método por commit) |
 | **F6** | o futebol que sobra | D19, depois D20 — **nunca juntos** |
 
-**Se você só vai fazer uma coisa, faça D25.** É uma linha, tem efeito medível, e
-a reversão é trivial. Se `throwIns` não subir nada com ela, a hipótese central
-de D08 precisa ser revista antes de investir mais.
+> **F1 já foi executada.** D03, D04, D25, D28 e D32 estão feitos. Rode
+> `python3 tools/defeito.py --proximo` para o estado atual — os próximos sem
+> dependência pendente são **D01** (uma física só) e **D02** (teto de disputa,
+> risco alto).
+
+**O que a execução da F1 ensinou, e vale antes de você começar:**
+
+- **D25 não moveu nada.** A exceção que ele removia era inócua — a sonda mostrou
+  que a linha editada nem é alcançada. **A hipótese central de D08 precisa ser
+  revista**, e a limpeza do D03 reforçou isso: um dos pontos de chamada que o
+  D08 citava como evidência estava dentro de código morto.
+- **D32 pegou um defeito vivo no primeiro lint:** uma camada lia a calibração
+  por um caminho que nunca acerta e caía num número congelado.
+- **A referência de medição estava errada** e reprovava mudanças inocentes.
+  Confira que `reports/REFERENCIA.json` corresponde ao build atual antes de
+  confiar num `--identico`.
 
 ---
 

@@ -7,8 +7,8 @@
  },
  "total": 34,
  "por_estado": {
-  "aberto": 22,
-  "feito": 6,
+  "aberto": 20,
+  "feito": 8,
   "parcial": 1,
   "decidir": 2,
   "guarda-corpo": 2,
@@ -39,13 +39,13 @@
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 2396,
      "ancora": "b.z += b.vz * dt; b.vz -= 20 * dt;",
-     "linha_atual": 2396
+     "linha_atual": 2210
     },
     {
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 2465,
      "ancora": "_deflectTo(x, y, spd) {",
-     "linha_atual": 2475
+     "linha_atual": 2289
     }
    ],
    "evidencia": "150,40 chamadas por partida caem no integrador de g=20 (57,05 _deflectTo + 93,35 _looseBall)",
@@ -83,7 +83,7 @@
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 2489,
      "ancora": "const zone = cands.filter",
-     "linha_atual": 2519
+     "linha_atual": 2333
     }
    ],
    "evidencia": "21,3 entregas por partida com o mais proximo a mais de 3 m; 22,2 bolas pousando fora e resgatadas a 6,8 m",
@@ -112,20 +112,20 @@
    "id": "D03",
    "sev": "higiene",
    "fase": "F1",
-   "estado": "aberto",
+   "estado": "feito",
    "titulo": "~190 linhas mortas guardadas por return antecipado dentro do motor",
    "locais": [
     {
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 369,
-     "ancora": "_requestSetPiece(kind, data, execute) {",
-     "linha_atual": 369
+     "ancora": "_requestSetPiece() { return false; }",
+     "linha_atual": 378
     },
     {
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 2019,
      "ancora": "this._os200ResolverChute(o,{g,tm,gk,atk,gkF,pGoal,",
-     "linha_atual": 2020
+     "linha_atual": 1973
     }
    ],
    "evidencia": "pilha.js: contagem zero nos ramos antigos em 14 partidas; o guarda nunca e falso num build de tools/build.py",
@@ -134,13 +134,14 @@
    "criterio": [
     "as 14 metricas IDENTICAS ao digito (nao '+-2 SE')"
    ],
+   "feito_em": "176 linhas removidas do motor: 17 em _requestSetPiece, 10 no ramo rasteiro de _cross, 30 no ramo aereo e 136 em _shoot. Os quatro guardas `if(this._os200ResolverChute)` sairam junto — a ausencia da camada 88 agora vira erro visivel em vez de um chute resolvido por um caminho nao medido. 5.262 -> 5.086 linhas.",
    "depende": [],
    "risco": "o mais baixo do catalogo",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
     "linha_inicio": 1055,
-    "linha_fim": 1134,
-    "titulo": "D03 🟡 Cerca de 190 linhas mortas dentro do arquivo mais importante"
+    "linha_fim": 1176,
+    "titulo": "D03 🟡 ✅ Cerca de 190 linhas mortas dentro do arquivo mais importante"
    }
   },
   {
@@ -154,7 +155,7 @@
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 2483,
      "ancora": "// jogador mais próximo assume após breve disputa",
-     "linha_atual": 2507
+     "linha_atual": 2321
     },
     {
      "arquivo": "src/scripts/layers/08-cds-p04-physical-reception-584-r6.js",
@@ -180,8 +181,8 @@
    "feito_em": "aviso escrito no core acima de _looseBall. Verificado com aceitar.sh --depois --identico: as 14 metricas IDENTICAS ao digito. E o exemplo trabalhado do ciclo completo.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 1135,
-    "linha_fim": 1220,
+    "linha_inicio": 1177,
+    "linha_fim": 1262,
     "titulo": "D04 🟡 ✅ O `_looseBall` do core está morto e não parece"
    }
   },
@@ -211,8 +212,8 @@
    "risco": "nao consertar no core: os 0,12 sao a origem do CHUTE",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 1221,
-    "linha_fim": 1263,
+    "linha_inicio": 1263,
+    "linha_fim": 1305,
     "titulo": "D05 🟠 ✅ O passe rasteiro decolava — e a lição vale mais que o conserto"
    }
   },
@@ -242,8 +243,8 @@
    "risco": "XG_ESCALA teve de ser re-derivada (0,651)",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 1264,
-    "linha_fim": 1338,
+    "linha_inicio": 1306,
+    "linha_fim": 1380,
     "titulo": "D06 🟠 ✅ O goleiro mergulhava no primeiro instante alcançável"
    }
   },
@@ -258,7 +259,7 @@
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 1379,
      "ancora": "const linhaImped = this._offsideLine(o.team);",
-     "linha_atual": 1379
+     "linha_atual": 1325
     }
    ],
    "evidencia": "impedimentos 10,03 -> 5,11 por partida",
@@ -273,8 +274,8 @@
    "risco": "removeu um freio: +0,42 gol, que expos D06",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 1339,
-    "linha_fim": 1392,
+    "linha_inicio": 1381,
+    "linha_fim": 1434,
     "titulo": "D07 🟠 ✅ O passador não enxergava a linha de impedimento"
    }
   },
@@ -287,18 +288,12 @@
    "locais": [
     {
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
-     "linha": 1240,
-     "ancora": "else this._deflectTo(clamp(this.ball.x-hdDir*R(2,6),2,FL-2)",
-     "linha_atual": 1240
-    },
-    {
-     "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
-     "linha": 2787,
+     "linha": 2622,
      "ancora": "this._deflectTo(clamp(this.ball.x-tmA.attackDir*R(1,5),2,FL-2)",
-     "linha_atual": 2808
+     "linha_atual": 2622
     }
    ],
-   "evidencia": "85,8% dos alvos a mais de 8 m da lateral; 16,8 alvos/partida mirados para fora ~ 15,9 laterais medidos",
+   "evidencia": "85,8% dos alvos a mais de 8 m da lateral; 16,8 alvos/partida mirados para fora ~ 15,9 laterais medidos. CORRECAO apos D03: dos 5 pontos de chamada que este defeito listava, UM estava dentro do ramo morto de _cross e sumiu com a limpeza. O clamp sobrevivente no motor e o do alivio na barreira; os demais estao nas camadas. Recontar antes de atacar D08.",
    "dono": "pontos de chamada no motor, com clamp(...,2,FL-2)",
    "intercepta": [
     "45",
@@ -320,8 +315,8 @@
    "risco": "ALTO. Tetos: throwIns<=48. Camada nova precisa ficar ABAIXO de 45/47/49 no manifesto.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 1393,
-    "linha_fim": 1557,
+    "linha_inicio": 1435,
+    "linha_fim": 1599,
     "titulo": "D08 🟠 O defeito mais distante do futebol: os laterais pela metade"
    }
   },
@@ -351,8 +346,8 @@
    "risco": "nenhum: nao ha mudanca, e verificacao",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 1558,
-    "linha_fim": 1581,
+    "linha_inicio": 1600,
+    "linha_fim": 1623,
     "titulo": "D09 🟡 O portão da camada 45 é quase decorativo"
    }
   },
@@ -367,13 +362,13 @@
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 2548,
      "ancora": "else m.settle=lerp(CAL.possession.firstTouchMax",
-     "linha_atual": 2569
+     "linha_atual": 2383
     },
     {
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 2582,
      "ancora": "this.decideT=0.28;",
-     "linha_atual": 2603
+     "linha_atual": 2417
     }
    ],
    "evidencia": "settle (0,10-0,34) + decideT (0,28) = 0,38-0,62 s; mediana medida 0,43 s antes da OS-206",
@@ -392,8 +387,8 @@
    "risco": "medio",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 1582,
-    "linha_fim": 1625,
+    "linha_inicio": 1624,
+    "linha_fim": 1667,
     "titulo": "D10 🟠 ✅ A posse durava 0,43 s — em duas linhas que não se conheciam"
    }
   },
@@ -438,8 +433,8 @@
    "risco": "medio: remover chance() desalinha o RNG; compare distribuicoes, nao partidas",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 1626,
-    "linha_fim": 1728,
+    "linha_inicio": 1668,
+    "linha_fim": 1770,
     "titulo": "D11 🔴 Sorteio censurado nº 1 — o chute que é sorteado para ser vetado"
    }
   },
@@ -460,7 +455,7 @@
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 2483,
      "ancora": "// jogador mais próximo assume após breve disputa",
-     "linha_atual": 2507
+     "linha_atual": 2321
     }
    ],
    "evidencia": "22,2 bolas por partida pousando fora e entregues a alguem a 6,8 m",
@@ -481,8 +476,8 @@
    "risco": "medio: mais reinicios = mais bola parada; vigie passes",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 1729,
-    "linha_fim": 1810,
+    "linha_inicio": 1771,
+    "linha_fim": 1852,
     "titulo": "D12 🔴 Sorteio censurado nº 2 — a bola mandada para a lateral, e recolhida"
    }
   },
@@ -517,8 +512,8 @@
    "risco": "ALTO para onTargetRate, que ja esta em 0,326. Varrer sigmaGraus com calibrar.py.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 1811,
-    "linha_fim": 1874,
+    "linha_inicio": 1853,
+    "linha_fim": 1916,
     "titulo": "D13 🟠 Sorteio censurado nº 3 — o erro de chute, sorteado grande e comprimido"
    }
   },
@@ -562,8 +557,8 @@
    "risco": "medio, controlado pela ordem: assercao (segura) antes de remocao",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 1875,
-    "linha_fim": 1912,
+    "linha_inicio": 1917,
+    "linha_fim": 1954,
     "titulo": "D14 🔴 Sete contenções em `step` que consertam bugs nunca procurados"
    }
   },
@@ -595,8 +590,8 @@
    "risco": "baixo enquanto for so diagnostico",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 1937,
-    "linha_fim": 1965,
+    "linha_inicio": 1979,
+    "linha_fim": 2007,
     "titulo": "D15 🟡 As 255 linhas de antiteleporte"
    }
   },
@@ -641,8 +636,8 @@
    "risco": "medio-alto: mexe em movimentacao. Rodar forma.js antes e depois.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 1966,
-    "linha_fim": 2043,
+    "linha_inicio": 2008,
+    "linha_fim": 2085,
     "titulo": "D16 🔴 Quatro camadas mentem para o integrador porque falta um parâmetro"
    }
   },
@@ -657,7 +652,7 @@
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 3193,
      "ancora": "this._integrate(p, tx, ty, dt, freeze);",
-     "linha_atual": 3214
+     "linha_atual": 3028
     },
     {
      "arquivo": "src/scripts/layers/07-cds-physics-timeline-581.js",
@@ -685,8 +680,8 @@
    "risco": "baixo em comportamento, alto em atrito. UM metodo por commit.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2044,
-    "linha_fim": 2106,
+    "linha_inicio": 2086,
+    "linha_fim": 2148,
     "titulo": "D17 🟡 Promover quem já é dono do método"
    }
   },
@@ -701,7 +696,7 @@
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 993,
      "ancora": "_cross(o) {",
-     "linha_atual": 993
+     "linha_atual": 981
     }
    ],
    "evidencia": "OS-12, OS-27, OS-44, OS-45, OS-81, OS-83, OS-200, R18.25, R18.31 numa funcao so",
@@ -717,8 +712,8 @@
    "risco": "baixo por commit, alto se feito de uma vez. Nunca mais de um bloco por commit.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2107,
-    "linha_fim": 2153,
+    "linha_inicio": 2149,
+    "linha_fim": 2195,
     "titulo": "D18 🟡 `_cross` tem 255 linhas e nove correções embutidas"
    }
   },
@@ -752,8 +747,8 @@
    "risco": "ALTO: toca todo lance. NAO medir junto com D20 (200 partidas de intervalo).",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2154,
-    "linha_fim": 2240,
+    "linha_inicio": 2196,
+    "linha_fim": 2282,
     "titulo": "D19 🟠 A partida murcha em vez de crescer"
    }
   },
@@ -768,7 +763,7 @@
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 3193,
      "ancora": "this._integrate(p, tx, ty, dt, freeze);",
-     "linha_atual": 3214
+     "linha_atual": 3028
     }
    ],
    "evidencia": "forma.js, 1.198 amostras: comprimento 37,8 com bola -> 37,4 sem; largura 49,4 -> 45,2",
@@ -794,8 +789,8 @@
    "risco": "ALTO. _comprimirBloco desloca ALVO, nunca corpo — senao cai no bug que a camada 84 contem.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2241,
-    "linha_fim": 2330,
+    "linha_inicio": 2283,
+    "linha_fim": 2372,
     "titulo": "D20 🟠 O bloco não compacta quando o time perde a bola"
    }
   },
@@ -823,8 +818,8 @@
    "risco": "AVISO: a fadiga ja e invariante ao clockRate. Se mexer no relogio, NAO mexa no dreno junto.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2331,
-    "linha_fim": 2392,
+    "linha_inicio": 2373,
+    "linha_fim": 2434,
     "titulo": "D21 🔴 `clockRate`: 23 minutos de física para 90 minutos de partida"
    }
   },
@@ -857,8 +852,8 @@
    "risco": "baixo: pode se resolver sozinho com D13",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2393,
-    "linha_fim": 2429,
+    "linha_inicio": 2435,
+    "linha_fim": 2471,
     "titulo": "D22 🟠 Acerto ao alvo abaixo do mínimo de design"
    }
   },
@@ -879,8 +874,8 @@
    "risco": "deadBallRecovery +0,02 ja derrubou empates de 29,2% para 17,5%",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2430,
-    "linha_fim": 2478,
+    "linha_inicio": 2472,
+    "linha_fim": 2520,
     "titulo": "D23 🟡 A bola de neve: o placar abre demais?"
    }
   },
@@ -909,8 +904,8 @@
    "risco": "a recomendacao MENOS fundamentada do documento",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2479,
-    "linha_fim": 2518,
+    "linha_inicio": 2521,
+    "linha_fim": 2560,
     "titulo": "D24 🔵 Tarja preta: 24% a 43% da caixa do campo"
    }
   },
@@ -925,7 +920,7 @@
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 2416,
      "ancora": "D25 · `deflect` NÃO tinha.",
-     "linha_atual": 2418
+     "linha_atual": 2232
     }
    ],
    "evidencia": "o comentario justifica a excecao para 'shot' (o alvo do gol fica alem da linha) e nao justifica 'deflect'",
@@ -945,8 +940,8 @@
    "feito_em": "FEITO E SEM EFEITO MEDIDO. A excecao foi removida (o comentario dela agora explica por que 'shot' tem razao de ser e 'deflect' nao tinha), mas as 14 metricas ficaram IDENTICAS ao digito em 40 partidas pareadas. A sonda tools/fisica/ramo-d25.js explica: ha 77,5 quadros por partida com bola de desvio viajando FORA do campo, e _ballOut e chamado em voo ZERO vezes — as saidas ja vinham por _looseRoll (7,9/partida) e por bola parada (19,6/partida). A linha editada nao e alcancada no caso do desvio: alguma das 4 sobrescritas de _ballTravel resolve o segmento antes. CONSEQUENCIA PARA D08: a premissa de que o desvio escapava da maquina de reinicio esta ERRADA. O orcamento de laterais nao se abre por aqui.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2519,
-    "linha_fim": 2605,
+    "linha_inicio": 2561,
+    "linha_fim": 2647,
     "titulo": "D25 🟡 ✅ `_ballTravel` isenta explicitamente o desvio de sair do campo"
    }
   },
@@ -961,13 +956,13 @@
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 503,
      "ancora": "this.decideT = CAL.timing.decisionInterval * fat * iqReact / rit;",
-     "linha_atual": 503
+     "linha_atual": 491
     },
     {
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 2582,
      "ancora": "this.decideT=0.28;",
-     "linha_atual": 2603
+     "linha_atual": 2417
     }
    ],
    "evidencia": "a curva de sobrevivencia da posse tem um vale exatamente em 0,28 s — o relogio de decisao vazando para a estatistica",
@@ -987,8 +982,8 @@
    "risco": "medio: mexe no ritmo de decisao",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2606,
-    "linha_fim": 2659,
+    "linha_inicio": 2648,
+    "linha_fim": 2701,
     "titulo": "D26 🟡 `decideT` é escrito em dois lugares e reescrito todo quadro"
    }
   },
@@ -1016,8 +1011,8 @@
    "risco": "dois erros se compensavam: poucas faltas + cartoes demais por falta",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2660,
-    "linha_fim": 2709,
+    "linha_inicio": 2702,
+    "linha_fim": 2751,
     "titulo": "D27 🟠 As faltas não saem do parâmetro — saem do número de duelos"
    }
   },
@@ -1025,7 +1020,7 @@
    "id": "D28",
    "sev": "higiene",
    "fase": "F0",
-   "estado": "aberto",
+   "estado": "feito",
    "titulo": "deadBallRecovery: delta de 0,02 move o placar de design em 2 pontos",
    "locais": [
     {
@@ -1041,13 +1036,14 @@
    "criterio": [
     "calibration/sensibilidade.json existe com o delta medido de cada constante"
    ],
+   "feito_em": "calibration/sensibilidade.json · 10 constantes com o delta MEDIDO de cada uma e a licao que ela deixou. O conhecimento existia so em comentarios espalhados; agora esta num lugar so.",
    "depende": [],
    "risco": "nenhum: e documentacao",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2710,
-    "linha_fim": 2752,
-    "titulo": "D28 🟡 `deadBallRecovery` — a calibração mais frágil do jogo"
+    "linha_inicio": 2752,
+    "linha_fim": 2812,
+    "titulo": "D28 🟡 ✅ `deadBallRecovery` — a calibração mais frágil do jogo"
    }
   },
   {
@@ -1076,8 +1072,8 @@
    "risco": "fazer DEPOIS de D08 ou o alvo tera de mudar duas vezes",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2753,
-    "linha_fim": 2791,
+    "linha_inicio": 2813,
+    "linha_fim": 2851,
     "titulo": "D29 🟡 Escanteios acima da faixa de design, dentro da faixa real"
    }
   },
@@ -1091,8 +1087,8 @@
     {
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": 369,
-     "ancora": "_requestSetPiece(kind, data, execute) {",
-     "linha_atual": 369
+     "ancora": "_requestSetPiece() { return false; }",
+     "linha_atual": 378
     }
    ],
    "evidencia": "15 linhas mortas + 2 pontos de chamada que testam input==null sem necessidade + camadas 63/64 (255 linhas) de status desconhecido",
@@ -1108,8 +1104,8 @@
    "risco": "baixo se medido antes",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2792,
-    "linha_fim": 2828,
+    "linha_inicio": 2852,
+    "linha_fim": 2888,
     "titulo": "D30 🟡 O minigame de bola parada está desligado desde a R18"
    }
   },
@@ -1124,7 +1120,7 @@
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": null,
      "ancora": "function chooseOut(tm,mode)",
-     "linha_atual": 4410
+     "linha_atual": 4224
     }
    ],
    "evidencia": "usa estado privado da IIFE; e a maior fatia nao lida deste documento",
@@ -1139,8 +1135,8 @@
    "risco": "separar um modulo que depende de metodos prestes a mudar de lugar e trabalho dobrado",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2829,
-    "linha_fim": 2859,
+    "linha_inicio": 2889,
+    "linha_fim": 2919,
     "titulo": "D31 🟡 A IA de treinador mora dentro do módulo do motor"
    }
   },
@@ -1175,8 +1171,8 @@
    "feito_em": "lint em tools/verify.py (passo 6). Na PRIMEIRA execucao ele pegou uma violacao real e viva: a camada 66 lia restarts.shotBlockCorner por `root.CAL && ...`, que NUNCA acerta porque window.CAL e undefined (medido). Caia no 0,66 codificado em silencio — a calibracao estava desconectada e mexer no 20-core.js nao teria efeito ali. O padrao por acaso era igual ao valor calibrado, entao o defeito era invisivel. Corrigido para ENGINE_CALIBRATION; o lint impede a reintroducao.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2860,
-    "linha_fim": 2880,
+    "linha_inicio": 2920,
+    "linha_fim": 2940,
     "titulo": "D32 🟡 ✅ A armadilha de escopo que derruba camadas novas"
    }
   },
@@ -1204,8 +1200,8 @@
    "risco": "baixo mas nao zero: algo pode ler por nome",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2932,
-    "linha_fim": 2966,
+    "linha_inicio": 2992,
+    "linha_fim": 3026,
     "titulo": "D33 🟡 Doze arquivos que só publicam número de versão"
    }
   },
@@ -1227,8 +1223,8 @@
    "risco": "ALTO se alguem apagar as 81 direto. O primeiro plano escreveu este numero como se fosse fato — era teto.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2967,
-    "linha_fim": 3007,
+    "linha_inicio": 3027,
+    "linha_fim": 3067,
     "titulo": "D34 🔴 Até 81 sobrescritas nunca alcançadas"
    }
   }

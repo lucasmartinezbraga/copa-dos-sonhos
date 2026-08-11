@@ -4792,28 +4792,16 @@ class MatchSim {
 
   /* Suspende somente o relógio/física enquanto o jogador prepara a cobrança.
      O callback resolve uma única vez e devolve o controle ao motor. */
-  _requestSetPiece(kind, data, execute) {
-    /* MOTOR VISUAL · minigames de falta e pênalti DESATIVADOS: as cobranças
-       resolvem no motor com voo real e goleiro convergindo. A arquitetura de
-       requisição fica preservada para reconexão futura sobre a base coerente. */
-    return false;
-    if (!this.opts.onSetPiece || data.team !== this.interactiveTeam) return false;
-    this.waiting = true;
-    this.dead = 9999;
-    let resolved = false;
-    const request = Object.assign({ kind }, data, {
-      resolve: input => {
-        if (resolved) return;
-        resolved = true;
-        this.dead = 0;
-        this.waiting = false;
-        execute(input || {});
-      }
-    });
-    try { this.opts.onSetPiece(request); }
-    catch (_) { request.resolve({ aimX:.5, aimY:.48, power:.72, curve:0, assisted:true }); }
-    return true;
-  }
+  /* MOTOR VISUAL · minigames de falta e pênalti DESATIVADOS desde a R18: as
+     cobranças resolvem no motor, com voo real e goleiro convergindo.
+
+     D03 · aqui havia 17 linhas montando a requisição interativa, todas depois
+     de um `return false;` — inalcançáveis, e escritas de forma a parecerem
+     vivas. Foram removidas. A reconexão futura de um minigame não passa por
+     este método: passa por `_freeKick` e `_penalty`, que são os donos do lance.
+     Os dois pontos de chamada continuam testando `input == null` por hábito;
+     ver D30, que é a decisão de produto pendente. */
+  _requestSetPiece() { return false; }
 
   _switchSides() {
     for (const tm of this.teams) {
@@ -5518,23 +5506,12 @@ class MatchSim {
            cruzamento rasteiro tambem era sorteada antes da bola sair do pe.
            Forca menor que a de um chute armado — e uma finalizacao de
            primeira, nao uma bomba. */
-        if(this._os200ResolverChute){
-          this._os200ResolverChute(atk,{g,tm:this.teams[atk.team],gk,atk:finish,pGoal,
-            dtg:D(atk.x,atk.y,g.x,g.y),longshot:false,volley:false,oneOnOne:true,
-            forca:clamp(20+finish/100*8,18,29),
-            finishPlan:{type:'placed',dispersionMul:1,speedMul:1},gkScrambling:false});
-          return;
-        }
-        if(chance(pGoal)) this._startTravel(atk,{x:g.x+lcDir*.9,y:clamp(g.y+R(-3,3),g.y-3.3,g.y+3.3)},'shot',()=>this._goal(atk,false),null,'shot');
-        else {
-          const goalAim={x:g.x+lcDir*.9,y:clamp(g.y+R(-2.5,2.5),g.y-3.3,g.y+3.3)};
-          const shotSpeed=clamp(34+facet(atk,'shot')/100*16,32,54);
-          const st=this._gkInterceptTarget(gk,atk.x,atk.y,goalAim,shotSpeed,1.95);
-          if(chance(.48+(gk?facet(gk,'gk')/300:0))&&st){
-            this._startTravel(atk,st,'shot',()=>this._gkResolveSave(gk,atk,{atk:finish,oneOnOne:true,saveTarget:st,g,tm:this.teams[atk.team],cornerChance:CAL.restarts.lowCrossSaveCorner}),null,'shot',{outcome:'save',actor:gk,contactRadius:1.95,interceptT:st.t});
-          } else this._startTravel(atk,{x:g.x+lcDir*2,y:g.y+(chance(.5)?1:-1)*R(3.4,6.4)},'shot',()=>{this._emit('miss',{by:atk});this._goalKickOrRestart(1-o.team);},null,'shot');
-        }
-        /* fim da resolução física do chute rasteiro */
+        /* D03 · abaixo havia 10 linhas do desfecho antigo do cruzamento
+           rasteiro, guardadas por um `if` que nunca e falso. Removidas. */
+        this._os200ResolverChute(atk,{g,tm:this.teams[atk.team],gk,atk:finish,pGoal,
+          dtg:D(atk.x,atk.y,g.x,g.y),longshot:false,volley:false,oneOnOne:true,
+          forca:clamp(20+finish/100*8,18,29),
+          finishPlan:{type:'placed',dispersionMul:1,speedMul:1},gkScrambling:false});
       },atk,'through');
       return;
     }
@@ -5631,44 +5608,13 @@ class MatchSim {
         /* OS-200 · o cabeceio tambem sorteava o desfecho antes. A forca vem
            do cabeceio, nao do chute: bola de cabeca sai bem mais devagar, e
            usar a faixa do chute daria ao goleiro tempo nenhum. */
-        if(this._os200ResolverChute){
-          this._os200ResolverChute(atk,{g,tm:this.teams[atk.team],gk,atk:facet(atk,'head_atk'),pGoal,
-            dtg:D(atk.x,atk.y,g.x,g.y),longshot:false,volley:false,oneOnOne:false,
-            forca:clamp(13+facet(atk,'head_atk')/100*7,12,21),
-            finishPlan:{type:'power',dispersionMul:1,speedMul:1},gkScrambling:false});
-          return;
-        }
-        if(chance(pGoal))this._startTravel(atk,{x:g.x+hdDir*.9,y:clamp(g.y+R(-3,3),g.y-3.3,g.y+3.3)},'shot',()=>this._goal(atk,false),null,'shot');
-        else{
-          const hr=R();
-          const goalAim={x:g.x+hdDir*.9,y:clamp(g.y+R(-3,3),g.y-3.3,g.y+3.3)};
-          const shotSpeed=clamp(34+facet(atk,'shot')/100*16,32,54);
-          const st=this._gkInterceptTarget(gk,atk.x,atk.y,goalAim,shotSpeed,1.95);
-          const saveShare=st?.27+(gk?facet(gk,'gk')/100:.4)*.12:0;
-          if(hr<saveShare&&st){
-            this._startTravel(atk,st,'shot',()=>this._gkResolveSave(gk,atk,{atk:facet(atk,'head_atk'),oneOnOne:false,saveTarget:st,g,tm:this.teams[atk.team],cornerChance:CAL.restarts.aerialSaveCorner}),null,'shot',{outcome:'save',actor:gk,contactRadius:1.95,interceptT:st.t});
-          }
-          else if(hr<saveShare+.18&&def){
-            const bt=this._physicalBlockPoint(atk,g,def,.08,.62);
-            if(bt&&this._actorReachable(def,atk.x,atk.y,bt,34)){
-              this._startTravel(atk,bt,'shot',()=>{
-                const _cv=this._physicalContactValid(def,2.05,this.ball.z),contactD=_cv.horizontal;
-                if(!_cv.ok){
-                  this.visualIntegrity.failedContacts++;
-                  this._emit('visual_contact_failed',{kind:'header_block',by:def,distance:contactD});
-                  const miss={x:g.x+hdDir*2,y:g.y+(chance(.5)?1:-1)*R(4.5,10)};
-                  this._continueTravel(miss,'shot',()=>{this._emit('miss',{by:atk,reason:'header_blocker_did_not_reach'});this._goalKickOrRestart(1-o.team);},{outcome:'miss'},30);
-                  return;
-                }
-                this._recordVisualContact('header_block',def,this.ball.x,this.ball.y,{distance:contactD,z:this.ball.z,maxZ:_cv.maxZ,surface:_cv.surface});
-                this._emit('blocked',{by:def,kind:'header',contact:{x:this.ball.x,y:this.ball.y,distance:contactD}});
-                if(chance(CAL.restarts.aerialBlockCorner))this._setCorner(o.team);
-                else this._deflectTo(clamp(this.ball.x-hdDir*R(2,6),2,FL-2),clamp(this.ball.y+R(-5,5),2,FW-2),10);
-              },null,'shot',{outcome:'block',actor:def,contactRadius:2.05});
-            } else this._startTravel(atk,{x:g.x+hdDir*2,y:g.y+(chance(.5)?1:-1)*R(4.5,10)},'shot',()=>{this._emit('miss',{by:atk,reason:'no_physical_header_block'});this._goalKickOrRestart(1-o.team);},null,'shot');
-          }
-          else this._startTravel(atk,{x:g.x+hdDir*2,y:g.y+(chance(.5)?1:-1)*R(4.5,10)},'shot',()=>{this._emit('miss',{by:atk});this._goalKickOrRestart(1-o.team);},null,'shot');
-        }
+        /* D03 · abaixo havia 30 linhas do desfecho antigo do cabeceio (defesa,
+           bloqueio com contato visual, rebote), guardadas por um `if` que nunca
+           e falso. Removidas — a resolucao e da camada 88 desde a OS-200. */
+        this._os200ResolverChute(atk,{g,tm:this.teams[atk.team],gk,atk:facet(atk,'head_atk'),pGoal,
+          dtg:D(atk.x,atk.y,g.x,g.y),longshot:false,volley:false,oneOnOne:false,
+          forca:clamp(13+facet(atk,'head_atk')/100*7,12,21),
+          finishPlan:{type:'power',dispersionMul:1,speedMul:1},gkScrambling:false});
       }else{if(setPiece)this.stats[o.team].setPieceFirstContactLost++;if(def){def.rating+=.08;this._emit('header_clear',{by:def});/* §R19.04 · sob pressao, perto da propria linha, o corte de cabeca sai. */if(!(this._r19ClearOut&&this._r19ClearOut(def,'header')))this._turnover(def);}else this._goalKickOrRestart(1-o.team);}
     },atk,'launch');
   }
@@ -6442,147 +6388,15 @@ class MatchSim {
 
        O ramo antigo fica logo abaixo, intacto, como rede: se a camada de
        fisica nao estiver carregada, o motor se comporta como antes. */
-    if(this._os200ResolverChute){
-      this._os200ResolverChute(o,{g,tm,gk,atk,gkF,pGoal,dtg,longshot,volley,oneOnOne,finishPlan,gkScrambling});
-      o._throughReceiverUntil=0;
-      return;
-    }
-    const shotQuality=clamp(atk/100,.3,1),dispersion=R(-4.8,4.8)*(1.15-shotQuality*.62)*finishPlan.dispersionMul;
-    if(chance(pGoal)){
-      let goalY;
-      if(finishPlan.type==='placed'){
-        const far=(o.y<g.y?1:-1); goalY=clamp(g.y+far*R(1.55,3.05),g.y-3.35,g.y+3.35);
-      }else if(finishPlan.type==='chip') goalY=clamp(g.y+R(-1.45,1.45),g.y-3.35,g.y+3.35);
-      else goalY=clamp(g.y+R(-3.15,3.15)*(1.15-shotQuality*.45)*finishPlan.dispersionMul,g.y-3.35,g.y+3.35);
-      this._startTravel(o,{x:g.x+tm.attackDir*.9,y:goalY},'shot',()=>this._goal(o,longshot||facet(o,'shot')>90),null,'shot');
-    }else{
-      const gkQual=gk?(gkScrambling?.15:facet(gk,oneOnOne?'gk_one_on_one':'gk')/100):.4;
-      const r2=R();
-      // O alvo da defesa é calculado SOBRE a trajetória do chute. A fatia de
-      // save só existe quando o goleiro consegue interceptá-la no mesmo tempo.
-      const goalAim={x:g.x+tm.attackDir*.9,y:clamp(g.y+dispersion,g.y-3.35,g.y+3.35)};
-      const shotSpeed=clamp((34+facet(o,'shot')/100*16)*finishPlan.speedMul,26,59);
-      const saveTarget=this._gkInterceptTarget(gk,o.x,o.y,goalAim,shotSpeed,1.95);
-      const saveReachable=!!saveTarget;
-      if(!saveReachable){
-        /* OS-18 · o bloqueio nao depende do alcance do goleiro. Mesma busca de
-           defensor na linha do chute do ramo alcancavel (:6165), mesmo raio de
-           2,2 m, mesmo desfecho por CAL.restarts.shotBlockCorner. Sem defensor
-           na linha, nada muda. */
-        if(chance(CAL.shooting.blockedShare)){
-          const _os18Def=this.teams[1-o.team].players.filter(p=>!p.red&&!p.isGK);
-          let _os18B=null,_os18L=99,_os18T=null;
-          for(const d of _os18Def){
-            const t=clamp(this._projT(o.x,o.y,g.x,g.y,d.x,d.y),0,1);
-            if(t<.12||t>.88)continue;
-            const px=lerp(o.x,g.x,t),py=lerp(o.y,g.y,t),ld=D(d.x,d.y,px,py);
-            if(ld<_os18L){_os18L=ld;_os18B=d;_os18T={x:px,y:py};}
-          }
-          if(_os18B&&_os18L<=2.2){
-            this._startTravel(o,_os18T,'shot',()=>{
-              const _cv=this._physicalContactValid(_os18B,2.05,this.ball.z);
-              if(!_cv.ok){
-                if(this.visualIntegrity)this.visualIntegrity.failedContacts++;
-                this._emit('visual_contact_failed',{kind:'block',by:_os18B,distance:_cv.horizontal});
-                this._looseBall(this.ball.x,this.ball.y);
-                return;
-              }
-              this._recordVisualContact('block',_os18B,this.ball.x,this.ball.y,{distance:_cv.horizontal,z:this.ball.z,maxZ:_cv.maxZ,surface:_cv.surface});
-              this._emit('blocked',{by:_os18B,contact:{x:this.ball.x,y:this.ball.y,distance:_cv.horizontal}});
-              if(chance(CAL.restarts.shotBlockCorner))this._setCorner(o.team);
-              else this._looseBall(this.ball.x,this.ball.y);
-            },null,'shot',{outcome:'block',actor:_os18B,contactRadius:2.05});
-            o._throughReceiverUntil=0;
-            return;
-          }
-        }
-        const _edge=clamp((atk-gkF)/100,-.35,.55);
-        /* OS-23 · usa o MESMO pGoal contabilizado como xG em :6122. Antes
-           este ramo sorteava o gol por uma probabilidade propria, e por isso
-           os gols saiam acima do xG registrado. */
-        const _pg=clamp(pGoal,.08,.46);
-        const _y=clamp(g.y+(chance(.5)?1:-1)*R(2.55,3.28),g.y-3.35,g.y+3.35);
-        const _aim={x:g.x+tm.attackDir*.9,y:_y};
-        if(r2<_pg){
-          this._startTravel(o,_aim,'shot',()=>this._goal(o,longshot||facet(o,'shot')>90),null,'shot');
-        }else if(r2<_pg+.30){
-          this._startTravel(o,_aim,'shot',()=>{if(chance(.5))this._setCorner(o.team);else this._goalKickOrRestart(1-o.team);},null,'shot');
-        }else{
-          this._startTravel(o,{x:g.x+tm.attackDir*.9,y:g.y+(chance(.5)?1:-1)*R(3.7,4.3)},'shot',()=>{this._emit('miss',{by:o});this._goalKickOrRestart(1-o.team);},null,'shot');
-        }
-        o._throughReceiverUntil=0;
-        return;
-      }
-      const saveCut=saveReachable?clamp(CAL.shooting.savedShare+gkQual*CAL.shooting.keeperSaveInfluence+(oneOnOne?.04:0)+finishPlan.saveBias,.04,.72):0;
-      const blockCut=clamp(saveCut+CAL.shooting.blockedShare*(oneOnOne?.55:1)+finishPlan.blockBias,saveCut,.88);
-      const postCut=clamp(blockCut+CAL.shooting.postShare+finishPlan.postBias,blockCut,.94);
-      if(r2<saveCut){
-        this._startTravel(o,saveTarget,'shot',()=>this._gkResolveSave(gk,o,{atk,oneOnOne,saveTarget,g,tm}),null,'shot',{
-          outcome:'save', actor:gk, contactRadius:1.9, interceptT:saveTarget.t
-        });
-      }else if(r2<blockCut){
-        const defenders=this.teams[1-o.team].players.filter(p=>!p.red&&!p.isGK);
-        let blocker=null,bestLine=99,blockTarget=null;
-        for(const d of defenders){
-          const t=clamp(this._projT(o.x,o.y,g.x,g.y,d.x,d.y),0,1);
-          if(t<.12||t>.88)continue;
-          const px=lerp(o.x,g.x,t),py=lerp(o.y,g.y,t),ld=D(d.x,d.y,px,py);
-          if(ld<bestLine){bestLine=ld;blocker=d;blockTarget={x:px,y:py};}
-        }
-        // Sem defensor próximo da linha não existe bloqueio. A bola continua
-        // como finalização para fora, em vez de parar num ponto sem agente.
-        if(!blocker||bestLine>2.2){
-          const missY=g.y+(chance(.5)?1:-1)*R(3.8,7.4);
-          this._startTravel(o,{x:g.x+tm.attackDir*3,y:missY},'shot',()=>{
-            this._emit('miss',{by:o,reason:'no_physical_block'});
-            this._goalKickOrRestart(1-o.team);
-          },null,'shot',{outcome:'miss'});
-          o.rating-=.06;
-        }else{
-          /* OS-14 · defensor em cima do finalizador: parte desse contato e
-             falta, nao bloqueio. Entra antes do _startTravel, entao nao
-             converte bloqueio limpo — divide a populacao. Dentro da area,
-             _awardFoul (:6706) roteia sozinho para _penalty. */
-          if(chance(this._foulProb(blocker)*1)){this._awardFoul(blocker,o);return;}
-          this._startTravel(o,blockTarget,'shot',()=>{
-            const _cv=this._physicalContactValid(blocker,2.05,this.ball.z),contactD=_cv.horizontal;
-            if(!_cv.ok){
-              if(this.visualIntegrity)this.visualIntegrity.failedContacts++;
-              this._emit('visual_contact_failed',{kind:'block',by:blocker,distance:contactD});
-              const missY=g.y+(chance(.5)?1:-1)*R(3.8,7.0);
-              this._continueTravel({x:g.x+tm.attackDir*3,y:missY},'shot',()=>{
-                this._emit('miss',{by:o,reason:'blocker_did_not_reach'});
-                this._goalKickOrRestart(1-o.team);
-              },{outcome:'miss'},Math.max(24,this.ball.speed*.72));
-              return;
-            }
-            this._recordVisualContact('block',blocker,this.ball.x,this.ball.y,{distance:contactD,z:this.ball.z,maxZ:_cv.maxZ,surface:_cv.surface});
-            this._emit('blocked',{by:blocker,contact:{x:this.ball.x,y:this.ball.y,distance:contactD}});
-            if(chance(CAL.restarts.shotBlockCorner))this._setCorner(o.team);
-            else this._looseBall(this.ball.x,this.ball.y);
-          },null,'shot',{outcome:'block',actor:blocker,contactRadius:2.05});
-        }
-      }else if(r2<postCut){
-        this._startTravel(o,{x:g.x,y:g.y+(chance(.5)?1:-1)*3.66},'shot',()=>{
-          this._recordVisualContact('post',null,this.ball.x,this.ball.y,{shooterId:o.idx??null});
-          this._emit('post',{by:o,contact:{x:this.ball.x,y:this.ball.y}});
-          /* R18.15.5 · A trave não concede escanteio. Sem toque defensivo,
-             a bola que morre além da linha de fundo gera tiro de meta; caso
-             contrário, o rebote continua vivo dentro do campo. Mantemos a
-             mesma frequência de saída/rebote da calibração anterior, mudando
-             apenas o reinício incorreto. */
-          if(chance(CAL.restarts.postCorner))this._goalKickOrRestart(1-o.team);
-          else{
-            const rx=clamp(this.ball.x-tm.attackDir*R(3,9),2,FL-2);
-            const ry=clamp(this.ball.y+R(-7,7),2,FW-2);
-            this._deflectTo(rx,ry,12);
-          }
-        },null,'shot',{outcome:'post'});
-      }else{
-        const missY=g.y+(chance(.5)?1:-1)*R(3.8,7.4);
-        this._startTravel(o,{x:g.x+tm.attackDir*3,y:missY},'shot',()=>{this._emit('miss',{by:o});this._goalKickOrRestart(1-o.team);},null,'shot');o.rating-=.08;
-      }
-    }
+    /* D03 · a camada 88 (os200-balistica-real) e obrigatoria em qualquer build
+       produzido por tools/build.py — e ela que define _os200ResolverChute, e o
+       browser_smoke reprova se ela nao estiver instalada.
+       Aqui havia 136 linhas do desfecho antigo (saveCut, blockCut, postCut, os
+       ramos OS-18 e OS-23) guardadas por este `if` "como rede", inalcancaveis
+       desde a OS-200 e escritas de forma a parecerem vivas. Removidas.
+       Sem o guarda, a ausencia da camada vira erro visivel em vez de um chute
+       resolvido por um caminho que ninguem mede ha 20 releases. */
+    this._os200ResolverChute(o,{g,tm,gk,atk,gkF,pGoal,dtg,longshot,volley,oneOnOne,finishPlan,gkScrambling});
     o._throughReceiverUntil=0;
   }
 

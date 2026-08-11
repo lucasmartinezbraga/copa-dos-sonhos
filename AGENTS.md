@@ -39,7 +39,11 @@ editá-lo não faz nada.
 | `_looseBall` | camada 08 converte em desvio e **não chama o motor** |
 | `decideT` | camada 17 reescreve todo quadro |
 
-Nas duas últimas a ferramenta já existia e não foi usada.
+Nas duas últimas a ferramenta já existia e não foi usada. Na **sexta** (D25) ela
+foi usada, respondeu VIVA — e estava certa: o método era alcançado, mas a linha
+editada não. **VIVA é propriedade do método, não de cada linha dele.** Quando o
+alvo é uma linha, instrumente aquela linha (`tools/fisica/ramo-d25.js` é o
+modelo).
 
 ### 2. Edite `src/`, nunca `dist/`
 
