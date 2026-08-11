@@ -1,0 +1,139 @@
+========================================================================
+COPA DOS SONHOS — briefing para IA
+Copie deste ponto ate o final do arquivo e cole na IA.
+========================================================================
+
+Voce vai trabalhar no Copa dos Sonhos, um simulador de futebol web em
+JavaScript. Existe uma investigacao completa de 34 defeitos, cada um com
+endereco de codigo, evidencia MEDIDA e criterio numerico de aceite.
+
+------------------------------------------------------------------------
+PRIMEIRO: descubra o que voce tem
+------------------------------------------------------------------------
+
+CASO A — voce tem o repositorio e um terminal.
+Rode exatamente isto, nesta ordem, e me mostre a saida:
+
+    bash tools/doutor.sh                  # o ambiente esta pronto?
+    cat reports/LEIA-PRIMEIRO.md          # 2 paginas, leia inteiro
+    python3 tools/defeito.py --proximo    # o que fazer agora
+
+Depois carregue o defeito recomendado:
+
+    python3 tools/defeito.py <ID>         # ex.: python3 tools/defeito.py D25
+
+Isso devolve a ficha, o CODIGO COMO ESTA AGORA e so a secao relevante do
+documento. NAO leia INVESTIGACAO-COMPLETA-2026-08.md inteiro: sao 4.969
+linhas e voce vai gastar o contexto de que precisa para trabalhar.
+
+CASO B — voce so recebeu os arquivos (zip), sem terminal.
+Leia nesta ordem:
+
+    1. LEIA-PRIMEIRO.md          as 4 regras e o ciclo
+    2. defeitos.json             os 34 defeitos, legivel por maquina
+    3. INVESTIGACAO-COMPLETA-2026-08.md   SO a secao do defeito escolhido
+       (cada um comeca com "## D01 ", "## D02 ", etc.)
+
+No caso B voce PODE propor um patch, mas NAO pode dizer que funcionou:
+sem rodar a bateria nao ha como saber. Entregue o diff e o comando que
+outra pessoa deve rodar para verificar.
+
+------------------------------------------------------------------------
+AS QUATRO REGRAS QUE NAO SE NEGOCIAM
+------------------------------------------------------------------------
+
+1. DESCUBRA QUEM E O DONO DO METODO ANTES DE EDITAR.
+
+   Este projeto tem 362 sobrescritas de metodo espalhadas por 60 arquivos
+   de camada, empilhadas sobre MatchSim.prototype. Uma camada pode
+   substituir um metodo e NAO CHAMAR a versao de baixo — nesse caso o
+   codigo do motor nao roda, e editar la nao faz absolutamente nada.
+
+   Isso ja aconteceu CINCO vezes neste projeto:
+     - arrasto da R13            -> consumidor no mesmo quadro
+     - if (p === presser)        -> camada 17 responde por todos os ramos
+     - b.z = 0.12 "decorativo"   -> virou fisica quando o integrador ligou
+     - _looseBall                -> camada 08 intercepta e nao chama o core
+     - decideT                   -> camada 17 reescreve todo quadro
+
+   Antes de editar:  node tools/fisica/pilha.js dist/index.html 14
+   E leia o campo DONO da ficha do defeito.
+
+2. EDITE src/, NUNCA dist/.
+   dist/index.html e gerado por python3 tools/build.py. Edicao direta ali
+   e apagada no proximo build.
+
+3. MECA ANTES E DEPOIS.
+
+     bash tools/aceitar.sh --antes      # antes de editar
+     ... edite src/ ...
+     bash tools/aceitar.sh --depois     # build, testes, 300 partidas, 2 placares
+
+   Para mudancas que NAO devem mudar comportamento (apagar codigo morto,
+   promover metodo, extrair funcao), use:
+
+     bash tools/aceitar.sh --depois --identico
+
+   Ele exige as 14 metricas identicas ao digito.
+
+   O criterio: uma metrica SE MOVEU quando |delta| >= 2 x SE.
+   E a regra que ja reprovou uma mudanca neste projeto: mover 2 SE PARA
+   PIOR uma metrica que voce nao declarou que ia mexer REPROVA a mudanca,
+   mesmo que o alvo declarado tenha melhorado.
+
+4. A BATERIA NAO VE A TELA.
+   tools/fisica/bateria.js roda em vm.runInThisContext e nao desenha nada.
+   A bola quicando 54 vezes por minuto de jogo atravessou uma versao
+   inteira sem aparecer em nenhuma das 14 metricas.
+
+     mexeu em trajetoria   -> node tools/fisica/tela/pinga.js dist/index.html 60
+     mexeu em movimentacao -> node tools/fisica/tela/forma.js dist/index.html 90
+     sempre                -> node tests/browser_smoke.js
+
+------------------------------------------------------------------------
+ARMADILHA DE ESCOPO
+------------------------------------------------------------------------
+
+O core e uma IIFE. Sao globais e podem ser usados direto numa camada:
+
+    facet  chance  R  clamp  FL  FW  getAttr  lerp  D  srand
+
+CAL NAO E. Dentro de src/scripts/layers/, leia a calibracao por
+ENGINE_CALIBRATION. Um "CAL." numa camada pode passar pela bateria e
+quebrar so no navegador.
+
+------------------------------------------------------------------------
+COMO VOCE DEVE ESCREVER
+------------------------------------------------------------------------
+
+Marque toda afirmacao sua:
+
+    [LIDO]     li o codigo
+    [MEDIDO]   rodei e contei
+    [HIPOTESE] inferencia minha, pode estar errada
+
+Ha 11 hipoteses abertas na secao 8.5 do documento. NAO as trate como fato.
+
+Resultado negativo e resultado. Este projeto tem quatro tentativas
+revertidas documentadas no Volume VII, duas delas revertidas justamente
+porque a medicao contrariou a expectativa. Se a sua medicao contrariar o
+documento, ESCREVA ISSO — nao ajuste a conclusao para caber na hipotese.
+
+------------------------------------------------------------------------
+NAO FACA COMMIT SE O aceitar.sh REPROVAR
+------------------------------------------------------------------------
+
+Se ele reprovar e o movimento da metrica era o OBJETIVO declarado da sua
+mudanca, diga isso explicitamente no relatorio e no commit. Mas nao
+esconda, e nao chame de sucesso.
+
+------------------------------------------------------------------------
+AO TERMINAR, ME ENTREGUE
+------------------------------------------------------------------------
+
+1. O que mudou, com arquivo e linha.
+2. A saida do aceitar.sh --depois COLADA, nao resumida.
+3. Quais metricas se moveram e quanto, em SE. Nao diga "melhorou".
+4. O que voce NAO fez, e por que.
+
+Comece agora pelo CASO A ou B, conforme o que voce tem.
