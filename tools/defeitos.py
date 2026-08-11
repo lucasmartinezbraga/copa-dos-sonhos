@@ -52,14 +52,22 @@ DEFEITOS = [
                 "CONSEQUENCIA: D01 era pre-requisito de D02 e D08 — a cadeia F2 perde essa "
                 "justificativa.")),
 
- dict(id="D02", sev="futebol", fase="F1", estado="aberto",
-      titulo="_contestLoose entrega a bola sem teto de distancia",
+ dict(id="D02", sev="futebol", fase="F1", estado="refutado",
+      titulo="_contestLoose entrega sem teto de distancia — REFUTADO pela medicao",
       locais=[dict(arquivo=MOTOR, linha=2489, ancora="const zone = cands.filter")],
       evidencia="21,3 entregas por partida com o mais proximo a mais de 3 m; 22,2 bolas pousando fora e resgatadas a 6,8 m",
       dono="core alcancado; 08 e 45 sao VIVAS",
       intercepta=["08","45"],
-      criterio=["entregas com folga >3 m: 21,3 -> <=3","passes >=370","throwIns sobe"],
-      depende=["D01"], risco="ALTO: a bola pode morrer no meio do campo. Rodar pinga.js e narrar 5 partidas."),
+      criterio=["REFUTADO — nao implementar"],
+      depende=[], risco="ALTO e SEM GANHO: o conserto seria inerte e a bola pode morrer no meio do campo.",
+      feito_em=("PREMISSA REFUTADA — NAO IMPLEMENTAR. A sonda tools/fisica/ramo-d02.js mediu no "
+                "TOPO da pilha, 12 partidas: 36,67 entregas efetivas por partida, distancia media "
+                "de quem RECEBEU 0,49 m, MAXIMA 1,53 m, 100% dentro de 1,7 m. Bola ja fora do "
+                "campo: 0,08 chamadas/partida e ZERO entregas. O teto de distancia existe na "
+                "pratica — as camadas 08 e 45 filtram antes, e o filtro sem limite do core nunca e "
+                "alcancado com bola distante. Os numeros do documento (21,3 entregas com folga "
+                "acima de 3 m; 22,2 bolas resgatadas a 6,8 m) vieram da sonda da tentativa A4 e "
+                "NAO REPRODUZEM.")),
 
  dict(id="D03", sev="higiene", fase="F1", estado="feito",
       titulo="~190 linhas mortas guardadas por return antecipado dentro do motor",
@@ -467,6 +475,10 @@ def main() -> int:
 
     saida = {
         "documento": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+        "leia_antes_de_consertar": ("Volume VIII-A · quatro premissas cairam na fase F1 porque as "
+            "sondas originais mediram o codigo do motor, e o motor nao e o que roda. Antes de "
+            "consertar um ramo especifico, escreva uma sonda de 40 linhas que conte AQUELE ramo. "
+            "Modelos: tools/fisica/ramo-d25.js, ramo-g20.js, ramo-rolagem.js, ramo-d02.js."),
         "build_da_analise": "ff808761f579765613f0a13fdab1112a9ab335837300fbd61e2f92e6c8c95e7e",
         "placar_na_analise": {"design": "12/13", "futebol_real": "15/21"},
         "total": len(DEFEITOS),

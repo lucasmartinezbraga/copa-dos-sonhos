@@ -1,98 +1,78 @@
-# ESTADO — onde o projeto está neste dossiê
-
-Gerado de `defeitos.json`, `pilha-estado.json` e `REFERENCIA.json`. Se você
-abriu este zip meses depois, **é o retrato do momento em que ele foi montado**.
+# ESTADO — onde o projeto está
 
 | | |
 |---|---|
 | Data | 11 de agosto de 2026 |
-| Commit | `5b8c822` |
+| Commit | `3c8965d` |
 | Branch | `claude/game-ball-physics-issues-50m9e6` |
 | Placar de design | **12/13** |
 | Placar do futebol real | **15/21** |
-| Motor | **5.086 linhas** (eram 5.262 antes da limpeza do D03) |
+| Motor | **5.086 linhas** (eram 5.262) |
 
-## A fase F1 foi executada
+## A fase F1 foi executada — e metade dela refutou o próprio documento
 
-| # | o que era | resultado |
-|---|---|---|
-| **D03** | ~190 linhas mortas no motor | ✅ **176 linhas removidas** · 14/14 idênticas ao dígito |
-| **D04** | o `_looseBall` do core está morto | ✅ aviso escrito no código, métricas idênticas |
-| **D25** | `deflect` isento de sair do campo | ✅ feito · **sem efeito medido** — a linha não é alcançada |
-| **D28** | constantes sensíveis sem registro | ✅ `calibration/sensibilidade.json`, 10 constantes |
-| **D32** | `CAL` não existe no escopo da camada | ✅ lint no `verify.py` · **pegou um defeito vivo** |
-
-### O que a execução ensinou
-
-- **Dois dos cinco não consertaram nada** — e isso é resultado. O D25 removeu
-  uma exceção inócua; a sonda provou que a linha nem executa.
-- **O D32 pegou um defeito vivo no primeiro lint:** a camada 66 lia a
-  calibração por `root.CAL`, que é `undefined`, e caía num `0,66` congelado.
-- **A limpeza do D03 invalidou uma âncora do D08** — um dos pontos de chamada
-  que ele citava como evidência estava dentro de código morto. A formulação
-  do D08 precisa ser refeita antes de atacá-lo.
-- **A referência de medição estava errada** (medida com `XG_ESCALA = 0,70`,
-  commitada junto com a mudança para `0,651`) e reprovava mudanças inocentes.
-
-## A linha de base (300 partidas, semente pareada)
-
-| métrica | média |
+| # | resultado |
 |---|---|
-| `goals` | 2.933 |
-| `shots` | 23.720 |
-| `onTarget` | 7.743 |
-| `xg` | 3.017 |
-| `corners` | 11.200 |
-| `fouls` | 22.230 |
-| `yellow` | 4.427 |
-| `passes` | 385.460 |
-| `passOk` | 315.263 |
-| `tackles` | 50.033 |
-| `offsides` | 5.080 |
-| `throwIns` | 15.873 |
-| `goalKicks` | 12.940 |
+| **D01** | ✅ premissa **corrigida** · a segunda física estava em `_looseRoll`, não no voo · aprovado |
+| **D02** | ⛔ **REFUTADO** · a entrega mais longa é 1,53 m, não 6,8 m · não implementar |
+| **D03** | ✅ **176 linhas mortas removidas** · 14/14 idênticas ao dígito |
+| **D04** | ✅ aviso no código · idênticas |
+| **D25** | ✅ feito · **sem efeito medido** — a linha não é alcançada |
+| **D28** | ✅ `calibration/sensibilidade.json` · 10 constantes |
+| **D32** | ✅ lint de escopo · **pegou um defeito vivo** |
+
+> ### Leia o Volume VIII-A antes de continuar
+>
+> **Quatro premissas caíram na mesma rodada** (D25, D01, D02, D08). A causa é
+> comum: as sondas originais mediram o código do motor, e o motor não é o que
+> roda. Antes de consertar um ramo específico, escreva uma sonda de 40 linhas
+> que conte **aquele ramo**. Custa 2 minutos e já economizou quatro ciclos de
+> medição de 25 minutos.
+
+**Sete defeitos** ainda formulados por leitura de código precisam de sonda de
+ramo antes de virar conserto: D08, D11, D12, D13, D14, D15, D16 e D26.
 
 ## Os 34 defeitos
 
 | estado | quantos |
 |---|---|
-| aberto | 20 |
-| feito | 8 |
-| parcial | 1 |
-| guarda-corpo | 2 |
+| aberto | 18 |
+| feito | 9 |
 | decidir | 2 |
+| guarda-corpo | 2 |
+| refutado | 1 |
+| parcial | 1 |
 | adiado | 1 |
 | **total** | **34** |
 
-### Próximos, sem dependência pendente
+## A linha de base (300 partidas, semente pareada)
 
-- **D01** [F1] — Duas fisicas de bola convivem (g=20 no core, g=9,81 na camada 88)
-- **D11** [F3] — Sorteio censurado 1: r12 sorteia o chute contextual, r183 existe para veta-lo
-- **D14** [F4] — Sete contencoes em step consertam bugs que nunca foram procurados
-- **D33** [F4] — Treze arquivos, 81 linhas, que so publicam numero de versao
-- **D34** [F4] — Ate 81 sobrescritas nunca alcancadas — TETO SUPERIOR, nao contagem
-- **D18** [F5] — _cross tem 255 linhas e nove correcoes embutidas
-
-## A pilha de sobrescritas (14 partidas)
-
-| estado | quantas |
+| métrica | média |
 |---|---|
-| VIVA | 237 |
-| MORTA | 81 |
-| TERMINAL | 5 |
-| **total** | **323** |
+| `goals` | 2.867 |
+| `shots` | 23.713 |
+| `onTarget` | 7.590 |
+| `xg` | 3.011 |
+| `corners` | 11.343 |
+| `fouls` | 22.143 |
+| `yellow` | 4.487 |
+| `passes` | 384.683 |
+| `passOk` | 314.333 |
+| `tackles` | 49.833 |
+| `offsides` | 5.177 |
+| `throwIns` | 15.810 |
+| `goalKicks` | 12.960 |
 
-> MORTA = **não alcançada em 14 partidas**. Teto superior, não contagem.
+## O que continua de pé
 
-## As 6 métricas que faltam para o futebol real
+Os defeitos medidos por **agregado** não dependem de eu ter acertado qual linha
+executa, e seguem válidos:
 
 | métrica | jogo | faixa real | defeito |
 |---|---|---|---|
-| laterais | 15,87 | 33–48 | **D08** (formulação a rever) |
 | gols no último terço | 14,8% | 19–22% | **D19** |
 | gols no primeiro terço | 20,0% | 11–13% | **D19** |
 | bloco defensivo | 37,4 m | 25–35 m | **D20** |
 | acerto ao alvo (design) | 0,326 | ≥ 0,34 | **D13/D22** |
-| passes | 385 | 700–900 | **D21** (decisão de produto) |
-
-**O alvo realista é 19/21** — `passes` não fecha sem mexer no `clockRate`.
+| tarja preta | 24–43% | 0% | **D24** |
+| laterais | 15,81 | 33–48 | **D08** — fenômeno de pé, causa a refazer |

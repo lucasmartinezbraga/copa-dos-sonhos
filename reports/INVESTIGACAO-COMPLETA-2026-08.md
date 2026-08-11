@@ -992,7 +992,7 @@ o rebote errado). E é pré-requisito de D08.
 
 ---
 
-## D02 🟠 O `_contestLoose` entrega a bola sem limite de distância
+## D02 🟠 ⛔ O `_contestLoose` entrega sem limite de distância — REFUTADO
 
 **Endereço:** `src/scripts/40-match-engine-and-manager-ai.js:2489`
 
@@ -1086,6 +1086,37 @@ partidas com `tools/fisica/narrar.js` antes de aceitar.
 | `passes` | 385,257 | ≥ 370 (não pode desabar) |
 | `throwIns` | 15,910 | **sobe** — é meio caminho de D08 |
 | tempo de bola parada por partida | referência | ±2 SE |
+
+### ⛔ REFUTADO — não implementar
+
+`tools/fisica/ramo-d02.js` mediu no **topo da pilha**, que é o que de fato
+executa. 12 partidas:
+
+```
+chamadas de _contestLoose             340,00 por partida
+entregas efetivas                      36,67
+distancia media de quem RECEBEU         0,49 m
+distancia MAXIMA                        1,53 m
+
+<= 1,7 m (o raio do _looseRoll)   36,67/partida  100,0%
+>  1,7 m                               0/partida    0,0%
+
+com a bola JA FORA do campo:  0,08 chamadas/partida, ZERO entregas
+```
+
+**O teto de distância existe na prática.** As camadas 08 e 45 envolvem
+`_contestLoose` e filtram antes; o `filter` sem limite do core nunca é
+alcançado com a bola distante. A entrega mais longa em doze partidas foi de
+**1,53 m** — dentro do raio de 1,70 m que o `_looseRoll` já aplica.
+
+Os números que sustentavam este defeito — *21,3 entregas com folga acima de
+3 m* e *22,2 bolas pousando fora e resgatadas a 6,8 m* — vieram da sonda da
+tentativa **A4**, que se provou errada em premissa (Volume VII, 7.2). **Eles
+não reproduzem.**
+
+O conserto proposto seria **inerte no melhor caso** e traria um risco real: uma
+bola que deixa de ser entregue pode morrer no meio do campo. Alto risco, ganho
+zero. **Não fazer.**
 
 ---
 
@@ -4052,6 +4083,94 @@ anterior (`ff808761f5797656` nas quatro vezes). Isso não é detalhe:
 
 O `sha256` do bundle é a verificação mais barata que existe e deve ser
 registrada em todo laudo.
+
+---
+---
+
+# VOLUME VIII-A — O ERRO SISTEMÁTICO DESTA INVESTIGAÇÃO
+
+*Escrito depois de executar a fase F1. É a seção mais importante do documento
+para quem for continuá-lo.*
+
+## 8A.1 Quatro premissas caíram na mesma rodada
+
+| defeito | o que o documento afirmava | o que a medição mostrou |
+|---|---|---|
+| **D25** | o desvio escapava da máquina de reinício | a linha editada **não é alcançada**; as saídas já vinham pelo `_looseRoll` |
+| **D01** | ~150 lances/partida no integrador de g = 20 | **zero**; a camada 07 cria o plano físico e o desvio sempre teve g = 9,81 |
+| **D02** | 21,3 entregas/partida com folga > 3 m | **máxima de 1,53 m**; 100% dentro de 1,7 m |
+| **D08** | cinco pontos de chamada com `clamp` para dentro | um deles estava **dentro de código morto** (revelado pelo D03) |
+
+Quatro de nove defeitos executados ou verificados nesta rodada tiveram a
+**premissa refutada**. Isso não é azar.
+
+## 8A.2 A causa: eu medi no lugar errado
+
+As sondas originais desta investigação instrumentaram **o que o código do motor
+sugere** — e o motor não é o que roda. Com 362 sobrescritas em 60 camadas, o
+comportamento observável é o do **topo da pilha**, e ele pode diferir
+arbitrariamente do corpo que você está lendo.
+
+As sondas que refutaram as quatro premissas fazem uma coisa que as originais
+não faziam: **instrumentam o topo da pilha e contam o ramo específico**, não o
+método inteiro.
+
+```js
+/* o padrao que funciona — substitui no OBJETO, nao no prototipo,
+   e mede o que realmente aconteceu depois da chamada */
+const topo = Object.getPrototypeOf(sim)._contestLoose;
+sim._contestLoose = function () {
+  const antes = { x: this.ball.x, y: this.ball.y };
+  const r = topo.call(this);
+  const dono = this.ball.owner;          // <- o RESULTADO, nao a intencao
+  if (dono) registrar(D(dono.x, dono.y, antes.x, antes.y));
+  return r;
+};
+```
+
+## 8A.3 A regra que sai disso
+
+> **`pilha.js` diz se o método é alcançado. Não diz se a sua linha é.**
+> Antes de consertar um ramo específico, escreva uma sonda de 40 linhas que
+> conte **aquele ramo**. Custa 2 minutos e já economizou quatro ciclos de
+> medição de 25 minutos cada.
+
+Os modelos estão no repositório: `tools/fisica/ramo-d25.js`,
+`ramo-g20.js`, `ramo-rolagem.js` e `ramo-d02.js`.
+
+## 8A.4 O que isso faz com o resto do catálogo
+
+**Não invalida os defeitos medidos por agregado.** D19 (a partida murcha), D20
+(o bloco não compacta), D24 (a tarja preta) e D22 (o acerto ao alvo) vêm de
+métricas de saída — 300 partidas, sondas de tela, distribuições. Eles não
+dependem de eu ter acertado qual linha executa.
+
+**Invalida, ou põe sob suspeita, os defeitos formulados por leitura de código.**
+Todo defeito cuja evidência é *"esta linha faz X"* precisa de uma sonda de ramo
+antes de virar conserto. Pela lista, os que ainda não têm:
+
+- **D08** — a formulação inteira precisa ser refeita; o fenômeno segue medido
+- **D11**, **D12**, **D13** — os três sorteios censurados
+- **D14**, **D15** — as contenções e o antiteleporte
+- **D16** — a falsificação de `_integrate`
+- **D26** — o `decideT` em três lugares
+
+**Sete defeitos** para os quais o próximo passo não é consertar: é medir o ramo.
+
+## 8A.5 O que continua valendo, e por quê
+
+O método não falhou — **ele funcionou**. Quatro premissas erradas foram
+descobertas em uma rodada, ao custo de quatro sondas de 40 linhas, e nenhuma
+delas chegou a virar um conserto ruim no jogo. Uma delas (D02) teria sido
+ativamente perigosa: alto risco de a bola morrer no meio do campo, em troca de
+nada.
+
+O que falhou foi a **primeira camada** da investigação — a que lia código e
+inferia comportamento. A segunda camada, a que mede, pegou os quatro erros.
+
+> É o mesmo princípio que o documento defende desde a primeira página, agora
+> aplicado contra ele próprio: **medição vence leitura, inclusive quando quem
+> leu fui eu.**
 
 ---
 ---
