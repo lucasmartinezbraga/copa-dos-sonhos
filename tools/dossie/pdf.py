@@ -47,7 +47,7 @@ FIGURAS = {
         "Figura 8 — Os 34 defeitos por fase e severidade. Cada quadrado é um defeito. "
         "As cores da figura vêm da paleta validada para daltonismo (violeta/verde/azul/ouro) "
         "e não dos emoji da legenda ao lado — vermelho, laranja e amarelo juntos não passam "
-        "na separação CVD.")),
+        "na separação CVD."),
 }
 
 CSS = """
