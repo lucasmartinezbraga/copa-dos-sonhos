@@ -130,6 +130,54 @@ Não é bug de relógio (o tempo simulado por faixa está medido e é uniforme):
 a fadiga, uniforme demais, com r = 0,814 entre stamina e taxa de chutes.
 Laudo em `reports/OS-204-teste-do-futebol-real.md`.
 
+### ANTES de editar qualquer método do core, rode isto
+
+```bash
+node tools/fisica/pilha.js dist/index.html 14
+```
+
+Ela põe um contador em cada uma das 323 sobrescritas e diz quais rodam. Das 81
+camadas, **73% das sobrescritas estão vivas** — editar o core e não acontecer
+nada é o modo de falha mais comum deste projeto. Já custou **cinco** rodadas de
+medição:
+
+| editei | quem interceptava |
+|---|---|
+| arrasto da R13 (OS-200) | consumidor no mesmo quadro |
+| `if (p === presser)` em `_defendTarget` | R13 responde por todos os ramos |
+| `b.z = 0.12` decorativo | virou física ao ligar o integrador |
+| `_looseBall` (A4) | camada 08 converte em desvio e **não chama o core** |
+| `decideT` (OS-206) | R13 reescreve todo quadro, só para baixo |
+
+Nas duas últimas eu já tinha a `pilha.js` escrita e não a usei.
+
+### Os quatro consertos de futebol (A1–A4)
+
+**A1 · impedimento** — `_bestPass` tem 25+ termos e nenhum era a linha de
+impedimento; `_offsideLine()` só era lido pela movimentação. O portador jogava
+no impedido e o juiz marcava (probabilidade travada em 0,97). Um termo em
+`_bestPass`: **10,0 → 5,11 por partida**. Efeito colateral quantificado: 4,9
+impedimentos a menos × ~8,5% de conversão = +0,42 gol — a conversão estava
+calibrada contra um jogo que matava 10 ataques por partida no apito.
+
+**A2 · goleiro** — `_os200Defesa` parava no **primeiro** instante alcançável, que
+tem folga ≈ 0 por construção. Todo chute era resolvido no pior ponto da defesa.
+Guardar a **melhor** folga: `golPorChuteNoAlvo` **0,428 → 0,378**, gols
+3,27 → 2,833, design 11/13 → **12/13**, futebol real 12/21 → **15/21**.
+`XG_ESCALA` re-derivada para 0,651 porque o modelo de defesa mudou.
+
+> **Sinal barato:** subir a envergadura do goleiro de 1,05 para 1,45 **piorou** o
+> jogo. Quando aumentar um recurso piora o resultado, o modelo está usando o
+> recurso do jeito errado.
+
+**A3 e A4 · laterais — dois fracassos, e o que sobra.** 15,9 contra 33–48 do
+real. Não é o arremesso (A3: `throwIns` conta a SAÍDA, não o arremesso; e a
+tentativa moveu a métrica 2 SE **para pior**). Não é resgate de bola fora (A4:
+a bola sai mesmo; o ramo editado nem roda). **O que sobra é a direção** — corte,
+rebote e alívio são quase sempre mirados num ponto *dentro* do campo
+(`_deflectTo` com `clamp(..., 2, FL-2)` em quase todo ponto de chamada). É
+decisão de modelo, não conserto de uma linha. Laudos em `reports/A3-` e `A4-`.
+
 ### A bateria não vê a tela
 `tools/fisica/bateria.js` roda com `vm.runInThisContext` e não desenha nada —
 a bola pingando atravessou uma OS inteira sem aparecer em métrica alguma. Para
