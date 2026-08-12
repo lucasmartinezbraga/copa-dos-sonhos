@@ -364,7 +364,33 @@ DEFEITOS = [
       evidencia="caixa.js em 4 resolucoes: 19% a 43%",
       dono="runtime de desenho (cobertura de leitura: 10%)",
       intercepta=[],
-      criterio=["letterbox <=4% nas 4 resolucoes","olhar.js: as 4 linhas do campo visiveis"],
+      criterio=["CRITERIO ANTIGO IMPOSSIVEL — ver medido","vazio no quadro <=14% com layout (caminho 1)","<=4% so com proporcao responsiva (caminho 2)"],
+      medido=("TENTATIVA REVERTIDA — a metrica melhorou 4x e o jogo quebrou na tela.\n"
+              "1) O CRITERIO ANTIGO E ARITMETICAMENTE IMPOSSIVEL. Com proporcao FIXA, "
+              "vazio = 1 - min(A,Acaixa)/max(A,Acaixa). As caixas medidas vao de 1,174 "
+              "(1024x768) a 1,655 (1920x1080) — razao 0,709. Nenhum A fixo da <=4% nas "
+              "quatro; o melhor possivel (media geometrica, 1,394) deixa 15,8% nas pontas. "
+              "So proporcao RESPONSIVA atinge o alvo, e isso e mudanca de layout.\n"
+              "2) A PROPORCAO 2,048 NAO E CSS, E CALIBRACAO DO PALCO 2.5D. O campo real e "
+              "105x68 (1,544) e o mundo logico e 1024x500 (2,048): o gramado sai 37% mais "
+              "largo do que e. Corrigi para CH=673 (gramado 996x645 = 105:68 exato) e o "
+              "vazio no quadro caiu de 31,8/22,3/28,2/46,0% para 8,2/11,5/7,6/27,3%. "
+              "Build, verify e smoke passaram. E a tela mostrou o gramado virado num "
+              "trapezio torto, com um gol so em quadro. A camada 21 projeta com "
+              "topY=M+34, bottomY=CH-3 e R0=0,72 calibrados para a faixa de 451 px que "
+              "CH=500 produz; com 624 px a perspectiva se desmonta. Junto vao a escala de "
+              "altura da bola (22 px/m), o plano de chao e o raio do atleta.\n"
+              "3) O INSTRUMENTO ESTAVA CEGO DUAS VEZES. caixa.js media so a tarja "
+              "VERTICAL — esticar o canvas na altura 'consertaria' criando tarja lateral "
+              "invisivel para ela (depois do conserto, 1920x1080 ficou 0% vertical e 8% "
+              "lateral). E media dentro do ELEMENTO canvas, nao do quadro que o jogador "
+              "ve. Agora mede AREA e publica os dois. Sem isso eu teria reportado vitoria "
+              "sobre um jogo quebrado.\n"
+              "CAMINHOS, em ordem de custo: (1) devolver ao layout a altura que o "
+              "field-wrap reserva e o canvas nao usa — barato, nao mexe no render; "
+              "(2) proporcao responsiva com o palco 2.5D re-derivado — a unica que atinge "
+              "<=4%; (3) corrigir a geometria do campo junto, porque 2,11 contra 1,544 e "
+              "defeito proprio. Laudo em reports/D24-a-tarja-preta.md."),
       depende=[], risco="a recomendacao MENOS fundamentada do documento"),
 
  dict(id="D25", sev="higiene", fase="F1", estado="feito",

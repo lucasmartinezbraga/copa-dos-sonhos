@@ -1,6 +1,6 @@
 # As armadilhas deste código
 
-**Vinte e oito.** Cada uma custou pelo menos uma rodada de medição de 25
+**Vinte e nove.** Cada uma custou pelo menos uma rodada de medição de 25
 minutos; várias custaram mais. Estavam espalhadas por `CLAUDE.md`, pelo Volume
 VIII‑A do relatório, pelos laudos e pelos comentários do código.
 
@@ -11,7 +11,7 @@ Elas estão em quatro grupos, porque erram por motivos diferentes:
 | grupo | o que engana | quantas |
 |---|---|---|
 | **A · a pilha de camadas** | o código que você lê não é o que executa | 6 |
-| **B · a medição** | o número existe e mede outra coisa | 10 |
+| **B · a medição** | o número existe e mede outra coisa | 11 |
 | **C · as ferramentas** | a ferramenta funciona e mente | 7 |
 | **D · o processo** | você mesmo, com pressa | 5 |
 
@@ -239,6 +239,33 @@ Corrigido: `bateria.js` mede `minutosDeJogoPorPartida` por faixa e
 > Irmã da **B3**. Lá era faixa aberta comparada por total; aqui é faixa fechada
 > que não tem o tamanho que o nome diz. **Meça a largura do balde antes de
 > comparar o que cabe dentro dele.**
+
+## B11 · A métrica melhorou 4× e o jogo quebrou
+
+O D24 media a tarja preta em 31,8% / 22,3% / 28,2% / 46,0% do quadro. Corrigi a
+proporção do mundo lógico para a do campo real e a métrica caiu para
+**8,2% / 11,5% / 7,6% / 27,3%**. Build, verify e smoke em Chromium: **todos
+passaram.**
+
+A captura mostrou o gramado virado num **trapézio torto**, com um gol só em
+quadro e a perspectiva escapando pela direita.
+
+A proporção 2,048 não era descuido de CSS: é **constante calibrada do palco
+2.5D**. `R0 = 0,72` (largura distante/próxima), `topY = M+34` e `bottomY = CH−3`
+foram afinados para a faixa de 451 px que `CH = 500` produz. Com 624 px a mesma
+razão espalha a perspectiva por 38% mais altura e desmonta a cena.
+
+E o instrumento estava cego **duas vezes**:
+
+1. media só a tarja **vertical** — esticar o canvas na altura "consertaria" o
+   defeito criando tarja **lateral** invisível para ela (depois da mudança,
+   1920×1080 ficou 0% vertical e 8% lateral);
+2. media dentro do **elemento canvas**, não do quadro que o jogador vê — daria
+   para zerar sem melhorar nada.
+
+> Nenhum portão automático deste projeto teria pegado isso. **Só a captura.**
+> Quando a métrica melhora muito e a mudança é de render, a captura não é
+> confirmação: é o teste.
 
 ---
 
