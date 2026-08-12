@@ -1,0 +1,2943 @@
+{
+ "_leia_primeiro": "Este arquivo e a base de conhecimento do projeto num lugar so. Se voce e uma IA: carregue ISTO, nao o relatorio de 5.000 linhas. Depois use `python3 tools/defeito.py <ID>` para o defeito em que vai trabalhar.",
+ "projeto": "Copa dos Sonhos — simulador de futebol web",
+ "gerado_em": "2026-08-12",
+ "commit": "7d247fcfb8aba613063a7269bc12158cad5e89bb",
+ "branch": "claude/game-ball-physics-issues-50m9e6",
+ "placar": {
+  "design": "12/13",
+  "futebol_real": "15/21",
+  "alvo_realista": "19/21 — passes nao fecha sem mexer no clockRate (D21)"
+ },
+ "tamanho": {
+  "motor_linhas": 5086,
+  "motor_arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
+  "javascript_total": 25410
+ },
+ "regras_que_nao_se_negociam": [
+  {
+   "id": "R1",
+   "regra": "Descubra quem e o dono do metodo ANTES de editar",
+   "como": "node tools/fisica/pilha.js dist/index.html 14",
+   "porque": "362 sobrescritas em 60 camadas. Uma camada pode substituir um metodo e nao chamar a de baixo.",
+   "custo_de_ignorar": "editar o motor e nada acontecer — ocorreu SEIS vezes",
+   "limite": "pilha.js diz se o METODO e alcancado, NAO se uma LINHA dentro dele e. Na sexta vez ela respondeu VIVA e estava certa. Quando o alvo e uma linha, escreva uma sonda de ramo de ~40 linhas."
+  },
+  {
+   "id": "R2",
+   "regra": "Edite src/, nunca dist/",
+   "porque": "dist/index.html e gerado por tools/build.py; edicao direta e apagada no proximo build."
+  },
+  {
+   "id": "R3",
+   "regra": "Nada entra sem medicao",
+   "como": "bash tools/aceitar.sh --antes / --depois / --depois --identico",
+   "criterio": "uma metrica SE MOVEU quando |delta| >= 2 x SE",
+   "regra_dura": "mover 2 SE PARA PIOR uma metrica que voce nao declarou que ia mexer REPROVA a mudanca, mesmo que o alvo declarado tenha melhorado"
+  },
+  {
+   "id": "R4",
+   "regra": "A bateria nao ve a tela",
+   "porque": "roda em vm.runInThisContext e nao desenha nada",
+   "como": "trajetoria -> tools/fisica/tela/pinga.js; movimentacao -> tela/forma.js; sempre -> tests/browser_smoke.js"
+  },
+  {
+   "id": "R5",
+   "regra": "CAL nao existe no escopo de uma camada",
+   "porque": "o core e uma IIFE. Use ENGINE_CALIBRATION. O lint do verify.py reprova o build.",
+   "caso_real": "a camada 66 lia por root.CAL (undefined) e caia num 0,66 congelado — a calibracao ficou desconectada e ninguem via"
+  },
+  {
+   "id": "R6",
+   "regra": "Toda camada nova publica contadores por ramo",
+   "porque": "a camada 45 publica e o D09 foi mensuravel em 20 minutos; a 84 nao publica e o D15 continua sendo opiniao depois de toda a investigacao"
+  },
+  {
+   "id": "R7",
+   "regra": "Marque toda afirmacao",
+   "como": "[LIDO] li o codigo · [MEDIDO] rodei e contei · [HIPOTESE] pode estar errada"
+  }
+ ],
+ "licoes_que_custaram_caro": [
+  {
+   "licao": "Numero decorativo vira numero fisico quando o integrador liga",
+   "caso": "b.z = 0.12 so desenhava a bola acima do gramado; ao ligar a integracao virou altura inicial real e o passe rasteiro passou a quicar 54 vezes por minuto de jogo",
+   "custo": "uma OS inteira"
+  },
+  {
+   "licao": "Quando aumentar um recurso PIORA o resultado, o modelo esta usando o recurso errado",
+   "caso": "subir a envergadura do goleiro de 1,05 para 1,45 levou os gols de 3,27 a 3,40. O resultado invertido revelou a causa real: ele mergulhava no PRIMEIRO instante alcancavel, nao no melhor",
+   "custo": "um ciclo — e valeu por dez"
+  },
+  {
+   "licao": "Quase nenhuma mudanca de comportamento e uniforme no campo",
+   "caso": "o plano do portador aplicado no campo inteiro levou o placar de design de 11/13 para 6/13; restrito ao proprio campo, funcionou",
+   "custo": "um ciclo"
+  },
+  {
+   "licao": "Uma metrica parada ha varias medicoes nao precisa de outra tentativa do mesmo tipo",
+   "caso": "throwIns esta fora da faixa ha 8 medicoes seguidas e duas tentativas de conserto foram revertidas. O problema e o diagnostico, nao o esforco",
+   "custo": "duas tentativas revertidas (A3 e A4)"
+  },
+  {
+   "licao": "Medicao vence leitura, inclusive quando quem leu foi voce",
+   "caso": "seis premissas do proprio documento cairam quando foram medidas",
+   "custo": "cinco sondas de ~40 linhas — e nenhuma virou conserto ruim no jogo"
+  }
+ ],
+ "premissas_refutadas": [
+  {
+   "defeito": "D01",
+   "afirmava": "~150 lances por partida caem no integrador de g = 20 m/s2",
+   "medido": "ZERO quadros de voo sem plano fisico em 12 partidas",
+   "porque": "a camada 07 cria o plano logo depois de chamar o core; o desvio sempre teve g = 9,81",
+   "sonda": "tools/fisica/ramo-g20.js",
+   "sobrou": "a segunda fisica existe em _looseRoll: 39,25 quadros/partida, ate 2,685 m de altura"
+  },
+  {
+   "defeito": "D02",
+   "afirmava": "21,3 entregas por partida com o mais proximo a mais de 3 m",
+   "medido": "distancia maxima de quem recebeu: 1,53 m; 100% dentro de 1,7 m",
+   "porque": "as camadas 08 e 45 filtram antes; o filtro sem limite do core nao e alcancado",
+   "sonda": "tools/fisica/ramo-d02.js",
+   "sobrou": "nada — NAO IMPLEMENTAR"
+  },
+  {
+   "defeito": "D25",
+   "afirmava": "o desvio escapava da maquina de reinicio",
+   "medido": "77,5 quadros/partida com bola de desvio fora do campo e ZERO _ballOut em voo",
+   "porque": "as saidas ja vinham por _looseRoll, um quadro depois",
+   "sonda": "tools/fisica/ramo-d25.js",
+   "sobrou": "o comentario, como documentacao"
+  },
+  {
+   "defeito": "D12",
+   "afirmava": "a camada declara lateral e o core desfaz entregando a posse",
+   "medido": "o core devolve a posse em 2,8% das chamadas; 97,2% ficam soltas",
+   "sonda": "tools/fisica/ramos.js",
+   "sobrou": "19,92 alvos chegam fora e so 11 pousam fora — os ~9 de diferenca nao foram investigados"
+  },
+  {
+   "defeito": "D16",
+   "afirmava": "a falsificacao de _breaking vaza para _cross",
+   "medido": "_breaking saiu diferente ZERO vezes em 886.981 chamadas por partida",
+   "sonda": "tools/fisica/ramos.js",
+   "sobrou": "o defeito e de legibilidade, nao de corretude; severidade rebaixada"
+  },
+  {
+   "defeito": "D24",
+   "afirmava": "a tarja sobra a esquerda e a direita do gramado",
+   "medido": "a sobra e VERTICAL: 19,2% a 42,7% da caixa, acima e abaixo",
+   "porque": "aspect-ratio 1024/500 com object-fit: contain num conteiner mais alto que 2,048",
+   "sonda": "tools/fisica/tela/caixa.js",
+   "sobrou": "o defeito, com a causa agora localizada"
+  },
+  {
+   "defeito": "D08",
+   "afirmava": "cinco pontos de chamada de _deflectTo com clamp para dentro",
+   "medido": "um deles estava DENTRO de codigo morto, removido pelo D03",
+   "sobrou": "o fenomeno (85,8% dos alvos a mais de 8 m da lateral) segue medido; a causa precisa ser refeita"
+  }
+ ],
+ "aviso_metodologico": "SEIS premissas deste catalogo cairam quando foram medidas. A causa e comum: as sondas originais mediram o CODIGO DO MOTOR, e com 362 sobrescritas em 60 camadas o que roda e o TOPO DA PILHA. Antes de consertar um ramo especifico, escreva uma sonda de ~40 linhas que conte AQUELE ramo. Ver Volume VIII-A do relatorio.",
+ "defeitos": [
+  {
+   "id": "D01",
+   "sev": "estrutural",
+   "fase": "F1",
+   "estado": "feito",
+   "titulo": "Duas fisicas de bola — em _looseRoll, nao em _ballTravel (premissa corrigida)",
+   "locais": [
+    {
+     "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
+     "linha": 2210,
+     "ancora": "ESTA INTEGRAÇÃO NÃO RODA",
+     "linha_atual": 2208
+    },
+    {
+     "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
+     "linha": 2350,
+     "ancora": "AQUI está a segunda física",
+     "linha_atual": 2360
+    },
+    {
+     "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
+     "linha": 2465,
+     "ancora": "_deflectTo(x, y, spd) {",
+     "linha_atual": 2299
+    }
+   ],
+   "evidencia": "150,40 chamadas por partida caem no integrador de g=20 (57,05 _deflectTo + 93,35 _looseBall)",
+   "dono": "core e o dono da fisica do desvio; 45/47/49 so reescrevem o ALVO",
+   "intercepta": [
+    "07",
+    "17",
+    "45",
+    "47",
+    "49"
+   ],
+   "criterio": [
+    "quadros de voo sem plano fisico: 0 (MEDIDO, ja era 0)",
+    "corners +-0,50",
+    "goals +-0,20"
+   ],
+   "depende": [],
+   "risco": "baixo: a mudanca real e uma linha em _looseRoll",
+   "feito_em": "PREMISSA CORRIGIDA. A sonda tools/fisica/ramo-g20.js mediu ZERO quadros de voo sem plano fisico em 12 partidas — o desvio SEMPRE teve balistica real, porque a camada 07 cria o plano logo depois de chamar o core. A linha b.vz -= 20*dt de _ballTravel e codigo morto. A segunda fisica estava em _looseRoll: 39,25 quadros por partida, bola a 0,995 m de altura media e ate 2,685 m, caindo com o DOBRO da gravidade. Corrigido para 9,81 la; a linha morta do _ballTravel ficou anotada. CONSEQUENCIA: D01 era pre-requisito de D02 e D08 — a cadeia F2 perde essa justificativa.",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 847,
+    "linha_fim": 994,
+    "titulo": "D01 🔴 ✅ Duas físicas de bola convivem — mas não onde este documento dizia"
+   }
+  },
+  {
+   "id": "D02",
+   "sev": "futebol",
+   "fase": "F1",
+   "estado": "refutado",
+   "titulo": "_contestLoose entrega sem teto de distancia — REFUTADO pela medicao",
+   "locais": [
+    {
+     "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
+     "linha": 2489,
+     "ancora": "const zone = cands.filter",
+     "linha_atual": 2343
+    }
+   ],
+   "evidencia": "21,3 entregas por partida com o mais proximo a mais de 3 m; 22,2 bolas pousando fora e resgatadas a 6,8 m",
+   "dono": "core alcancado; 08 e 45 sao VIVAS",
+   "intercepta": [
+    "08",
+    "45"
+   ],
+   "criterio": [
+    "REFUTADO — nao implementar"
+   ],
+   "depende": [],
+   "risco": "ALTO e SEM GANHO: o conserto seria inerte e a bola pode morrer no meio do campo.",
+   "feito_em": "PREMISSA REFUTADA — NAO IMPLEMENTAR. A sonda tools/fisica/ramo-d02.js mediu no TOPO da pilha, 12 partidas: 36,67 entregas efetivas por partida, distancia media de quem RECEBEU 0,49 m, MAXIMA 1,53 m, 100% dentro de 1,7 m. Bola ja fora do campo: 0,08 chamadas/partida e ZERO entregas. O teto de distancia existe na pratica — as camadas 08 e 45 filtram antes, e o filtro sem limite do core nunca e alcancado com bola distante. Os numeros do documento (21,3 entregas com folga acima de 3 m; 22,2 bolas resgatadas a 6,8 m) vieram da sonda da tentativa A4 e NAO REPRODUZEM.",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 995,
+    "linha_fim": 1122,
+    "titulo": "D02 🟠 ⛔ O `_contestLoose` entrega sem limite de distância — REFUTADO"
+   }
+  },
+  {
+   "id": "D03",
+   "sev": "higiene",
+   "fase": "F1",
+   "estado": "feito",
+   "titulo": "~190 linhas mortas guardadas por return antecipado dentro do motor",
+   "locais": [
+    {
+     "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
+     "linha": 369,
+     "ancora": "_requestSetPiece() { return false; }",
+     "linha_atual": 378
+    },
+    {
+     "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
+     "linha": 2019,
+     "ancora": "this._os200ResolverChute(o,{g,tm,gk,atk,gkF,pGoal,",
+     "linha_atual": 1973
+    }
+   ],
+   "evidencia": "pilha.js: contagem zero nos ramos antigos em 14 partidas; o guarda nunca e falso num build de tools/build.py",
+   "dono": "nao alcancavel por definicao",
+   "intercepta": [],
+   "criterio": [
+    "as 14 metricas IDENTICAS ao digito (nao '+-2 SE')"
+   ],
+   "feito_em": "176 linhas removidas do motor: 17 em _requestSetPiece, 10 no ramo rasteiro de _cross, 30 no ramo aereo e 136 em _shoot. Os quatro guardas `if(this._os200ResolverChute)` sairam junto — a ausencia da camada 88 agora vira erro visivel em vez de um chute resolvido por um caminho nao medido. 5.262 -> 5.086 linhas.",
+   "depende": [],
+   "risco": "o mais baixo do catalogo",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 1123,
+    "linha_fim": 1244,
+    "titulo": "D03 🟡 ✅ Cerca de 190 linhas mortas dentro do arquivo mais importante"
+   }
+  },
+  {
+   "id": "D04",
+   "sev": "higiene",
+   "fase": "F1",
+   "estado": "feito",
+   "titulo": "_looseBall do core esta morto e nao parece",
+   "locais": [
+    {
+     "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
+     "linha": 2483,
+     "ancora": "// jogador mais próximo assume após breve disputa",
+     "linha_atual": 2331
+    },
+    {
+     "arquivo": "src/scripts/layers/08-cds-p04-physical-reception-584-r6.js",
+     "linha": 767,
+     "ancora": "P._looseBall = function p04LooseBall(x, y) {",
+     "linha_atual": 767
+    }
+   ],
+   "evidencia": "tentativa A4 editou este corpo: nenhuma das 14 metricas moveu 0,15 SE",
+   "dono": "camada 08 (p04) intercepta e NAO chama o core quando a bola esta viva",
+   "intercepta": [
+    "08",
+    "17",
+    "45",
+    "47",
+    "49"
+   ],
+   "criterio": [
+    "metricas identicas (a mudanca e comentario)"
+   ],
+   "depende": [],
+   "risco": "nenhum",
+   "feito_em": "aviso escrito no core acima de _looseBall. Verificado com aceitar.sh --depois --identico: as 14 metricas IDENTICAS ao digito. E o exemplo trabalhado do ciclo completo.",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 1245,
+    "linha_fim": 1330,
+    "titulo": "D04 🟡 ✅ O `_looseBall` do core está morto e não parece"
+   }
+  },
+  {
+   "id": "D05",
+   "sev": "futebol",
+   "fase": "—",
+   "estado": "feito",
+   "titulo": "Passe rasteiro decolava (14 cm de salto, 2 quiques)",
+   "locais": [
+    {
+     "arquivo": "src/scripts/layers/88-os200-balistica-real.js",
+     "linha": 347,
+     "ancora": "const ELEV_RASTEIRA = 0;",
+     "linha_atual": 347
+    }
+   ],
+   "evidencia": "54 quiques por minuto de jogo (tela/pinga.js); nenhuma das 14 metricas via",
+   "dono": "camada 88, por regime",
+   "intercepta": [
+    "88"
+   ],
+   "criterio": [
+    "feito"
+   ],
+   "depende": [],
+   "risco": "nao consertar no core: os 0,12 sao a origem do CHUTE",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 1331,
+    "linha_fim": 1373,
+    "titulo": "D05 🟠 ✅ O passe rasteiro decolava — e a lição vale mais que o conserto"
+   }
+  },
+  {
+   "id": "D06",
+   "sev": "futebol",
+   "fase": "—",
+   "estado": "feito",
+   "titulo": "Goleiro mergulhava no primeiro instante alcancavel (folga ~0 por construcao)",
+   "locais": [
+    {
+     "arquivo": "src/scripts/layers/88-os200-balistica-real.js",
+     "linha": null,
+     "ancora": "folga > achado.folga",
+     "linha_atual": 730
+    }
+   ],
+   "evidencia": "golPorChuteNoAlvo 0,428 -> 0,378; folga media 0,24 -> 1,31 m; design 11/13 -> 12/13",
+   "dono": "camada 88",
+   "intercepta": [
+    "88"
+   ],
+   "criterio": [
+    "feito"
+   ],
+   "depende": [],
+   "risco": "XG_ESCALA teve de ser re-derivada (0,651)",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 1374,
+    "linha_fim": 1448,
+    "titulo": "D06 🟠 ✅ O goleiro mergulhava no primeiro instante alcançável"
+   }
+  },
+  {
+   "id": "D07",
+   "sev": "futebol",
+   "fase": "—",
+   "estado": "feito",
+   "titulo": "_bestPass tinha 25+ termos e nenhum era a linha de impedimento",
+   "locais": [
+    {
+     "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
+     "linha": 1379,
+     "ancora": "const linhaImped = this._offsideLine(o.team);",
+     "linha_atual": 1325
+    }
+   ],
+   "evidencia": "impedimentos 10,03 -> 5,11 por partida",
+   "dono": "core",
+   "intercepta": [
+    "24"
+   ],
+   "criterio": [
+    "feito"
+   ],
+   "depende": [],
+   "risco": "removeu um freio: +0,42 gol, que expos D06",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 1449,
+    "linha_fim": 1502,
+    "titulo": "D07 🟠 ✅ O passador não enxergava a linha de impedimento"
+   }
+  },
+  {
+   "id": "D08",
+   "sev": "futebol",
+   "fase": "F2",
+   "estado": "aberto",
+   "titulo": "Laterais pela metade — a direcao do desvio e sempre para dentro",
+   "locais": [
+    {
+     "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
+     "linha": 2622,
+     "ancora": "this._deflectTo(clamp(this.ball.x-tmA.attackDir*R(1,5),2,FL-2)",
+     "linha_atual": 2639
+    }
+   ],
+   "evidencia": "85,8% dos alvos a mais de 8 m da lateral; 16,8 alvos/partida mirados para fora ~ 15,9 laterais medidos. CORRECAO apos D03: dos 5 pontos de chamada que este defeito listava, UM estava dentro do ramo morto de _cross e sumiu com a limpeza. O clamp sobrevivente no motor e o do alivio na barreira; os demais estao nas camadas. Recontar antes de atacar D08.",
+   "dono": "pontos de chamada no motor, com clamp(...,2,FL-2)",
+   "intercepta": [
+    "45",
+    "47",
+    "49"
+   ],
+   "criterio": [
+    "throwIns 15,91 -> 30-45",
+    "corners >=10,68",
+    "passes >=379,7",
+    "goals +-0,20",
+    "futebol real >=16/21"
+   ],
+   "depende": [
+    "D01",
+    "D02",
+    "D12"
+   ],
+   "risco": "ALTO. Tetos: throwIns<=48. Camada nova precisa ficar ABAIXO de 45/47/49 no manifesto.",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 1503,
+    "linha_fim": 1667,
+    "titulo": "D08 🟠 O defeito mais distante do futebol: os laterais pela metade"
+   }
+  },
+  {
+   "id": "D09",
+   "sev": "higiene",
+   "fase": "F2",
+   "estado": "aberto",
+   "titulo": "O portao naturalTarget da camada 45 quase nunca dispara",
+   "locais": [
+    {
+     "arquivo": "src/scripts/layers/45-cds-r18181-second-phase-natural-out.js",
+     "linha": 135,
+     "ancora": "function naturalTarget(sim,x,y,kind){",
+     "linha_atual": 135
+    }
+   ],
+   "evidencia": "23 de 6.016 chamadas (0,4%) chegam com alvo dentro da janela de 2,05 m que o portao exige",
+   "dono": "camada 45 esta CORRETA; falta combustivel",
+   "intercepta": [],
+   "criterio": [
+    "naturalOutDeflections sobe quando D08 alimentar"
+   ],
+   "depende": [
+    "D08"
+   ],
+   "risco": "nenhum: nao ha mudanca, e verificacao",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 1668,
+    "linha_fim": 1691,
+    "titulo": "D09 🟡 O portão da camada 45 é quase decorativo"
+   }
+  },
+  {
+   "id": "D10",
+   "sev": "futebol",
+   "fase": "F4",
+   "estado": "parcial",
+   "titulo": "O orcamento de posse mora em duas linhas que nao se conhecem",
+   "locais": [
+    {
+     "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
+     "linha": 2548,
+     "ancora": "else m.settle=lerp(CAL.possession.firstTouchMax",
+     "linha_atual": 2400
+    },
+    {
+     "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
+     "linha": 2582,
+     "ancora": "this.decideT=0.28;",
+     "linha_atual": 2434
+    }
+   ],
+   "evidencia": "settle (0,10-0,34) + decideT (0,28) = 0,38-0,62 s; mediana medida 0,43 s antes da OS-206",
+   "dono": "camada 90 compensa por cima; as duas linhas continuam la",
+   "intercepta": [
+    "17",
+    "90"
+   ],
+   "criterio": [
+    "orcamento unico em ENGINE_CALIBRATION.possession",
+    "mediana de posse 0,9-1,3 s"
+   ],
+   "depende": [
+    "D26"
+   ],
+   "risco": "medio",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 1692,
+    "linha_fim": 1735,
+    "titulo": "D10 🟠 ✅ A posse durava 0,43 s — em duas linhas que não se conheciam"
+   }
+  },
+  {
+   "id": "D11",
+   "sev": "estrutural",
+   "fase": "F3",
+   "estado": "aberto",
+   "titulo": "Sorteio censurado 1: o censor roda em 51,4% das decisoes (MEDIDO)",
+   "locais": [
+    {
+     "arquivo": "src/scripts/layers/16-cds-r12-transactional-core-r123.js",
+     "linha": 153,
+     "ancora": "tm.__r122LastContextShot=now;",
+     "linha_atual": 153
+    },
+    {
+     "arquivo": "src/scripts/layers/20-cds-r183-natural-football.js",
+     "linha": 63,
+     "ancora": "dg.smartShotVetoes=(dg.smartShotVetoes||0)+1;",
+     "linha_atual": 86
+    }
+   ],
+   "evidencia": "o comentario da camada 20 e a prova literal: 'Marcar o instante atual veta unicamente essa roleta'",
+   "dono": "_decide tem 8 camadas; 51 roda por fora de todas",
+   "intercepta": [
+    "16",
+    "17",
+    "18",
+    "20",
+    "27",
+    "43",
+    "45",
+    "51"
+   ],
+   "criterio": [
+    "14 metricas dentro de 2 SE SEM pareamento de semente",
+    "-250 linhas",
+    "zero variaveis de contrato com nome de release"
+   ],
+   "medido": "CONFIRMADO E MAIOR. ramos.js, 12 partidas: 264,67 VETOS em 515,17 decisoes examinadas = 51,4%. Metade das decisoes do jogo passa pelo censor. O documento tratava como mecanismo pontual. E o defeito estrutural com maior alcance medido do catalogo — sobe de F3 para o primeiro candidato depois da F1.",
+   "depende": [],
+   "risco": "medio: remover chance() desalinha o RNG; compare distribuicoes, nao partidas",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 1736,
+    "linha_fim": 1858,
+    "titulo": "D11 🔴 Sorteio censurado nº 1 — o chute que é sorteado para ser vetado"
+   }
+  },
+  {
+   "id": "D12",
+   "sev": "estrutural",
+   "fase": "F2",
+   "estado": "aberto",
+   "titulo": "Sorteio censurado 2 — formulacao refutada; sobra o alvo puxado de volta",
+   "locais": [
+    {
+     "arquivo": "src/scripts/layers/17-cds-r13-football-observer-cadence.js",
+     "linha": 203,
+     "ancora": "if(edge<5.5&&hit13(this,.64))ty=y<FW13/2?-.7:FW13+.7;",
+     "linha_atual": 206
+    },
+    {
+     "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
+     "linha": 2483,
+     "ancora": "// jogador mais próximo assume após breve disputa",
+     "linha_atual": 2331
+    }
+   ],
+   "evidencia": "22,2 bolas por partida pousando fora e entregues a alguem a 6,8 m",
+   "dono": "ATENCAO: a camada 08 intercepta _looseBall e nao chama o core. O conserto tem de ser feito LA TAMBEM.",
+   "intercepta": [
+    "08",
+    "17",
+    "45",
+    "47",
+    "49"
+   ],
+   "criterio": [
+    "throwIns >=17,4 (2 SE) sem D08"
+   ],
+   "medido": "FORMULACAO REFUTADA. ramos.js: _looseBall chamado 92,08/partida; terminou COM DONO apenas 2,58 (2,8%), ficou solta 89,50 (97,2%). O core NAO recolhe a bola. Sobra um fio vivo: 19,92 alvos ja chegam fora e so 11 pousam fora — os ~9 de diferenca sao alguma camada puxando o alvo de volta, e isso ainda nao foi investigado.",
+   "depende": [
+    "D02"
+   ],
+   "risco": "medio: mais reinicios = mais bola parada; vigie passes",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 1859,
+    "linha_fim": 1967,
+    "titulo": "D12 🔴 Sorteio censurado nº 2 — a bola mandada para a lateral, e recolhida"
+   }
+  },
+  {
+   "id": "D13",
+   "sev": "futebol",
+   "fase": "F3",
+   "estado": "aberto",
+   "titulo": "Sorteio censurado 3: erro de chute sorteado ate 6,5 m e comprimido pela camada 55",
+   "locais": [
+    {
+     "arquivo": "src/scripts/layers/55-cds-r1821-shot-plausibility.js",
+     "linha": 72,
+     "ancora": "const excessoMax = 6.5 - POST;",
+     "linha_atual": 72
+    }
+   ],
+   "evidencia": "o comentario diz 'pior caso observado no motor' — a camada foi calibrada contra o motor, nao contra futebol",
+   "dono": "camada 88 e TERMINAL para a mira; territorio seguro",
+   "intercepta": [
+    "88"
+   ],
+   "criterio": [
+    "onTarget >=7,72",
+    "acerto ao alvo 0,34-0,40",
+    "goals +-0,20",
+    "-111 linhas"
+   ],
+   "medido": "CONFIRMADO E MAIOR. ramos.js: 12,33 de 23,42 chutes por partida tem o erro comprimido (52,7%). Amplitude media antes 6,80 m, depois 4,57 m, MAXIMA antes 13,30 m — o dobro dos 6,5 m que a constante excessoMax do censor supoe como pior caso.",
+   "depende": [
+    "D01"
+   ],
+   "risco": "ALTO para onTargetRate, que ja esta em 0,326. Varrer sigmaGraus com calibrar.py.",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 1968,
+    "linha_fim": 2057,
+    "titulo": "D13 🟠 Sorteio censurado nº 3 — o erro de chute, sorteado grande e comprimido"
+   }
+  },
+  {
+   "id": "D14",
+   "sev": "estrutural",
+   "fase": "F4",
+   "estado": "aberto",
+   "titulo": "Sete contencoes em step consertam bugs que nunca foram procurados",
+   "locais": [
+    {
+     "arquivo": "src/scripts/layers/84-cds-r1899-antiteleporte.js",
+     "linha": 43,
+     "ancora": "const P = M.prototype; P.__R1899__ = true;",
+     "linha_atual": 43
+    },
+    {
+     "arquivo": "src/scripts/layers/75-cds-os83-restart-watchdog.js",
+     "linha": 15,
+     "ancora": "P.step=function(dt){",
+     "linha_atual": 15
+    }
+   ],
+   "evidencia": "step tem 19 sobrescritas; 7 sao corretivas; 853 linhas no total",
+   "dono": "cada camada",
+   "intercepta": [
+    "12",
+    "16",
+    "33",
+    "74",
+    "75",
+    "84",
+    "87"
+   ],
+   "criterio": [
+    "contador = 0 em 300 partidas -> apagar",
+    "metricas identicas ao digito apos cada remocao",
+    "<=2 contencoes ao final"
+   ],
+   "depende": [],
+   "risco": "medio, controlado pela ordem: assercao (segura) antes de remocao",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2058,
+    "linha_fim": 2095,
+    "titulo": "D14 🔴 Sete contenções em `step` que consertam bugs nunca procurados"
+   }
+  },
+  {
+   "id": "D15",
+   "sev": "higiene",
+   "fase": "F4",
+   "estado": "aberto",
+   "titulo": "255 linhas de antiteleporte contendo um bug nunca diagnosticado",
+   "locais": [
+    {
+     "arquivo": "src/scripts/layers/84-cds-r1899-antiteleporte.js",
+     "linha": 43,
+     "ancora": "const P = M.prototype; P.__R1899__ = true;",
+     "linha_atual": 43
+    }
+   ],
+   "evidencia": "2,1% de todo o codigo de camadas para conter um bug de movimentacao",
+   "dono": "camada 84",
+   "intercepta": [
+    "84"
+   ],
+   "criterio": [
+    "salto.js correlaciona os saltos com quadros de escrita dupla de intencao"
+   ],
+   "medido": "NAO MENSURAVEL HOJE. getR1899Audit() nao existe — as 255 linhas de antiteleporte nao publicam contador nenhum. PRIMEIRO PASSO nao e consertar nem apagar: e acrescentar um contador e rodar 300 partidas. Sem isso, remover 255 linhas e aposta.",
+   "depende": [
+    "D14"
+   ],
+   "risco": "baixo enquanto for so diagnostico",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2120,
+    "linha_fim": 2162,
+    "titulo": "D15 🟡 As 255 linhas de antiteleporte"
+   }
+  },
+  {
+   "id": "D16",
+   "sev": "higiene",
+   "fase": "F5",
+   "estado": "aberto",
+   "titulo": "Quatro camadas falsificam _breaking/_markRef porque falta parametro de esforco",
+   "locais": [
+    {
+     "arquivo": "src/scripts/layers/71-cds-os51-beaten-defender.js",
+     "linha": 23,
+     "ancora": "var oldInt=P._integrate;",
+     "linha_atual": 21
+    },
+    {
+     "arquivo": "src/scripts/layers/23-cds-r185-bloco-defensivo.js",
+     "linha": 51,
+     "ancora": "P._integrate=function(p,tx,ty,dt,freeze){",
+     "linha_atual": 51
+    }
+   ],
+   "evidencia": "_breaking e lido em _cross para montar lowPool — a elegibilidade para receber cruzamento depende de um campo que outras camadas mentem",
+   "dono": "ATENCAO: a camada 16 e TERMINAL para _integrate. O parametro tem de ser adicionado LA, nao no core.",
+   "intercepta": [
+    "16",
+    "17",
+    "23",
+    "24",
+    "71"
+   ],
+   "criterio": [
+    "comprimento do bloco com bola +-1,5 m",
+    "largura +-2 m",
+    "tackles +-1,07",
+    "leituras falsas de _breaking: 0"
+   ],
+   "medido": "RECLASSIFICADO. ramos.js: _integrate chamado 886.981,58 vezes por partida e _breaking saiu diferente ZERO vezes. A falsificacao nao vaza para _cross, que era o risco apontado. Sai de corretude e entra em legibilidade: nao ha bug escondido, ha um modelo ausente. Severidade rebaixada de estrutural para higiene.",
+   "depende": [
+    "D14"
+   ],
+   "risco": "medio-alto: mexe em movimentacao. Rodar forma.js antes e depois.",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2163,
+    "linha_fim": 2261,
+    "titulo": "D16 🔴 Quatro camadas mentem para o integrador porque falta um parâmetro"
+   }
+  },
+  {
+   "id": "D17",
+   "sev": "higiene",
+   "fase": "F5",
+   "estado": "aberto",
+   "titulo": "Promover para o core os metodos cuja camada e TERMINAL",
+   "locais": [
+    {
+     "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
+     "linha": 3193,
+     "ancora": "this._integrate(p, tx, ty, dt, freeze);",
+     "linha_atual": 3045
+    },
+    {
+     "arquivo": "src/scripts/layers/07-cds-physics-timeline-581.js",
+     "linha": null,
+     "ancora": "P._planPhysicalSegment",
+     "linha_atual": 33
+    }
+   ],
+   "evidencia": "_integrate e _defendTarget EXISTEM no core e estao mortos (camadas 16 e 17 sao TERMINAIS). CORRECAO v2: _planPhysicalSegment, _trajectoryPoint e _physicalTargetZ NUNCA existiram no core — nascem na camada 07 e sao substituidos pela 88. O codigo morto ali e da camada 07, nao do motor.",
+   "dono": "camada 16 (_integrate), camada 17 (_defendTarget), camada 07 (os tres de fisica)",
+   "intercepta": [
+    "07",
+    "08",
+    "16",
+    "17",
+    "88"
+   ],
+   "criterio": [
+    "metricas identicas ao digito por promocao",
+    "pilha.js mostra uma sobrescrita a menos"
+   ],
+   "depende": [
+    "D16"
+   ],
+   "risco": "baixo em comportamento, alto em atrito. UM metodo por commit.",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2262,
+    "linha_fim": 2324,
+    "titulo": "D17 🟡 Promover quem já é dono do método"
+   }
+  },
+  {
+   "id": "D18",
+   "sev": "higiene",
+   "fase": "F5",
+   "estado": "aberto",
+   "titulo": "_cross tem 255 linhas e nove correcoes embutidas",
+   "locais": [
+    {
+     "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
+     "linha": 993,
+     "ancora": "_cross(o) {",
+     "linha_atual": 981
+    }
+   ],
+   "evidencia": "OS-12, OS-27, OS-44, OS-45, OS-81, OS-83, OS-200, R18.25, R18.31 numa funcao so",
+   "dono": "core",
+   "intercepta": [
+    "16"
+   ],
+   "criterio": [
+    "metricas identicas em cada extracao",
+    "_cross <=60 linhas ao final"
+   ],
+   "depende": [],
+   "risco": "baixo por commit, alto se feito de uma vez. Nunca mais de um bloco por commit.",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2325,
+    "linha_fim": 2371,
+    "titulo": "D18 🟡 `_cross` tem 255 linhas e nove correções embutidas"
+   }
+  },
+  {
+   "id": "D19",
+   "sev": "futebol",
+   "fase": "F6",
+   "estado": "aberto",
+   "titulo": "A partida murcha: 20,0% dos gols ate 15', 14,1% apos 76'",
+   "locais": [
+    {
+     "arquivo": "src/scripts/20-core.js",
+     "linha": 565,
+     "ancora": "clockRate: 0.085",
+     "linha_atual": 564
+    }
+   ],
+   "evidencia": "queda de -1,17 pp por faixa, R2=0,86; r=0,814 entre stamina e taxa de chutes",
+   "dono": "dreno no core, normalizado por ADV4.context.clockRateRef",
+   "intercepta": [],
+   "criterio": [
+    "gols 76-90' >=20%",
+    "gols 0-15' <=15%",
+    "goals +-0,20",
+    "stamina final 55-68",
+    "passes +-5,53"
+   ],
+   "depende": [
+    "D17"
+   ],
+   "risco": "ALTO: toca todo lance. NAO medir junto com D20 (200 partidas de intervalo).",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2372,
+    "linha_fim": 2458,
+    "titulo": "D19 🟠 A partida murcha em vez de crescer"
+   }
+  },
+  {
+   "id": "D20",
+   "sev": "futebol",
+   "fase": "F6",
+   "estado": "aberto",
+   "titulo": "O bloco nao compacta ao perder a bola (encurta 0,4 m; real 8-10 m)",
+   "locais": [
+    {
+     "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
+     "linha": 3193,
+     "ancora": "this._integrate(p, tx, ty, dt, freeze);",
+     "linha_atual": 3045
+    }
+   ],
+   "evidencia": "forma.js, 1.198 amostras: comprimento 37,8 com bola -> 37,4 sem; largura 49,4 -> 45,2",
+   "dono": "_defendTarget tem 9 camadas e NENHUMA tem autoridade sobre a forma coletiva",
+   "intercepta": [
+    "07",
+    "16",
+    "26",
+    "65",
+    "70"
+   ],
+   "criterio": [
+    "comprimento sem bola 28-34 m",
+    "largura sem bola 34-44 m",
+    "comprimento COM bola 30-40 m",
+    "tackles +-1,07",
+    "goals +-0,20",
+    "shots +-0,84"
+   ],
+   "depende": [
+    "D19"
+   ],
+   "risco": "ALTO. _comprimirBloco desloca ALVO, nunca corpo — senao cai no bug que a camada 84 contem.",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2459,
+    "linha_fim": 2548,
+    "titulo": "D20 🟠 O bloco não compacta quando o time perde a bola"
+   }
+  },
+  {
+   "id": "D21",
+   "sev": "estrutural",
+   "fase": "F6",
+   "estado": "decidir",
+   "titulo": "clockRate: 23 min de fisica para 90 de partida — decisao de produto",
+   "locais": [
+    {
+     "arquivo": "src/scripts/20-core.js",
+     "linha": 565,
+     "ancora": "clockRate: 0.085",
+     "linha_atual": 564
+    }
+   ],
+   "evidencia": "posse realista e contagem de passes realista sao hoje mutuamente exclusivas",
+   "dono": "produto",
+   "intercepta": [],
+   "criterio": [
+    "decisao registrada em calibration/targets.json"
+   ],
+   "depende": [],
+   "risco": "AVISO: a fadiga ja e invariante ao clockRate. Se mexer no relogio, NAO mexa no dreno junto.",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2549,
+    "linha_fim": 2610,
+    "titulo": "D21 🔴 `clockRate`: 23 minutos de física para 90 minutos de partida"
+   }
+  },
+  {
+   "id": "D22",
+   "sev": "futebol",
+   "fase": "F6",
+   "estado": "aberto",
+   "titulo": "Acerto ao alvo 0,326 abaixo do minimo de design 0,34 (unica metrica que falta para 13/13)",
+   "locais": [
+    {
+     "arquivo": "src/scripts/20-core.js",
+     "linha": 611,
+     "ancora": "conversionScale: 2.25",
+     "linha_atual": 615
+    }
+   ],
+   "evidencia": "0,326 medido; dentro da faixa real 0,30-0,40, fora da faixa de design",
+   "dono": "camada 88 (mira)",
+   "intercepta": [
+    "88"
+   ],
+   "criterio": [
+    "design 13/13 por qualquer via",
+    "goals +-0,20"
+   ],
+   "depende": [
+    "D13"
+   ],
+   "risco": "baixo: pode se resolver sozinho com D13",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2611,
+    "linha_fim": 2647,
+    "titulo": "D22 🟠 Acerto ao alvo abaixo do mínimo de design"
+   }
+  },
+  {
+   "id": "D23",
+   "sev": "higiene",
+   "fase": "—",
+   "estado": "guarda-corpo",
+   "titulo": "Distribuicao de placares — saudavel, serve de guarda-corpo",
+   "locais": [],
+   "evidencia": "0 a 0 em 7,7% (real 7-9%); goleadas ~3% (real 2-4%)",
+   "dono": "—",
+   "intercepta": [],
+   "criterio": [
+    "goleadas <=6% apos qualquer mudanca de D19 ou D20"
+   ],
+   "depende": [],
+   "risco": "deadBallRecovery +0,02 ja derrubou empates de 29,2% para 17,5%",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2648,
+    "linha_fim": 2696,
+    "titulo": "D23 🟡 A bola de neve: o placar abre demais?"
+   }
+  },
+  {
+   "id": "D24",
+   "sev": "tela",
+   "fase": "F6",
+   "estado": "aberto",
+   "titulo": "Tarja preta ocupa 24% a 43% da caixa do campo",
+   "locais": [
+    {
+     "arquivo": "src/scripts/70-game-runtime-and-rendering.js",
+     "linha": 1300,
+     "ancora": "const cv=$('#fieldcv'), r=cv.getBoundingClientRect();",
+     "linha_atual": 1300
+    }
+   ],
+   "evidencia": "caixa.js em 4 resolucoes: 19% a 43%",
+   "dono": "runtime de desenho (cobertura de leitura: 10%)",
+   "intercepta": [],
+   "criterio": [
+    "letterbox <=4% nas 4 resolucoes",
+    "olhar.js: as 4 linhas do campo visiveis"
+   ],
+   "depende": [],
+   "risco": "a recomendacao MENOS fundamentada do documento",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2697,
+    "linha_fim": 2736,
+    "titulo": "D24 🔵 Tarja preta: 24% a 43% da caixa do campo"
+   }
+  },
+  {
+   "id": "D25",
+   "sev": "higiene",
+   "fase": "F1",
+   "estado": "feito",
+   "titulo": "_ballTravel isenta 'deflect' de sair do campo, sem justificativa",
+   "locais": [
+    {
+     "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
+     "linha": 2416,
+     "ancora": "D25 · `deflect` NÃO tinha.",
+     "linha_atual": 2242
+    }
+   ],
+   "evidencia": "o comentario justifica a excecao para 'shot' (o alvo do gol fica alem da linha) e nao justifica 'deflect'",
+   "dono": "core alcancado; 07/08/16/17 sao VIVAS",
+   "intercepta": [
+    "07",
+    "08",
+    "16",
+    "17"
+   ],
+   "criterio": [
+    "throwIns >=17,4",
+    "corners +-0,50"
+   ],
+   "depende": [],
+   "risco": "medio. FACA ESTE PRIMEIRO de todos os de D08: uma linha, efeito medivel, reversao trivial.",
+   "feito_em": "FEITO E SEM EFEITO MEDIDO. A excecao foi removida (o comentario dela agora explica por que 'shot' tem razao de ser e 'deflect' nao tinha), mas as 14 metricas ficaram IDENTICAS ao digito em 40 partidas pareadas. A sonda tools/fisica/ramo-d25.js explica: ha 77,5 quadros por partida com bola de desvio viajando FORA do campo, e _ballOut e chamado em voo ZERO vezes — as saidas ja vinham por _looseRoll (7,9/partida) e por bola parada (19,6/partida). A linha editada nao e alcancada no caso do desvio: alguma das 4 sobrescritas de _ballTravel resolve o segmento antes. CONSEQUENCIA PARA D08: a premissa de que o desvio escapava da maquina de reinicio esta ERRADA. O orcamento de laterais nao se abre por aqui.",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2737,
+    "linha_fim": 2823,
+    "titulo": "D25 🟡 ✅ `_ballTravel` isenta explicitamente o desvio de sair do campo"
+   }
+  },
+  {
+   "id": "D26",
+   "sev": "higiene",
+   "fase": "F4",
+   "estado": "aberto",
+   "titulo": "decideT escrito em tres lugares e reescrito todo quadro pela camada 17",
+   "locais": [
+    {
+     "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
+     "linha": 503,
+     "ancora": "this.decideT = CAL.timing.decisionInterval * fat * iqReact / rit;",
+     "linha_atual": 491
+    },
+    {
+     "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
+     "linha": 2582,
+     "ancora": "this.decideT=0.28;",
+     "linha_atual": 2434
+    }
+   ],
+   "evidencia": "a curva de sobrevivencia da posse tem um vale exatamente em 0,28 s — o relogio de decisao vazando para a estatistica",
+   "dono": "a camada 17 e a autoridade real. A mudanca tem de ser feita LA.",
+   "intercepta": [
+    "17"
+   ],
+   "criterio": [
+    "passes +-5,53",
+    "shots +-0,84",
+    "mediana de posse 0,9-1,3 s",
+    "curva de sobrevivencia sem vale em 0,28"
+   ],
+   "medido": "CONFIRMADO, DESCRICAO INTACTA. ramos.js: 35.195,25 mudancas de decideT por partida — a camada 17 reescreve quase todo quadro, como o documento dizia por leitura. O literal 0,28 aparece 55,25 vezes (as recepcoes). Unico dos sete que sobreviveu intacto.",
+   "depende": [
+    "D14"
+   ],
+   "risco": "medio: mexe no ritmo de decisao",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2824,
+    "linha_fim": 2895,
+    "titulo": "D26 🟡 `decideT` é escrito em dois lugares e reescrito todo quadro"
+   }
+  },
+  {
+   "id": "D27",
+   "sev": "futebol",
+   "fase": "—",
+   "estado": "guarda-corpo",
+   "titulo": "Faltas nao saem de foulBase, saem do numero de duelos",
+   "locais": [
+    {
+     "arquivo": "src/scripts/20-core.js",
+     "linha": 598,
+     "ancora": "foulBase: 0.29",
+     "linha_atual": 598
+    }
+   ],
+   "evidencia": "faltas 22,25 hoje (faixa real 19-26), trazidas pela OS-206 e nao pelo parametro",
+   "dono": "—",
+   "intercepta": [],
+   "criterio": [
+    "qualquer mudanca no numero de duelos reverifica faltas E cartoes JUNTOS"
+   ],
+   "depende": [],
+   "risco": "dois erros se compensavam: poucas faltas + cartoes demais por falta",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2896,
+    "linha_fim": 2945,
+    "titulo": "D27 🟠 As faltas não saem do parâmetro — saem do número de duelos"
+   }
+  },
+  {
+   "id": "D28",
+   "sev": "higiene",
+   "fase": "F0",
+   "estado": "feito",
+   "titulo": "deadBallRecovery: delta de 0,02 move o placar de design em 2 pontos",
+   "locais": [
+    {
+     "arquivo": "src/scripts/20-core.js",
+     "linha": 572,
+     "ancora": "deadBallRecovery: 0.062",
+     "linha_atual": 572
+    }
+   ],
+   "evidencia": "0,055 -> 0,075: empates 29,2% -> 17,5%, goleadas 17,5% -> 20,8%, design 12/13 -> 10/13",
+   "dono": "—",
+   "intercepta": [],
+   "criterio": [
+    "calibration/sensibilidade.json existe com o delta medido de cada constante"
+   ],
+   "feito_em": "calibration/sensibilidade.json · 10 constantes com o delta MEDIDO de cada uma e a licao que ela deixou. O conhecimento existia so em comentarios espalhados; agora esta num lugar so.",
+   "depende": [],
+   "risco": "nenhum: e documentacao",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 2946,
+    "linha_fim": 3006,
+    "titulo": "D28 🟡 ✅ `deadBallRecovery` — a calibração mais frágil do jogo"
+   }
+  },
+  {
+   "id": "D29",
+   "sev": "higiene",
+   "fase": "F2",
+   "estado": "aberto",
+   "titulo": "Duas faixas de design conflitantes para escanteios no mesmo arquivo",
+   "locais": [
+    {
+     "arquivo": "src/scripts/20-core.js",
+     "linha": 634,
+     "ancora": "lowCrossSaveCorner: 0.55",
+     "linha_atual": 643
+    }
+   ],
+   "evidencia": "o comentario diz 5,0-11,5; targets.corners diz [3, 9]; medido 11,18",
+   "dono": "—",
+   "intercepta": [],
+   "criterio": [
+    "uma faixa so, alinhada ao futebol real"
+   ],
+   "depende": [
+    "D08"
+   ],
+   "risco": "fazer DEPOIS de D08 ou o alvo tera de mudar duas vezes",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 3007,
+    "linha_fim": 3045,
+    "titulo": "D29 🟡 Escanteios acima da faixa de design, dentro da faixa real"
+   }
+  },
+  {
+   "id": "D30",
+   "sev": "higiene",
+   "fase": "F1",
+   "estado": "decidir",
+   "titulo": "Minigame de bola parada desligado desde a R18",
+   "locais": [
+    {
+     "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
+     "linha": 369,
+     "ancora": "_requestSetPiece() { return false; }",
+     "linha_atual": 378
+    }
+   ],
+   "evidencia": "15 linhas mortas + 2 pontos de chamada que testam input==null sem necessidade + camadas 63/64 (255 linhas) de status desconhecido",
+   "dono": "produto",
+   "intercepta": [
+    "63",
+    "64"
+   ],
+   "criterio": [
+    "pilha.js diz se 63/64 rodam, ANTES de decidir"
+   ],
+   "depende": [],
+   "risco": "baixo se medido antes",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 3046,
+    "linha_fim": 3082,
+    "titulo": "D30 🟡 O minigame de bola parada está desligado desde a R18"
+   }
+  },
+  {
+   "id": "D31",
+   "sev": "higiene",
+   "fase": "pos-F5",
+   "estado": "adiado",
+   "titulo": "A IA de treinador mora dentro do modulo do motor (~1.100 linhas, 21% do arquivo)",
+   "locais": [
+    {
+     "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
+     "linha": null,
+     "ancora": "function chooseOut(tm,mode)",
+     "linha_atual": 4241
+    }
+   ],
+   "evidencia": "usa estado privado da IIFE; e a maior fatia nao lida deste documento",
+   "dono": "—",
+   "intercepta": [],
+   "criterio": [
+    "contratos publicos + testes especificos antes de separar"
+   ],
+   "depende": [
+    "D17"
+   ],
+   "risco": "separar um modulo que depende de metodos prestes a mudar de lugar e trabalho dobrado",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 3083,
+    "linha_fim": 3113,
+    "titulo": "D31 🟡 A IA de treinador mora dentro do módulo do motor"
+   }
+  },
+  {
+   "id": "D32",
+   "sev": "higiene",
+   "fase": "F1",
+   "estado": "feito",
+   "titulo": "Armadilha de escopo: CAL nao existe dentro de uma camada",
+   "locais": [
+    {
+     "arquivo": "src/scripts/20-core.js",
+     "linha": 518,
+     "ancora": "const ENGINE_CALIBRATION = Object.freeze({",
+     "linha_atual": 518
+    },
+    {
+     "arquivo": "src/scripts/layers/66-cds-os39-block-on-flight.js",
+     "linha": 8,
+     "ancora": "var _CALIB=root.ENGINE_CALIBRATION;",
+     "linha_atual": 15
+    }
+   ],
+   "evidencia": "o erro pode passar pela bateria (vm.runInThisContext) e so aparecer no navegador",
+   "dono": "todas as camadas",
+   "intercepta": [],
+   "criterio": [
+    "verify.py reprova 'CAL.' em src/scripts/layers/"
+   ],
+   "depende": [],
+   "risco": "nenhum: e lint",
+   "feito_em": "lint em tools/verify.py (passo 6). Na PRIMEIRA execucao ele pegou uma violacao real e viva: a camada 66 lia restarts.shotBlockCorner por `root.CAL && ...`, que NUNCA acerta porque window.CAL e undefined (medido). Caia no 0,66 codificado em silencio — a calibracao estava desconectada e mexer no 20-core.js nao teria efeito ali. O padrao por acaso era igual ao valor calibrado, entao o defeito era invisivel. Corrigido para ENGINE_CALIBRATION; o lint impede a reintroducao.",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 3114,
+    "linha_fim": 3134,
+    "titulo": "D32 🟡 ✅ A armadilha de escopo que derruba camadas novas"
+   }
+  },
+  {
+   "id": "D33",
+   "sev": "higiene",
+   "fase": "F4",
+   "estado": "aberto",
+   "titulo": "Treze arquivos, 81 linhas, que so publicam numero de versao",
+   "locais": [
+    {
+     "arquivo": "src/scripts/layers/59-cds-r1821rc1-build-meta.js",
+     "linha": null,
+     "ancora": ""
+    }
+   ],
+   "evidencia": "89 blocos poderiam ser 77; o manifesto encolhe 13%",
+   "dono": "—",
+   "intercepta": [],
+   "criterio": [
+    "grep por __CDS_* antes de fundir",
+    "metricas identicas"
+   ],
+   "depende": [],
+   "risco": "baixo mas nao zero: algo pode ler por nome",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 3186,
+    "linha_fim": 3220,
+    "titulo": "D33 🟡 Doze arquivos que só publicam número de versão"
+   }
+  },
+  {
+   "id": "D34",
+   "sev": "estrutural",
+   "fase": "F4",
+   "estado": "aberto",
+   "titulo": "Ate 81 sobrescritas nunca alcancadas — TETO SUPERIOR, nao contagem",
+   "locais": [],
+   "evidencia": "14 partidas nao exercitam penalti decisivo, expulsao dupla, prorrogacao nem metade da bola parada",
+   "dono": "—",
+   "intercepta": [],
+   "criterio": [
+    "rodar pilha.js com 300 partidas ANTES de apagar qualquer coisa",
+    "<=15 em zero ao final"
+   ],
+   "depende": [],
+   "risco": "ALTO se alguem apagar as 81 direto. O primeiro plano escreveu este numero como se fosse fato — era teto.",
+   "secao": {
+    "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+    "linha_inicio": 3221,
+    "linha_fim": 3261,
+    "titulo": "D34 🔴 Até 81 sobrescritas nunca alcançadas"
+   }
+  }
+ ],
+ "defeitos_por_estado": {
+  "feito": 9,
+  "refutado": 1,
+  "aberto": 18,
+  "parcial": 1,
+  "decidir": 2,
+  "guarda-corpo": 2,
+  "adiado": 1
+ },
+ "linha_de_base_300_partidas": {
+  "shots": {
+   "media": 23.713,
+   "desvio": 7.457,
+   "dois_SE": 0.8611
+  },
+  "onTarget": {
+   "media": 7.59,
+   "desvio": 3.558,
+   "dois_SE": 0.4108
+  },
+  "goals": {
+   "media": 2.867,
+   "desvio": 1.78,
+   "dois_SE": 0.2055
+  },
+  "xg": {
+   "media": 3.011,
+   "desvio": 1.202,
+   "dois_SE": 0.1388
+  },
+  "corners": {
+   "media": 11.343,
+   "desvio": 4.512,
+   "dois_SE": 0.521
+  },
+  "fouls": {
+   "media": 22.143,
+   "desvio": 5.166,
+   "dois_SE": 0.5965
+  },
+  "yellow": {
+   "media": 4.487,
+   "desvio": 1.952,
+   "dois_SE": 0.2254
+  },
+  "red": {
+   "media": 0.257,
+   "desvio": 0.48,
+   "dois_SE": 0.0554
+  },
+  "passes": {
+   "media": 384.683,
+   "desvio": 48.233,
+   "dois_SE": 5.5695
+  },
+  "passOk": {
+   "media": 314.333,
+   "desvio": 43.644,
+   "dois_SE": 5.0396
+  },
+  "tackles": {
+   "media": 49.833,
+   "desvio": 8.829,
+   "dois_SE": 1.0195
+  },
+  "offsides": {
+   "media": 5.177,
+   "desvio": 4.054,
+   "dois_SE": 0.4681
+  },
+  "throwIns": {
+   "media": 15.81,
+   "desvio": 6.429,
+   "dois_SE": 0.7424
+  },
+  "goalKicks": {
+   "media": 12.96,
+   "desvio": 4.681,
+   "dois_SE": 0.5405
+  }
+ },
+ "faixas_de_design": {
+  "goalsPerMatch": {
+   "min": 2.4,
+   "target": 2.8,
+   "max": 3.2,
+   "weight": 8
+  },
+  "shotsPerMatch": {
+   "min": 20.0,
+   "target": 25.0,
+   "max": 30.0,
+   "weight": 5
+  },
+  "xgPerMatch": {
+   "min": 2.3,
+   "target": 2.9,
+   "max": 3.5,
+   "weight": 6
+  },
+  "onTargetRate": {
+   "min": 0.34,
+   "target": 0.4,
+   "max": 0.47,
+   "weight": 4
+  },
+  "passCompletion": {
+   "min": 0.75,
+   "target": 0.82,
+   "max": 0.89,
+   "weight": 4
+  },
+  "foulsPerMatch": {
+   "min": 16.0,
+   "target": 21.0,
+   "max": 28.0,
+   "weight": 3
+  },
+  "yellowsPerMatch": {
+   "min": 2.4,
+   "target": 3.8,
+   "max": 5.6,
+   "weight": 3
+  },
+  "redsPerMatch": {
+   "min": 0.06,
+   "target": 0.16,
+   "max": 0.3,
+   "weight": 5
+  },
+  "cornersPerMatch": {
+   "min": 5.0,
+   "target": 8.0,
+   "max": 11.5,
+   "weight": 3
+  },
+  "drawRate": {
+   "min": 0.2,
+   "target": 0.26,
+   "max": 0.33,
+   "weight": 4
+  },
+  "zeroZeroRate": {
+   "min": 0.045,
+   "target": 0.075,
+   "max": 0.12,
+   "weight": 3
+  },
+  "blowoutRate": {
+   "min": 0.09,
+   "target": 0.135,
+   "max": 0.19,
+   "weight": 5
+  },
+  "lateGoalShare": {
+   "min": 0.17,
+   "target": 0.24,
+   "max": 0.34,
+   "weight": 3
+  },
+  "setPieceGoalShare": {
+   "min": 0.1,
+   "target": 0.17,
+   "max": 0.27,
+   "weight": 4
+  },
+  "favoriteWinRate": {
+   "min": 0.6,
+   "target": 0.69,
+   "max": 0.79,
+   "weight": 5
+  },
+  "paritySideAWinShare": {
+   "min": 0.46,
+   "target": 0.5,
+   "max": 0.54,
+   "weight": 6
+  },
+  "averageEndingStamina": {
+   "min": 64.0,
+   "target": 73.0,
+   "max": 83.0,
+   "weight": 3
+  }
+ },
+ "sensibilidade_das_constantes": {
+  "versao": "1.0.0",
+  "descricao": "D28 · quanto cada constante move o jogo. Este conhecimento existia so em comentarios espalhados por 20-core.js e pelas camadas; aqui ele fica num lugar so, com o delta MEDIDO de cada uma. Consulte antes de tocar em qualquer uma delas.",
+  "como_ler": "delta = a variacao testada. efeito = o que aconteceu, medido em bateria. Nao sao estimativas.",
+  "regra": "Toda constante marcada sensibilidade=alta exige bateria de 300 partidas antes e depois. Nenhuma delas se ajusta 'no olho'.",
+  "constantes": [
+   {
+    "nome": "timing.deadBallRecovery",
+    "onde": "src/scripts/20-core.js",
+    "valor": 0.062,
+    "sensibilidade": "alta",
+    "delta_testado": "+0,020 (0,055 -> 0,075)",
+    "efeito": "stamina final 64,2 -> 64,4 (irrisorio), MAS empates 29,2% -> 17,5% (abaixo do minimo) e goleadas 17,5% -> 20,8%. Placar de design 12/13 -> 10/13.",
+    "licao": "jogador mais inteiro no fim faz o placar abrir. O efeito nao esta na stamina, esta na distribuicao de resultados."
+   },
+   {
+    "nome": "timing.clockRate",
+    "onde": "src/scripts/20-core.js",
+    "valor": 0.085,
+    "sensibilidade": "alta",
+    "delta_testado": "0,130 -> 0,085",
+    "efeito": "em 0,13 o jogo nao batia NENHUM dos proprios minimos de volume: 13,2 chutes (min 20), 9,6 faltas (min 16), 1,97 gol (min 2,4), 41,7% de empates com 25% de 0 a 0.",
+    "licao": "nao era compressao 'arcade', era subnutricao. Ver D21: e uma decisao de produto, nao um numero de ajuste.",
+    "aviso": "a fadiga e normalizada por ADV4.context.clockRateRef e ja e INVARIANTE a este numero. Se mexer no relogio, NAO mexa no dreno junto."
+   },
+   {
+    "nome": "defending.yellowFirst",
+    "onde": "src/scripts/20-core.js",
+    "valor": 0.125,
+    "sensibilidade": "media",
+    "delta_testado": "0,180 -> 0,125",
+    "efeito": "cartao por falta 0,279 -> 0,177 (futebol real: 0,177).",
+    "licao": "a distorcao ficou INVISIVEL enquanto o jogo tinha 15,5 faltas por partida — o numero final de cartoes saia certo por compensacao de dois erros. So apareceu quando a OS-206 levou as faltas para 22."
+   },
+   {
+    "nome": "shooting.conversionScale",
+    "onde": "src/scripts/20-core.js",
+    "valor": 2.25,
+    "sensibilidade": "alta",
+    "delta_testado": "2,25 -> 2,05",
+    "efeito": "gols -0,4 por partida.",
+    "licao": "e o multiplicador direto da conversao; qualquer mudanca no modelo de defesa (D06) exige re-derivar XG_ESCALA junto."
+   },
+   {
+    "nome": "XG_ESCALA",
+    "onde": "src/scripts/layers/88-os200-balistica-real.js",
+    "valor": 0.651,
+    "sensibilidade": "derivada",
+    "delta_testado": "0,700 -> 0,651",
+    "efeito": "xG 3,15 para 2,93 gols -> xG 3,01 para 2,858 gols.",
+    "licao": "NAO e ajuste de gosto: por definicao esta constante E a razao medida entre gol realizado e pGoal acumulado. Muda o modelo de defesa, muda ela.",
+    "aviso": "reports/REFERENCIA.json ja foi invalidado uma vez por ter sido medido com 0,70 e commitado junto com a mudanca para 0,651."
+   },
+   {
+    "nome": "envergadura do goleiro",
+    "onde": "src/scripts/layers/88-os200-balistica-real.js",
+    "valor": "1,05 + q x 0,55",
+    "sensibilidade": "alta",
+    "delta_testado": "1,05 -> 1,45",
+    "efeito": "gols 3,27 -> 3,40 e golPorChuteNoAlvo 0,428 -> 0,436. PIOROU.",
+    "licao": "o sinal mais barato do projeto: quando aumentar um recurso piora o resultado, o modelo esta usando o recurso do jeito errado. Foi este resultado invertido que revelou D06 — o goleiro mergulhava no PRIMEIRO instante alcancavel, nao no melhor."
+   },
+   {
+    "nome": "restarts.shotBlockCorner",
+    "onde": "src/scripts/20-core.js",
+    "valor": 0.66,
+    "sensibilidade": "media",
+    "delta_testado": "nao testado isoladamente",
+    "efeito": "os 8 shares de escanteio foram elevados ~25% na auditoria v5.2.2, levando escanteios de 4,08 para ~10 por partida.",
+    "aviso": "D32 · esta constante estava DESCONECTADA da camada 66, que a lia por `root.CAL` (undefined) e caia num 0,66 codificado. Corrigido; o lint de tools/verify.py impede a reintroducao."
+   },
+   {
+    "nome": "attributes.duelSpread",
+    "onde": "src/scripts/20-core.js",
+    "valor": 10.5,
+    "sensibilidade": "media",
+    "delta_testado": "11,5 -> 10,5",
+    "efeito": "+10 de vantagem passava 70,3% e passa a 72,4%; +15 vai a 80,7%.",
+    "licao": "e o 'volume da sorte'. Spread alto achata a curva (a moeda pesa mais); baixo deixa o atributo ditar. Um 90 ainda perde ~1 em 5 duelos para um 75."
+   },
+   {
+    "nome": "possession.firstTouchMin / firstTouchMax",
+    "onde": "src/scripts/20-core.js",
+    "valor": "0,10 a 0,34",
+    "sensibilidade": "alta",
+    "delta_testado": "ver D10",
+    "efeito": "somados ao decideT=0,28 escrito em _giveBall, davam 0,38-0,62 s de posse. Mediana medida: 0,43 s.",
+    "aviso": "o orcamento de posse esta repartido entre DOIS lugares que nao se conhecem. Mexer so aqui nao resolve."
+   },
+   {
+    "nome": "LIMITE_AVANCO (plano do portador)",
+    "onde": "src/scripts/layers/90-os206-plano-do-portador.js",
+    "valor": 0.5,
+    "sensibilidade": "alta",
+    "delta_testado": "1,00 (campo inteiro) -> 0,50 (proprio campo)",
+    "efeito": "com 1,00 o placar de design foi de 11/13 para 6/13. O jogo quebrou.",
+    "licao": "um time que segura a bola NO CAMPO DO ADVERSARIO nao ataca. Quase nenhuma mudanca de comportamento e uniforme no campo."
+   }
+  ],
+  "constantes_de_baixa_sensibilidade": [
+   "attributes.lineJitter, keeperJitter, traitEffect — ruido determinista por jogador (hash do nome); e variacao de elenco, nao de rolagem",
+   "passing.* — os cinco erros de passe; nunca moveram uma metrica sozinhos nas medicoes desta serie",
+   "timing.fixedStep, tackleCooldown — nao testados isoladamente"
+  ]
+ },
+ "painel_esta_dando_resultado": {
+  "gerado_em": "2026-08-12",
+  "releases": [
+   "OS-200",
+   "OS-201",
+   "OS-202",
+   "OS-203",
+   "OS-206",
+   "A1",
+   "A2",
+   "F1"
+  ],
+  "metricas": {
+   "corners": {
+    "rotulo": "cornersPerMatch",
+    "serie": [
+     5.55,
+     9.717,
+     10.05,
+     9.443,
+     10.083,
+     11.103,
+     11.183,
+     11.343
+    ],
+    "faixa": [
+     5.0,
+     11.5
+    ],
+    "atual": 11.343,
+    "veredito": "DENTRO",
+    "explicacao": "na faixa e estavel"
+   },
+   "fouls": {
+    "rotulo": "foulsPerMatch",
+    "serie": [
+     10.2,
+     15.333,
+     16.092,
+     15.477,
+     22.333,
+     22.32,
+     22.25,
+     22.143
+    ],
+    "faixa": [
+     16.0,
+     28.0
+    ],
+    "atual": 22.143,
+    "veredito": "DENTRO",
+    "explicacao": "na faixa e estavel"
+   },
+   "goals": {
+    "rotulo": "goalsPerMatch",
+    "serie": [
+     1.842,
+     2.892,
+     2.758,
+     2.81,
+     2.833,
+     3.267,
+     2.93,
+     2.867
+    ],
+    "faixa": [
+     2.4,
+     3.2
+    ],
+    "atual": 2.867,
+    "veredito": "DENTRO",
+    "explicacao": "na faixa e estavel"
+   },
+   "offsides": {
+    "rotulo": "impedimentos",
+    "serie": [
+     6.15,
+     9.9,
+     11.192,
+     10.367,
+     10.025,
+     5.107,
+     5.047,
+     5.177
+    ],
+    "faixa": [
+     2.5,
+     6.0
+    ],
+    "atual": 5.177,
+    "veredito": "DENTRO",
+    "explicacao": "na faixa e estavel"
+   },
+   "onTargetRate": {
+    "rotulo": "onTargetRate",
+    "serie": [
+     0.3648,
+     0.3509,
+     0.3387,
+     0.3429,
+     0.3279,
+     0.3215,
+     0.3262,
+     0.3201
+    ],
+    "faixa": [
+     0.34,
+     0.47
+    ],
+    "atual": 0.3201,
+    "veredito": "SAIU",
+    "explicacao": "ja esteve na faixa e saiu"
+   },
+   "passCompletion": {
+    "rotulo": "passCompletion",
+    "serie": [
+     0.843,
+     0.8387,
+     0.8312,
+     0.8322,
+     0.8035,
+     0.8179,
+     0.818,
+     0.8171
+    ],
+    "faixa": [
+     0.75,
+     0.89
+    ],
+    "atual": 0.8171,
+    "veredito": "DENTRO",
+    "explicacao": "na faixa e estavel"
+   },
+   "red": {
+    "rotulo": "redsPerMatch",
+    "serie": [
+     0.075,
+     0.2,
+     0.2,
+     0.223,
+     0.275,
+     0.243,
+     0.237,
+     0.257
+    ],
+    "faixa": [
+     0.06,
+     0.3
+    ],
+    "atual": 0.257,
+    "veredito": "DENTRO",
+    "explicacao": "na faixa e estavel"
+   },
+   "shots": {
+    "rotulo": "shotsPerMatch",
+    "serie": [
+     13.617,
+     21.233,
+     21.258,
+     21.203,
+     22.033,
+     23.723,
+     23.667,
+     23.713
+    ],
+    "faixa": [
+     20.0,
+     30.0
+    ],
+    "atual": 23.713,
+    "veredito": "DENTRO",
+    "explicacao": "na faixa e estavel"
+   },
+   "tackles": {
+    "rotulo": "desarmes (faixa ESTIMADA)",
+    "serie": [
+     19.233,
+     30.533,
+     32.85,
+     32.493,
+     50.042,
+     50.51,
+     50.133,
+     49.833
+    ],
+    "faixa": [
+     30.0,
+     45.0
+    ],
+    "atual": 49.833,
+    "veredito": "QUASE PARADA",
+    "explicacao": "aproximou so 0.68 em 2 medicao(oes); faltam 4.83 — neste ritmo, ~14 medicoes para entrar"
+   },
+   "throwIns": {
+    "rotulo": "laterais",
+    "serie": [
+     10.6,
+     13.692,
+     14.117,
+     13.877,
+     16.525,
+     15.953,
+     15.91,
+     15.81
+    ],
+    "faixa": [
+     33.0,
+     48.0
+    ],
+    "atual": 15.81,
+    "veredito": "PARADA",
+    "explicacao": "fora ha 8 medicoes, sem movimento"
+   },
+   "xg": {
+    "rotulo": "xgPerMatch",
+    "serie": [
+     1.96,
+     2.928,
+     2.903,
+     2.958,
+     2.905,
+     3.12,
+     3.148,
+     3.011
+    ],
+    "faixa": [
+     2.3,
+     3.5
+    ],
+    "atual": 3.011,
+    "veredito": "DENTRO",
+    "explicacao": "na faixa e estavel"
+   },
+   "yellow": {
+    "rotulo": "yellowsPerMatch",
+    "serie": [
+     3.425,
+     4.658,
+     5.167,
+     4.697,
+     4.675,
+     4.52,
+     4.427,
+     4.487
+    ],
+    "faixa": [
+     2.4,
+     5.6
+    ],
+    "atual": 4.487,
+    "veredito": "DENTRO",
+    "explicacao": "na faixa e estavel"
+   }
+  }
+ },
+ "inventario_de_camadas": {
+  "arquivos": 82,
+  "linhas": 12342,
+  "com_sobrescrita": 60,
+  "nomes_distintos": 172,
+  "atribuicoes_totais": 362,
+  "mais_disputados": [
+   {
+    "metodo": "getFullFootballAudit",
+    "camadas": 20
+   },
+   {
+    "metodo": "_emit",
+    "camadas": 19
+   },
+   {
+    "metodo": "step",
+    "camadas": 19
+   },
+   {
+    "metodo": "_startTravel",
+    "camadas": 13
+   },
+   {
+    "metodo": "reset",
+    "camadas": 12
+   },
+   {
+    "metodo": "_defendTarget",
+    "camadas": 9
+   },
+   {
+    "metodo": "_decide",
+    "camadas": 8
+   },
+   {
+    "metodo": "_ballOut",
+    "camadas": 8
+   },
+   {
+    "metodo": "_setCorner",
+    "camadas": 7
+   },
+   {
+    "metodo": "_deflectTo",
+    "camadas": 6
+   },
+   {
+    "metodo": "_turnover",
+    "camadas": 6
+   },
+   {
+    "metodo": "_movePlayers",
+    "camadas": 5
+   },
+   {
+    "metodo": "_looseBall",
+    "camadas": 5
+   },
+   {
+    "metodo": "_receive",
+    "camadas": 5
+   },
+   {
+    "metodo": "_selectPresser",
+    "camadas": 5
+   }
+  ],
+  "camadas": [
+   {
+    "arquivo": "00-inline.js",
+    "linhas": 31,
+    "sobrescreve": []
+   },
+   {
+    "arquivo": "04-cds-mobile-boot-bridge.js",
+    "linhas": 73,
+    "sobrescreve": []
+   },
+   {
+    "arquivo": "07-cds-physics-timeline-581.js",
+    "linhas": 165,
+    "sobrescreve": [
+     "__CDS_PHYSICS_581__",
+     "_actorInterceptTarget",
+     "_actorReachable",
+     "_appendPhysicsSegment",
+     "_ballTravel",
+     "_beginPhysicsEvent",
+     "_continueTravel",
+     "_deflectTo",
+     "_emit",
+     "_finalizePhysicsEvent",
+     "_gkInterceptTarget",
+     "_movePlayers",
+     "_physicalArc",
+     "_physicalBlockPoint",
+     "_physicalContactValid",
+     "_physicalTargetZ",
+     "_planPhysicalSegment",
+     "_recordVisualContact",
+     "_startTravel",
+     "_trajectoryPoint",
+     "createPhysicalScenario",
+     "exportPhysicsAudit",
+     "getActivePhysicalEvent",
+     "getPhysicalTimeline",
+     "getPhysicalTimelineRef",
+     "isOver",
+     "reset"
+    ]
+   },
+   {
+    "arquivo": "08-cds-p04-physical-reception-584-r6.js",
+    "linhas": 971,
+    "sobrescreve": [
+     "_ballGlue",
+     "_ballTravel",
+     "_contestLoose",
+     "_continueTravel",
+     "_giveBall",
+     "_goalkeeperClaim",
+     "_looseBall",
+     "_looseRoll",
+     "_receive",
+     "_startTravel",
+     "getP04ValidationReport"
+    ]
+   },
+   {
+    "arquivo": "09-cds-2-5d-gate-a-contracts-v02.js",
+    "linhas": 390,
+    "sobrescreve": []
+   },
+   {
+    "arquivo": "10-cds-pre25d-runtime-auditor-v04.js",
+    "linhas": 39,
+    "sobrescreve": [
+     "_emit",
+     "getPre25DAuditReport"
+    ]
+   },
+   {
+    "arquivo": "11-cds-pre25d-build-meta-584-r6.js",
+    "linhas": 31,
+    "sobrescreve": []
+   },
+   {
+    "arquivo": "12-cds-r7-pass-flow-calibration.js",
+    "linhas": 34,
+    "sobrescreve": [
+     "_selectPresser",
+     "step"
+    ]
+   },
+   {
+    "arquivo": "13-cds-r9-pass-natural-calibration.js",
+    "linhas": 9,
+    "sobrescreve": []
+   },
+   {
+    "arquivo": "14-cds-r10-engine-closure.js",
+    "linhas": 122,
+    "sobrescreve": [
+     "_finalizePhysicsEvent",
+     "_looseRoll",
+     "_physicalContactValid",
+     "_startTravel",
+     "_turnover",
+     "getPhysicalTimeline",
+     "getR10Report",
+     "step",
+     "substitute",
+     "transferPossession"
+    ]
+   },
+   {
+    "arquivo": "15-cds-r109-async-cup.js",
+    "linhas": 39,
+    "sobrescreve": []
+   },
+   {
+    "arquivo": "16-cds-r12-transactional-core-r123.js",
+    "linhas": 211,
+    "sobrescreve": [
+     "_ballTravel",
+     "_blankStats",
+     "_canCross",
+     "_continueTravel",
+     "_cross",
+     "_decide",
+     "_dribble",
+     "_emit",
+     "_goalKickOrRestart",
+     "_integrate",
+     "_movePlayers",
+     "_pass",
+     "_pressAndTackle",
+     "_resolveOverlaps",
+     "_setCorner",
+     "_startTravel",
+     "_turnover",
+     "getFullFootballAudit",
+     "getR12Audit",
+     "isOver",
+     "reset",
+     "step"
+    ]
+   },
+   {
+    "arquivo": "17-cds-r13-football-observer-cadence.js",
+    "linhas": 931,
+    "sobrescreve": [
+     "_assignDefRoles",
+     "_attackTarget",
+     "_ballGlue",
+     "_ballOut",
+     "_ballTravel",
+     "_blankStats",
+     "_decide",
+     "_defendTarget",
+     "_deflectTo",
+     "_emit",
+     "_goalKickOrRestart",
+     "_integrate",
+     "_looseBall",
+     "_pressAndTackle",
+     "_receive",
+     "_selectPresser",
+     "_setCorner",
+     "_startTravel",
+     "_turnover",
+     "getFullFootballAudit",
+     "getR13Audit",
+     "reset",
+     "step"
+    ]
+   },
+   {
+    "arquivo": "18-cds-r14-engine.js",
+    "linhas": 779,
+    "sobrescreve": [
+     "__CDS_R14_ACTION__",
+     "__CDS_R18_CONTRACT__",
+     "__CDS_R19_MATCHSTATE__",
+     "__r15SetPieceWalk",
+     "_buildTeam",
+     "_decide",
+     "_goalKickOrRestart",
+     "_kickoff",
+     "_setCorner",
+     "getR14ActionAudit",
+     "reset",
+     "step"
+    ]
+   },
+   {
+    "arquivo": "20-cds-r183-natural-football.js",
+    "linhas": 148,
+    "sobrescreve": [
+     "_decide",
+     "_physicalArc",
+     "_physicalTargetZ",
+     "_planPhysicalSegment",
+     "_startTravel",
+     "_trajectoryPoint",
+     "getR183Report"
+    ]
+   },
+   {
+    "arquivo": "21-cds-ux-boot.js",
+    "linhas": 1085,
+    "sobrescreve": []
+   },
+   {
+    "arquivo": "22-cds-r184-certificacao-honesta.js",
+    "linhas": 85,
+    "sobrescreve": [
+     "__CDS_R184__",
+     "getFullFootballAudit",
+     "rebuildRoleContracts",
+     "setShapes",
+     "substitute"
+    ]
+   },
+   {
+    "arquivo": "23-cds-r185-bloco-defensivo.js",
+    "linhas": 65,
+    "sobrescreve": [
+     "__CDS_R185__",
+     "_defendTarget",
+     "_integrate",
+     "getFullFootballAudit"
+    ]
+   },
+   {
+    "arquivo": "24-cds-r187-atributos-vivos.js",
+    "linhas": 271,
+    "sobrescreve": [
+     "__CDS_R187__",
+     "_assignDefRoles",
+     "_bestPass",
+     "_defendTarget",
+     "_integrate",
+     "getAttributeInfluenceAudit",
+     "getAttributeInfluenceProfile",
+     "getFullFootballAudit"
+    ]
+   },
+   {
+    "arquivo": "25-cds-r188-action-intelligence-core.js",
+    "linhas": 4,
+    "sobrescreve": [
+     "getActionDecisionProfile",
+     "getFullFootballAudit"
+    ]
+   },
+   {
+    "arquivo": "26-cds-r189-offball-intelligence.js",
+    "linhas": 38,
+    "sobrescreve": [
+     "_movePlayers",
+     "getFullFootballAudit",
+     "getOffBallIntelligenceProfile"
+    ]
+   },
+   {
+    "arquivo": "27-cds-r1810-reception-intelligence.js",
+    "linhas": 49,
+    "sobrescreve": [
+     "_decide",
+     "getFirstActionDecisionTemperature",
+     "getFullFootballAudit",
+     "getReceptionIntelligenceAudit",
+     "getReceptionIntelligenceProfile"
+    ]
+   },
+   {
+    "arquivo": "28-cds-r1811-second-ball-intelligence.js",
+    "linhas": 44,
+    "sobrescreve": [
+     "_r1811AfterSecondBallControl",
+     "getFullFootballAudit",
+     "getSecondBallIntelligenceAudit",
+     "getSecondBallIntelligenceProfile"
+    ]
+   },
+   {
+    "arquivo": "29-cds-r1813-live-tackle-timing.js",
+    "linhas": 24,
+    "sobrescreve": [
+     "_r1813RecordEvaluation",
+     "_r1813TackleTimingProfile",
+     "getFullFootballAudit",
+     "getTackleTimingAudit",
+     "getTackleTimingProfile"
+    ]
+   },
+   {
+    "arquivo": "30-cds-r1814-orientation-recovery.js",
+    "linhas": 32,
+    "sobrescreve": [
+     "_defendTarget",
+     "_r1814MarkRecovery",
+     "_r1814OrientationProfile",
+     "_r1814RecoveryDuration",
+     "getFullFootballAudit",
+     "getOrientationRecoveryAudit",
+     "getOrientationRecoveryProfile"
+    ]
+   },
+   {
+    "arquivo": "31-cds-r1815-carry-protection-pressure.js",
+    "linhas": 33,
+    "sobrescreve": [
+     "_r1815CarryDuelProfile",
+     "_r1815PressureDuelProfile",
+     "_r1815RecordCarry",
+     "_r1815RecordPressure",
+     "getCarryProtectionPressureAudit",
+     "getCarryProtectionPressureProfile",
+     "getFullFootballAudit"
+    ]
+   },
+   {
+    "arquivo": "33-cds-r18fix-restart-positions.js",
+    "linhas": 219,
+    "sobrescreve": [
+     "__cdsRestartFix",
+     "_awardFoul",
+     "_ballOut",
+     "_freeKick",
+     "_kickoff",
+     "_penalty",
+     "_setCorner",
+     "_switchSides",
+     "step"
+    ]
+   },
+   {
+    "arquivo": "34-cds-r18155-shot-restart-law-fix.js",
+    "linhas": 42,
+    "sobrescreve": [
+     "__r18155ShotRestartLaw",
+     "_emit"
+    ]
+   },
+   {
+    "arquivo": "35-r18155-build-identity.js",
+    "linhas": 10,
+    "sobrescreve": []
+   },
+   {
+    "arquivo": "36-cds-r18161-box-runs-execution.js",
+    "linhas": 123,
+    "sobrescreve": [
+     "__r18161BoxRuns",
+     "_attackTarget",
+     "_r18161ActivePlan",
+     "_r18161CreateFlightPlan",
+     "_startTravel",
+     "getBoxMovementAudit",
+     "getBoxMovementProfile",
+     "getFullFootballAudit",
+     "step"
+    ]
+   },
+   {
+    "arquivo": "37-cds-r18161-build-identity.js",
+    "linhas": 3,
+    "sobrescreve": []
+   },
+   {
+    "arquivo": "38-cds-r1817-release-meta.js",
+    "linhas": 15,
+    "sobrescreve": [
+     "_emit",
+     "getR1817Audit",
+     "reset"
+    ]
+   },
+   {
+    "arquivo": "39-cds-r18172-approach-before-shot-meta.js",
+    "linhas": 26,
+    "sobrescreve": [
+     "_emit",
+     "getFullFootballAudit",
+     "getR18172Audit",
+     "reset"
+    ]
+   },
+   {
+    "arquivo": "40-cds-r18173-defensive-responsibility.js",
+    "linhas": 193,
+    "sobrescreve": [
+     "_assignDefRoles",
+     "_defendTarget",
+     "_selectPresser",
+     "getFullFootballAudit",
+     "getR18173Audit",
+     "reset",
+     "step"
+    ]
+   },
+   {
+    "arquivo": "41-cds-r181732-mobile-start-meta.js",
+    "linhas": 3,
+    "sobrescreve": []
+   },
+   {
+    "arquivo": "42-inline.js",
+    "linhas": 1,
+    "sobrescreve": []
+   },
+   {
+    "arquivo": "43-cds-r1818-offensive-progression.js",
+    "linhas": 126,
+    "sobrescreve": [
+     "__r1818Progression",
+     "_attackTarget",
+     "_decide",
+     "_emit",
+     "_pass",
+     "_receive",
+     "getFullFootballAudit",
+     "getR1818Audit",
+     "reset"
+    ]
+   },
+   {
+    "arquivo": "44-cds-r1818-build-meta.js",
+    "linhas": 1,
+    "sobrescreve": []
+   },
+   {
+    "arquivo": "45-cds-r18181-second-phase-natural-out.js",
+    "linhas": 186,
+    "sobrescreve": [
+     "__r18181SecondPhaseNaturalOut",
+     "_ballOut",
+     "_carry",
+     "_contestLoose",
+     "_decide",
+     "_deflectTo",
+     "_emit",
+     "_giveBall",
+     "_looseBall",
+     "_pass",
+     "_receive",
+     "_shoot",
+     "_turnover",
+     "getFullFootballAudit",
+     "getR18181Audit",
+     "reset",
+     "step"
+    ]
+   },
+   {
+    "arquivo": "46-cds-r18181-build-meta.js",
+    "linhas": 1,
+    "sobrescreve": []
+   },
+   {
+    "arquivo": "47-cds-r18182-duels-natural-restarts.js",
+    "linhas": 261,
+    "sobrescreve": [
+     "__r18182DuelsNaturalRestarts",
+     "_assignDefRoles",
+     "_ballOut",
+     "_clearBall",
+     "_deflectTo",
+     "_dribble",
+     "_emit",
+     "_goalKickOrRestart",
+     "_looseBall",
+     "_pressAndTackle",
+     "_receive",
+     "_selectPresser",
+     "_setCorner",
+     "_startTravel",
+     "_turnover",
+     "getFullFootballAudit",
+     "getR18182Audit",
+     "reset",
+     "step"
+    ]
+   },
+   {
+    "arquivo": "48-cds-r18182-build-meta.js",
+    "linhas": 1,
+    "sobrescreve": []
+   },
+   {
+    "arquivo": "49-cds-r18183-corner-ecology.js",
+    "linhas": 211,
+    "sobrescreve": [
+     "__r18183CornerEcology",
+     "__r18183OldDeflect",
+     "_ballOut",
+     "_deflectTo",
+     "_emit",
+     "_gkResolveSave",
+     "_looseBall",
+     "_setCorner",
+     "_turnover",
+     "getFullFootballAudit",
+     "getR18183Audit",
+     "reset",
+     "step"
+    ]
+   },
+   {
+    "arquivo": "50-cds-r18183-build-meta.js",
+    "linhas": 1,
+    "sobrescreve": []
+   },
+   {
+    "arquivo": "51-cds-r1820-chance-intelligence.js",
+    "linhas": 526,
+    "sobrescreve": [
+     "_decide",
+     "_shoot",
+     "getFullFootballAudit",
+     "getR1820Audit",
+     "reset"
+    ]
+   },
+   {
+    "arquivo": "52-cds-r1820-build-meta.js",
+    "linhas": 3,
+    "sobrescreve": []
+   },
+   {
+    "arquivo": "53-cds-r1821-throwin-law.js",
+    "linhas": 182,
+    "sobrescreve": [
+     "_ballOut",
+     "_emit",
+     "_giveBall",
+     "_goal",
+     "_shoot",
+     "_startTravel",
+     "getThrowInLawAudit"
+    ]
+   },
+   {
+    "arquivo": "54-cds-r1821-post-recovery-decision.js",
+    "linhas": 209,
+    "sobrescreve": [
+     "_clearBall"
+    ]
+   },
+   {
+    "arquivo": "55-cds-r1821-shot-plausibility.js",
+    "linhas": 111,
+    "sobrescreve": [
+     "_startTravel",
+     "getShotPlausibilityAudit"
+    ]
+   },
+   {
+    "arquivo": "56-cds-r1821-press-anticipation.js",
+    "linhas": 218,
+    "sobrescreve": [
+     "_defendTarget",
+     "_selectPresser",
+     "getPressAnticipationAudit"
+    ]
+   },
+   {
+    "arquivo": "57-cds-r1821-respread-top.js",
+    "linhas": 134,
+    "sobrescreve": []
+   },
+   {
+    "arquivo": "58-cds-r1821-tempo-e-pausas.js",
+    "linhas": 199,
+    "sobrescreve": [
+     "_emit",
+     "_freeKick",
+     "_goal",
+     "_injure",
+     "getTempoAudit",
+     "isOver",
+     "substitute"
+    ]
+   },
+   {
+    "arquivo": "59-cds-r1821rc1-build-meta.js",
+    "linhas": 41,
+    "sobrescreve": []
+   },
+   {
+    "arquivo": "60-cds-r1843-block-depth.js",
+    "linhas": 110,
+    "sobrescreve": [
+     "_attackTarget",
+     "_defendTarget",
+     "getBlockDepthAudit"
+    ]
+   },
+   {
+    "arquivo": "61-cds-r1849-carry-cone.js",
+    "linhas": 19,
+    "sobrescreve": []
+   },
+   {
+    "arquivo": "63-cds-os20-setpiece-hud.js",
+    "linhas": 79,
+    "sobrescreve": [
+     "__CDS_OS20__",
+     "_emit"
+    ]
+   },
+   {
+    "arquivo": "64-cds-os21-wall-taker.js",
+    "linhas": 176,
+    "sobrescreve": [
+     "__CDS_OS21__",
+     "_emit"
+    ]
+   },
+   {
+    "arquivo": "65-cds-os36-freekick-distance.js",
+    "linhas": 141,
+    "sobrescreve": [
+     "__CDS_OS36__",
+     "_freeKick",
+     "_movePlayers",
+     "getOS36Audit"
+    ]
+   },
+   {
+    "arquivo": "66-cds-os39-block-on-flight.js",
+    "linhas": 68,
+    "sobrescreve": [
+     "__CDS_OS39__",
+     "_startTravel"
+    ]
+   },
+   {
+    "arquivo": "67-cds-os42-contest-the-cross.js",
+    "linhas": 55,
+    "sobrescreve": [
+     "__CDS_OS42__",
+     "_defendTarget"
+    ]
+   },
+   {
+    "arquivo": "68-cds-os43-aerial-duel.js",
+    "linhas": 68,
+    "sobrescreve": [
+     "__CDS_OS43__",
+     "_startTravel"
+    ]
+   },
+   {
+    "arquivo": "69-cds-os46-anim-wiring.js",
+    "linhas": 115,
+    "sobrescreve": [
+     "__CDS_OS46__",
+     "_emit",
+     "_startTravel",
+     "getOS46Audit"
+    ]
+   },
+   {
+    "arquivo": "70-cds-os48-carry-flow.js",
+    "linhas": 56,
+    "sobrescreve": [
+     "__CDS_OS48__",
+     "_movePlayers",
+     "getOS48Audit"
+    ]
+   },
+   {
+    "arquivo": "71-cds-os51-beaten-defender.js",
+    "linhas": 44,
+    "sobrescreve": [
+     "__CDS_OS51__",
+     "_emit",
+     "_integrate",
+     "getOS51Audit"
+    ]
+   },
+   {
+    "arquivo": "72-cds-os81-low-cross-contact-meta.js",
+    "linhas": 3,
+    "sobrescreve": []
+   },
+   {
+    "arquivo": "73-cds-os82-intercept-control-meta.js",
+    "linhas": 3,
+    "sobrescreve": []
+   },
+   {
+    "arquivo": "74-cds-os77-common-foul-restart.js",
+    "linhas": 53,
+    "sobrescreve": [
+     "_awardFoul",
+     "step"
+    ]
+   },
+   {
+    "arquivo": "75-cds-os83-restart-watchdog.js",
+    "linhas": 38,
+    "sobrescreve": [
+     "_deflectTo",
+     "step"
+    ]
+   },
+   {
+    "arquivo": "76-cds-os90-gk-freekick-stance.js",
+    "linhas": 54,
+    "sobrescreve": [
+     "__OS90__",
+     "_goalkeeperTarget"
+    ]
+   },
+   {
+    "arquivo": "77-cds-os92-shot-out-geometry.js",
+    "linhas": 149,
+    "sobrescreve": [
+     "__OS92__",
+     "_physicalTargetZ",
+     "_planPhysicalSegment"
+    ]
+   },
+   {
+    "arquivo": "78-cds-os100-throwin-delivery.js",
+    "linhas": 93,
+    "sobrescreve": [
+     "__OS100__",
+     "_ballOut",
+     "step"
+    ]
+   },
+   {
+    "arquivo": "79-cds-os107-bloco-bola-parada.js",
+    "linhas": 225,
+    "sobrescreve": [
+     "__OS107__",
+     "_freeKick",
+     "_setCorner",
+     "step"
+    ]
+   },
+   {
+    "arquivo": "80-cds-os112-lateral-saida-e-apoio.js",
+    "linhas": 195,
+    "sobrescreve": [
+     "__OS112__",
+     "_ballOut",
+     "step"
+    ]
+   },
+   {
+    "arquivo": "82-cds-os113-falta-cartao.js",
+    "linhas": 104,
+    "sobrescreve": [
+     "__OS113__",
+     "_emit"
+    ]
+   },
+   {
+    "arquivo": "83-cds-r1886-build-meta.js",
+    "linhas": 10,
+    "sobrescreve": []
+   },
+   {
+    "arquivo": "84-cds-r1899-antiteleporte.js",
+    "linhas": 255,
+    "sobrescreve": [
+     "__R1899__",
+     "_goalKickOrRestart",
+     "_kickoff",
+     "step"
+    ]
+   },
+   {
+    "arquivo": "85-cds-r1903-falta-natural.js",
+    "linhas": 67,
+    "sobrescreve": [
+     "__R1903__",
+     "_r19FoulRisk"
+    ]
+   },
+   {
+    "arquivo": "86-cds-r1904-corte-que-sai.js",
+    "linhas": 81,
+    "sobrescreve": [
+     "__R1904__",
+     "_r19ClearOut",
+     "getR1904"
+    ]
+   },
+   {
+    "arquivo": "87-cds-r1905-papel-morre-com-o-lance.js",
+    "linhas": 43,
+    "sobrescreve": [
+     "__R1905__",
+     "getR1905",
+     "step"
+    ]
+   },
+   {
+    "arquivo": "88-os200-balistica-real.js",
+    "linhas": 967,
+    "sobrescreve": [
+     "__OS200__",
+     "_os200Defesa",
+     "_os200Desfecho",
+     "_os200EscalaXg",
+     "_os200Mira",
+     "_os200Rebote",
+     "_os200ResolverChute",
+     "_physicalArc",
+     "_physicalTargetZ",
+     "_planPhysicalSegment",
+     "_trajectoryPoint",
+     "getOS200Report"
+    ]
+   },
+   {
+    "arquivo": "89-os202-perseguicao-do-marcador.js",
+    "linhas": 102,
+    "sobrescreve": [
+     "__OS202__",
+     "_defendTarget"
+    ]
+   },
+   {
+    "arquivo": "90-os206-plano-do-portador.js",
+    "linhas": 220,
+    "sobrescreve": [
+     "__OS206__",
+     "_emit",
+     "_giveBall",
+     "step"
+    ]
+   }
+  ]
+ },
+ "sondas_de_ramo_ja_feitas": {
+  "partidas": 12,
+  "porPartida": {
+   "D11_decisionChecks": 515.17,
+   "D11_invalidTargetsRecovered": 0,
+   "D11_smartShotVetoes": 264.67,
+   "D11_touchlineErrorsAllowed": 0,
+   "D11_touchlineErrorsPrevented": 38.83,
+   "D12_alvo_JA_fora_no_topo": 19.92,
+   "D12_bola_POUSOU_fora": 11,
+   "D12_ficou_solta": 89.5,
+   "D12_looseBall_chamado": 92.08,
+   "D12_terminou_com_dono": 2.58,
+   "D13_amplitudeMaximaAntes_m": 13.3,
+   "D13_amplitudeMediaAntes_m": 6.8,
+   "D13_amplitudeMediaDepois_m": 4.57,
+   "D13_chutesForaComprimidos": 12.33,
+   "D13_chutesVistos": 23.42,
+   "D15_SEM_AUDITOR": 1,
+   "D16_integrate_chamado": 886981.58,
+   "D26_mudancas_de_decideT": 35195.25,
+   "D26_valor_exato_0_28": 55.25
+  }
+ },
+ "ferramentas": [
+  {
+   "comando": "bash tools/doutor.sh",
+   "responde": "o ambiente esta pronto?",
+   "custo": "5 s"
+  },
+  {
+   "comando": "python3 tools/defeito.py <ID>",
+   "responde": "UM defeito: ficha + codigo atual + secao",
+   "custo": "instantaneo"
+  },
+  {
+   "comando": "python3 tools/defeito.py --proximo",
+   "responde": "o que fazer agora",
+   "custo": "instantaneo"
+  },
+  {
+   "comando": "python3 tools/defeitos.py",
+   "responde": "valida que os enderecos ainda apontam certo",
+   "custo": "2 s"
+  },
+  {
+   "comando": "python3 tools/monitorar.py --html",
+   "responde": "ESTA DANDO RESULTADO? trajetoria por metrica",
+   "custo": "instantaneo"
+  },
+  {
+   "comando": "bash tools/aceitar.sh --antes/--depois",
+   "responde": "a mudanca entra ou nao",
+   "custo": "~25 min"
+  },
+  {
+   "comando": "python3 tools/comparar.py a.json b.json",
+   "responde": "aplica o criterio de 2 SE",
+   "custo": "instantaneo"
+  },
+  {
+   "comando": "node tools/fisica/bateria.js",
+   "responde": "as 14 metricas + sondas de fisica",
+   "custo": "~20 min / 300 partidas"
+  },
+  {
+   "comando": "python3 tools/fisica/placar.py",
+   "responde": "13 metricas de design",
+   "custo": "instantaneo"
+  },
+  {
+   "comando": "python3 tools/fisica/futebol_real.py",
+   "responde": "21 metricas de futebol de elite",
+   "custo": "instantaneo"
+  },
+  {
+   "comando": "node tools/fisica/pilha.js",
+   "responde": "quais sobrescritas rodam (metodo, nao linha)",
+   "custo": "~40 s"
+  },
+  {
+   "comando": "node tools/fisica/ramos.js",
+   "responde": "os ramos dos defeitos formulados por leitura",
+   "custo": "~3 min"
+  },
+  {
+   "comando": "node tools/fisica/ramo-d25.js|ramo-g20.js|ramo-rolagem.js|ramo-d02.js",
+   "responde": "um ramo especifico",
+   "custo": "~2 min"
+  },
+  {
+   "comando": "node tools/fisica/narrar.js",
+   "responde": "a partida em prosa de futebol",
+   "custo": "~5 s"
+  },
+  {
+   "comando": "node tools/fisica/direcao.js",
+   "responde": "para onde a bola e mandada",
+   "custo": "~2 min"
+  },
+  {
+   "comando": "node tools/fisica/tela/*.js",
+   "responde": "o que o JOGADOR ve (Chromium real)",
+   "custo": "~1-2 min cada"
+  },
+  {
+   "comando": "node tools/dossie/fotos.js",
+   "responde": "capturas anotadas do jogo",
+   "custo": "~1 min"
+  },
+  {
+   "comando": "python3 tools/dossie/graficos.py",
+   "responde": "os 8 graficos",
+   "custo": "3 s"
+  },
+  {
+   "comando": "python3 tools/dossie/pdf.py && node tools/dossie/imprimir.js",
+   "responde": "o PDF",
+   "custo": "~40 s"
+  },
+  {
+   "comando": "python3 tools/dossie/indice.py",
+   "responde": "o INDICE.html do dossie",
+   "custo": "1 s"
+  },
+  {
+   "comando": "python3 tools/conhecimento.py",
+   "responde": "ESTE arquivo",
+   "custo": "2 s"
+  }
+ ],
+ "arquivos_do_dossie": {
+  "briefing_2_paginas": "reports/LEIA-PRIMEIRO.md",
+  "para_colar_numa_IA": "reports/COLE-ISTO.txt",
+  "contrato_de_agentes": "AGENTS.md",
+  "relatorio_completo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
+  "indice_navegavel": "reports/pdf/INDICE.html",
+  "monitoramento": "reports/pdf/PAINEL.html",
+  "fotos_anotadas": "reports/fotos/",
+  "graficos": "reports/graficos/"
+ }
+}

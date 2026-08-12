@@ -2700,15 +2700,36 @@ placar abrir.
 + `src/styles/30-match-core.css:42`
 
 **A evidência** [MEDIDO, `tools/fisica/tela/caixa.js`, quatro resoluções]:
-letterbox medido entre **19% e 43%** da caixa do canvas, dependendo da
-proporção da janela. Confirmado visualmente na captura de tela enviada pelo
-usuário: em 1920 px de largura, o gramado ocupa aproximadamente x = 152 a
-x = 1232 dentro de um contêiner que vai de x ≈ 30 a x ≈ 1360 — sobram ~250 px
-de faixa escura, ~19% da largura útil.
 
-**O defeito.** O campo é desenhado em perspectiva 2.5D com proporção fixa. Ele
-é ajustado à altura disponível e o excesso de largura vira faixa vazia — o
-inverso do que o jogador quer, que é ver o campo o maior possível.
+```
+viewport      campo usa        tarja
+1920x1080     688 de 852 px    19,2%   <- a melhor
+1400x900      481 de 672 px    28,4%
+1280x800      435 de 572 px    24,0%
+1024x768      310 de 540 px    42,7%   <- a pior
+```
+
+> **Correção de direção.** A primeira versão desta seção dizia que a faixa
+> sobrava **à esquerda e à direita**, e chegou a citar coordenadas horizontais
+> de uma captura de tela. **Está errado: a sobra é vertical**, acima e abaixo do
+> gramado. As fotos em `reports/fotos/` mostram isso, e a sonda sempre mediu
+> altura — `altura usada pelo campo 688 de 852`. Eu li o número certo e
+> descrevi o eixo errado.
+
+**O defeito, agora com a causa localizada** [LIDO]. A sonda imprime a regra
+que vence:
+
+```css
+@media (min-width: 900px) {
+  #app:has(#fieldcv) #fieldcv { aspect-ratio: 1024 / 500; object-fit: contain; }
+}
+```
+
+O canvas tem proporção fixa **1024/500 = 2,048** e `object-fit: contain`. Quando
+o contêiner é mais **alto** que essa proporção — que é o caso em toda janela
+menos larga que 2:1 — o `contain` centraliza o desenho e deixa o resto vazio
+**em cima e embaixo**. Quanto mais quadrada a janela, maior a sobra: daí os
+42,7% em 1024×768 contra 19,2% em 1920×1080.
 
 **A mudança proposta** [HIPÓTESE — a área de desenho é a menos lida deste
 documento, 10% de cobertura]:
