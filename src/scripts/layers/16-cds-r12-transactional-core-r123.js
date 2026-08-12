@@ -153,10 +153,22 @@ const oldCanCross=P._canCross;P._canCross=function(o){if(!o||!this.teams)return 
 const oldDecide=P._decide;P._decide=function(o){if(o&&!o.isGK&&this.ball&&this.ball.owner===o&&this.teams&&!(o._setPieceDeliveryUntil>this.t)){const tm=this.teams[o.team],now=finite(this.t),g=tm.oppGoal,dtg=Math.hypot(finite(o.x)-finite(g.x),finite(o.y)-finite(g.y)),near=typeof this._nearestOpponent==='function'?this._nearestOpponent(o):{dist:5},best=typeof this._bestPass==='function'?this._bestPass(o):null,superior=best&&best.intoBox&&finite(best.risk)<1.75&&finite(best.score)>1.45;/* D11 · a regra inteira do chute contextual, num lugar so. O predicado da
    camada 20 (_r183ExcecaoAoChuteContextual) diz se existe alternativa
    melhor: chance clara, progressao limpa, saida sob pressao ou movimento
-   para dentro. Antes ele rodava por fora e envenenava o timestamp abaixo
-   para fazer este `if` falhar — 264,67 vezes por partida, medido. */
+   para dentro. Antes ele rodava num _decide proprio e envenenava
+   __r122LastContextShot — um campo que ja significa outra coisa (o
+   auto-limite do proprio sorteio).
+
+   A JANELA DE 1,15 s NAO E DETALHE. Vetar so o instante do sorteio custou
+   drawRate 0,270 -> 0,190 (3,53 SE, FORA da faixa de design) e blowoutRate
+   0,153 -> 0,197 (1,92 SE, fora da faixa) numa bateria de 300 partidas: as
+   14 metricas agregadas nao se moveram e o placar de design caiu 12/13 ->
+   10/13. O veto sempre teve memoria; o efeito colateral era o mecanismo.
+   Ele volta aqui, em campo PROPRIO e declarado. MEDIDO, nao inferido. */
+  if(typeof this._r183ExcecaoAoChuteContextual==='function'
+     &&!this.__r14Pending&&!(finite(this.dead)>0)&&!this.pendingRestart&&!this.waiting
+     &&this._r183ExcecaoAoChuteContextual(o))
+    tm.__r183VetoChuteContextual=Math.max(finite(tm.__r183VetoChuteContextual,-99),now);
   if(!superior&&dtg>=10&&dtg<=27&&now-finite(tm.__r122LastContextShot,-99)>1.15
-     &&!(typeof this._r183ExcecaoAoChuteContextual==='function'&&this._r183ExcecaoAoChuteContextual(o))){const fin=attr(o,'finalizacao'),lng=attr(o,'chute_longe'),central=clamp(1-Math.abs(finite(o.y)-finite(g.y))/31,.35,1),pressure=clamp((3.5-finite(near.dist,5))/3.5,0,1);let p=dtg<=16?.40:dtg<=20?.285:dtg<=24?.17:.072;p*=central*(1-pressure*.58)*clamp((fin*.66+lng*.34)/72,.72,1.24);if(schance(this,p)){tm.__r122LastContextShot=now;this._shoot(o,dtg,dtg>21,o.settle>0&&o.settle<.45);return;}}
+     &&now-finite(tm.__r183VetoChuteContextual,-99)>1.15){const fin=attr(o,'finalizacao'),lng=attr(o,'chute_longe'),central=clamp(1-Math.abs(finite(o.y)-finite(g.y))/31,.35,1),pressure=clamp((3.5-finite(near.dist,5))/3.5,0,1);let p=dtg<=16?.40:dtg<=20?.285:dtg<=24?.17:.072;p*=central*(1-pressure*.58)*clamp((fin*.66+lng*.34)/72,.72,1.24);if(schance(this,p)){tm.__r122LastContextShot=now;this._shoot(o,dtg,dtg>21,o.settle>0&&o.settle<.45);return;}}
   if(typeof this._canCross==='function'&&this._canCross(o)){const targets=tm.players.filter(p=>!p.red&&!p.isGK&&p!==o&&Math.abs(p.x-tm.oppGoal.x)<24);if(targets.length&&now-finite(tm.__r122LastCross,-99)>1.65&&!superior){const q=clamp((attr(o,'cruzamento')-50)/50,0,1),p=clamp(.17+q*.12+Math.min(3,targets.length)*.04+(finite(near.dist)>3?.035:0),.17,.40);if(schance(this,p)){tm.__r122LastCross=now;this._cross(o);return;}}}}
   return oldDecide.apply(this,arguments);
 };

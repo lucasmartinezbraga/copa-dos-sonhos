@@ -1733,13 +1733,25 @@ F4.
 
 ---
 
-## D11 🔴 ⏳ Sorteio censurado nº 1 — o chute que é sorteado para ser vetado
+## D11 🔴 ✅ Sorteio censurado nº 1 — o chute que é sorteado para ser vetado
 
-> **Estado: implementado, veredito PENDENTE.** A fusão está no código e passou
-> build, verify, balística e smoke em Chromium. A bateria de 300 partidas ainda
-> não respondeu quando esta linha foi escrita. **Não trate como aceito.** Se
-> reprovar em 2 SE, o certo é reverter e escrever o laudo — não afrouxar o
-> critério. Ver `python3 tools/defeito.py D11`.
+> **Aceito na segunda tentativa — e a primeira ensina mais que o conserto.**
+>
+> A fusão trocou o `_decide` da camada 20 por um predicado puro e removeu o
+> envenenamento de `__r122LastContextShot`. Passou o portão de 2 SE **e reprovou
+> no placar de design**: 12/13 → 10/13, com `drawRate` 0,270 → 0,190 (3,53 SE,
+> fora da faixa) e `blowoutRate` 0,153 → 0,197 (1,89 SE, fora).
+>
+> **Causa:** o carimbo que eu tratei como abuso de variável também **suprimia a
+> roleta por 1,15 s**. Consultar o predicado só no instante do sorteio matou essa
+> janela. Efeito colateral pode ser o mecanismo.
+>
+> Com a janela restaurada em campo próprio (`__r183VetoChuteContextual`):
+> **14/14 em 2 SE com deltas ≤ 0,13, design de volta a 12/13.**
+>
+> **Consequência para a ferramenta:** `drawRate` e `blowoutRate` não estão entre
+> as 14 métricas agregadas — o portão estava cego. Daí nasceu
+> `tools/regressao_design.py`, hoje dentro do `aceitar.sh`.
 
 **Endereços:** `layers/16-cds-r12-transactional-core-r123.js:153` (o dado) e
 `layers/20-cds-r183-natural-football.js:63` (o censor)

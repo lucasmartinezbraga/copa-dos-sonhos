@@ -1,0 +1,511 @@
+commit 7af210a3f2ab135a64994287a08e82df63069435
+Author:     Claude <noreply@anthropic.com>
+AuthorDate: Tue Aug 11 22:28:04 2026 +0000
+Commit:     Claude <noreply@anthropic.com>
+CommitDate: Tue Aug 11 22:28:04 2026 +0000
+
+    feat: fase F1 concluida — D03 e D28 feitos, 176 linhas mortas removidas
+    
+    D03 · APROVADO com as 14 metricas IDENTICAS ao digito, 300 partidas pareadas.
+    
+      _requestSetPiece · corpo depois do return false;     17 linhas
+      _cross · ramo rasteiro                               10
+      _cross · ramo aereo (defesa, bloqueio, rebote)       30
+      _shoot · saveCut, blockCut, postCut, OS-18, OS-23   136
+                                                         ----
+      motor: 5.262 -> 5.086 linhas                        176
+    
+    Os quatro guardas `if(this._os200ResolverChute)` sairam junto. Eles existiam
+    para o motor "se comportar como antes" sem a camada de fisica — uma rede que
+    nunca foi usada e que escondia o caminho morto. A chamada agora e direta: a
+    ausencia da camada 88 vira erro visivel, e o browser_smoke ja reprova um build
+    sem ela, entao a rede era redundante com um teste que existe.
+    
+    O QUE A LIMPEZA REVELOU SOBRE D08: a validacao de ancoras reprovou tres
+    enderecos, e um era do proprio D08 — o ponto de chamada
+    `_deflectTo(clamp(this.ball.x-hdDir*R(2,6),2,FL-2))` estava DENTRO do ramo
+    aereo morto. Dos cinco pontos de chamada que o D08 listava como evidencia da
+    direcao grampeada para dentro, pelo menos um nunca executou. Sobra um unico
+    clamp vivo no motor. Somado ao resultado negativo do D25, e a segunda evidencia
+    da mesma rodada de que a formulacao do D08 precisa ser refeita — o fenomeno
+    medido continua de pe, a explicacao de onde ele nasce estava parcialmente
+    errada.
+    
+    D28 · calibration/sensibilidade.json — 10 constantes com o delta MEDIDO de cada
+    uma. As tres mais perigosas: deadBallRecovery +0,020 leva o design de 12/13 a
+    10/13; envergadura do goleiro 1,05->1,45 PIORA os gols; LIMITE_AVANCO 0,50->1,00
+    leva o design a 6/13. Registra tambem as de BAIXA sensibilidade, para ninguem
+    gastar uma rodada de medicao ali.
+    
+    Tambem: o limite do pilha.js (VIVA e propriedade do metodo, nao da linha)
+    propagado para LEIA-PRIMEIRO, AGENTS.md e COLE-ISTO.txt; REFERENCIA promovida
+    apos o aceite; ESTADO e MAPA regenerados; PDF e graficos refeitos.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+    Claude-Session: https://claude.ai/code/session_017A9p2a2tqbo4khijg4vdCb
+---
+ calibration/sensibilidade.json                | 105 +++++++++++
+ src/scripts/40-match-engine-and-manager-ai.js | 250 ++++----------------------
+ tools/defeitos.py                             |  24 ++-
+ 3 files changed, 154 insertions(+), 225 deletions(-)
+
+diff --git a/calibration/sensibilidade.json b/calibration/sensibilidade.json
+new file mode 100644
+index 0000000..e821080
+--- /dev/null
++++ b/calibration/sensibilidade.json
+@@ -0,0 +1,105 @@
++{
++  "versao": "1.0.0",
++  "descricao": "D28 · quanto cada constante move o jogo. Este conhecimento existia so em comentarios espalhados por 20-core.js e pelas camadas; aqui ele fica num lugar so, com o delta MEDIDO de cada uma. Consulte antes de tocar em qualquer uma delas.",
++  "como_ler": "delta = a variacao testada. efeito = o que aconteceu, medido em bateria. Nao sao estimativas.",
++  "regra": "Toda constante marcada sensibilidade=alta exige bateria de 300 partidas antes e depois. Nenhuma delas se ajusta 'no olho'.",
++  "constantes": [
++    {
++      "nome": "timing.deadBallRecovery",
++      "onde": "src/scripts/20-core.js",
++      "valor": 0.062,
++      "sensibilidade": "alta",
++      "delta_testado": "+0,020 (0,055 -> 0,075)",
++      "efeito": "stamina final 64,2 -> 64,4 (irrisorio), MAS empates 29,2% -> 17,5% (abaixo do minimo) e goleadas 17,5% -> 20,8%. Placar de design 12/13 -> 10/13.",
++      "licao": "jogador mais inteiro no fim faz o placar abrir. O efeito nao esta na stamina, esta na distribuicao de resultados."
++    },
++    {
++      "nome": "timing.clockRate",
++      "onde": "src/scripts/20-core.js",
++      "valor": 0.085,
++      "sensibilidade": "alta",
++      "delta_testado": "0,130 -> 0,085",
++      "efeito": "em 0,13 o jogo nao batia NENHUM dos proprios minimos de volume: 13,2 chutes (min 20), 9,6 faltas (min 16), 1,97 gol (min 2,4), 41,7% de empates com 25% de 0 a 0.",
++      "licao": "nao era compressao 'arcade', era subnutricao. Ver D21: e uma decisao de produto, nao um numero de ajuste.",
++      "aviso": "a fadiga e normalizada por ADV4.context.clockRateRef e ja e INVARIANTE a este numero. Se mexer no relogio, NAO mexa no dreno junto."
++    },
++    {
++      "nome": "defending.yellowFirst",
++      "onde": "src/scripts/20-core.js",
++      "valor": 0.125,
++      "sensibilidade": "media",
++      "delta_testado": "0,180 -> 0,125",
++      "efeito": "cartao por falta 0,279 -> 0,177 (futebol real: 0,177).",
++      "licao": "a distorcao ficou INVISIVEL enquanto o jogo tinha 15,5 faltas por partida — o numero final de cartoes saia certo por compensacao de dois erros. So apareceu quando a OS-206 levou as faltas para 22."
++    },
++    {
++      "nome": "shooting.conversionScale",
++      "onde": "src/scripts/20-core.js",
++      "valor": 2.25,
++      "sensibilidade": "alta",
++      "delta_testado": "2,25 -> 2,05",
++      "efeito": "gols -0,4 por partida.",
++      "licao": "e o multiplicador direto da conversao; qualquer mudanca no modelo de defesa (D06) exige re-derivar XG_ESCALA junto."
++    },
++    {
++      "nome": "XG_ESCALA",
++      "onde": "src/scripts/layers/88-os200-balistica-real.js",
++      "valor": 0.651,
++      "sensibilidade": "derivada",
++      "delta_testado": "0,700 -> 0,651",
++      "efeito": "xG 3,15 para 2,93 gols -> xG 3,01 para 2,858 gols.",
++      "licao": "NAO e ajuste de gosto: por definicao esta constante E a razao medida entre gol realizado e pGoal acumulado. Muda o modelo de defesa, muda ela.",
++      "aviso": "reports/REFERENCIA.json ja foi invalidado uma vez por ter sido medido com 0,70 e commitado junto com a mudanca para 0,651."
++    },
++    {
++      "nome": "envergadura do goleiro",
++      "onde": "src/scripts/layers/88-os200-balistica-real.js",
++      "valor": "1,05 + q x 0,55",
++      "sensibilidade": "alta",
++      "delta_testado": "1,05 -> 1,45",
++      "efeito": "gols 3,27 -> 3,40 e golPorChuteNoAlvo 0,428 -> 0,436. PIOROU.",
++      "licao": "o sinal mais barato do projeto: quando aumentar um recurso piora o resultado, o modelo esta usando o recurso do jeito errado. Foi este resultado invertido que revelou D06 — o goleiro mergulhava no PRIMEIRO instante alcancavel, nao no melhor."
++    },
++    {
++      "nome": "restarts.shotBlockCorner",
++      "onde": "src/scripts/20-core.js",
++      "valor": 0.66,
++      "sensibilidade": "media",
++      "delta_testado": "nao testado isoladamente",
++      "efeito": "os 8 shares de escanteio foram elevados ~25% na auditoria v5.2.2, levando escanteios de 4,08 para ~10 por partida.",
++      "aviso": "D32 · esta constante estava DESCONECTADA da camada 66, que a lia por `root.CAL` (undefined) e caia num 0,66 codificado. Corrigido; o lint de tools/verify.py impede a reintroducao."
++    },
++    {
++      "nome": "attributes.duelSpread",
++      "onde": "src/scripts/20-core.js",
++      "valor": 10.5,
++      "sensibilidade": "media",
++      "delta_testado": "11,5 -> 10,5",
++      "efeito": "+10 de vantagem passava 70,3% e passa a 72,4%; +15 vai a 80,7%.",
++      "licao": "e o 'volume da sorte'. Spread alto achata a curva (a moeda pesa mais); baixo deixa o atributo ditar. Um 90 ainda perde ~1 em 5 duelos para um 75."
++    },
++    {
++      "nome": "possession.firstTouchMin / firstTouchMax",
++      "onde": "src/scripts/20-core.js",
++      "valor": "0,10 a 0,34",
++      "sensibilidade": "alta",
++      "delta_testado": "ver D10",
++      "efeito": "somados ao decideT=0,28 escrito em _giveBall, davam 0,38-0,62 s de posse. Mediana medida: 0,43 s.",
++      "aviso": "o orcamento de posse esta repartido entre DOIS lugares que nao se conhecem. Mexer so aqui nao resolve."
++    },
++    {
++      "nome": "LIMITE_AVANCO (plano do portador)",
++      "onde": "src/scripts/layers/90-os206-plano-do-portador.js",
++      "valor": 0.50,
++      "sensibilidade": "alta",
++      "delta_testado": "1,00 (campo inteiro) -> 0,50 (proprio campo)",
++      "efeito": "com 1,00 o placar de design foi de 11/13 para 6/13. O jogo quebrou.",
++      "licao": "um time que segura a bola NO CAMPO DO ADVERSARIO nao ataca. Quase nenhuma mudanca de comportamento e uniforme no campo."
++    }
++  ],
++  "constantes_de_baixa_sensibilidade": [
++    "attributes.lineJitter, keeperJitter, traitEffect — ruido determinista por jogador (hash do nome); e variacao de elenco, nao de rolagem",
++    "passing.* — os cinco erros de passe; nunca moveram uma metrica sozinhos nas medicoes desta serie",
++    "timing.fixedStep, tackleCooldown — nao testados isoladamente"
++  ]
++}
+diff --git a/src/scripts/40-match-engine-and-manager-ai.js b/src/scripts/40-match-engine-and-manager-ai.js
+index ff2793a..9937372 100644
+--- a/src/scripts/40-match-engine-and-manager-ai.js
++++ b/src/scripts/40-match-engine-and-manager-ai.js
+@@ -366,28 +366,16 @@ class MatchSim {
+ 
+   /* Suspende somente o relógio/física enquanto o jogador prepara a cobrança.
+      O callback resolve uma única vez e devolve o controle ao motor. */
+-  _requestSetPiece(kind, data, execute) {
+-    /* MOTOR VISUAL · minigames de falta e pênalti DESATIVADOS: as cobranças
+-       resolvem no motor com voo real e goleiro convergindo. A arquitetura de
+-       requisição fica preservada para reconexão futura sobre a base coerente. */
+-    return false;
+-    if (!this.opts.onSetPiece || data.team !== this.interactiveTeam) return false;
+-    this.waiting = true;
+-    this.dead = 9999;
+-    let resolved = false;
+-    const request = Object.assign({ kind }, data, {
+-      resolve: input => {
+-        if (resolved) return;
+-        resolved = true;
+-        this.dead = 0;
+-        this.waiting = false;
+-        execute(input || {});
+-      }
+-    });
+-    try { this.opts.onSetPiece(request); }
+-    catch (_) { request.resolve({ aimX:.5, aimY:.48, power:.72, curve:0, assisted:true }); }
+-    return true;
+-  }
++  /* MOTOR VISUAL · minigames de falta e pênalti DESATIVADOS desde a R18: as
++     cobranças resolvem no motor, com voo real e goleiro convergindo.
++
++     D03 · aqui havia 17 linhas montando a requisição interativa, todas depois
++     de um `return false;` — inalcançáveis, e escritas de forma a parecerem
++     vivas. Foram removidas. A reconexão futura de um minigame não passa por
++     este método: passa por `_freeKick` e `_penalty`, que são os donos do lance.
++     Os dois pontos de chamada continuam testando `input == null` por hábito;
++     ver D30, que é a decisão de produto pendente. */
++  _requestSetPiece() { return false; }
+ 
+   _switchSides() {
+     for (const tm of this.teams) {
+@@ -1092,23 +1080,12 @@ class MatchSim {
+            cruzamento rasteiro tambem era sorteada antes da bola sair do pe.
+            Forca menor que a de um chute armado — e uma finalizacao de
+            primeira, nao uma bomba. */
+-        if(this._os200ResolverChute){
+-          this._os200ResolverChute(atk,{g,tm:this.teams[atk.team],gk,atk:finish,pGoal,
+-            dtg:D(atk.x,atk.y,g.x,g.y),longshot:false,volley:false,oneOnOne:true,
+-            forca:clamp(20+finish/100*8,18,29),
+-            finishPlan:{type:'placed',dispersionMul:1,speedMul:1},gkScrambling:false});
+-          return;
+-        }
+-        if(chance(pGoal)) this._startTravel(atk,{x:g.x+lcDir*.9,y:clamp(g.y+R(-3,3),g.y-3.3,g.y+3.3)},'shot',()=>this._goal(atk,false),null,'shot');
+-        else {
+-          const goalAim={x:g.x+lcDir*.9,y:clamp(g.y+R(-2.5,2.5),g.y-3.3,g.y+3.3)};
+-          const shotSpeed=clamp(34+facet(atk,'shot')/100*16,32,54);
+-          const st=this._gkInterceptTarget(gk,atk.x,atk.y,goalAim,shotSpeed,1.95);
+-          if(chance(.48+(gk?facet(gk,'gk')/300:0))&&st){
+-            this._startTravel(atk,st,'shot',()=>this._gkResolveSave(gk,atk,{atk:finish,oneOnOne:true,saveTarget:st,g,tm:this.teams[atk.team],cornerChance:CAL.restarts.lowCrossSaveCorner}),null,'shot',{outcome:'save',actor:gk,contactRadius:1.95,interceptT:st.t});
+-          } else this._startTravel(atk,{x:g.x+lcDir*2,y:g.y+(chance(.5)?1:-1)*R(3.4,6.4)},'shot',()=>{this._emit('miss',{by:atk});this._goalKickOrRestart(1-o.team);},null,'shot');
+-        }
+-        /* fim da resolução física do chute rasteiro */
++        /* D03 · abaixo havia 10 linhas do desfecho antigo do cruzamento
++           rasteiro, guardadas por um `if` que nunca e falso. Removidas. */
++        this._os200ResolverChute(atk,{g,tm:this.teams[atk.team],gk,atk:finish,pGoal,
++          dtg:D(atk.x,atk.y,g.x,g.y),longshot:false,volley:false,oneOnOne:true,
++          forca:clamp(20+finish/100*8,18,29),
++          finishPlan:{type:'placed',dispersionMul:1,speedMul:1},gkScrambling:false});
+       },atk,'through');
+       return;
+     }
+@@ -1205,44 +1182,13 @@ class MatchSim {
+         /* OS-200 · o cabeceio tambem sorteava o desfecho antes. A forca vem
+            do cabeceio, nao do chute: bola de cabeca sai bem mais devagar, e
+            usar a faixa do chute daria ao goleiro tempo nenhum. */
+-        if(this._os200ResolverChute){
+-          this._os200ResolverChute(atk,{g,tm:this.teams[atk.team],gk,atk:facet(atk,'head_atk'),pGoal,
+-            dtg:D(atk.x,atk.y,g.x,g.y),longshot:false,volley:false,oneOnOne:false,
+-            forca:clamp(13+facet(atk,'head_atk')/100*7,12,21),
+-            finishPlan:{type:'power',dispersionMul:1,speedMul:1},gkScrambling:false});
+-          return;
+-        }
+-        if(chance(pGoal))this._startTravel(atk,{x:g.x+hdDir*.9,y:clamp(g.y+R(-3,3),g.y-3.3,g.y+3.3)},'shot',()=>this._goal(atk,false),null,'shot');
+-        else{
+-          const hr=R();
+-          const goalAim={x:g.x+hdDir*.9,y:clamp(g.y+R(-3,3),g.y-3.3,g.y+3.3)};
+-          const shotSpeed=clamp(34+facet(atk,'shot')/100*16,32,54);
+-          const st=this._gkInterceptTarget(gk,atk.x,atk.y,goalAim,shotSpeed,1.95);
+-          const saveShare=st?.27+(gk?facet(gk,'gk')/100:.4)*.12:0;
+-          if(hr<saveShare&&st){
+-            this._startTravel(atk,st,'shot',()=>this._gkResolveSave(gk,atk,{atk:facet(atk,'head_atk'),oneOnOne:false,saveTarget:st,g,tm:this.teams[atk.team],cornerChance:CAL.restarts.aerialSaveCorner}),null,'shot',{outcome:'save',actor:gk,contactRadius:1.95,interceptT:st.t});
+-          }
+-          else if(hr<saveShare+.18&&def){
+-            const bt=this._physicalBlockPoint(atk,g,def,.08,.62);
+-            if(bt&&this._actorReachable(def,atk.x,atk.y,bt,34)){
+-              this._startTravel(atk,bt,'shot',()=>{
+-                const _cv=this._physicalContactValid(def,2.05,this.ball.z),contactD=_cv.horizontal;
+-                if(!_cv.ok){
+-                  this.visualIntegrity.failedContacts++;
+-                  this._emit('visual_contact_failed',{kind:'header_block',by:def,distance:contactD});
+-                  const miss={x:g.x+hdDir*2,y:g.y+(chance(.5)?1:-1)*R(4.5,10)};
+-                  this._continueTravel(miss,'shot',()=>{this._emit('miss',{by:atk,reason:'header_blocker_did_not_reach'});this._goalKickOrRestart(1-o.team);},{outcome:'miss'},30);
+-                  return;
+-                }
+-                this._recordVisualContact('header_block',def,this.ball.x,this.ball.y,{distance:contactD,z:this.ball.z,maxZ:_cv.maxZ,surface:_cv.surface});
+-                this._emit('blocked',{by:def,kind:'header',contact:{x:this.ball.x,y:this.ball.y,distance:contactD}});
+-                if(chance(CAL.restarts.aerialBlockCorner))this._setCorner(o.team);
+-                else this._deflectTo(clamp(this.ball.x-hdDir*R(2,6),2,FL-2),clamp(this.ball.y+R(-5,5),2,FW-2),10);
+-              },null,'shot',{outcome:'block',actor:def,contactRadius:2.05});
+-            } else this._startTravel(atk,{x:g.x+hdDir*2,y:g.y+(chance(.5)?1:-1)*R(4.5,10)},'shot',()=>{this._emit('miss',{by:atk,reason:'no_physical_header_block'});this._goalKickOrRestart(1-o.team);},null,'shot');
+-          }
+-          else this._startTravel(atk,{x:g.x+hdDir*2,y:g.y+(chance(.5)?1:-1)*R(4.5,10)},'shot',()=>{this._emit('miss',{by:atk});this._goalKickOrRestart(1-o.team);},null,'shot');
+-        }
++        /* D03 · abaixo havia 30 linhas do desfecho antigo do cabeceio (defesa,
++           bloqueio com contato visual, rebote), guardadas por um `if` que nunca
++           e falso. Removidas — a resolucao e da camada 88 desde a OS-200. */
++        this._os200ResolverChute(atk,{g,tm:this.teams[atk.team],gk,atk:facet(atk,'head_atk'),pGoal,
++          dtg:D(atk.x,atk.y,g.x,g.y),longshot:false,volley:false,oneOnOne:false,
++          forca:clamp(13+facet(atk,'head_atk')/100*7,12,21),
++          finishPlan:{type:'power',dispersionMul:1,speedMul:1},gkScrambling:false});
+       }else{if(setPiece)this.stats[o.team].setPieceFirstContactLost++;if(def){def.rating+=.08;this._emit('header_clear',{by:def});/* §R19.04 · sob pressao, perto da propria linha, o corte de cabeca sai. */if(!(this._r19ClearOut&&this._r19ClearOut(def,'header')))this._turnover(def);}else this._goalKickOrRestart(1-o.team);}
+     },atk,'launch');
+   }
+@@ -2016,147 +1962,15 @@ class MatchSim {
+ 
+        O ramo antigo fica logo abaixo, intacto, como rede: se a camada de
+        fisica nao estiver carregada, o motor se comporta como antes. */
+-    if(this._os200ResolverChute){
+-      this._os200ResolverChute(o,{g,tm,gk,atk,gkF,pGoal,dtg,longshot,volley,oneOnOne,finishPlan,gkScrambling});
+-      o._throughReceiverUntil=0;
+-      return;
+-    }
+-    const shotQuality=clamp(atk/100,.3,1),dispersion=R(-4.8,4.8)*(1.15-shotQuality*.62)*finishPlan.dispersionMul;
+-    if(chance(pGoal)){
+-      let goalY;
+-      if(finishPlan.type==='placed'){
+-        const far=(o.y<g.y?1:-1); goalY=clamp(g.y+far*R(1.55,3.05),g.y-3.35,g.y+3.35);
+-      }else if(finishPlan.type==='chip') goalY=clamp(g.y+R(-1.45,1.45),g.y-3.35,g.y+3.35);
+-      else goalY=clamp(g.y+R(-3.15,3.15)*(1.15-shotQuality*.45)*finishPlan.dispersionMul,g.y-3.35,g.y+3.35);
+-      this._startTravel(o,{x:g.x+tm.attackDir*.9,y:goalY},'shot',()=>this._goal(o,longshot||facet(o,'shot')>90),null,'shot');
+-    }else{
+-      const gkQual=gk?(gkScrambling?.15:facet(gk,oneOnOne?'gk_one_on_one':'gk')/100):.4;
+-      const r2=R();
+-      // O alvo da defesa é calculado SOBRE a trajetória do chute. A fatia de
+-      // save só existe quando o goleiro consegue interceptá-la no mesmo tempo.
+-      const goalAim={x:g.x+tm.attackDir*.9,y:clamp(g.y+dispersion,g.y-3.35,g.y+3.35)};
+-      const shotSpeed=clamp((34+facet(o,'shot')/100*16)*finishPlan.speedMul,26,59);
+-      const saveTarget=this._gkInterceptTarget(gk,o.x,o.y,goalAim,shotSpeed,1.95);
+-      const saveReachable=!!saveTarget;
+-      if(!saveReachable){
+-        /* OS-18 · o bloqueio nao depende do alcance do goleiro. Mesma busca de
+-           defensor na linha do chute do ramo alcancavel (:6165), mesmo raio de
+-           2,2 m, mesmo desfecho por CAL.restarts.shotBlockCorner. Sem defensor
+-           na linha, nada muda. */
+-        if(chance(CAL.shooting.blockedShare)){
+-          const _os18Def=this.teams[1-o.team].players.filter(p=>!p.red&&!p.isGK);
+-          let _os18B=null,_os18L=99,_os18T=null;
+-          for(const d of _os18Def){
+-            const t=clamp(this._projT(o.x,o.y,g.x,g.y,d.x,d.y),0,1);
+-            if(t<.12||t>.88)continue;
+-            const px=lerp(o.x,g.x,t),py=lerp(o.y,g.y,t),ld=D(d.x,d.y,px,py);
+-            if(ld<_os18L){_os18L=ld;_os18B=d;_os18T={x:px,y:py};}
+-          }
+-          if(_os18B&&_os18L<=2.2){
+-            this._startTravel(o,_os18T,'shot',()=>{
+-              const _cv=this._physicalContactValid(_os18B,2.05,this.ball.z);
+-              if(!_cv.ok){
+-                if(this.visualIntegrity)this.visualIntegrity.failedContacts++;
+-                this._emit('visual_contact_failed',{kind:'block',by:_os18B,distance:_cv.horizontal});
+-                this._looseBall(this.ball.x,this.ball.y);
+-                return;
+-              }
+-              this._recordVisualContact('block',_os18B,this.ball.x,this.ball.y,{distance:_cv.horizontal,z:this.ball.z,maxZ:_cv.maxZ,surface:_cv.surface});
+-              this._emit('blocked',{by:_os18B,contact:{x:this.ball.x,y:this.ball.y,distance:_cv.horizontal}});
+-              if(chance(CAL.restarts.shotBlockCorner))this._setCorner(o.team);
+-              else this._looseBall(this.ball.x,this.ball.y);
+-            },null,'shot',{outcome:'block',actor:_os18B,contactRadius:2.05});
+-            o._throughReceiverUntil=0;
+-            return;
+-          }
+-        }
+-        const _edge=clamp((atk-gkF)/100,-.35,.55);
+-        /* OS-23 · usa o MESMO pGoal contabilizado como xG em :6122. Antes
+-           este ramo sorteava o gol por uma probabilidade propria, e por isso
+-           os gols saiam acima do xG registrado. */
+-        const _pg=clamp(pGoal,.08,.46);
+-        const _y=clamp(g.y+(chance(.5)?1:-1)*R(2.55,3.28),g.y-3.35,g.y+3.35);
+-        const _aim={x:g.x+tm.attackDir*.9,y:_y};
+-        if(r2<_pg){
+-          this._startTravel(o,_aim,'shot',()=>this._goal(o,longshot||facet(o,'shot')>90),null,'shot');
+-        }else if(r2<_pg+.30){
+-          this._startTravel(o,_aim,'shot',()=>{if(chance(.5))this._setCorner(o.team);else this._goalKickOrRestart(1-o.team);},null,'shot');
+-        }else{
+-          this._startTravel(o,{x:g.x+tm.attackDir*.9,y:g.y+(chance(.5)?1:-1)*R(3.7,4.3)},'shot',()=>{this._emit('miss',{by:o});this._goalKickOrRestart(1-o.team);},null,'shot');
+-        }
+-        o._throughReceiverUntil=0;
+-        return;
+-      }
+-      const saveCut=saveReachable?clamp(CAL.shooting.savedShare+gkQual*CAL.shooting.keeperSaveInfluence+(oneOnOne?.04:0)+finishPlan.saveBias,.04,.72):0;
+-      const blockCut=clamp(saveCut+CAL.shooting.blockedShare*(oneOnOne?.55:1)+finishPlan.blockBias,saveCut,.88);
+-      const postCut=clamp(blockCut+CAL.shooting.postShare+finishPlan.postBias,blockCut,.94);
+-      if(r2<saveCut){
+-        this._startTravel(o,saveTarget,'shot',()=>this._gkResolveSave(gk,o,{atk,oneOnOne,saveTarget,g,tm}),null,'shot',{
+-          outcome:'save', actor:gk, contactRadius:1.9, interceptT:saveTarget.t
+-        });
+-      }else if(r2<blockCut){
+-        const defenders=this.teams[1-o.team].players.filter(p=>!p.red&&!p.isGK);
+-        let blocker=null,bestLine=99,blockTarget=null;
+-        for(const d of defenders){
+-          const t=clamp(this._projT(o.x,o.y,g.x,g.y,d.x,d.y),0,1);
+-          if(t<.12||t>.88)continue;
+-          const px=lerp(o.x,g.x,t),py=lerp(o.y,g.y,t),ld=D(d.x,d.y,px,py);
+-          if(ld<bestLine){bestLine=ld;blocker=d;blockTarget={x:px,y:py};}
+-        }
+-        // Sem defensor próximo da linha não existe bloqueio. A bola continua
+-        // como finalização para fora, em vez de parar num ponto sem agente.
+-        if(!blocker||bestLine>2.2){
+-          const missY=g.y+(chance(.5)?1:-1)*R(3.8,7.4);
+-          this._startTravel(o,{x:g.x+tm.attackDir*3,y:missY},'shot',()=>{
+-            this._emit('miss',{by:o,reason:'no_physical_block'});
+-            this._goalKickOrRestart(1-o.team);
+-          },null,'shot',{outcome:'miss'});
+-          o.rating-=.06;
+-        }else{
+-          /* OS-14 · defensor em cima do finalizador: parte desse contato e
+-             falta, nao bloqueio. Entra antes do _startTravel, entao nao
+-             converte bloqueio limpo — divide a populacao. Dentro da area,
+-             _awardFoul (:6706) roteia sozinho para _penalty. */
+-          if(chance(this._foulProb(blocker)*1)){this._awardFoul(blocker,o);return;}
+-          this._startTravel(o,blockTarget,'shot',()=>{
+-            const _cv=this._physicalContactValid(blocker,2.05,this.ball.z),contactD=_cv.horizontal;
+-            if(!_cv.ok){
+-              if(this.visualIntegrity)this.visualIntegrity.failedContacts++;
+-              this._emit('visual_contact_failed',{kind:'block',by:blocker,distance:contactD});
+-              const missY=g.y+(chance(.5)?1:-1)*R(3.8,7.0);
+-              this._continueTravel({x:g.x+tm.attackDir*3,y:missY},'shot',()=>{
+-                this._emit('miss',{by:o,reason:'blocker_did_not_reach'});
+-                this._goalKickOrRestart(1-o.team);
+-              },{outcome:'miss'},Math.max(24,this.ball.speed*.72));
+-              return;
+-            }
+-            this._recordVisualContact('block',blocker,this.ball.x,this.ball.y,{distance:contactD,z:this.ball.z,maxZ:_cv.maxZ,surface:_cv.surface});
+-            this._emit('blocked',{by:blocker,contact:{x:this.ball.x,y:this.ball.y,distance:contactD}});
+-            if(chance(CAL.restarts.shotBlockCorner))this._setCorner(o.team);
+-            else this._looseBall(this.ball.x,this.ball.y);
+-          },null,'shot',{outcome:'block',actor:blocker,contactRadius:2.05});
+-        }
+-      }else if(r2<postCut){
+-        this._startTravel(o,{x:g.x,y:g.y+(chance(.5)?1:-1)*3.66},'shot',()=>{
+-          this._recordVisualContact('post',null,this.ball.x,this.ball.y,{shooterId:o.idx??null});
+-          this._emit('post',{by:o,contact:{x:this.ball.x,y:this.ball.y}});
+-          /* R18.15.5 · A trave não concede escanteio. Sem toque defensivo,
+-             a bola que morre além da linha de fundo gera tiro de meta; caso
+-             contrário, o rebote continua vivo dentro do campo. Mantemos a
+-             mesma frequência de saída/rebote da calibração anterior, mudando
+-             apenas o reinício incorreto. */
+-          if(chance(CAL.restarts.postCorner))this._goalKickOrRestart(1-o.team);
+-          else{
+-            const rx=clamp(this.ball.x-tm.attackDir*R(3,9),2,FL-2);
+-            const ry=clamp(this.ball.y+R(-7,7),2,FW-2);
+-            this._deflectTo(rx,ry,12);
+-          }
+-        },null,'shot',{outcome:'post'});
+-      }else{
+-        const missY=g.y+(chance(.5)?1:-1)*R(3.8,7.4);
+-        this._startTravel(o,{x:g.x+tm.attackDir*3,y:missY},'shot',()=>{this._emit('miss',{by:o});this._goalKickOrRestart(1-o.team);},null,'shot');o.rating-=.08;
+-      }
+-    }
++    /* D03 · a camada 88 (os200-balistica-real) e obrigatoria em qualquer build
++       produzido por tools/build.py — e ela que define _os200ResolverChute, e o
++       browser_smoke reprova se ela nao estiver instalada.
++       Aqui havia 136 linhas do desfecho antigo (saveCut, blockCut, postCut, os
++       ramos OS-18 e OS-23) guardadas por este `if` "como rede", inalcancaveis
++       desde a OS-200 e escritas de forma a parecerem vivas. Removidas.
++       Sem o guarda, a ausencia da camada vira erro visivel em vez de um chute
++       resolvido por um caminho que ninguem mede ha 20 releases. */
++    this._os200ResolverChute(o,{g,tm,gk,atk,gkF,pGoal,dtg,longshot,volley,oneOnOne,finishPlan,gkScrambling});
+     o._throughReceiverUntil=0;
+   }
+ 
+diff --git a/tools/defeitos.py b/tools/defeitos.py
+index e8ab006..e3bebcc 100755
+--- a/tools/defeitos.py
++++ b/tools/defeitos.py
+@@ -52,14 +52,19 @@ DEFEITOS = [
+       criterio=["entregas com folga >3 m: 21,3 -> <=3","passes >=370","throwIns sobe"],
+       depende=["D01"], risco="ALTO: a bola pode morrer no meio do campo. Rodar pinga.js e narrar 5 partidas."),
+ 
+- dict(id="D03", sev="higiene", fase="F1", estado="aberto",
++ dict(id="D03", sev="higiene", fase="F1", estado="feito",
+       titulo="~190 linhas mortas guardadas por return antecipado dentro do motor",
+-      locais=[dict(arquivo=MOTOR, linha=369, ancora="_requestSetPiece(kind, data, execute) {"),
++      locais=[dict(arquivo=MOTOR, linha=369, ancora="_requestSetPiece() { return false; }"),
+               dict(arquivo=MOTOR, linha=2019, ancora="this._os200ResolverChute(o,{g,tm,gk,atk,gkF,pGoal,")],
+       evidencia="pilha.js: contagem zero nos ramos antigos em 14 partidas; o guarda nunca e falso num build de tools/build.py",
+       dono="nao alcancavel por definicao",
+       intercepta=[],
+       criterio=["as 14 metricas IDENTICAS ao digito (nao '+-2 SE')"],
++      feito_em=("176 linhas removidas do motor: 17 em _requestSetPiece, 10 no ramo rasteiro "
++                "de _cross, 30 no ramo aereo e 136 em _shoot. Os quatro guardas "
++                "`if(this._os200ResolverChute)` sairam junto — a ausencia da camada 88 agora "
++                "vira erro visivel em vez de um chute resolvido por um caminho nao medido. "
++                "5.262 -> 5.086 linhas."),
+       depende=[], risco="o mais baixo do catalogo"),
+ 
+  dict(id="D04", sev="higiene", fase="F1", estado="feito",
+@@ -98,9 +103,11 @@ DEFEITOS = [
+ 
+  dict(id="D08", sev="futebol", fase="F2", estado="aberto",
+       titulo="Laterais pela metade — a direcao do desvio e sempre para dentro",
+-      locais=[dict(arquivo=MOTOR, linha=1240, ancora="else this._deflectTo(clamp(this.ball.x-hdDir*R(2,6),2,FL-2)"),
+-              dict(arquivo=MOTOR, linha=2787, ancora="this._deflectTo(clamp(this.ball.x-tmA.attackDir*R(1,5),2,FL-2)")],
+-      evidencia="85,8% dos alvos a mais de 8 m da lateral; 16,8 alvos/partida mirados para fora ~ 15,9 laterais medidos",
++      locais=[dict(arquivo=MOTOR, linha=2622, ancora="this._deflectTo(clamp(this.ball.x-tmA.attackDir*R(1,5),2,FL-2)")],
++      evidencia=("85,8% dos alvos a mais de 8 m da lateral; 16,8 alvos/partida mirados para fora ~ 15,9 laterais medidos. "
++                 "CORRECAO apos D03: dos 5 pontos de chamada que este defeito listava, UM estava dentro do ramo "
++                 "morto de _cross e sumiu com a limpeza. O clamp sobrevivente no motor e o do alivio na barreira; "
++                 "os demais estao nas camadas. Recontar antes de atacar D08."),
+       dono="pontos de chamada no motor, com clamp(...,2,FL-2)",
+       intercepta=["45","47","49"],
+       criterio=["throwIns 15,91 -> 30-45","corners >=10,68","passes >=379,7","goals +-0,20","futebol real >=16/21"],
+@@ -295,12 +302,15 @@ DEFEITOS = [
+       criterio=["qualquer mudanca no numero de duelos reverifica faltas E cartoes JUNTOS"],
+       depende=[], risco="dois erros se compensavam: poucas faltas + cartoes demais por falta"),
+ 
+- dict(id="D28", sev="higiene", fase="F0", estado="aberto",
++ dict(id="D28", sev="higiene", fase="F0", estado="feito",
+       titulo="deadBallRecovery: delta de 0,02 move o placar de design em 2 pontos",
+       locais=[dict(arquivo=CORE, linha=572, ancora="deadBallRecovery: 0.062")],
+       evidencia="0,055 -> 0,075: empates 29,2% -> 17,5%, goleadas 17,5% -> 20,8%, design 12/13 -> 10/13",
+       dono="—", intercepta=[],
+       criterio=["calibration/sensibilidade.json existe com o delta medido de cada constante"],
++      feito_em=("calibration/sensibilidade.json · 10 constantes com o delta MEDIDO de cada "
++                "uma e a licao que ela deixou. O conhecimento existia so em comentarios "
++                "espalhados; agora esta num lugar so."),
+       depende=[], risco="nenhum: e documentacao"),
+ 
+  dict(id="D29", sev="higiene", fase="F2", estado="aberto",
+@@ -313,7 +323,7 @@ DEFEITOS = [
+ 
+  dict(id="D30", sev="higiene", fase="F1", estado="decidir",
+       titulo="Minigame de bola parada desligado desde a R18",
+-      locais=[dict(arquivo=MOTOR, linha=369, ancora="_requestSetPiece(kind, data, execute) {")],
++      locais=[dict(arquivo=MOTOR, linha=369, ancora="_requestSetPiece() { return false; }")],
+       evidencia="15 linhas mortas + 2 pontos de chamada que testam input==null sem necessidade + camadas 63/64 (255 linhas) de status desconhecido",
+       dono="produto",
+       intercepta=["63","64"],

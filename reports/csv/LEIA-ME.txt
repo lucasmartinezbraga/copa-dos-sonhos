@@ -1,0 +1,22 @@
+As partidas cruas, uma por linha.
+
+Gerado por: python3 tools/dossie/tabelas.py
+
+REFERENCIA.csv      o estado aceito atual — e contra ele que o portao compara
+aceitar-depois.csv  a ultima medicao feita (pode ser de uma mudanca REPROVADA)
+
+empate, goleada e zeroAZero sao derivadas aqui, do placar, para voce nao
+precisar recalcular. goleada = diferenca de 3 ou mais.
+
+semente: a bateria nao grava por partida — a coluna e RECONSTRUIDA por
+4200000 + (i-1) * 7919, que e a regra de pareamento da propria bateria.
+Se voce mudar essa regra la, mude aqui tambem ou a coluna vira ficcao.
+
+Estas tres colunas importam mais do que parecem: drawRate, blowoutRate e
+zeroZeroRate NAO estao entre as 14 metricas do portao de 2 SE. Foi por ai
+que uma regressao passou batida uma vez.
+
+Erro-padrao de uma proporcao (empate, goleada, zeroAZero):
+    SE = raiz( p * (1-p) / n )
+Com n = 300 e p perto de 0,2, SE fica em ~0,023. Uma diferenca menor que
+0,046 entre duas medicoes NAO e sinal.

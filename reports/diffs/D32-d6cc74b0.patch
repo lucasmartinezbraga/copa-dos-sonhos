@@ -1,0 +1,298 @@
+commit d6cc74b05f2a7dab8010639f1e4c46bc0d58225e
+Author:     Claude <noreply@anthropic.com>
+AuthorDate: Tue Aug 11 21:28:02 2026 +0000
+Commit:     Claude <noreply@anthropic.com>
+CommitDate: Tue Aug 11 21:28:02 2026 +0000
+
+    fix: D32 e D25 executados — um conserto vivo e um resultado negativo
+    
+    D32 · FEITO. Lint de escopo entrou como passo 6 do verify.py e REPROVOU o
+    build na primeira execucao, com uma violacao viva:
+    
+      src/scripts/layers/66-cds-os39-block-on-flight.js:8   root.CAL.
+    
+    O comentario ao lado ja dizia que CAL nao e global, e mesmo assim o codigo
+    lia `(root.CAL && root.CAL.restarts && ...) || 0.66`. window.CAL e undefined
+    (medido em Chromium): o acesso caia no 0,66 codificado, em silencio, e
+    restarts.shotBlockCorner estava DESCONECTADO da calibracao. Invisivel porque o
+    padrao por acaso era igual ao valor calibrado. Corrigido para
+    ENGINE_CALIBRATION; o lint impede a reintroducao.
+    
+    D25 · FEITO E SEM EFEITO MEDIDO. A excecao de 'deflect' saiu de _ballTravel.
+    As 14 metricas ficaram IDENTICAS ao digito em 40 partidas pareadas.
+    A sonda nova tools/fisica/ramo-d25.js explica (12 partidas):
+    
+      quadros/partida com bola de DESVIO viajando fora do campo   77,50
+      _ballOut chamado com a bola VIAJANDO                         0,00
+      _ballOut chamado com a bola ROLANDO                          7,92
+      _ballOut chamado com a bola PARADA                          19,58
+    
+    A linha editada nao e alcancada no caso do desvio — as saidas ja vinham por
+    _looseRoll, um quadro depois. Foi a SEXTA vez que editar o motor nao produziu
+    efeito, e desta vez a pilha.js foi consultada antes: ela disse VIVA para as 4
+    sobrescritas de _ballTravel e estava certa. VIVA e propriedade do metodo, nao
+    de cada linha dele.
+    
+    CONSEQUENCIA PARA D08: a premissa de que o desvio escapava da maquina de
+    reinicio esta ERRADA. O orcamento de laterais nao se abre por aqui.
+    
+    A REFERENCIA ESTAVA ERRADA, e o erro era meu. reports/REFERENCIA.json era
+    copia de a2-goleiro-n300.json, medido com XG_ESCALA = 0,70 e commitado junto
+    com a mudanca para 0,651 — anterior ao codigo que dizia representar. Provado
+    rodando o proprio build da referencia: 12 das 14 metricas diferem. Refeita a
+    partir de uma medicao de 300 partidas do estado commitado.
+    
+    aceitar.sh: WORKERS passa a usar nproc. Medido: com mais workers que nucleos a
+    bateria fica 2-3x mais lenta e o resultado nao muda (3, 4 e 8 workers dao as
+    14 metricas identicas).
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+    Claude-Session: https://claude.ai/code/session_017A9p2a2tqbo4khijg4vdCb
+---
+ src/scripts/40-match-engine-and-manager-ai.js     | 16 +++++++--
+ src/scripts/layers/66-cds-os39-block-on-flight.js | 14 ++++++--
+ tools/aceitar.sh                                  |  7 +++-
+ tools/defeitos.py                                 | 30 +++++++++++++----
+ tools/fisica/ramo-d25.js                          | 41 +++++++++++++++++++++++
+ tools/verify.py                                   | 39 +++++++++++++++++++++
+ 6 files changed, 134 insertions(+), 13 deletions(-)
+
+diff --git a/src/scripts/40-match-engine-and-manager-ai.js b/src/scripts/40-match-engine-and-manager-ai.js
+index b2b440b..ff2793a 100644
+--- a/src/scripts/40-match-engine-and-manager-ai.js
++++ b/src/scripts/40-match-engine-and-manager-ai.js
+@@ -2411,9 +2411,19 @@ class MatchSim {
+     }
+     const reached=D(b.x,b.y,b.target.x,b.target.y)<=.42;
+ 
+-    // Passes continuam usando a regra normal de saída. Chutes podem atravessar
+-    // a linha de fundo porque o alvo de gol fica ligeiramente além da linha.
+-    if(b.kind!=='shot'&&b.kind!=='deflect'&&(b.y<0||b.y>FW||b.x<0||b.x>FL)){
++    /* Passes continuam usando a regra normal de saída. Chutes podem atravessar
++       a linha de fundo porque o alvo de gol fica ligeiramente além da linha —
++       essa exceção tem razão de ser.
++
++       D25 · `deflect` NÃO tinha. Foi acrescentado à condição sem justificativa,
++       e o efeito era que uma bola desviada podia cruzar a linha e continuar
++       viajando até `onArrive`, sem virar reinício. As camadas 45 e 47 chegam a
++       reescrever alvos de desvio para FORA do campo de propósito
++       (`naturalTarget` manda para −0,85 / FW+0,85); com a isenção, esses alvos
++       não produziam lateral nenhum — a bola pousava fora e `_looseBall` +
++       `_contestLoose` devolviam a posse a quem estivesse por perto.
++       Um desvio que cruza a linha é um reinício, como qualquer outro. */
++    if(b.kind!=='shot'&&(b.y<0||b.y>FW||b.x<0||b.x>FL)){
+       this._ballOut();return;
+     }
+ 
+diff --git a/src/scripts/layers/66-cds-os39-block-on-flight.js b/src/scripts/layers/66-cds-os39-block-on-flight.js
+index a480f71..9ea1837 100644
+--- a/src/scripts/layers/66-cds-os39-block-on-flight.js
++++ b/src/scripts/layers/66-cds-os39-block-on-flight.js
+@@ -4,9 +4,17 @@
+ var M=root.MatchSim;if(!M||!M.prototype||M.prototype.__CDS_OS39__)return;
+ var P=M.prototype;try{Object.defineProperty(P,'__CDS_OS39__',{value:true});}catch(_){P.__CDS_OS39__=true;}
+ var ALC=2.8, BASE=0.90, QUEDA=0.28;
+-/* CAL nao e global: fica no escopo do modulo do motor. 0.66 e o valor de
+-   CAL.restarts.shotBlockCorner em :2780. */
+-var CORNER_SHARE=(root.CAL&&root.CAL.restarts&&root.CAL.restarts.shotBlockCorner)||0.66;
++/* D32 · `CAL` nao existe no escopo de uma camada — e do modulo do motor, que e
++   uma IIFE. O acesso guardado que estava aqui (`root.CAL && ...`) NUNCA acertava:
++   `window.CAL` e `undefined`, medido. Ele caia no 0.66 codificado, em silencio,
++   e a calibracao ficava desconectada: mexer em restarts.shotBlockCorner no
++   20-core.js nao teria efeito nenhum nesta camada.
++   Hoje o padrao coincidia com o valor calibrado, entao o defeito era invisivel.
++   A leitura correta e por ENGINE_CALIBRATION. O lint em tools/verify.py agora
++   reprova o build se alguem reintroduzir a forma antiga. */
++var _CALIB=root.ENGINE_CALIBRATION;
++var CORNER_SHARE=(_CALIB&&_CALIB.restarts&&_CALIB.restarts.shotBlockCorner);
++if(typeof CORNER_SHARE!=='number')CORNER_SHARE=0.66;
+ var oldST=P._startTravel;
+ if(typeof oldST!=='function')return;
+ 
+diff --git a/tools/aceitar.sh b/tools/aceitar.sh
+index 0f08622..8e036ae 100755
+--- a/tools/aceitar.sh
++++ b/tools/aceitar.sh
+@@ -25,7 +25,9 @@ set -uo pipefail
+ cd "$(dirname "$0")/.."
+ 
+ PARTIDAS="${PARTIDAS:-300}"
+-WORKERS="${WORKERS:-8}"
++# Medido: com mais workers do que nucleos a bateria fica 2-3x mais lenta e nao
++# muda o resultado (verificado com 3, 4 e 8 workers: as 14 metricas identicas).
++WORKERS="${WORKERS:-$(nproc 2>/dev/null || echo 4)}"
+ ANTES="reports/_aceitar-antes.json"
+ DEPOIS="reports/_aceitar-depois.json"
+ REFERENCIA="reports/REFERENCIA.json"
+@@ -91,6 +93,9 @@ case "${1:-}" in
+ 
+   --fixar)
+     [ -f "$DEPOIS" ] || { vermelho "nao ha $DEPOIS para promover."; exit 1; }
++    # A referencia SO pode ser uma medicao do build atual. Ja aconteceu de ela
++    # ser um arquivo antigo, medido antes da ultima mudanca de calibracao, e o
++    # --identico passou a reprovar mudancas inocentes.
+     cp "$DEPOIS" "$REFERENCIA"
+     verde "REFERENCIA atualizada. So faca isto quando a mudanca foi ACEITA."
+     ;;
+diff --git a/tools/defeitos.py b/tools/defeitos.py
+index 6f924b5..e8ab006 100755
+--- a/tools/defeitos.py
++++ b/tools/defeitos.py
+@@ -257,15 +257,25 @@ DEFEITOS = [
+       criterio=["letterbox <=4% nas 4 resolucoes","olhar.js: as 4 linhas do campo visiveis"],
+       depende=[], risco="a recomendacao MENOS fundamentada do documento"),
+ 
+- dict(id="D25", sev="higiene", fase="F1", estado="aberto",
++ dict(id="D25", sev="higiene", fase="F1", estado="feito",
+       titulo="_ballTravel isenta 'deflect' de sair do campo, sem justificativa",
+-      locais=[dict(arquivo=MOTOR, linha=2416, ancora="if(b.kind!=='shot'&&b.kind!=='deflect'&&")],
++      locais=[dict(arquivo=MOTOR, linha=2416, ancora="D25 · `deflect` NÃO tinha.")],
+       evidencia="o comentario justifica a excecao para 'shot' (o alvo do gol fica alem da linha) e nao justifica 'deflect'",
+       dono="core alcancado; 07/08/16/17 sao VIVAS",
+       intercepta=["07","08","16","17"],
+       criterio=["throwIns >=17,4","corners +-0,50"],
+       depende=[],
+-      risco="medio. FACA ESTE PRIMEIRO de todos os de D08: uma linha, efeito medivel, reversao trivial."),
++      risco="medio. FACA ESTE PRIMEIRO de todos os de D08: uma linha, efeito medivel, reversao trivial.",
++      feito_em=("FEITO E SEM EFEITO MEDIDO. A excecao foi removida (o comentario dela agora "
++                "explica por que 'shot' tem razao de ser e 'deflect' nao tinha), mas as 14 "
++                "metricas ficaram IDENTICAS ao digito em 40 partidas pareadas. "
++                "A sonda tools/fisica/ramo-d25.js explica: ha 77,5 quadros por partida com "
++                "bola de desvio viajando FORA do campo, e _ballOut e chamado em voo ZERO "
++                "vezes — as saidas ja vinham por _looseRoll (7,9/partida) e por bola parada "
++                "(19,6/partida). A linha editada nao e alcancada no caso do desvio: alguma "
++                "das 4 sobrescritas de _ballTravel resolve o segmento antes. "
++                "CONSEQUENCIA PARA D08: a premissa de que o desvio escapava da maquina de "
++                "reinicio esta ERRADA. O orcamento de laterais nao se abre por aqui.")),
+ 
+  dict(id="D26", sev="higiene", fase="F4", estado="aberto",
+       titulo="decideT escrito em tres lugares e reescrito todo quadro pela camada 17",
+@@ -318,13 +328,21 @@ DEFEITOS = [
+       criterio=["contratos publicos + testes especificos antes de separar"],
+       depende=["D17"], risco="separar um modulo que depende de metodos prestes a mudar de lugar e trabalho dobrado"),
+ 
+- dict(id="D32", sev="higiene", fase="F1", estado="aberto",
++ dict(id="D32", sev="higiene", fase="F1", estado="feito",
+       titulo="Armadilha de escopo: CAL nao existe dentro de uma camada",
+-      locais=[dict(arquivo=CORE, linha=518, ancora="const ENGINE_CALIBRATION = Object.freeze({")],
++      locais=[dict(arquivo=CORE, linha=518, ancora="const ENGINE_CALIBRATION = Object.freeze({"),
++              dict(arquivo=L+"66-cds-os39-block-on-flight.js", linha=8, ancora="var _CALIB=root.ENGINE_CALIBRATION;")],
+       evidencia="o erro pode passar pela bateria (vm.runInThisContext) e so aparecer no navegador",
+       dono="todas as camadas", intercepta=[],
+       criterio=["verify.py reprova 'CAL.' em src/scripts/layers/"],
+-      depende=[], risco="nenhum: e lint"),
++      depende=[], risco="nenhum: e lint",
++      feito_em=("lint em tools/verify.py (passo 6). Na PRIMEIRA execucao ele pegou uma "
++                "violacao real e viva: a camada 66 lia restarts.shotBlockCorner por "
++                "`root.CAL && ...`, que NUNCA acerta porque window.CAL e undefined "
++                "(medido). Caia no 0,66 codificado em silencio — a calibracao estava "
++                "desconectada e mexer no 20-core.js nao teria efeito ali. O padrao por "
++                "acaso era igual ao valor calibrado, entao o defeito era invisivel. "
++                "Corrigido para ENGINE_CALIBRATION; o lint impede a reintroducao.")),
+ 
+  dict(id="D33", sev="higiene", fase="F4", estado="aberto",
+       titulo="Treze arquivos, 81 linhas, que so publicam numero de versao",
+diff --git a/tools/fisica/ramo-d25.js b/tools/fisica/ramo-d25.js
+new file mode 100644
+index 0000000..0aee953
+--- /dev/null
++++ b/tools/fisica/ramo-d25.js
+@@ -0,0 +1,41 @@
++const fs=require('fs'),vm=require('vm'),crypto=require('crypto');
++function noop(){} function def(n,v){try{Object.defineProperty(global,n,{value:v,writable:true,configurable:true})}catch(_){global[n]=v}}
++def('window',global);def('self',global);def('navigator',{userAgent:'x',language:'pt-BR'});
++def('location',{href:'',search:'',hash:''});def('performance',{now:()=>0});def('crypto',crypto.webcrypto);
++def('requestAnimationFrame',()=>0);def('cancelAnimationFrame',noop);def('addEventListener',noop);def('removeEventListener',noop);
++def('matchMedia',()=>({matches:false,addEventListener:noop,removeEventListener:noop}));def('alert',noop);
++def('localStorage',{getItem:()=>null,setItem:noop,removeItem:noop,clear:noop});def('sessionStorage',global.localStorage);
++def('CanvasRenderingContext2D',undefined);def('HTMLElement',function(){});def('HTMLCanvasElement',function(){});
++def('Image',function(){});def('Audio',function(){return{play:()=>Promise.resolve(),pause:noop}});
++def('__showBootError',noop);def('__cdsDebugWarn',noop);def('CDS_DEBUG',false);
++const SKIP=new Set(['cds-2_5d-gate-a-contracts-v02','cds-pre25d-runtime-auditor-v04','cds-r109-async-cup','cds-mobile-boot-bridge','cds-ux-boot']);
++const html=fs.readFileSync(process.argv[2],'utf8');
++const re=/<script([^>]*)>([\s\S]*?)<\/script>/gi;let m,i=0;
++while((m=re.exec(html))){const id=(m[1].match(/id="([^"]+)"/)||[])[1]||('s'+i);i++;if(SKIP.has(id))continue;try{vm.runInThisContext(m[2],{filename:id})}catch(_){}}
++const db=buildDB(DATA),FORMS=Object.keys(FORMATIONS);
++const STYLES=(typeof STYLE_KEYS!=='undefined'&&Array.isArray(STYLE_KEYS))?STYLE_KEYS:['balanced','tiki','direct','press','counter','wings','park'];
++const sq=db.squads.find(s=>s.c==='Brasil'&&Number(s.y)===1970)||db.squads[0];
++const mk=(f,st,h)=>{const p=autoLineup(sq,f,0);return{squad:sq,name:sq.c,flag:sq.f,color:h?'#1':'#2',lineup:p.lineup,bench:p.bench,formKey:f,style:st}};
++const N=Number(process.argv[3]||40);
++let foraNoVoo={deflect:0,shot:0,outro:0}, ballOutDe={voo:0,rolagem:0,outro:0};
++for(let k=0;k<N;k++){
++  srand(4200000+k*7919);
++  const sim=new MatchSim(mk(FORMS[k%FORMS.length],STYLES[k%STYLES.length],true),mk(FORMS[(k*3+1)%FORMS.length],STYLES[(k*5+2)%STYLES.length],false),{neutral:true,labMode:true});
++  const P=Object.getPrototypeOf(sim);
++  // conta quantas vezes uma bola VIAJANDO esta fora do campo
++  const oldTravel=P._ballTravel;
++  sim._ballTravel=function(dt){const r=oldTravel.call(this,dt);const b=this.ball;
++    if(b&&b.traveling&&(b.y<0||b.y>FW||b.x<0||b.x>FL)){
++      if(b.kind==='deflect')foraNoVoo.deflect++;else if(b.kind==='shot')foraNoVoo.shot++;else foraNoVoo.outro++;}
++    return r;};
++  // de onde vem cada _ballOut
++  const oldOut=P._ballOut;
++  sim._ballOut=function(){const b=this.ball;
++    if(b&&b.traveling)ballOutDe.voo++;else if(b&&(b.vx||b.vy))ballOutDe.rolagem++;else ballOutDe.outro++;
++    return oldOut.call(this);};
++  let s=0;while(!sim.isOver()&&s++<500000)sim.step(1/30);
++}
++const pp=v=>+(v/N).toFixed(2);
++console.log(JSON.stringify({partidas:N,
++  quadrosComBolaVIAJANDOforaDoCampo:{deflect:pp(foraNoVoo.deflect),shot:pp(foraNoVoo.shot),outro:pp(foraNoVoo.outro)},
++  ballOutChamadoCom:{bolaViajando:pp(ballOutDe.voo),bolaRolando:pp(ballOutDe.rolagem),bolaParada:pp(ballOutDe.outro)}},null,1));
+diff --git a/tools/verify.py b/tools/verify.py
+index 20aa534..0d56681 100644
+--- a/tools/verify.py
++++ b/tools/verify.py
+@@ -36,6 +36,42 @@ def falhar(msg: str) -> None:
+     raise SystemExit(f"ERRO: {msg}")
+ 
+ 
++def _sem_comentarios(codigo: str) -> str:
++    """Remove /* */ e // para o lint nao reclamar de texto explicativo."""
++    import re
++    codigo = re.sub(r"/\*.*?\*/", "", codigo, flags=re.S)
++    return re.sub(r"//[^\n]*", "", codigo)
++
++
++def lint_escopo_das_camadas() -> None:
++    """D32 · `CAL` nao existe no escopo de uma camada.
++
++    O core e uma IIFE: `facet`, `chance`, `R`, `clamp`, `FL`, `FW`, `getAttr`,
++    `lerp`, `D` e `srand` sao globais e podem ser usados direto numa camada.
++    `CAL` NAO E — a calibracao se le por `ENGINE_CALIBRATION`.
++
++    Isto e pior do que parece: `window.CAL` e `undefined` (medido), entao um
++    acesso guardado como `root.CAL && root.CAL.x || padrao` nao quebra — ele
++    cai no padrao em silencio, e o valor calibrado deixa de ter efeito. Foi
++    exatamente o que aconteceu na camada 66, onde `restarts.shotBlockCorner`
++    estava desconectado da calibracao e ninguem percebeu porque o padrao
++    codificado por acaso era igual.
++    """
++    import re
++    ruins: list[str] = []
++    padrao = re.compile(r"(?<![\w.$])(?:root\.|window\.|globalThis\.)?CAL\s*[.\[]")
++    for arq in sorted((ROOT / "src/scripts/layers").glob("*.js")):
++        codigo = _sem_comentarios(arq.read_text(encoding="utf-8"))
++        for m in padrao.finditer(codigo):
++            linha = codigo[: m.start()].count("\n") + 1
++            ruins.append(f"{arq.relative_to(ROOT)}:{linha}  {m.group(0).strip()}")
++    if ruins:
++        falhar("camada usando CAL, que nao existe nesse escopo — use "
++               "ENGINE_CALIBRATION:\n  " + "\n  ".join(ruins))
++    print(f"OK: nenhuma das {len(list((ROOT / 'src/scripts/layers').glob('*.js')))} "
++          f"camadas referencia CAL fora do escopo")
++
++
+ def main() -> None:
+     manifest = json.loads((ROOT / "manifests/build-manifest.json").read_text(encoding="utf-8"))
+ 
+@@ -86,6 +122,9 @@ def main() -> None:
+         falhar("teste de balistica reprovou")
+     print("OK: balistica validada")
+ 
++    # 6. escopo das camadas (D32)
++    lint_escopo_das_camadas()
++
+ 
+ if __name__ == "__main__":
+     main()

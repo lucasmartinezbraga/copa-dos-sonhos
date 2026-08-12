@@ -77,6 +77,12 @@ case "${1:-}" in
     echo
     echo "── placar de design ───────────────────────────────────────────"
     python3 tools/fisica/placar.py "$DEPOIS" | tail -6
+    # As 14 metricas agregadas NAO contem drawRate, zeroZeroRate, blowoutRate
+    # nem averageEndingStamina. No D11 o criterio de 2 SE aprovou uma mudanca
+    # que levou o placar de design de 12/13 para 10/13. Este portao existe por
+    # causa daquele dia.
+    python3 tools/regressao_design.py "$base" "$DEPOIS"
+    veredito_design=$?
     echo "── placar do futebol real ─────────────────────────────────────"
     python3 tools/fisica/futebol_real.py "$DEPOIS" | tail -6
     echo
@@ -84,7 +90,12 @@ case "${1:-}" in
       vermelho "REPROVADO — nao faca commit. Leia a comparacao acima."
       exit 1
     fi
-    verde "APROVADO pelo criterio de 2 SE."
+    if [ "$veredito_design" -ne 0 ]; then
+      vermelho "REPROVADO pelo placar de design — nao faca commit."
+      vermelho "Passar em 2 SE e necessario, nao suficiente."
+      exit 1
+    fi
+    verde "APROVADO pelo criterio de 2 SE e pelo placar de design."
     amarelo "Se voce mexeu em TRAJETORIA, isto ainda nao basta:"
     amarelo "  node tools/fisica/tela/pinga.js dist/index.html 60"
     amarelo "Se voce mexeu em MOVIMENTACAO:"

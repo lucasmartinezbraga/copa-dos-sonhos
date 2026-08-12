@@ -150,7 +150,7 @@ DEFEITOS = [
       criterio=["orcamento unico em ENGINE_CALIBRATION.possession","mediana de posse 0,9-1,3 s"],
       depende=["D26"], risco="medio"),
 
- dict(id="D11", sev="estrutural", fase="F3", estado="medindo",
+ dict(id="D11", sev="estrutural", fase="F3", estado="feito",
       titulo="Sorteio censurado 1: o censor roda em 51,4% das decisoes (MEDIDO)",
       locais=[dict(arquivo=L+"16-cds-r12-transactional-core-r123.js", linha=153, ancora="tm.__r122LastContextShot=now;"),
               dict(arquivo=L+"20-cds-r183-natural-football.js", linha=63, ancora="dg.smartShotVetoes=(dg.smartShotVetoes||0)+1;")],
@@ -170,9 +170,17 @@ DEFEITOS = [
                 "que ninguem tinha declarado: o veto PERSISTIA 1,15 s porque envenenava um campo que "
                 "serve para outra coisa. E o custo caiu 13x: o predicado ia de 515,17 avaliacoes por "
                 "partida para 38,83, porque agora so roda quando o sorteio vai mesmo acontecer.\n"
-                "VEREDITO PENDENTE: a bateria de 300 partidas ainda estava rodando quando este "
-                "estado foi gravado. NAO chame de aceito ate o aceitar.sh --depois responder. "
-                "Se reprovar, reverta e escreva o laudo — nao ajuste o criterio."),
+                "ACEITO NA SEGUNDA TENTATIVA. A PRIMEIRA REPROVOU e o motivo vale mais que "
+                "o conserto: eu tratei a persistencia como efeito colateral a limpar. O veto "
+                "antigo carimbava __r122LastContextShot e com isso SUPRIMIA a roleta por 1,15 s; "
+                "consultar o predicado so no instante do sorteio matou essa janela. Resultado "
+                "medido em 300 partidas: as 14 metricas agregadas NAO se moveram e o placar de "
+                "design caiu 12/13 -> 10/13, com drawRate 0,270 -> 0,190 (3,53 SE, fora da faixa) "
+                "e blowoutRate 0,153 -> 0,197 (1,89 SE, fora). Com a janela restaurada em campo "
+                "PROPRIO (__r183VetoChuteContextual): 14/14 em 2 SE com deltas <= 0,13, design de "
+                "volta a 12/13. LICAO: efeito colateral pode ser o mecanismo. E o portao estava "
+                "cego — drawRate e blowoutRate nao estao entre as 14; dai nasceu "
+                "tools/regressao_design.py, hoje dentro do aceitar.sh."),
       depende=[], risco="medio: remover chance() desalinha o RNG; compare distribuicoes, nao partidas"),
 
  dict(id="D12", sev="estrutural", fase="F2", estado="aberto",

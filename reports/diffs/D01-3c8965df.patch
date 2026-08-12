@@ -1,0 +1,322 @@
+commit 3c8965df96ce56ca1fe20881c5f82ccab60fa5e6
+Author:     Claude <noreply@anthropic.com>
+AuthorDate: Tue Aug 11 23:23:41 2026 +0000
+Commit:     Claude <noreply@anthropic.com>
+CommitDate: Tue Aug 11 23:23:41 2026 +0000
+
+    fix(D01): a premissa estava errada — a segunda fisica esta em _looseRoll
+    
+    VEREDITO DA BATERIA PENDENTE. A medicao de 300 partidas ainda esta rodando
+    quando este commit e feito; se ela reprovar, a mudanca em _looseRoll sera
+    revertida com laudo, como A3 e A4.
+    
+    O documento afirmava que ~150 lances por partida caiam no integrador do core
+    com g = 20 m/s2, porque _deflectTo nao criaria plano fisico. MEDIDO com a sonda
+    nova tools/fisica/ramo-g20.js, 12 partidas:
+    
+      quadros de voo COM plano fisico (g = 9,81)
+        pass     13.822,33 por partida
+        deflect   1.588,92
+        shot        377,08
+      quadros de voo SEM plano, que cairiam no core (g = 20)     0,00
+    
+    ZERO. A camada 07 (physics-timeline) envolve _deflectTo, chama o core e em
+    seguida CRIA o plano com _planPhysicalSegment — que pertence a camada 88, com
+    g = 9,81 e arrasto quadratico. O desvio sempre teve balistica real. A linha
+    b.vz -= 20*dt de _ballTravel e codigo morto, da familia do D03; ficou anotada
+    em vez de removida, porque 12 partidas nao exercitam penalti decisivo nem
+    prorrogacao.
+    
+    A SEGUNDA FISICA EXISTE, em _looseRoll — a bola ROLANDO, nao voando.
+    tools/fisica/ramo-rolagem.js, 12 partidas:
+    
+      quadros que integram com g = 20        39,25 por partida
+      quadros com altura acima de 2 cm       38,33
+      altura media                            0,995 m
+      altura maxima                           2,685 m
+    
+    E a sobra alta caindo com o dobro da gravidade enquanto todo o resto do jogo
+    usa 9,81 desde a OS-200. Corrigido para 9,81. A restituicao continua zero de
+    proposito: ali a bola pousa e passa a rolar.
+    
+    CONSEQUENCIA PARA O PLANO: D01 era pre-requisito declarado de D02 e D08, com a
+    justificativa de que um alivio mirado para a lateral cairia como pedra. Essa
+    justificativa nao existe — nunca caiu. A cadeia F2 perde a dependencia, e esta
+    e a TERCEIRA evidencia desta rodada contra a formulacao do D08, junto com o D25
+    sem efeito e a ancora que o D03 revelou estar dentro de codigo morto. O
+    fenomeno medido do D08 continua de pe; a explicacao de onde ele nasce precisa
+    ser refeita do zero.
+    
+    Sondas novas: ramo-g20.js, ramo-rolagem.js e ramo-d02.js (esta ultima ainda nao
+    rodada — o "21,3 entregas com folga > 3 m" do D02 veio da tentativa A4, que se
+    provou errada em premissa, e merece ser remedido antes de virar conserto).
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+    Claude-Session: https://claude.ai/code/session_017A9p2a2tqbo4khijg4vdCb
+---
+ src/scripts/40-match-engine-and-manager-ai.js | 21 +++++++-
+ tools/defeitos.py                             | 19 +++++--
+ tools/fisica/ramo-d02.js                      | 77 +++++++++++++++++++++++++++
+ tools/fisica/ramo-g20.js                      | 49 +++++++++++++++++
+ tools/fisica/ramo-rolagem.js                  | 42 +++++++++++++++
+ 5 files changed, 201 insertions(+), 7 deletions(-)
+
+diff --git a/src/scripts/40-match-engine-and-manager-ai.js b/src/scripts/40-match-engine-and-manager-ai.js
+index 9937372..4648a50 100644
+--- a/src/scripts/40-match-engine-and-manager-ai.js
++++ b/src/scripts/40-match-engine-and-manager-ai.js
+@@ -2205,7 +2205,17 @@ class MatchSim {
+       }
+     }
+ 
+-    // Física contínua da bola.
++    /* ⚠ D01 · ESTA INTEGRAÇÃO NÃO RODA. MEDIDO: 0 quadros em 12 partidas.
++       A camada 07 (physics-timeline) só chama este corpo quando a bola NÃO tem
++       `_physicsPlan` — e ela mesma cria o plano para passe, chute e desvio, com
++       a balística real da camada 88 (g = 9,81, arrasto quadrático). Sobram zero
++       quadros para o g = 20 daqui.
++       O documento afirmava que este era o segundo integrador em uso, governando
++       ~57 desvios por partida. Era HIPÓTESE e estava errada; a sonda
++       `tools/fisica/ramo-g20.js` mediu 1.588,92 quadros de desvio por partida,
++       TODOS com plano físico. A segunda física existe, mas em `_looseRoll`.
++       Não apagado por enquanto: 12 partidas não exercitam pênalti decisivo nem
++       prorrogação, e este é o único caminho se um plano falhar. */
+     b.x += b.vx * dt; b.y += b.vy * dt;
+     b.z += b.vz * dt; b.vz -= 20 * dt;
+     if (b.z < 0) { b.z = 0; b.vz = -b.vz * 0.4; }
+@@ -2347,7 +2357,14 @@ class MatchSim {
+     // R7: a bola não perde toda a energia em poucos quadros. Ainda desacelera,
+     // mas continua rolando o bastante para a disputa parecer natural.
+     b.vx = (b.vx || 0) * (1 - 0.92 * dt); b.vy = (b.vy || 0) * (1 - 0.92 * dt);
+-    if (b.z > 0 || (b.vz || 0) !== 0) { b.z += (b.vz || 0) * dt; b.vz = (b.vz || 0) - 20 * dt; if (b.z <= 0) { b.z = 0; b.vz = 0; } }
++    /* D01 · AQUI está a segunda física, e não em `_ballTravel`.
++       Medido com `tools/fisica/ramo-rolagem.js`: 39,25 quadros por partida
++       integram esta linha, com a bola a 0,995 m de altura média e até 2,685 m.
++       É a sobra alta caindo — e caía com o DOBRO da gravidade real, enquanto
++       todo o resto do jogo usa g = 9,81 desde a OS-200.
++       A restituição continua zero de propósito: aqui a bola pousa e passa a
++       rolar; quique é assunto do plano físico, não da sobra. */
++    if (b.z > 0 || (b.vz || 0) !== 0) { b.z += (b.vz || 0) * dt; b.vz = (b.vz || 0) - 9.81 * dt; if (b.z <= 0) { b.z = 0; b.vz = 0; } }
+     // fora de campo
+     if (b.x < -0.5 || b.x > FL + 0.5 || b.y < -0.5 || b.y > FW + 0.5) { this._ballOut(); return; }
+     // jogador mais próximo coleta ao alcançar
+diff --git a/tools/defeitos.py b/tools/defeitos.py
+index e3bebcc..615bc32 100755
+--- a/tools/defeitos.py
++++ b/tools/defeitos.py
+@@ -33,15 +33,24 @@ L = "src/scripts/layers/"
+ # ancora: trecho literal que tem de aparecer EXATAMENTE UMA VEZ no arquivo.
+ # linha:  onde estava quando o documento foi escrito (referencia, pode envelhecer).
+ DEFEITOS = [
+- dict(id="D01", sev="estrutural", fase="F1", estado="aberto",
+-      titulo="Duas fisicas de bola convivem (g=20 no core, g=9,81 na camada 88)",
+-      locais=[dict(arquivo=MOTOR, linha=2396, ancora="b.z += b.vz * dt; b.vz -= 20 * dt;"),
++ dict(id="D01", sev="estrutural", fase="F1", estado="feito",
++      titulo="Duas fisicas de bola — em _looseRoll, nao em _ballTravel (premissa corrigida)",
++      locais=[dict(arquivo=MOTOR, linha=2210, ancora="ESTA INTEGRAÇÃO NÃO RODA"),
++              dict(arquivo=MOTOR, linha=2350, ancora="AQUI está a segunda física"),
+               dict(arquivo=MOTOR, linha=2465, ancora="_deflectTo(x, y, spd) {")],
+       evidencia="150,40 chamadas por partida caem no integrador de g=20 (57,05 _deflectTo + 93,35 _looseBall)",
+       dono="core e o dono da fisica do desvio; 45/47/49 so reescrevem o ALVO",
+       intercepta=["07","17","45","47","49"],
+-      criterio=["chamadas com g=20 -> 0","corners +-0,50","goals +-0,20","throwIns nao pode cair"],
+-      depende=[], risco="medio: b._timeout deixa de valer; vigie quiques e porCimaDoTravessao"),
++      criterio=["quadros de voo sem plano fisico: 0 (MEDIDO, ja era 0)","corners +-0,50","goals +-0,20"],
++      depende=[], risco="baixo: a mudanca real e uma linha em _looseRoll",
++      feito_em=("PREMISSA CORRIGIDA. A sonda tools/fisica/ramo-g20.js mediu ZERO quadros de voo "
++                "sem plano fisico em 12 partidas — o desvio SEMPRE teve balistica real, porque a "
++                "camada 07 cria o plano logo depois de chamar o core. A linha b.vz -= 20*dt de "
++                "_ballTravel e codigo morto. A segunda fisica estava em _looseRoll: 39,25 quadros "
++                "por partida, bola a 0,995 m de altura media e ate 2,685 m, caindo com o DOBRO da "
++                "gravidade. Corrigido para 9,81 la; a linha morta do _ballTravel ficou anotada. "
++                "CONSEQUENCIA: D01 era pre-requisito de D02 e D08 — a cadeia F2 perde essa "
++                "justificativa.")),
+ 
+  dict(id="D02", sev="futebol", fase="F1", estado="aberto",
+       titulo="_contestLoose entrega a bola sem teto de distancia",
+diff --git a/tools/fisica/ramo-d02.js b/tools/fisica/ramo-d02.js
+new file mode 100644
+index 0000000..8643d81
+--- /dev/null
++++ b/tools/fisica/ramo-d02.js
+@@ -0,0 +1,77 @@
++#!/usr/bin/env node
++/* D02 · o `_contestLoose` entrega a bola sem teto de distancia?
++   -------------------------------------------------------------------------
++   O documento afirma 21,3 entregas por partida com o mais proximo a mais de
++   3 m. Aquele numero veio de uma sonda da tentativa A4, e A4 se provou errada
++   em premissa — entao ele merece ser refeito antes de virar conserto.
++
++   Esta sonda mede, no TOPO da pilha (que e o que realmente executa):
++     - quantas vezes _contestLoose e chamado
++     - a distancia do jogador que EFETIVAMENTE recebeu a bola
++     - o histograma dessa distancia
++     - quantas dessas entregas acontecem com a bola FORA do campo
++
++   Uso: node tools/fisica/ramo-d02.js <build.html> [partidas] */
++const fs = require('fs'), vm = require('vm'), crypto = require('crypto');
++function noop() {}
++function def(n, v) { try { Object.defineProperty(global, n, { value: v, writable: true, configurable: true }); } catch (_) { global[n] = v; } }
++def('window', global); def('self', global); def('navigator', { userAgent: 'x', language: 'pt-BR' });
++def('location', { href: '', search: '', hash: '' }); def('performance', { now: () => 0 }); def('crypto', crypto.webcrypto);
++def('requestAnimationFrame', () => 0); def('cancelAnimationFrame', noop); def('addEventListener', noop); def('removeEventListener', noop);
++def('matchMedia', () => ({ matches: false, addEventListener: noop, removeEventListener: noop })); def('alert', noop);
++def('localStorage', { getItem: () => null, setItem: noop, removeItem: noop, clear: noop }); def('sessionStorage', global.localStorage);
++def('CanvasRenderingContext2D', undefined); def('HTMLElement', function () {}); def('HTMLCanvasElement', function () {});
++def('Image', function () {}); def('Audio', function () { return { play: () => Promise.resolve(), pause: noop }; });
++def('__showBootError', noop); def('__cdsDebugWarn', noop); def('CDS_DEBUG', false);
++const SKIP = new Set(['cds-2_5d-gate-a-contracts-v02', 'cds-pre25d-runtime-auditor-v04', 'cds-r109-async-cup', 'cds-mobile-boot-bridge', 'cds-ux-boot']);
++const html = fs.readFileSync(process.argv[2] || 'dist/index.html', 'utf8');
++const re = /<script([^>]*)>([\s\S]*?)<\/script>/gi; let m, i = 0;
++while ((m = re.exec(html))) { const id = (m[1].match(/id="([^"]+)"/) || [])[1] || ('s' + i); i++; if (SKIP.has(id)) continue; try { vm.runInThisContext(m[2], { filename: id }); } catch (_) {} }
++
++const db = buildDB(DATA), FORMS = Object.keys(FORMATIONS);
++const STYLES = (typeof STYLE_KEYS !== 'undefined' && Array.isArray(STYLE_KEYS)) ? STYLE_KEYS : ['balanced', 'tiki', 'direct', 'press', 'counter', 'wings', 'park'];
++const sq = db.squads.find(s => s.c === 'Brasil' && Number(s.y) === 1970) || db.squads[0];
++const mk = (f, st, h) => { const p = autoLineup(sq, f, 0); return { squad: sq, name: sq.c, flag: sq.f, color: h ? '#1' : '#2', lineup: p.lineup, bench: p.bench, formKey: f, style: st }; };
++const N = Number(process.argv[3] || 12);
++
++let chamadas = 0, entregas = 0, somaD = 0, maxD = 0, fora = 0, foraEntregue = 0;
++const faixas = [0, 0, 0, 0, 0, 0]; // <=1,7 | <=2,6 | <=3 | <=5 | <=8 | >8
++const faixa = d => d <= 1.7 ? 0 : d <= 2.6 ? 1 : d <= 3 ? 2 : d <= 5 ? 3 : d <= 8 ? 4 : 5;
++
++for (let k = 0; k < N; k++) {
++  srand(4200000 + k * 7919);
++  const sim = new MatchSim(mk(FORMS[k % FORMS.length], STYLES[k % STYLES.length], true),
++                           mk(FORMS[(k * 3 + 1) % FORMS.length], STYLES[(k * 5 + 2) % STYLES.length], false),
++                           { neutral: true, labMode: true });
++  const P = Object.getPrototypeOf(sim), topo = P._contestLoose;
++  sim._contestLoose = function () {
++    const b = this.ball;
++    const bx = b.x, by = b.y;
++    const estavaFora = bx < 0 || bx > FL || by < 0 || by > FW;
++    if (estavaFora) fora++;
++    chamadas++;
++    const r = topo.call(this);
++    const dono = this.ball && this.ball.owner;
++    if (dono) {
++      const d = D(dono.x, dono.y, bx, by);
++      entregas++; somaD += d; if (d > maxD) maxD = d;
++      faixas[faixa(d)]++;
++      if (estavaFora) foraEntregue++;
++    }
++    return r;
++  };
++  let s = 0; while (!sim.isOver() && s++ < 500000) sim.step(1 / 30);
++}
++
++const pp = v => +(v / N).toFixed(2);
++const rot = ['<=1,7 m (raio do _looseRoll)', '<=2,6 m', '<=3 m', '<=5 m', '<=8 m', '>8 m'];
++console.log(JSON.stringify({
++  partidas: N,
++  chamadasDeContestLoose: pp(chamadas),
++  entregasEfetivas: pp(entregas),
++  distanciaMediaDeQuemRECEBEU: entregas ? +(somaD / entregas).toFixed(2) : 0,
++  distanciaMaxima: +maxD.toFixed(2),
++  histograma: Object.fromEntries(rot.map((r, i) =>
++    [r, `${pp(faixas[i])}/partida (${(100 * faixas[i] / Math.max(1, entregas)).toFixed(1)}%)`])),
++  comABolaJAFORAdoCampo: { chamadas: pp(fora), entregues: pp(foraEntregue) },
++}, null, 1));
+diff --git a/tools/fisica/ramo-g20.js b/tools/fisica/ramo-g20.js
+new file mode 100755
+index 0000000..e5a7b4b
+--- /dev/null
++++ b/tools/fisica/ramo-g20.js
+@@ -0,0 +1,49 @@
++#!/usr/bin/env node
++/* D01 · quantos quadros de voo caem no integrador do core (g = 20 m/s2) em vez
++   do plano fisico da camada 88 (g = 9,81)?
++
++   A camada 07 so chama o core quando a bola NAO tem _physicsPlan. Esta sonda
++   conta os quadros de cada caso, por tipo de bola.
++
++   Uso: node tools/fisica/ramo-g20.js <build.html> [partidas] */
++const fs=require('fs'),vm=require('vm'),crypto=require('crypto');
++function noop(){} function def(n,v){try{Object.defineProperty(global,n,{value:v,writable:true,configurable:true})}catch(_){global[n]=v}}
++def('window',global);def('self',global);def('navigator',{userAgent:'x',language:'pt-BR'});
++def('location',{href:'',search:'',hash:''});def('performance',{now:()=>0});def('crypto',crypto.webcrypto);
++def('requestAnimationFrame',()=>0);def('cancelAnimationFrame',noop);def('addEventListener',noop);def('removeEventListener',noop);
++def('matchMedia',()=>({matches:false,addEventListener:noop,removeEventListener:noop}));def('alert',noop);
++def('localStorage',{getItem:()=>null,setItem:noop,removeItem:noop,clear:noop});def('sessionStorage',global.localStorage);
++def('CanvasRenderingContext2D',undefined);def('HTMLElement',function(){});def('HTMLCanvasElement',function(){});
++def('Image',function(){});def('Audio',function(){return{play:()=>Promise.resolve(),pause:noop}});
++def('__showBootError',noop);def('__cdsDebugWarn',noop);def('CDS_DEBUG',false);
++const SKIP=new Set(['cds-2_5d-gate-a-contracts-v02','cds-pre25d-runtime-auditor-v04','cds-r109-async-cup','cds-mobile-boot-bridge','cds-ux-boot']);
++const html=fs.readFileSync(process.argv[2]||'dist/index.html','utf8');
++const re=/<script([^>]*)>([\s\S]*?)<\/script>/gi;let m,i=0;
++while((m=re.exec(html))){const id=(m[1].match(/id="([^"]+)"/)||[])[1]||('s'+i);i++;if(SKIP.has(id))continue;try{vm.runInThisContext(m[2],{filename:id})}catch(_){}}
++const db=buildDB(DATA),FORMS=Object.keys(FORMATIONS);
++const STYLES=(typeof STYLE_KEYS!=='undefined'&&Array.isArray(STYLE_KEYS))?STYLE_KEYS:['balanced','tiki','direct','press','counter','wings','park'];
++const sq=db.squads.find(s=>s.c==='Brasil'&&Number(s.y)===1970)||db.squads[0];
++const mk=(f,st,h)=>{const p=autoLineup(sq,f,0);return{squad:sq,name:sq.c,flag:sq.f,color:h?'#1':'#2',lineup:p.lineup,bench:p.bench,formKey:f,style:st}};
++const N=Number(process.argv[3]||12);
++const comPlano={}, semPlano={};
++const inc=(o,k)=>o[k]=(o[k]||0)+1;
++for(let k=0;k<N;k++){
++  srand(4200000+k*7919);
++  const sim=new MatchSim(mk(FORMS[k%FORMS.length],STYLES[k%STYLES.length],true),mk(FORMS[(k*3+1)%FORMS.length],STYLES[(k*5+2)%STYLES.length],false),{neutral:true,labMode:true});
++  const P=Object.getPrototypeOf(sim), topo=P._ballTravel;
++  sim._ballTravel=function(dt){
++    const b=this.ball;
++    if(b&&b.traveling){
++      const kind=b.kind||'?';
++      if(b._physicsPlan&&b._physicsPlan.segment)inc(comPlano,kind); else inc(semPlano,kind);
++    }
++    return topo.call(this,dt);
++  };
++  let s=0;while(!sim.isOver()&&s++<500000)sim.step(1/30);
++}
++const pp=o=>Object.fromEntries(Object.entries(o).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k,+(v/N).toFixed(2)]));
++const soma=o=>Object.values(o).reduce((a,b)=>a+b,0);
++console.log(JSON.stringify({partidas:N,
++  quadrosComPlanoFisico_g981:pp(comPlano), totalComPlano:+(soma(comPlano)/N).toFixed(2),
++  quadrosSemPlano_caemNoCore_g20:pp(semPlano), totalSemPlano:+(soma(semPlano)/N).toFixed(2),
++  percentualNoIntegradorErrado:+(100*soma(semPlano)/Math.max(1,soma(comPlano)+soma(semPlano))).toFixed(1)},null,1));
+diff --git a/tools/fisica/ramo-rolagem.js b/tools/fisica/ramo-rolagem.js
+new file mode 100755
+index 0000000..e6f9a5a
+--- /dev/null
++++ b/tools/fisica/ramo-rolagem.js
+@@ -0,0 +1,42 @@
++#!/usr/bin/env node
++/* D01 (parte 2) · o segundo g = 20 esta em _looseRoll, a bola ROLANDO.
++   Quantos quadros por partida ele integra, e com que altura?
++   Uso: node tools/fisica/ramo-rolagem.js <build.html> [partidas] */
++const fs=require('fs'),vm=require('vm'),crypto=require('crypto');
++function noop(){} function def(n,v){try{Object.defineProperty(global,n,{value:v,writable:true,configurable:true})}catch(_){global[n]=v}}
++def('window',global);def('self',global);def('navigator',{userAgent:'x',language:'pt-BR'});
++def('location',{href:'',search:'',hash:''});def('performance',{now:()=>0});def('crypto',crypto.webcrypto);
++def('requestAnimationFrame',()=>0);def('cancelAnimationFrame',noop);def('addEventListener',noop);def('removeEventListener',noop);
++def('matchMedia',()=>({matches:false,addEventListener:noop,removeEventListener:noop}));def('alert',noop);
++def('localStorage',{getItem:()=>null,setItem:noop,removeItem:noop,clear:noop});def('sessionStorage',global.localStorage);
++def('CanvasRenderingContext2D',undefined);def('HTMLElement',function(){});def('HTMLCanvasElement',function(){});
++def('Image',function(){});def('Audio',function(){return{play:()=>Promise.resolve(),pause:noop}});
++def('__showBootError',noop);def('__cdsDebugWarn',noop);def('CDS_DEBUG',false);
++const SKIP=new Set(['cds-2_5d-gate-a-contracts-v02','cds-pre25d-runtime-auditor-v04','cds-r109-async-cup','cds-mobile-boot-bridge','cds-ux-boot']);
++const html=fs.readFileSync(process.argv[2]||'dist/index.html','utf8');
++const re=/<script([^>]*)>([\s\S]*?)<\/script>/gi;let m,i=0;
++while((m=re.exec(html))){const id=(m[1].match(/id="([^"]+)"/)||[])[1]||('s'+i);i++;if(SKIP.has(id))continue;try{vm.runInThisContext(m[2],{filename:id})}catch(_){}}
++const db=buildDB(DATA),FORMS=Object.keys(FORMATIONS);
++const STYLES=(typeof STYLE_KEYS!=='undefined'&&Array.isArray(STYLE_KEYS))?STYLE_KEYS:['balanced','tiki','direct','press','counter','wings','park'];
++const sq=db.squads.find(s=>s.c==='Brasil'&&Number(s.y)===1970)||db.squads[0];
++const mk=(f,st,h)=>{const p=autoLineup(sq,f,0);return{squad:sq,name:sq.c,flag:sq.f,color:h?'#1':'#2',lineup:p.lineup,bench:p.bench,formKey:f,style:st}};
++const N=Number(process.argv[3]||12);
++let quadros=0, comAltura=0, somaZ=0, maxZ=0, chamadas=0;
++for(let k=0;k<N;k++){
++  srand(4200000+k*7919);
++  const sim=new MatchSim(mk(FORMS[k%FORMS.length],STYLES[k%STYLES.length],true),mk(FORMS[(k*3+1)%FORMS.length],STYLES[(k*5+2)%STYLES.length],false),{neutral:true,labMode:true});
++  const P=Object.getPrototypeOf(sim), topo=P._looseRoll;
++  sim._looseRoll=function(dt){
++    const b=this.ball; chamadas++;
++    if(b && (b.z>0 || (b.vz||0)!==0)){ quadros++; if(b.z>0.02){comAltura++; somaZ+=b.z; if(b.z>maxZ)maxZ=b.z;} }
++    return topo.call(this,dt);
++  };
++  let s=0;while(!sim.isOver()&&s++<500000)sim.step(1/30);
++}
++const pp=v=>+(v/N).toFixed(2);
++console.log(JSON.stringify({partidas:N,
++  chamadasDeLooseRoll:pp(chamadas),
++  quadrosQueINTEGRAM_com_g20:pp(quadros),
++  quadrosComAlturaAcimaDe2cm:pp(comAltura),
++  alturaMedia:comAltura?+(somaZ/comAltura).toFixed(3):0,
++  alturaMaxima:+maxZ.toFixed(3)},null,1));
