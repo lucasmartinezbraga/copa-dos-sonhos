@@ -1,0 +1,107 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D15  255 linhas de antiteleporte contendo um bug nunca diagnosticado
+     severidade: higiene   fase: F4   estado: aberto
+
+  DONO (quem realmente executa):
+     camada 84
+  CAMADAS QUE INTERCEPTAM: 84
+     confirme com: node tools/fisica/pilha.js dist/index.html 14
+
+  EVIDENCIA MEDIDA:
+     2,1% de todo o codigo de camadas para conter um bug de movimentacao
+
+  CRITERIO DE ACEITE:
+     - salto.js correlaciona os saltos com quadros de escrita dupla de intencao
+
+  DEPENDE DE: D14  <- faca esses ANTES
+
+  RISCO: baixo enquanto for so diagnostico
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/layers/84-cds-r1899-antiteleporte.js:43
+
+       31 │        7,84 m, maximo 53,89 m. Passa a bater quem esta mais perto do circulo,
+       32 │        e ele CAMINHA ate a bola.
+       33 │ 
+       34 │    B1  O PAPEL QUE NAO MORRE. _setPieceRole e portao em :21841 e :21867:
+       35 │        quem o carrega some das camadas de corrida na area. clearCorner13
+       36 │        (:17072) so roda na cadeia do escanteio, entao o ramo crossed da
+       37 │        falta (:6951) o deixa pendurado. Medido: 91 de 120 papeis sobrevivem ao
+       38 │        reinicio; na falta a mediana e 8,4 s e o maximo 57,6 s de bola rolando.
+       39 │ 
+       40 │    Nada aqui sorteia. Nenhum consumo de RNG novo, nenhuma alteracao de xG. */
+       41 │ const M = root && root.MatchSim;
+       42 │ if (!M || !M.prototype || M.prototype.__R1899__) return;
+  >    43 │ const P = M.prototype; P.__R1899__ = true;
+       44 │ const FLv = Number(root.FL) || 105, FWv = Number(root.FW) || 68;
+       45 │ 
+       46 │ const WALK = 0.92;            // fracao de maxSpd na caminhada (mesma da R15)
+       47 │ const RAIO_ENTREGA = 1.60;    // m -- ja esta na bola?
+       48 │ const RAIO_PINO = 0.30;       // m -- abaixo disto nao vale re-armar
+       49 │ const PAPEL_VIVO = 2.50;      // s de bola rolando ate o papel morrer
+       50 │ const FOLGA_PASSO = 0.02;     // m de tolerancia no orcamento
+       51 │ const SALTO_ADMIN = 2.50;     // acima disto e recolocacao administrativa
+       52 │ const TETO_META = 3.00;       // s de espera do tiro de meta
+       53 │ const TETO_SAIDA = 3.20;      // s de espera da saida de bola
+       54 │ 
+       55 │ function num(v, d) { return (typeof v === 'number' && isFinite(v)) ? v : (d || 0); }
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2172-2214
+──────────────────────────────────────────────────────────────────────────────
+  ## D15 🟡 As 255 linhas de antiteleporte
+  
+  **Endereço:** `src/scripts/layers/84-cds-r1899-antiteleporte.js` (arquivo inteiro)
+  
+  Entrada própria porque é o caso extremo de D14 e porque o custo é
+  desproporcional: **255 linhas — 2,1% de todo o código de camadas — para conter
+  um bug de movimentação.**
+  
+  **A hipótese sobre a origem** [HIPÓTESE]: o teleporte vem de
+  `_resolveOverlaps` + `commitMovement` (camada 16), que escrevem posição uma vez
+  por quadro depois de `_integrate` calcular intenção. Se duas camadas escreverem
+  intenção no mesmo quadro sem compor, a resolução de sobreposição pode empurrar
+  um jogador vários metros de uma vez.
+  
+  Isto é **hipótese não testada**. O teste é barato:
+  
+  ```bash
+  node tools/fisica/tela/salto.js dist/index.html 120
+  ```
+  
+  e comparar com o contador da própria `r1899`. Se os saltos que ela contém têm
+  todos origem no mesmo quadro em que duas camadas escreveram intenção, a
+  hipótese fecha.
+  
+  **Se fechar**, o conserto é em `_integrate`: um único ponto de escrita de
+  posição, e as 255 linhas somem.
+  
+  ### ⚠ NÃO MENSURÁVEL HOJE — a camada não publica auditor
+  
+  `tools/fisica/ramos.js` procurou `getR1899Audit()` e **não existe**. As 255
+  linhas de antiteleporte não expõem nenhum contador: não há como saber quantas
+  vezes elas corrigem alguma coisa sem editar a camada.
+  
+  É a prova viva da regra que o próprio documento estabelece — *toda camada nova
+  deve publicar contadores por ramo*. A camada 45 publica e por isso o D09 foi
+  mensurável em vinte minutos; a 84 não publica e por isso o D15 continua sendo
+  opinião depois de todo este trabalho.
+  
+  **Primeiro passo do D15, portanto, não é consertar nem apagar: é acrescentar
+  um contador** e rodar 300 partidas. Sem isso, remover 255 linhas é aposta.
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

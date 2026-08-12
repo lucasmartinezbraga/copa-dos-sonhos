@@ -1,0 +1,110 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D27  Faltas nao saem de foulBase, saem do numero de duelos
+     severidade: futebol   fase: —   estado: guarda-corpo
+
+  DONO (quem realmente executa):
+     —
+
+  EVIDENCIA MEDIDA:
+     faltas 22,25 hoje (faixa real 19-26), trazidas pela OS-206 e nao pelo parametro
+
+  CRITERIO DE ACEITE:
+     - qualquer mudanca no numero de duelos reverifica faltas E cartoes JUNTOS
+
+  RISCO: dois erros se compensavam: poucas faltas + cartoes demais por falta
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/20-core.js:598
+
+      586 │     throughBallError: 0.050,
+      587 │     maxError: 0.24,
+      588 │   }),
+      589 │   defending: Object.freeze({
+      590 │     tackleAttemptRate: 12.0,
+      591 │     boxAttemptRate: 4.2,
+      592 │     /* OS-201 · as faltas ficam em ~14,9 por partida contra um minimo de design
+      593 │        de 16 (alvo 21), e o miss e consistente em quatro medicoes. Nao mexido:
+      594 │        o volume de faltas nao sai deste numero, sai de quantos DUELOS acontecem
+      595 │        por partida — subir a probabilidade por duelo so trocaria falta por
+      596 │        cartao, e os amarelos ja estao em 4,7 de um teto de 5,6.
+      597 │        Fica registrado como pendencia real. */
+  >   598 │     foulBase: 0.29,
+      599 │     foulComposure: 0.12,
+      600 │     /* CARTAO POR FALTA (OS-206).
+      601 │        Estava em 0,18 e entregava 0,279 cartao por falta depois do multiplicador
+      602 │        de risco — contra 0,177 do futebol real (~3,9 amarelos para ~22 faltas).
+      603 │        A distorcao ficou invisivel enquanto o jogo tinha 15,5 faltas por
+      604 │        partida: o numero de cartoes saia certo por compensacao de dois erros.
+      605 │        Quando a OS-206 levou as faltas para 22 (dentro da faixa real de 19-26),
+      606 │        os cartoes estouraram e mostraram a taxa verdadeira. */
+      607 │     yellowFirst: 0.125,
+      608 │     yellowSecond: 0.05,
+      609 │     straightRed: 0.0008,
+      610 │   }),
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2969-3018
+──────────────────────────────────────────────────────────────────────────────
+  ## D27 🟠 As faltas não saem do parâmetro — saem do número de duelos
+  
+  **Endereço:** `src/scripts/20-core.js:598` (`defending.foulBase: 0.29`)
+  
+  **Código atual, com o comentário que já diagnosticou o problema:**
+  
+  ```js
+      /* OS-201 · as faltas ficam em ~14,9 por partida contra um minimo de design
+         de 16 (alvo 21), e o miss e consistente em quatro medicoes. Nao mexido:
+         o volume de faltas nao sai deste numero, sai de quantos DUELOS acontecem
+         por partida — subir a probabilidade por duelo so trocaria falta por
+         cartao, e os amarelos ja estao em 4,7 de um teto de 5,6.
+         Fica registrado como pendencia real. */
+      foulBase: 0.29,
+  ```
+  
+  **Estado atual** [MEDIDO]: faltas em **22,250** por partida — **dentro** da
+  faixa real (19–26). O problema descrito no comentário foi resolvido, mas **não
+  por este parâmetro**: foi a OS-206 (posse mais longa → mais duelos) que trouxe
+  o volume.
+  
+  **O que fica.** Uma armadilha documentada, e ela vale como princípio geral:
+  
+  > **Quando uma métrica de volume não sai do parâmetro, ela sai da frequência do
+  > evento que a produz.** Faltas não saem de `foulBase`, saem de quantos duelos
+  > acontecem. Cartões não saem de `yellowFirst`, saem de quantas faltas
+  > acontecem.
+  
+  E a confirmação disso está no parâmetro vizinho:
+  
+  ```js
+      /* CARTAO POR FALTA (OS-206).
+         Estava em 0,18 e entregava 0,279 cartao por falta [...] contra 0,177 do
+         futebol real. A distorcao ficou invisivel enquanto o jogo tinha 15,5
+         faltas por partida: o numero de cartoes saia certo por COMPENSACAO DE
+         DOIS ERROS. Quando a OS-206 levou as faltas para 22 [...] os cartoes
+         estouraram e mostraram a taxa verdadeira. */
+      yellowFirst: 0.125,
+  ```
+  
+  **Dois erros que se compensavam** — poucas faltas e cartões demais por falta —
+  produzindo um número final correto. Só apareceram quando um dos dois foi
+  consertado.
+  
+  **Nenhuma ação proposta.** Fica como guarda-corpo: qualquer mudança que mexa no
+  número de duelos (D02, D20, D26) precisa reverificar faltas **e** cartões
+  juntos, porque eles estão acoplados por uma razão, não por uma soma.
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

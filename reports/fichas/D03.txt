@@ -1,0 +1,210 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D03  ~190 linhas mortas guardadas por return antecipado dentro do motor
+     severidade: higiene   fase: F1   estado: feito
+
+  DONO (quem realmente executa):
+     nao alcancavel por definicao
+
+  EVIDENCIA MEDIDA:
+     pilha.js: contagem zero nos ramos antigos em 14 partidas; o guarda nunca e falso num build de tools/build.py
+
+  CRITERIO DE ACEITE:
+     - as 14 metricas IDENTICAS ao digito (nao '+-2 SE')
+
+  RISCO: o mais baixo do catalogo
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/40-match-engine-and-manager-ai.js:378   (o documento dizia linha 369 — o codigo andou)
+
+      366 │ 
+      367 │   /* Suspende somente o relógio/física enquanto o jogador prepara a cobrança.
+      368 │      O callback resolve uma única vez e devolve o controle ao motor. */
+      369 │   /* MOTOR VISUAL · minigames de falta e pênalti DESATIVADOS desde a R18: as
+      370 │      cobranças resolvem no motor, com voo real e goleiro convergindo.
+      371 │ 
+      372 │      D03 · aqui havia 17 linhas montando a requisição interativa, todas depois
+      373 │      de um `return false;` — inalcançáveis, e escritas de forma a parecerem
+      374 │      vivas. Foram removidas. A reconexão futura de um minigame não passa por
+      375 │      este método: passa por `_freeKick` e `_penalty`, que são os donos do lance.
+      376 │      Os dois pontos de chamada continuam testando `input == null` por hábito;
+      377 │      ver D30, que é a decisão de produto pendente. */
+  >   378 │   _requestSetPiece() { return false; }
+      379 │ 
+      380 │   _switchSides() {
+      381 │     for (const tm of this.teams) {
+      382 │       tm.attackDir *= -1;
+      383 │       const g = tm.goal; tm.goal = tm.oppGoal; tm.oppGoal = g;
+      384 │       for (const p of tm.players) {
+      385 │         p.hx = FL - p.hx;  p.hy = FW - p.hy;
+      386 │         p.dhx = FL - p.dhx; p.dhy = FW - p.dhy;
+      387 │         p.ahx = FL - p.ahx; p.ahy = FW - p.ahy;
+      388 │         p.x = FL - p.x;    p.y = FW - p.y;
+      389 │         p.vx = 0; p.vy = 0;
+      390 │       }
+
+  src/scripts/40-match-engine-and-manager-ai.js:1973   (o documento dizia linha 2019 — o codigo andou)
+
+     1961 │        que a bola realmente descreveu.
+     1962 │ 
+     1963 │        O ramo antigo fica logo abaixo, intacto, como rede: se a camada de
+     1964 │        fisica nao estiver carregada, o motor se comporta como antes. */
+     1965 │     /* D03 · a camada 88 (os200-balistica-real) e obrigatoria em qualquer build
+     1966 │        produzido por tools/build.py — e ela que define _os200ResolverChute, e o
+     1967 │        browser_smoke reprova se ela nao estiver instalada.
+     1968 │        Aqui havia 136 linhas do desfecho antigo (saveCut, blockCut, postCut, os
+     1969 │        ramos OS-18 e OS-23) guardadas por este `if` "como rede", inalcancaveis
+     1970 │        desde a OS-200 e escritas de forma a parecerem vivas. Removidas.
+     1971 │        Sem o guarda, a ausencia da camada vira erro visivel em vez de um chute
+     1972 │        resolvido por um caminho que ninguem mede ha 20 releases. */
+  >  1973 │     this._os200ResolverChute(o,{g,tm,gk,atk,gkF,pGoal,dtg,longshot,volley,oneOnOne,finishPlan,gkScrambling});
+     1974 │     o._throughReceiverUntil=0;
+     1975 │   }
+     1976 │ 
+     1977 │   _physicalBlockPoint(shooter, goal, defender, minT, maxT) {
+     1978 │     if(!shooter||!goal||!defender)return null;
+     1979 │     const t=clamp(this._projT(shooter.x,shooter.y,goal.x,goal.y,defender.x,defender.y),minT==null?.08:minT,maxT==null?.88:maxT);
+     1980 │     const point={x:lerp(shooter.x,goal.x,t),y:lerp(shooter.y,goal.y,t)};
+     1981 │     return D(defender.x,defender.y,point.x,point.y)<=2.8?point:null;
+     1982 │   }
+     1983 │ 
+     1984 │   _actorReachable(actor, sx, sy, target, ballSpeed) {
+     1985 │     if(!actor||!target)return false;
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:1123-1244
+──────────────────────────────────────────────────────────────────────────────
+  ## D03 🟡 ✅ Cerca de 190 linhas mortas dentro do arquivo mais importante
+  
+  **Endereços:** `40-match-engine-and-manager-ai.js:369`, `:1095`, `:1208`, `:2019`
+  
+  **Código atual** — o caso mais explícito, `_requestSetPiece`:
+  
+  ```js
+    _requestSetPiece(kind, data, execute) {
+      /* MOTOR VISUAL · minigames de falta e pênalti DESATIVADOS: as cobranças
+         resolvem no motor com voo real e goleiro convergindo. A arquitetura de
+         requisição fica preservada para reconexão futura sobre a base coerente. */
+      return false;                                    // <- linha 373
+      if (!this.opts.onSetPiece || data.team !== this.interactiveTeam) return false;
+      this.waiting = true;
+      this.dead = 9999;
+      let resolved = false;
+      const request = Object.assign({ kind }, data, {
+        resolve: input => { /* ...mais 10 linhas inalcancaveis... */ }
+  ```
+  
+  E os três guardas da OS-200, que deixam o desfecho antigo sem alcance:
+  
+  ```js
+  /* :1095 — dentro de _cross, ramo rasteiro */
+  if (this._os200ResolverChute) {
+    this._os200ResolverChute(atk, {...});
+    return;                    // <- ~20 linhas abaixo ficam sem alcance
+  }
+  
+  /* :1208 — dentro de _cross, ramo de cabeceio */
+  if (this._os200ResolverChute) { ... return; }        // <- ~20 linhas
+  
+  /* :2019 — dentro de _shoot */
+  if (this._os200ResolverChute) { ... return; }        // <- ~135 linhas
+  ```
+  
+  **O defeito.** São aproximadamente **190 linhas** de resolução de chute
+  (saveCut, blockCut, postCut, o ramo OS-18, o ramo OS-23) dentro do arquivo mais
+  importante do projeto, **escritas de forma a parecerem vivas**. Quem lê `_shoot`
+  de cima para baixo lê 135 linhas de lógica que não roda.
+  
+  Fui eu que criei estas, na OS-200, deixando o ramo antigo "como rede de
+  segurança". A rede nunca foi usada e agora é ruído.
+  
+  **A evidência** [LIDO + MEDIDO]. `this._os200ResolverChute` é definido
+  incondicionalmente por `88-os200-balistica-real.js`, que é uma das 89 camadas
+  sempre carregadas. Não existe caminho em que o guarda seja falso num build
+  produzido por `tools/build.py`. `pilha.js` confirma: o ramo antigo tem contagem
+  zero em 14 partidas.
+  
+  **A mudança proposta.** Apagar as quatro regiões inalcançáveis. Zero
+  comportamento muda — é a única mudança do catálogo com essa garantia.
+  
+  Em `_requestSetPiece`, o corpo inteiro vira:
+  
+  ```js
+    /* MOTOR VISUAL · minigames de falta e penalti DESATIVADOS desde a R18.
+       As cobrancas resolvem no motor, com voo real e goleiro convergindo.
+       A reconexao futura de um minigame nao passa por aqui: passa por
+       _freeKick/_penalty, que sao os donos do lance. Ver reports/OS-200. */
+    _requestSetPiece() { return false; }
+  ```
+  
+  **Quem intercepta.** Ninguém — o código removido não é alcançável por
+  definição.
+  
+  **Risco.** O mais baixo do catálogo. **A verificação é byte a byte:** o
+  `sha256` de `dist/index.html` muda (o texto mudou), mas as 14 métricas da
+  bateria com a mesma semente precisam sair **idênticas**, não "dentro de 2 SE".
+  Qualquer diferença significa que a região não era morta.
+  
+  **Critério de aceite:** as 14 métricas com semente 4200000 e 300 partidas
+  **exatamente iguais**, ao dígito.
+  
+  ### ✅ FEITO — 176 linhas removidas
+  
+  | região | linhas |
+  |---|---|
+  | `_requestSetPiece` — corpo depois do `return false;` | 17 |
+  | `_cross`, ramo rasteiro | 10 |
+  | `_cross`, ramo aéreo (defesa, bloqueio, rebote) | 30 |
+  | `_shoot` — saveCut, blockCut, postCut, OS-18, OS-23 | 136 |
+  | **total** | **176** |
+  
+  O arquivo foi de **5.262 para 5.086 linhas**.
+  
+  **Os quatro guardas `if(this._os200ResolverChute)` saíram junto.** Eles existiam
+  para que o motor "se comportasse como antes" caso a camada de física não
+  estivesse carregada — uma rede que nunca foi usada e que escondia o caminho
+  morto. Agora a chamada é direta: se a camada 88 faltar, o chute lança erro
+  visível em vez de ser resolvido por um caminho que ninguém mede há 20 releases.
+  O `browser_smoke` já reprova um build sem a camada 88, então a rede era
+  redundante com um teste que existe.
+  
+  ### O que a limpeza revelou sobre D08
+  
+  A validação de âncoras reprovou **três** endereços do catálogo depois da
+  remoção — e um deles era do **D08**:
+  
+  ```
+  ERRO: D08: ancora SUMIU: 'else this._deflectTo(clamp(this.ball.x-hdDir*R(2,6),2,FL-2)'
+  ```
+  
+  Aquele ponto de chamada estava **dentro do ramo aéreo morto**. Ou seja: dos
+  cinco pontos de chamada de `_deflectTo` que o D08 listava como evidência da
+  direção grampeada para dentro, **pelo menos um nunca executou**. Sobra um único
+  `clamp(..., 2, FL-2)` vivo no motor — o alívio na barreira, em `_freeKick`. Os
+  demais estão nas camadas.
+  
+  > **A contagem de pontos de chamada do D08 precisa ser refeita antes de atacá-lo.**
+  > Somada ao resultado negativo do D25, esta é a segunda peça de evidência da
+  > mesma rodada que enfraquece a formulação original daquele defeito. O fenômeno
+  > medido continua de pé — 85,8% dos alvos a mais de 8 m da lateral, 16,8 alvos
+  > mirados para fora ≈ 15,9 laterais — mas **a explicação de onde ele nasce
+  > estava parcialmente errada.**
+  
+  **Por que fazer.** Porque o próximo leitor de `_shoot` vai gastar meia hora
+  entendendo lógica que não roda — e pode "consertar" um bug ali. É higiene, e
+  higiene é o que separa este projeto de mais vinte releases de acreção.
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois --identico
+

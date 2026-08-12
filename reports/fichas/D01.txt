@@ -1,0 +1,268 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D01  Duas fisicas de bola — em _looseRoll, nao em _ballTravel (premissa corrigida)
+     severidade: estrutural   fase: F1   estado: feito
+
+  DONO (quem realmente executa):
+     core e o dono da fisica do desvio; 45/47/49 so reescrevem o ALVO
+  CAMADAS QUE INTERCEPTAM: 07, 17, 45, 47, 49
+     confirme com: node tools/fisica/pilha.js dist/index.html 14
+
+  EVIDENCIA MEDIDA:
+     150,40 chamadas por partida caem no integrador de g=20 (57,05 _deflectTo + 93,35 _looseBall)
+
+  CRITERIO DE ACEITE:
+     - quadros de voo sem plano fisico: 0 (MEDIDO, ja era 0)
+     - corners +-0,50
+     - goals +-0,20
+
+  RISCO: baixo: a mudanca real e uma linha em _looseRoll
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/40-match-engine-and-manager-ai.js:2208   (o documento dizia linha 2210 — o codigo andou)
+
+     2196 │         const reaction=b.meta.outcome==='save'?(.11+(1-quality)*.19):.04;
+     2197 │         if(b.travelT>=reaction){
+     2198 │           const moveSpeed=b.meta.outcome==='save'?(6.2+quality*2.8):(5.5+quality*2.2);
+     2199 │           const step=Math.min(moveSpeed*dt,gd);
+     2200 │           actor.x+=(b.target.x-actor.x)/gd*step;
+     2201 │           actor.y+=(b.target.y-actor.y)/gd*step;
+     2202 │           if(b.meta.outcome==='save')actor._divingUntil=this.t+.5;
+     2203 │           if(b.meta.outcome==='block')actor._blockingUntil=this.t+.35;
+     2204 │         }
+     2205 │       }
+     2206 │     }
+     2207 │ 
+  >  2208 │     /* ⚠ D01 · ESTA INTEGRAÇÃO NÃO RODA. MEDIDO: 0 quadros em 12 partidas.
+     2209 │        A camada 07 (physics-timeline) só chama este corpo quando a bola NÃO tem
+     2210 │        `_physicsPlan` — e ela mesma cria o plano para passe, chute e desvio, com
+     2211 │        a balística real da camada 88 (g = 9,81, arrasto quadrático). Sobram zero
+     2212 │        quadros para o g = 20 daqui.
+     2213 │        O documento afirmava que este era o segundo integrador em uso, governando
+     2214 │        ~57 desvios por partida. Era HIPÓTESE e estava errada; a sonda
+     2215 │        `tools/fisica/ramo-g20.js` mediu 1.588,92 quadros de desvio por partida,
+     2216 │        TODOS com plano físico. A segunda física existe, mas em `_looseRoll`.
+     2217 │        Não apagado por enquanto: 12 partidas não exercitam pênalti decisivo nem
+     2218 │        prorrogação, e este é o único caminho se um plano falhar. */
+     2219 │     b.x += b.vx * dt; b.y += b.vy * dt;
+     2220 │     b.z += b.vz * dt; b.vz -= 20 * dt;
+
+  src/scripts/40-match-engine-and-manager-ai.js:2360   (o documento dizia linha 2350 — o codigo andou)
+
+     2348 │       if (sc > sb) best = c;
+     2349 │     }
+     2350 │     if (best) { this._giveBall(best.p); best.p.settle = 0.85; }
+     2351 │   }
+     2352 │ 
+     2353 │   // bola solta rolando: física + disputa pelo mais próximo (evita bola-parada §bug1)
+     2354 │   _looseRoll(dt) {
+     2355 │     const b = this.ball;
+     2356 │     b.x += (b.vx || 0) * dt; b.y += (b.vy || 0) * dt;
+     2357 │     // R7: a bola não perde toda a energia em poucos quadros. Ainda desacelera,
+     2358 │     // mas continua rolando o bastante para a disputa parecer natural.
+     2359 │     b.vx = (b.vx || 0) * (1 - 0.92 * dt); b.vy = (b.vy || 0) * (1 - 0.92 * dt);
+  >  2360 │     /* D01 · AQUI está a segunda física, e não em `_ballTravel`.
+     2361 │        Medido com `tools/fisica/ramo-rolagem.js`: 39,25 quadros por partida
+     2362 │        integram esta linha, com a bola a 0,995 m de altura média e até 2,685 m.
+     2363 │        É a sobra alta caindo — e caía com o DOBRO da gravidade real, enquanto
+     2364 │        todo o resto do jogo usa g = 9,81 desde a OS-200.
+     2365 │        A restituição continua zero de propósito: aqui a bola pousa e passa a
+     2366 │        rolar; quique é assunto do plano físico, não da sobra. */
+     2367 │     if (b.z > 0 || (b.vz || 0) !== 0) { b.z += (b.vz || 0) * dt; b.vz = (b.vz || 0) - 9.81 * dt; if (b.z <= 0) { b.z = 0; b.vz = 0; } }
+     2368 │     // fora de campo
+     2369 │     if (b.x < -0.5 || b.x > FL + 0.5 || b.y < -0.5 || b.y > FW + 0.5) { this._ballOut(); return; }
+     2370 │     // jogador mais próximo coleta ao alcançar
+     2371 │     let best = null, bd = 1e9;
+     2372 │     for (const tm of this.teams) for (const p of tm.players) { if (p.red) continue; const d = D(p.x,p.y,b.x,b.y); if (d < bd) { bd = d; best = p; } }
+
+  src/scripts/40-match-engine-and-manager-ai.js:2299   (o documento dizia linha 2465 — o codigo andou)
+
+     2287 │     const b = this.ball, o = b.owner;
+     2288 │     if (!o) return;
+     2289 │     // bola colada ao pé do portador na direção do gol (offset reduzido para ficar visualmente no pé)
+     2290 │     const g = this.teams[o.team].oppGoal;
+     2291 │     const ang = Math.atan2(g.y - o.y, g.x - o.x);
+     2292 │     b.x = o.x + Math.cos(ang) * 0.55; b.y = o.y + Math.sin(ang) * 0.55;
+     2293 │     b.z = 0; b.vx = o.vx; b.vy = o.vy;
+     2294 │   }
+     2295 │ 
+     2296 │   /* MOTOR VISUAL · DEFLEXÃO CONTÍNUA: a bola muda de trajetória APENAS no
+     2297 │      ponto de contato — daí viaja de verdade até o destino, em vez de
+     2298 │      teleportar. Usada em rebotes de defesa e desvios na barreira. */
+  >  2299 │   _deflectTo(x, y, spd) {
+     2300 │     const b = this.ball;
+     2301 │     b.owner = null; b.traveling = true; b.travelT = 0;
+     2302 │     b.from = { x: b.x, y: b.y };
+     2303 │     b.target = { x, y };
+     2304 │     b.kind = 'deflect'; b.passKind = 'short';
+     2305 │     // limpa o ator/meta da trajetória anterior: o goleiro não continua sendo
+     2306 │     // puxado atrás do rebote depois do contato.
+     2307 │     b.meta = { outcome:'deflect' };
+     2308 │     const d = Math.max(D(b.x, b.y, x, y), 0.1);
+     2309 │     const v = spd || 11;
+     2310 │     b.vx = (x - b.x) / d * v; b.vy = (y - b.y) / d * v;
+     2311 │     b.z = Math.max(b.z, 0.2); b.vz = 1.5; b.speed = v;
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:847-994
+──────────────────────────────────────────────────────────────────────────────
+  ## D01 🔴 ✅ Duas físicas de bola convivem — mas não onde este documento dizia
+  
+  **Endereço:** `src/scripts/40-match-engine-and-manager-ai.js:2396` e `:2465`
+  
+  **Código atual** — o integrador do core, dentro de `_ballTravel`:
+  
+  ```js
+  // Física contínua da bola.
+  b.x += b.vx * dt; b.y += b.vy * dt;
+  b.z += b.vz * dt; b.vz -= 20 * dt;              // <- linha 2396
+  if (b.z < 0) { b.z = 0; b.vz = -b.vz * 0.4; }
+  const fr = b.passKind === 'launch' ? 0.14 : 0.05;
+  b.vx *= (1 - fr * dt); b.vy *= (1 - fr * dt);
+  ```
+  
+  E `_deflectTo`, que **não cria plano físico nenhum**:
+  
+  ```js
+    _deflectTo(x, y, spd) {                        // <- linha 2465
+      const b = this.ball;
+      b.owner = null; b.traveling = true; b.travelT = 0;
+      b.from = { x: b.x, y: b.y };
+      b.target = { x, y };
+      b.kind = 'deflect'; b.passKind = 'short';
+      b.meta = { outcome:'deflect' };
+      const d = Math.max(D(b.x, b.y, x, y), 0.1);
+      const v = spd || 11;
+      b.vx = (x - b.x) / d * v; b.vy = (y - b.y) / d * v;
+      b.z = Math.max(b.z, 0.2); b.vz = 1.5; b.speed = v;
+      b._timeout = d / v + 0.3;
+      b.onArrive = () => this._looseBall(x, y);
+      b.receiver = null;
+    }
+  ```
+  
+  **O defeito.** A camada `88-os200-balistica-real.js` substitui
+  `_planPhysicalSegment` e `_trajectoryPoint` e integra com **g = 9,81 m/s²**,
+  arrasto quadrático (k ≈ 0,0135 1/m), restituição e resistência de rolamento.
+  Mas ela só governa **segmentos planejados**. `_deflectTo` não planeja nada:
+  escreve `vx`, `vy`, `vz = 1.5` na mão e devolve o controle a `_ballTravel`, que
+  integra com **g = 20 m/s²** — o dobro da gravidade real.
+  
+  > ## ⚠ CORREÇÃO — esta seção estava errada
+  >
+  > O texto abaixo, até o fim da subseção de evidência, **está mantido como foi
+  > escrito** para que a correção seja auditável. Ele afirmava que `_deflectTo`
+  > deixava a bola sem plano físico e que ~150 lances por partida caíam no
+  > integrador de g = 20. **Medido: zero.**
+  >
+  > `tools/fisica/ramo-g20.js`, 12 partidas:
+  >
+  > ```
+  > quadros de voo COM plano fisico (g = 9,81)
+  >   pass      13.822,33 por partida
+  >   deflect    1.588,92
+  >   shot         377,08
+  >   total     15.788,33
+  >
+  > quadros de voo SEM plano, que cairiam no core (g = 20)      0,00
+  > percentual no integrador errado                             0,0%
+  > ```
+  >
+  > **Por quê:** `07-cds-physics-timeline-581.js:86` envolve `_deflectTo`, chama o
+  > core e **em seguida cria o plano** com `_planPhysicalSegment(origin, {x,y,z:0},
+  > 'deflect', …)` — que pertence à camada 88, com g = 9,81 e arrasto quadrático.
+  > O desvio sempre teve balística real. A linha `b.vz -= 20 * dt` de
+  > `_ballTravel` é **código morto**, da mesma família do D03.
+  >
+  > **A segunda física existe, mas em outro lugar:** `_looseRoll`, a bola
+  > *rolando*. `tools/fisica/ramo-rolagem.js` mediu **39,25 quadros por partida**
+  > integrando com g = 20, com a bola a **0,995 m de altura média e até 2,685 m** —
+  > é a sobra alta caindo com o dobro da gravidade. Esse é o defeito real, e é
+  > uma linha.
+  >
+  > **O que isso muda no plano:** D01 era pré-requisito declarado de D02 e D08.
+  > Como o desvio nunca teve física errada, a cadeia F2 perde essa justificativa.
+  > Somado ao D25 (sem efeito) e à âncora morta que o D03 revelou, são **três**
+  > peças de evidência da mesma rodada contra a formulação original do D08.
+  
+  **A evidência** [MEDIDO, 40 partidas, `tools/fisica/direcao.js`] — *o texto
+  original, agora sabidamente incorreto na interpretação*:
+  
+  ```
+  _deflectTo chamado           57,05 por partida
+  _looseBall chamado           93,35 por partida
+                              ------
+  total no ciclo errado       150,40 por partida
+  ```
+  
+  As chamadas existem — o número está certo. **A interpretação estava errada:**
+  elas não caem no integrador de g = 20.
+  
+  Um número para dimensionar: com g = 20, uma bola desviada com `vz = 1,5 m/s`
+  sobe **11,3 cm** e volta ao chão em 0,15 s. Com g = 9,81 ela sobe 22,9 cm e
+  leva 0,31 s. É a diferença entre um rebote que parece uma bola e um rebote que
+  parece um objeto de videogame.
+  
+  **A mudança proposta.** `_deflectTo` passa a criar um plano físico como
+  qualquer outro segmento, em vez de escrever velocidades cruas:
+  
+  ```js
+    _deflectTo(x, y, spd) {
+      const b = this.ball;
+      b.owner = null; b.kind = 'deflect'; b.passKind = 'short';
+      b.meta = { outcome:'deflect' };
+      b.receiver = null;
+      /* OS-A5 · o desvio e um segmento fisico como qualquer outro. Sem isto ele
+         cai no integrador do core, que usa g = 20 m/s2 — e sao ~57 lances por
+         partida, todos dentro da area. */
+      const origem = { x: b.x, y: b.y, z: Math.max(b.z, 0.15) };
+      const plano = this._planPhysicalSegment(origem, { x, y }, {
+        regime: 'desvio', velocidade: spd || 11,
+      });
+      if (plano) { this._applyPhysicalPlan(plano); b.onArrive = () => this._looseBall(x, y); return; }
+      /* fallback: comportamento antigo, se a camada de fisica nao estiver viva */
+      /* ... corpo atual ... */
+    }
+  ```
+  
+  **Quem intercepta** [MEDIDO]: `_deflectTo` tem **seis** implementações —
+  camadas 07, 17, 45, 47, 49 e o core. As camadas 45, 47 e 49 reescrevem o
+  **alvo** (`x`, `y`) e chamam a de baixo; nenhuma delas substitui a física. A
+  camada 07 (`physics-timeline`) registra o evento. **O core é o dono da física
+  do desvio** — este é um dos poucos casos em que editar o core funciona, e a
+  `pilha.js` deve confirmar isso antes.
+  
+  **Risco.** Médio. Um segmento planejado tem duração diferente de
+  `d/v + 0.3`, então `b._timeout` deixa de valer e a colisão temporal de
+  `_ballTravel:2403` passa a ser feita pela camada 88. Vigie
+  `porCimaDoTravessao` e `quiques` na bateria: se o rebote passar a voar demais,
+  o regime `desvio` precisa de restituição menor.
+  
+  **Critério de aceite:**
+  
+  | métrica | hoje | esperado |
+  |---|---|---|
+  | chamadas com g = 20 | 150,4/partida | **0** |
+  | `quiques` (sonda de física) | referência atual | ±2 SE |
+  | `corners` | 11,183 | ±2 SE (0,50) |
+  | `goals` | 2,930 | ±2 SE (0,20) |
+  | `throwIns` | 15,910 | **≥ 15,910** (pode subir; não pode cair) |
+  
+  **Por que fazer.** É o único defeito do catálogo que é ao mesmo tempo
+  **estrutural** (acaba com uma das duas físicas) e **de aparência** (o jogador vê
+  o rebote errado). E é pré-requisito de D08.
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

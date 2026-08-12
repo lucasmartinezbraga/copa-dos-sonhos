@@ -1,0 +1,121 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D28  deadBallRecovery: delta de 0,02 move o placar de design em 2 pontos
+     severidade: higiene   fase: F0   estado: feito
+
+  DONO (quem realmente executa):
+     —
+
+  EVIDENCIA MEDIDA:
+     0,055 -> 0,075: empates 29,2% -> 17,5%, goleadas 17,5% -> 20,8%, design 12/13 -> 10/13
+
+  CRITERIO DE ACEITE:
+     - calibration/sensibilidade.json existe com o delta medido de cada constante
+
+  RISCO: nenhum: e documentacao
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/20-core.js:572
+
+      560 │ 
+      561 │        A fadiga foi desacoplada deste numero na mesma mudanca (OS-201 em
+      562 │        40-match-engine), senao baixar o relogio deixaria o time exausto sem que
+      563 │        nada no futebol tivesse mudado. */
+      564 │     clockRate: 0.085,
+      565 │     /* OS-201 · quanto de folego volta por segundo de bola parada. O motor so
+      566 │        sabia gastar; sem recuperacao a stamina final ficava abaixo do minimo de
+      567 │        design por construcao. Calibrado com a bateria. */
+      568 │     /* 0,055 e nao mais: subir para 0,075 poe a stamina em 64,4 (contra 64,2),
+      569 │        ganho irrisorio, mas jogador mais inteiro no fim faz o placar abrir —
+      570 │        os empates caem de 29,2% para 17,5% (abaixo do minimo) e as goleadas
+      571 │        sobem de 17,5% para 20,8%. Medido, 12/13 vira 10/13. */
+  >   572 │     deadBallRecovery: 0.062,
+      573 │     fixedStep: 1 / 60,
+      574 │     decisionInterval: 0.28,
+      575 │     tackleCooldown: 0.55,
+      576 │   }),
+      577 │   possession: Object.freeze({
+      578 │     firstTouchMin: 0.10,
+      579 │     firstTouchMax: 0.34,
+      580 │     transitionProtection: 0.42,
+      581 │   }),
+      582 │   passing: Object.freeze({
+      583 │     baseError: 0.018,
+      584 │     pressureError: 0.075,
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:3019-3079
+──────────────────────────────────────────────────────────────────────────────
+  ## D28 🟡 ✅ `deadBallRecovery` — a calibração mais frágil do jogo
+  
+  **Endereço:** `src/scripts/20-core.js:572`
+  
+  ```js
+      /* 0,055 e nao mais: subir para 0,075 poe a stamina em 64,4 (contra 64,2),
+         ganho irrisorio, mas jogador mais inteiro no fim faz o placar abrir —
+         os empates caem de 29,2% para 17,5% (abaixo do minimo) e as goleadas
+         sobem de 17,5% para 20,8%. Medido, 12/13 vira 10/13. */
+      deadBallRecovery: 0.062,
+  ```
+  
+  **O defeito.** Um delta de **0,02** neste parâmetro move o placar de design em
+  **dois pontos**. É a constante mais sensível do arquivo de calibração e não há
+  nada no código que sinalize isso a quem for editá-la — só o comentário.
+  
+  **A mudança proposta.** Marcar sensibilidade explicitamente na calibração:
+  
+  ```js
+  /* SENSIVEL · delta de 0,02 move o placar de design em 2 pontos.
+     Rode a bateria com 300 partidas antes de tocar. Ver D28. */
+  deadBallRecovery: 0.062,
+  ```
+  
+  E, melhor, extrair a lista de constantes sensíveis para
+  `calibration/sensibilidade.json`, com o delta medido de cada uma. Hoje esse
+  conhecimento existe só em comentários espalhados.
+  
+  **Candidatas conhecidas a entrar na lista** [MEDIDO em algum momento da série]:
+  
+  | constante | delta testado | efeito |
+  |---|---|---|
+  | `deadBallRecovery` | +0,020 | design 12/13 → 10/13 |
+  | `clockRate` | 0,130 → 0,085 | todos os mínimos de volume |
+  | `conversionScale` | 2,25 → 2,05 | gols −0,4 |
+  | `yellowFirst` | 0,180 → 0,125 | cartão por falta 0,279 → 0,177 |
+  | envergadura do goleiro | 1,05 → 1,45 | gols +0,13 (**para pior**) |
+  | `XG_ESCALA` | 0,700 → 0,651 | xG alinhado ao gol medido |
+  
+  **Risco.** Nenhum — é documentação.
+  
+  ### ✅ FEITO — `calibration/sensibilidade.json`
+  
+  Dez constantes, cada uma com o **delta medido** e a lição que deixou. O
+  conhecimento existia espalhado em comentários de `20-core.js` e das camadas;
+  agora está num arquivo só, consultável antes de qualquer ajuste.
+  
+  As três mais perigosas:
+  
+  | constante | delta | efeito |
+  |---|---|---|
+  | `deadBallRecovery` | +0,020 | design 12/13 → **10/13** |
+  | envergadura do goleiro | 1,05 → 1,45 | gols 3,27 → 3,40 (**piorou**) |
+  | `LIMITE_AVANCO` (camada 90) | 0,50 → 1,00 | design 11/13 → **6/13** |
+  
+  O arquivo também registra as de **baixa** sensibilidade — os cinco erros de
+  passe nunca moveram uma métrica sozinhos nesta série — para que ninguém gaste
+  uma rodada de medição ali.
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

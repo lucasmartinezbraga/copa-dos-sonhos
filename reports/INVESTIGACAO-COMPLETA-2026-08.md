@@ -1733,7 +1733,13 @@ F4.
 
 ---
 
-## D11 🔴 Sorteio censurado nº 1 — o chute que é sorteado para ser vetado
+## D11 🔴 ⏳ Sorteio censurado nº 1 — o chute que é sorteado para ser vetado
+
+> **Estado: implementado, veredito PENDENTE.** A fusão está no código e passou
+> build, verify, balística e smoke em Chromium. A bateria de 300 partidas ainda
+> não respondeu quando esta linha foi escrita. **Não trate como aceito.** Se
+> reprovar em 2 SE, o certo é reverter e escrever o laudo — não afrouxar o
+> critério. Ver `python3 tools/defeito.py D11`.
 
 **Endereços:** `layers/16-cds-r12-transactional-core-r123.js:153` (o dado) e
 `layers/20-cds-r183-natural-football.js:63` (o censor)
@@ -1853,6 +1859,58 @@ mudança: é preciso comparar **distribuições**, não partidas.
 **Critério de aceite:** todas as 14 métricas dentro de 2 SE, com n = 300, sem
 pareamento de semente. E `−250 linhas` no total (148 da camada 20 + o bloco de
 sorteio duplicado).
+
+### ✅ FEITO — o sorteio e o censor viraram uma coisa só
+
+O `_decide` da camada 20 deixou de existir. No lugar dele há um **predicado
+puro**, sem efeito colateral, sem RNG e sem estado compartilhado:
+
+```js
+P._r183ExcecaoAoChuteContextual = function (o) {
+  /* ... as quatro excecoes, agora com nome ... */
+  const chanceClara         = !!pick.intoBox && risk < (iq>=82?2.35:2.05) && pv > .58;
+  const progressaoLimpa     = progress > 8 && risk < (iq>=82?1.75:1.48) && space > 3.4 && …;
+  const saidaSobPressao     = pressure < 2.35 && risk < 1.12 && space > 2.8 && …;
+  const movimentoParaDentro = edgeY(o.y) < 4.9 && edgeY(pick.m.y) > edgeY(o.y)+2.4 && …;
+  return chanceClara || progressaoLimpa || saidaSobPressao || movimentoParaDentro;
+};
+```
+
+E a camada 16 passou a consultá-lo **no momento exato do sorteio**, de modo que
+o `if` diz a regra inteira num lugar só:
+
+```js
+if (!superior && dtg>=10 && dtg<=27 && now - finite(tm.__r122LastContextShot,-99) > 1.15
+    && !(typeof this._r183ExcecaoAoChuteContextual === 'function'
+         && this._r183ExcecaoAoChuteContextual(o))) {
+```
+
+**A variável de contrato `__r122LastContextShot` deixou de ser envenenada.** Ela
+continua existindo para o auto-limite legítimo da camada 16 — um chute
+contextual a cada 1,15 s — que é regra de futebol, não hack.
+
+#### O efeito colateral que sai junto, e ninguém tinha declarado
+
+Envenenar o timestamp fazia o veto **persistir por 1,15 s**, bloqueando também
+as decisões seguintes. Isso nunca foi regra: era consequência de reusar um
+campo que serve para outra coisa. Agora a exceção vale no instante em que ela é
+verdadeira — que é o que o nome sempre prometeu.
+
+#### E o custo de computação caiu 13×
+
+`tools/fisica/ramos.js`, antes e depois [MEDIDO]:
+
+```
+                          antes      depois
+decisoes examinadas      515,17       38,83   por partida
+vetos aplicados          264,67       11,67
+```
+
+O predicado deixou de rodar em toda decisão do jogo e passa a rodar só quando o
+sorteio realmente vai acontecer — quando o portador já está entre 10 e 27 m, sem
+alternativa superior e fora do cooldown. **As 476 avaliações por partida que
+sobravam eram trabalho jogado fora:** decisões que nunca chegariam ao sorteio,
+sendo examinadas mesmo assim para poder vetá-lo.
 
 ---
 

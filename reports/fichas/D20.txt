@@ -1,0 +1,159 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D20  O bloco nao compacta ao perder a bola (encurta 0,4 m; real 8-10 m)
+     severidade: futebol   fase: F6   estado: aberto
+
+  DONO (quem realmente executa):
+     _defendTarget tem 9 camadas e NENHUMA tem autoridade sobre a forma coletiva
+  CAMADAS QUE INTERCEPTAM: 07, 16, 26, 65, 70
+     confirme com: node tools/fisica/pilha.js dist/index.html 14
+
+  EVIDENCIA MEDIDA:
+     forma.js, 1.198 amostras: comprimento 37,8 com bola -> 37,4 sem; largura 49,4 -> 45,2
+
+  CRITERIO DE ACEITE:
+     - comprimento sem bola 28-34 m
+     - largura sem bola 34-44 m
+     - comprimento COM bola 30-40 m
+     - tackles +-1,07
+     - goals +-0,20
+     - shots +-0,84
+
+  DEPENDE DE: D19  <- faca esses ANTES
+
+  RISCO: ALTO. _comprimirBloco desloca ALVO, nunca corpo — senao cai no bug que a camada 84 contem.
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/40-match-engine-and-manager-ai.js:3045   (o documento dizia linha 3193 — o codigo andou)
+
+     3033 │             const dd = D(p.x,p.y,q.x,q.y);
+     3034 │             if (dd < 5.5 && dd > 0.01) { sepx += (p.x-q.x)/dd * (5.5-dd); sepy += (p.y-q.y)/dd * (5.5-dd); }
+     3035 │           }
+     3036 │           const opp = this.teams[1 - tm.side];
+     3037 │           for (const q of opp.players) {                   // adversários: raio curto (marcação respira)
+     3038 │             if (q.red) continue;
+     3039 │             const dd = D(p.x,p.y,q.x,q.y);
+     3040 │             if (dd < 3.2 && dd > 0.01) { sepx += (p.x-q.x)/dd * (3.2-dd) * 0.9; sepy += (p.y-q.y)/dd * (3.2-dd) * 0.9; }
+     3041 │           }
+     3042 │           tx += sepx * 1.5; ty += sepy * 1.5;
+     3043 │         }
+     3044 │         tx = clamp(tx, 1, FL-1); ty = clamp(ty, 1, FW-1);
+  >  3045 │         this._integrate(p, tx, ty, dt, freeze);
+     3046 │       }
+     3047 │     }
+     3048 │     this._resolveOverlaps();
+     3049 │   }
+     3050 │ 
+     3051 │   // Resolução física de sobreposição (relatório §5.1): pares travados a <1.7m
+     3052 │   // são empurrados diretamente — exceto quem disputa a bola de fato.
+     3053 │   _resolveOverlaps() {
+     3054 │     const b = this.ball;
+     3055 │     const all = [];
+     3056 │     for (const tm of this.teams) for (const p of tm.players) if (!p.red && !p.isGK) all.push(p);
+     3057 │     for (let i = 0; i < all.length; i++) {
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2511-2600
+──────────────────────────────────────────────────────────────────────────────
+  ## D20 🟠 O bloco não compacta quando o time perde a bola
+  
+  **Endereços:** `layers/23-cds-r185-bloco-defensivo.js:51`,
+  `layers/60-cds-r1843-block-depth.js`, `_defendTarget` (nove camadas)
+  
+  **A evidência** [MEDIDO, `tools/fisica/tela/forma.js`, 1.198 amostras em
+  Chromium real]:
+  
+  ```
+  metrica                             media      p10     p90    referencia real
+  --------------------------------------------------------------------------------
+  comprimento do bloco (COM bola)      37,8     28,8    47,7    30-40 m   ok
+  largura do bloco (COM bola)          49,4     42,3    55,0    40-55 m   ok
+  comprimento do bloco (SEM bola)      37,4     27,2    49,4    25-35 m   FORA
+  largura do bloco (SEM bola)          45,2     37,8    52,8    30-45 m   FORA
+  apoio mais proximo do portador       10,7      5,4    15,7     8-15 m   ok
+  apoios ate 20 m                       3,2      1,0     5,0     3-5      ok
+  adversario mais proximo               4,6      1,2     9,0     2-8 m    ok
+  ```
+  
+  Leia a coluna do meio:
+  
+  ```
+  comprimento:   37,8 com bola  ->  37,4 sem bola     encurta  0,4 m
+  largura:       49,4 com bola  ->  45,2 sem bola     estreita 4,2 m
+  ```
+  
+  **No futebol real o bloco encurta 8 a 10 metros e estreita 10 a 15 ao perder a
+  bola.** Aqui ele encurta **quarenta centímetros**.
+  
+  Este é o defeito que a tela mostra e nenhuma das 14 métricas agregadas captura.
+  É por isso que o jogo parece "22 pontos correndo" mesmo com gols, chutes e
+  passes todos dentro da faixa: **o time não muda de forma quando muda de fase.**
+  
+  **O defeito, na estrutura.** `_defendTarget` é sobrescrito por **nove** camadas
+  (17, 23, 24, 30, 40, 56, 60, 67, 89). Cada uma acrescenta um critério
+  **individual** — quem marca quem, quem pressiona, quem recua. **Nenhuma delas
+  tem autoridade sobre a forma coletiva.** Não existe, em lugar nenhum do código,
+  um alvo de comprimento ou largura de bloco.
+  
+  **A mudança proposta — um alvo de forma, aplicado depois dos alvos individuais:**
+  
+  ```js
+  /* NOVA camada 92 · a forma do bloco. Roda por FORA de todas as nove camadas
+     de _defendTarget: elas decidem para ONDE cada um vai, esta decide o quanto
+     o conjunto pode se esticar. */
+  P._movePlayers = function (dt) {
+    const r = oldMove92.apply(this, arguments);
+    for (const tm of this.teams) {
+      if (this.ball.owner && this.ball.owner.team === tm.idx) continue;   // com bola: nao mexe
+      const linha = tm.players.filter(p => !p.red && !p.isGK);
+      if (linha.length < 6) continue;
+      const xs = linha.map(p => p.x), ys = linha.map(p => p.y);
+      const comp = Math.max(...xs) - Math.min(...xs);
+      const larg = Math.max(...ys) - Math.min(...ys);
+      const alvoComp = lerp(30, 35, this._pressaoDoBloco(tm));   // real: 25-35
+      const alvoLarg = lerp(32, 44, this._larguraDaBola());       // real: 30-45
+      if (comp > alvoComp) this._comprimirBloco(linha, 'x', alvoComp / comp);
+      if (larg > alvoLarg) this._comprimirBloco(linha, 'y', alvoLarg / larg);
+    }
+    return r;
+  };
+  ```
+  
+  `_comprimirBloco` **não teleporta** — ele desloca o **alvo** de cada jogador na
+  direção do centroide, proporcionalmente ao excesso, e deixa `_integrate` levar
+  o corpo até lá. Sem isso, cai direto no bug que a camada 84 contém há 255
+  linhas.
+  
+  **Quem intercepta.** `_movePlayers` tem cinco sobrescritas (07, 16, 26, 65, 70).
+  A camada 92 precisa ser a de número mais alto.
+  
+  **Risco.** Alto. Um bloco mais compacto muda tudo: menos espaço, mais desarmes,
+  menos chutes de longe, provavelmente menos gols. É por isso que ele vem
+  **depois** de D19 no plano — os dois interagem, e medir os dois juntos não diz
+  qual fez o quê.
+  
+  **Critério de aceite:**
+  
+  | métrica | hoje | alvo |
+  |---|---|---|
+  | comprimento do bloco sem bola | 37,4 m | **28–34 m** |
+  | largura do bloco sem bola | 45,2 m | **34–44 m** |
+  | comprimento **com** bola | 37,8 m | 30–40 m (não pode sair) |
+  | `tackles` | 50,133 | ±2 SE |
+  | `goals` | 2,930 | ±0,20 |
+  | `shots` | 23,667 | ±0,84 |
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

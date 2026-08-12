@@ -1,0 +1,130 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D14  Sete contencoes em step consertam bugs que nunca foram procurados
+     severidade: estrutural   fase: F4   estado: aberto
+
+  DONO (quem realmente executa):
+     cada camada
+  CAMADAS QUE INTERCEPTAM: 12, 16, 33, 74, 75, 84, 87
+     confirme com: node tools/fisica/pilha.js dist/index.html 14
+
+  EVIDENCIA MEDIDA:
+     step tem 19 sobrescritas; 7 sao corretivas; 853 linhas no total
+
+  CRITERIO DE ACEITE:
+     - contador = 0 em 300 partidas -> apagar
+     - metricas identicas ao digito apos cada remocao
+     - <=2 contencoes ao final
+
+  RISCO: medio, controlado pela ordem: assercao (segura) antes de remocao
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/layers/84-cds-r1899-antiteleporte.js:43
+
+       31 │        7,84 m, maximo 53,89 m. Passa a bater quem esta mais perto do circulo,
+       32 │        e ele CAMINHA ate a bola.
+       33 │ 
+       34 │    B1  O PAPEL QUE NAO MORRE. _setPieceRole e portao em :21841 e :21867:
+       35 │        quem o carrega some das camadas de corrida na area. clearCorner13
+       36 │        (:17072) so roda na cadeia do escanteio, entao o ramo crossed da
+       37 │        falta (:6951) o deixa pendurado. Medido: 91 de 120 papeis sobrevivem ao
+       38 │        reinicio; na falta a mediana e 8,4 s e o maximo 57,6 s de bola rolando.
+       39 │ 
+       40 │    Nada aqui sorteia. Nenhum consumo de RNG novo, nenhuma alteracao de xG. */
+       41 │ const M = root && root.MatchSim;
+       42 │ if (!M || !M.prototype || M.prototype.__R1899__) return;
+  >    43 │ const P = M.prototype; P.__R1899__ = true;
+       44 │ const FLv = Number(root.FL) || 105, FWv = Number(root.FW) || 68;
+       45 │ 
+       46 │ const WALK = 0.92;            // fracao de maxSpd na caminhada (mesma da R15)
+       47 │ const RAIO_ENTREGA = 1.60;    // m -- ja esta na bola?
+       48 │ const RAIO_PINO = 0.30;       // m -- abaixo disto nao vale re-armar
+       49 │ const PAPEL_VIVO = 2.50;      // s de bola rolando ate o papel morrer
+       50 │ const FOLGA_PASSO = 0.02;     // m de tolerancia no orcamento
+       51 │ const SALTO_ADMIN = 2.50;     // acima disto e recolocacao administrativa
+       52 │ const TETO_META = 3.00;       // s de espera do tiro de meta
+       53 │ const TETO_SAIDA = 3.20;      // s de espera da saida de bola
+       54 │ 
+       55 │ function num(v, d) { return (typeof v === 'number' && isFinite(v)) ? v : (d || 0); }
+
+  src/scripts/layers/75-cds-os83-restart-watchdog.js:15
+
+        3 │ var M=root&&root.MatchSim;if(!M||!M.prototype)return;var P=M.prototype;
+        4 │ var finite=function(v,d){v=Number(v);return Number.isFinite(v)?v:(d||0);};
+        5 │ var clamp=function(v,a,b){return Math.max(a,Math.min(b,v));};
+        6 │ /* Qualquer deflexao encerra causalmente a viagem anterior. Sem isto um
+        7 │    cruzamento que bate antes da callback continua sendo cobrado oito segundos
+        8 │    depois como se ainda fosse um passe ao receptor original. */
+        9 │ var oldDeflect=P._deflectTo;
+       10 │ if(typeof oldDeflect==='function')P._deflectTo=function(){
+       11 │   var b=this.ball;if(b&&b.__r10Pass){b.__r10Pass=null;b.__p04PendingReceiver=null;}
+       12 │   return oldDeflect.apply(this,arguments);
+       13 │ };
+       14 │ var oldStep=P.step;
+  >    15 │ P.step=function(dt){
+       16 │   var q=this.__os83OffsideWait,h=clamp(finite(dt,1/30),1/240,.12),px=0,py=0,track=false;
+       17 │   try{
+       18 │     if(q&&this.pendingRestart&&!q.taker.red){
+       19 │       var dx=finite(q.x)-finite(q.taker.x),dy=finite(q.y)-finite(q.taker.y),d=Math.hypot(dx,dy);
+       20 │       px=finite(q.taker.x);py=finite(q.taker.y);track=true;
+       21 │       if(d>q.radius&&finite(this.t)<finite(q.until)&&finite(this.dead)<=h+.07)
+       22 │         this.dead=Math.max(finite(this.dead),h+.08);
+       23 │     }else if(q)this.__os83OffsideWait=null;
+       24 │   }catch(_){}
+       25 │   var r=oldStep.apply(this,arguments);
+       26 │   try{
+       27 │     if(track&&this.pendingRestart&&this.__os83OffsideWait===q&&finite(this.dead)>0){
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2110-2147
+──────────────────────────────────────────────────────────────────────────────
+  ## D14 🔴 Sete contenções em `step` que consertam bugs nunca procurados
+  
+  **Endereços:** as sete camadas que sobrescrevem `step` com propósito corretivo:
+  
+  | camada | linhas | o que contém |
+  |---|---|---|
+  | `12-cds-r7-pass-flow-calibration.js` | 34 | fluxo de passe |
+  | `16-cds-r12-transactional-core-r123.js` | 211 | velocidade acima do limite físico |
+  | `33-cds-r18fix-restart-positions.js` | 219 | posições de reinício inválidas |
+  | `74-cds-os77-common-foul-restart.js` | 53 | falta que não vira reinício |
+  | `75-cds-os83-restart-watchdog.js` | 38 | reinício travado |
+  | `84-cds-r1899-antiteleporte.js` | **255** | jogador teleportando |
+  | `87-cds-r1905-papel-morre-com-o-lance.js` | 43 | papel defensivo que sobreviveu ao lance |
+  
+  (`step` é sobrescrito por **19** camadas no total; estas sete são as
+  corretivas.)
+  
+  **O defeito.** Cada uma detecta um estado impossível **depois** de ele ter sido
+  produzido e o conserta em silêncio. O bug de origem nunca foi consertado em
+  nenhum dos sete casos — e, depois de anos de contenção, **ninguém sabe se ele
+  ainda existe.**
+  
+  `84-cds-r1899-antiteleporte.js` tem **255 linhas** dedicadas a impedir que
+  jogadores teleportem. Duzentas e cinquenta e cinco linhas contendo um bug que
+  nunca foi procurado.
+  
+  **A mudança proposta — a manobra em três tempos.** Para cada contenção:
+  
+  ```js
+  /* PASSO 1 · a contencao vira ASSERCAO. Ela para de consertar e passa a contar. */
+  if (velocidade > LIMITE) {
+    this.__assercoes.velocidadeAcimaDoLimite++;
+    if (CDS_DEBUG) console.warn('r12: velocidade', velocidade, 'em', p.ref.n);
+    /* NAO conserta mais */
+  }
+  ```
+  
+  ```bash
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois --identico
+

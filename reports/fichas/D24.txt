@@ -1,0 +1,122 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D24  Tarja preta ocupa 24% a 43% da caixa do campo
+     severidade: tela   fase: F6   estado: aberto
+
+  DONO (quem realmente executa):
+     runtime de desenho (cobertura de leitura: 10%)
+
+  EVIDENCIA MEDIDA:
+     caixa.js em 4 resolucoes: 19% a 43%
+
+  CRITERIO DE ACEITE:
+     - letterbox <=4% nas 4 resolucoes
+     - olhar.js: as 4 linhas do campo visiveis
+
+  RISCO: a recomendacao MENOS fundamentada do documento
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/70-game-runtime-and-rendering.js:1300
+
+     1288 │      até ~3,5 px no máximo. É feedback tátil-visual: o jogador SENTE o elástico
+     1289 │      no limite antes mesmo de olhar a barra de força. Abaixo de 50%, zero
+     1290 │      jitter — a mira fina em força baixa continua estável. */
+     1291 │   const t=scene&&scene.drag?clamp(scene.power||0,0,1):0;
+     1292 │   const j=t>.5?(t-.5)*7:0;
+     1293 │   const now=j?performance.now():0;
+     1294 │   return {
+     1295 │     x:baseX + ((scene.pull&&scene.pull.x)||0) + (j?Math.sin(now/23)*j:0),
+     1296 │     y:view.ballY + ((scene.pull&&scene.pull.y)||0) + (j?Math.cos(now/19)*j*.7:0)
+     1297 │   };
+     1298 │ }
+     1299 │ function spCanvasPoint(ev) {
+  >  1300 │   const cv=$('#fieldcv'), r=cv.getBoundingClientRect();
+     1301 │   return { x:(ev.clientX-r.left)*CW/r.width, y:(ev.clientY-r.top)*CH/r.height };
+     1302 │ }
+     1303 │ function spUpdateHud(scene) {
+     1304 │   const fill=$('.sp-power-fill'); if(fill) fill.style.width=Math.round((scene.power||0)*100)+'%';
+     1305 │   const pv=$('#sp-power-v'); if(pv) pv.textContent=Math.round((scene.power||0)*100)+'%';
+     1306 │   const cv=$('#sp-curve-v'); if(cv) cv.textContent=Math.abs(scene.curve||0)<.08?'RETA':scene.curve<0?'ESQUERDA':'DIREITA';
+     1307 │   document.querySelectorAll('.sp-curve').forEach(b=>b.classList.toggle('on',Math.sign(+b.dataset.curve)===Math.sign(scene.curve||0) && (Math.abs(+b.dataset.curve)<.1)===(Math.abs(scene.curve||0)<.1)));
+     1308 │ }
+     1309 │ function setPieceHud(req, scene) {
+     1310 │   const host=$('#setpiece-ui'); if(!host)return;
+     1311 │   const isFk=req.kind==='freekick';
+     1312 │   const name=esc((req.taker&&req.taker.ref?req.taker.ref:req.taker).n||'Cobrador');
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2749-2809
+──────────────────────────────────────────────────────────────────────────────
+  ## D24 🔵 Tarja preta: 24% a 43% da caixa do campo
+  
+  **Endereço:** `src/scripts/70-game-runtime-and-rendering.js` (desenho do campo)
+  + `src/styles/30-match-core.css:42`
+  
+  **A evidência** [MEDIDO, `tools/fisica/tela/caixa.js`, quatro resoluções]:
+  
+  ```
+  viewport      campo usa        tarja
+  1920x1080     688 de 852 px    19,2%   <- a melhor
+  1400x900      481 de 672 px    28,4%
+  1280x800      435 de 572 px    24,0%
+  1024x768      310 de 540 px    42,7%   <- a pior
+  ```
+  
+  > **Correção de direção.** A primeira versão desta seção dizia que a faixa
+  > sobrava **à esquerda e à direita**, e chegou a citar coordenadas horizontais
+  > de uma captura de tela. **Está errado: a sobra é vertical**, acima e abaixo do
+  > gramado. As fotos em `reports/fotos/` mostram isso, e a sonda sempre mediu
+  > altura — `altura usada pelo campo 688 de 852`. Eu li o número certo e
+  > descrevi o eixo errado.
+  
+  **O defeito, agora com a causa localizada** [LIDO]. A sonda imprime a regra
+  que vence:
+  
+  ```css
+  @media (min-width: 900px) {
+    #app:has(#fieldcv) #fieldcv { aspect-ratio: 1024 / 500; object-fit: contain; }
+  }
+  ```
+  
+  O canvas tem proporção fixa **1024/500 = 2,048** e `object-fit: contain`. Quando
+  o contêiner é mais **alto** que essa proporção — que é o caso em toda janela
+  menos larga que 2:1 — o `contain` centraliza o desenho e deixa o resto vazio
+  **em cima e embaixo**. Quanto mais quadrada a janela, maior a sobra: daí os
+  42,7% em 1024×768 contra 19,2% em 1920×1080.
+  
+  **A mudança proposta** [HIPÓTESE — a área de desenho é a menos lida deste
+  documento, 10% de cobertura]:
+  
+  ```js
+  /* o fator de escala deve considerar as DUAS dimensoes e escolher a que
+     preenche, nao a que cabe: */
+  const escala = Math.max(W / larguraProjetada, H / alturaProjetada);
+  /* com recorte controlado das bordas em vez de faixa preta */
+  ```
+  
+  Alternativa mais conservadora: manter a proporção e **reduzir a altura do
+  canvas** para que a largura preencha, deixando o espaço vertical para os
+  painéis.
+  
+  **Risco.** Baixo em futebol, alto em enquadramento: se a escala preencher, o
+  recorte pode cortar as linhas laterais. `tools/fisica/tela/olhar.js` mede
+  exatamente o que a câmera enquadra e deve ser rodado antes e depois.
+  
+  **Critério de aceite:** letterbox ≤ 4% em todas as quatro resoluções de
+  `caixa.js`; `olhar.js` mostra as quatro linhas do campo visíveis em todos os
+  lances.
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

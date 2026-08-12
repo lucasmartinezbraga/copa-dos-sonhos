@@ -1,0 +1,86 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D09  O portao naturalTarget da camada 45 quase nunca dispara
+     severidade: higiene   fase: F2   estado: aberto
+
+  DONO (quem realmente executa):
+     camada 45 esta CORRETA; falta combustivel
+
+  EVIDENCIA MEDIDA:
+     23 de 6.016 chamadas (0,4%) chegam com alvo dentro da janela de 2,05 m que o portao exige
+
+  CRITERIO DE ACEITE:
+     - naturalOutDeflections sobe quando D08 alimentar
+
+  DEPENDE DE: D08  <- faca esses ANTES
+
+  RISCO: nenhum: nao ha mudanca, e verificacao
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/layers/45-cds-r18181-second-phase-natural-out.js:135
+
+      123 │      const tm=this.teams[o.team],g=tm.oppGoal,dtg=dist(o,g),foes=this.teams[1-o.team].players.filter(p=>p&&!p.red);
+      124 │      let near=99;for(const p of foes)near=Math.min(near,dist(o,p));
+      125 │      let best=null;try{best=this._bestPass&&this._bestPass(o);}catch(_){}
+      126 │      if(best&&((best.intoBox&&finite(best.risk)<2.05)||(finite(best.progressM)>3&&finite(best.risk)<1.72))){this._pass(o,best);return;}
+      127 │      let blocked=false;try{blocked=!!(this._laneBlocked&&this._laneBlocked(o,g,foes));}catch(_){}
+      128 │      if(dtg>=10&&dtg<=22.5&&near>2.15&&!blocked){this._shoot(o,dtg,dtg>20,false);return;}
+      129 │      if(dtg>13&&near>3.25&&!blocked){this._carry(o,g);return;}
+      130 │    }
+      131 │  }catch(_){}
+      132 │  return oldDecide.apply(this,arguments);
+      133 │ };
+      134 │ 
+  >   135 │ function naturalTarget(sim,x,y,kind){
+      136 │  const b=sim.ball||{},bx=finite(b.x),by=finite(b.y),tx=finite(x,bx),ty=finite(y,by);
+      137 │  let nx=tx,ny=ty,edge=null;
+      138 │  const dx=tx-bx,dy=ty-by,inside=bx>=0&&bx<=FL&&by>=0&&by<=FW;
+      139 │  /* Muitos duelos já calculavam um alvo em 1/FW-1 ou 1/FL-1 e o clamp impedia
+      140 │     a saída. Só atravessamos quando a bola ainda está DENTRO, perto da linha e
+      141 │     o vetor aponta inequivocamente para fora. Vetor neutro/interior permanece
+      142 │     intacto, evitando fabricar reinícios. */
+      143 │  if(inside&&by<=8.2&&ty<=1.15&&dy<-.05){ny=-.85;edge='touchline_top';}
+      144 │  else if(inside&&by>=FW-8.2&&ty>=FW-1.15&&dy>.05){ny=FW+.85;edge='touchline_bottom';}
+      145 │  if(!edge&&inside&&bx<=13.5&&tx<=1.15&&dx<-.05){nx=-.85;edge='endline_left';}
+      146 │  else if(!edge&&inside&&bx>=FL-13.5&&tx>=FL-1.15&&dx>.05){nx=FL+.85;edge='endline_right';}
+      147 │  if(edge){
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:1668-1691
+──────────────────────────────────────────────────────────────────────────────
+  ## D09 🟡 O portão da camada 45 é quase decorativo
+  
+  **Endereço:** `src/scripts/layers/45-cds-r18181-second-phase-natural-out.js:135`
+  
+  **O defeito.** Consequência direta de D08, mas merece entrada própria porque é
+  um padrão que se repete: **uma camada foi escrita para uma condição que quase
+  nunca acontece, e ninguém mediu se ela acontecia.**
+  
+  **A evidência** [MEDIDO]: das 6.016 chamadas registradas em 40 partidas,
+  **23 (0,4%)** chegam com alvo dentro da janela de 2,05 m que o portão exige.
+  
+  **A mudança proposta.** Nenhuma, isoladamente — o portão está **correto**. Ele
+  passa a funcionar sozinho quando D08 alimentá-lo. O que fica é a lição:
+  
+  > Toda camada nova deve publicar quantas vezes seu ramo principal disparou.
+  > A camada 45 publica (`naturalOutDeflections`) e por isso este defeito foi
+  > mensurável em vinte minutos. As que não publicam são invisíveis.
+  
+  **Ação concreta e barata:** varrer as 60 camadas com sobrescrita e listar quais
+  **não** têm contador de ramo. Candidatas a receber um, em ordem de importância:
+  17 (`r13`, 23 sobrescritas), 16 (`r12`, 22), 47 (19), 08 (11).
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

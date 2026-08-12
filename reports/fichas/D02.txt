@@ -1,0 +1,190 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D02  _contestLoose entrega sem teto de distancia — REFUTADO pela medicao
+     severidade: futebol   fase: F1   estado: refutado
+
+  DONO (quem realmente executa):
+     core alcancado; 08 e 45 sao VIVAS
+  CAMADAS QUE INTERCEPTAM: 08, 45
+     confirme com: node tools/fisica/pilha.js dist/index.html 14
+
+  EVIDENCIA MEDIDA:
+     21,3 entregas por partida com o mais proximo a mais de 3 m; 22,2 bolas pousando fora e resgatadas a 6,8 m
+
+  CRITERIO DE ACEITE:
+     - REFUTADO — nao implementar
+
+  RISCO: ALTO e SEM GANHO: o conserto seria inerte e a bola pode morrer no meio do campo.
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/40-match-engine-and-manager-ai.js:2343   (o documento dizia linha 2489 — o codigo andou)
+
+     2331 │     // jogador mais próximo assume após breve disputa
+     2332 │     this._contestLoose();
+     2333 │   }
+     2334 │   _contestLoose() {
+     2335 │     const b = this.ball; let cands = [];
+     2336 │     for (const tm of this.teams) for (const p of tm.players) {
+     2337 │       if (p.red) continue; const dd = D(p.x,p.y,b.x,b.y);
+     2338 │       cands.push({ p, dd });
+     2339 │     }
+     2340 │     cands.sort((a,c)=>a.dd-c.dd);
+     2341 │     if (!cands.length) return;
+     2342 │     // entre quem está no raio de disputa, habilidade (reação/controle) decide
+  >  2343 │     const zone = cands.filter(c => c.dd < cands[0].dd + 2.2).slice(0, 3);
+     2344 │     let best = zone[0];
+     2345 │     for (const c of zone) {
+     2346 │       const sc = facet(c.p,'control') * 0.6 + getAttr(c.p,'aceleracao') * 0.4 - c.dd * 6;
+     2347 │       const sb = facet(best.p,'control') * 0.6 + getAttr(best.p,'aceleracao') * 0.4 - best.dd * 6;
+     2348 │       if (sc > sb) best = c;
+     2349 │     }
+     2350 │     if (best) { this._giveBall(best.p); best.p.settle = 0.85; }
+     2351 │   }
+     2352 │ 
+     2353 │   // bola solta rolando: física + disputa pelo mais próximo (evita bola-parada §bug1)
+     2354 │   _looseRoll(dt) {
+     2355 │     const b = this.ball;
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:995-1122
+──────────────────────────────────────────────────────────────────────────────
+  ## D02 🟠 ⛔ O `_contestLoose` entrega sem limite de distância — REFUTADO
+  
+  **Endereço:** `src/scripts/40-match-engine-and-manager-ai.js:2489`
+  
+  **Código atual:**
+  
+  ```js
+    _contestLoose() {
+      const b = this.ball; let cands = [];
+      for (const tm of this.teams) for (const p of tm.players) {
+        if (p.red) continue; const dd = D(p.x,p.y,b.x,b.y);
+        cands.push({ p, dd });
+      }
+      cands.sort((a,c)=>a.dd-c.dd);
+      if (!cands.length) return;
+      // entre quem está no raio de disputa, habilidade (reação/controle) decide
+      const zone = cands.filter(c => c.dd < cands[0].dd + 2.2).slice(0, 3);
+      let best = zone[0];
+      for (const c of zone) {
+        const sc = facet(c.p,'control') * 0.6 + getAttr(c.p,'aceleracao') * 0.4 - c.dd * 6;
+        const sb = facet(best.p,'control') * 0.6 + getAttr(best.p,'aceleracao') * 0.4 - best.dd * 6;
+        if (sc > sb) best = c;
+      }
+      if (best) { this._giveBall(best.p); best.p.settle = 0.85; }
+    }
+  ```
+  
+  **O defeito.** Não existe **nenhum** teto de distância. O `filter` define uma
+  zona de disputa **relativa** ao mais próximo (`cands[0].dd + 2.2`), não
+  absoluta. Se o jogador mais próximo está a 30 m, a zona vai de 30 a 32,2 m e a
+  bola é teleportada para o pé dele.
+  
+  Compare com `_looseRoll:2522`, que faz a coisa certa:
+  
+  ```js
+  if (best && bd < 1.7 && b._looseT > 0.26) this._contestLoose();
+  ```
+  
+  Ali existe raio de 1,70 m e tempo mínimo de 0,26 s. **Em `_contestLoose`, que
+  é chamado de outros doze pontos, não existe nenhum dos dois.**
+  
+  **A evidência** [MEDIDO, tentativa A4]:
+  
+  ```
+  coletas de bola solta                      314,8 por partida
+  distancia media do coletor                   1,51 m
+    com o mais proximo a MAIS DE 3 m           21,3 por partida
+  bola solta POUSANDO fora do campo            22,2 por partida
+    e entregue a alguem a                       6,8 m de distancia
+  ```
+  
+  **21,3 vezes por partida** a bola é entregue a alguém que está a mais de 3 m —
+  sem que ninguém corra até ela. E 22,2 vezes por partida a bola que pousou fora
+  do campo é resgatada por alguém a 6,8 m de distância.
+  
+  **A mudança proposta:**
+  
+  ```js
+    _contestLoose() {
+      const b = this.ball; let cands = [];
+      for (const tm of this.teams) for (const p of tm.players) {
+        if (p.red) continue; const dd = D(p.x,p.y,b.x,b.y);
+        cands.push({ p, dd });
+      }
+      cands.sort((a,c)=>a.dd-c.dd);
+      if (!cands.length) return;
+      /* OS-A7 · a disputa e LOCAL. Sem teto absoluto, uma bola solta a 30 m do
+         jogador mais proximo era teleportada para o pe dele — 21,3 vezes por
+         partida com folga acima de 3 m, medido. Fora do raio a bola continua
+         solta e rola; quem chegar, pega. */
+      const RAIO_DISPUTA = 2.6;
+      if (cands[0].dd > RAIO_DISPUTA) { b.owner = null; b.traveling = false; return; }
+      const zone = cands.filter(c => c.dd < Math.min(cands[0].dd + 2.2, RAIO_DISPUTA)).slice(0, 3);
+      /* ... resto igual ... */
+    }
+  ```
+  
+  **Quem intercepta** [MEDIDO]: `_contestLoose` é sobrescrito em **duas** camadas
+  (08 e 45), ambas VIVAS — elas chamam a de baixo. O core é alcançado.
+  
+  **Risco.** **Alto, e este é o defeito mais perigoso de consertar do catálogo.**
+  Se a bola deixar de ser entregue, ela fica solta, e `_looseRoll` precisa dar
+  conta. Existe o risco real de a bola morrer no meio do campo e a partida
+  travar. **Obrigatório**: rodar `tools/fisica/tela/pinga.js` e narrar cinco
+  partidas com `tools/fisica/narrar.js` antes de aceitar.
+  
+  **Critério de aceite:**
+  
+  | métrica | hoje | esperado |
+  |---|---|---|
+  | entregas com folga > 3 m | 21,3/partida | **≤ 3** |
+  | `passes` | 385,257 | ≥ 370 (não pode desabar) |
+  | `throwIns` | 15,910 | **sobe** — é meio caminho de D08 |
+  | tempo de bola parada por partida | referência | ±2 SE |
+  
+  ### ⛔ REFUTADO — não implementar
+  
+  `tools/fisica/ramo-d02.js` mediu no **topo da pilha**, que é o que de fato
+  executa. 12 partidas:
+  
+  ```
+  chamadas de _contestLoose             340,00 por partida
+  entregas efetivas                      36,67
+  distancia media de quem RECEBEU         0,49 m
+  distancia MAXIMA                        1,53 m
+  
+  <= 1,7 m (o raio do _looseRoll)   36,67/partida  100,0%
+  >  1,7 m                               0/partida    0,0%
+  
+  com a bola JA FORA do campo:  0,08 chamadas/partida, ZERO entregas
+  ```
+  
+  **O teto de distância existe na prática.** As camadas 08 e 45 envolvem
+  `_contestLoose` e filtram antes; o `filter` sem limite do core nunca é
+  alcançado com a bola distante. A entrega mais longa em doze partidas foi de
+  **1,53 m** — dentro do raio de 1,70 m que o `_looseRoll` já aplica.
+  
+  Os números que sustentavam este defeito — *21,3 entregas com folga acima de
+  3 m* e *22,2 bolas pousando fora e resgatadas a 6,8 m* — vieram da sonda da
+  tentativa **A4**, que se provou errada em premissa (Volume VII, 7.2). **Eles
+  não reproduzem.**
+  
+  O conserto proposto seria **inerte no melhor caso** e traria um risco real: uma
+  bola que deixa de ser entregue pode morrer no meio do campo. Alto risco, ganho
+  zero. **Não fazer.**
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

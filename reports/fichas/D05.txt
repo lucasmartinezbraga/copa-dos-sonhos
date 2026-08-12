@@ -1,0 +1,105 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D05  Passe rasteiro decolava (14 cm de salto, 2 quiques)
+     severidade: futebol   fase: —   estado: feito
+
+  DONO (quem realmente executa):
+     camada 88, por regime
+  CAMADAS QUE INTERCEPTAM: 88
+     confirme com: node tools/fisica/pilha.js dist/index.html 14
+
+  EVIDENCIA MEDIDA:
+     54 quiques por minuto de jogo (tela/pinga.js); nenhuma das 14 metricas via
+
+  CRITERIO DE ACEITE:
+     - feito
+
+  RISCO: nao consertar no core: os 0,12 sao a origem do CHUTE
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/layers/88-os200-balistica-real.js:347
+
+      335 │      A versao anterior saia a 0,03 rad (~1,7 graus) "rente, nao colada". Com
+      336 │      integracao real isso e um LANCAMENTO, nao um passe: medido numa partida de
+      337 │      verdade, todo passe rasteiro fazia um salto de 14 cm, quicava em 4 cm,
+      338 │      quicava em 1 cm — a razao entre os saltos e exatamente RESTITUICAO^2 =
+      339 │      0,3025, e o traco de tela mostrava o par (0,141 m / 0,043 m) se repetindo a
+      340 │      cada passe. Sao 54 subidas por minuto de jogo, 92% delas abaixo de 30 cm:
+      341 │      a bola atravessava o campo saltitando como pedra ricocheteando na agua.
+      342 │ 
+      343 │      Zero e o valor certo, nao um valor pequeno: com theta = 0 e z = 0 o
+      344 │      integrador entra no ramo de rolagem no primeiro passo e a bola nunca deixa
+      345 │      o gramado — ela rola, perde velocidade para o arrasto e para a resistencia
+      346 │      de rolagem, e chega viva do outro lado. Que e o que um passe rasteiro e. */
+  >   347 │   const ELEV_RASTEIRA = 0;
+      348 │   const CHEGADA_MINIMA = num(T.chegadaMinima, 7.5); // m/s de bola viva na chegada
+      349 │ 
+      350 │   function resolverRasteira(o, alvo, vel) {
+      351 │     const dx = alvo.x - o.x, dy = alvo.y - o.y;
+      352 │     const d = Math.hypot(dx, dy);
+      353 │     if (d < 1e-3) return { vel, sol: { theta: 0, ux: 1, uy: 0, d: 1e-3 } };
+      354 │     const ux = dx / d, uy = dy / d;
+      355 │     /* O `speed` que o motor passa foi calibrado num mundo SEM desaceleracao,
+      356 │        onde `duration = d/v` era exato. Ele nao e a velocidade de saida do pe:
+      357 │        e a velocidade MEDIA que o motor assumiu para o passe chegar na hora
+      358 │        certa — e toda a camada tatica (interceptacoes, corridas de recepcao,
+      359 │        linha de impedimento) foi calibrada nesse tempo de chegada.
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:1331-1373
+──────────────────────────────────────────────────────────────────────────────
+  ## D05 🟠 ✅ O passe rasteiro decolava — e a lição vale mais que o conserto
+  
+  **Endereço:** `src/scripts/layers/88-os200-balistica-real.js` (regime `rasteira`)
+  **Estado: CONSERTADO** na OS-203. Fica no catálogo pela regra que produziu.
+  
+  **O defeito.** O core escreve, logo antes de chamar a camada de física:
+  
+  ```js
+  b.z = passKind === 'launch' ? 0.3 : 0.12;
+  ```
+  
+  Antes da OS-200 esses 0,12 m só serviam para desenhar a bola um pouco acima do
+  gramado. Quando a integração numérica entrou, viraram **altura inicial real**:
+  o passe rasteiro saía a 12 cm do chão com elevação de 0,03 rad e fazia um salto
+  de **14 cm com dois quiques**.
+  
+  **A evidência** [MEDIDO, `tools/fisica/tela/pinga.js`]: **54 quiques por minuto
+  de jogo**. Nenhuma das 14 métricas da bateria mudou — porque nenhuma delas mede
+  aparência. Foi o jogador que viu.
+  
+  **O conserto**, e por que ele é por regime e não no core:
+  
+  ```js
+  const ELEV_RASTEIRA = 0;                       // era 0.03
+  /* dentro de _planPhysicalSegment: */
+  if (regime === RASTEIRA) o.z = 0;
+  ```
+  
+  > **Não conserte no core.** Aqueles mesmos 0,12 m são a origem do **chute**, e a
+  > mira está calibrada em cima deles. Zerar lá quebraria a pontaria de todas as
+  > finalizações. O achatamento tem de ser **por regime**, na camada 88.
+  
+  **A regra geral que este defeito deixou** — e que já custou três rodadas de
+  medição:
+  
+  > **Número decorativo vira número físico no dia em que o integrador liga.**
+  
+  Todo campo que hoje existe "só para desenhar" é um defeito futuro. Vale a pena
+  varrer o motor procurando outros — `b.spin`, `p._divingUntil`,
+  `p._blockingUntil` são candidatos que ainda não foram auditados.
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

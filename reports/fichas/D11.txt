@@ -1,0 +1,267 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D11  Sorteio censurado 1: o censor roda em 51,4% das decisoes (MEDIDO)
+     severidade: estrutural   fase: F3   estado: feito
+
+  DONO (quem realmente executa):
+     _decide tem 8 camadas; 51 roda por fora de todas
+  CAMADAS QUE INTERCEPTAM: 16, 17, 18, 20, 27, 43, 45, 51
+     confirme com: node tools/fisica/pilha.js dist/index.html 14
+
+  EVIDENCIA MEDIDA:
+     o comentario da camada 20 e a prova literal: 'Marcar o instante atual veta unicamente essa roleta'
+
+  CRITERIO DE ACEITE:
+     - 14 metricas dentro de 2 SE SEM pareamento de semente
+     - -250 linhas
+     - zero variaveis de contrato com nome de release
+
+  RISCO: medio: remover chance() desalinha o RNG; compare distribuicoes, nao partidas
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/layers/16-cds-r12-transactional-core-r123.js:159   (o documento dizia linha 153 — o codigo andou)
+
+      147 │ const oldGoalKick=P._goalKickOrRestart;P._goalKickOrRestart=function(team){if(state(this).activeShot)finishShot(this,'miss','goal_kick');return oldGoalKick.apply(this,arguments);};
+      148 │ const oldSetCorner=P._setCorner;P._setCorner=function(team){if(state(this).activeShot)finishShot(this,'blocked','corner');return oldSetCorner.apply(this,arguments);};
+      149 │ const oldIsOver=P.isOver;P.isOver=function(){const over=oldIsOver.apply(this,arguments);if(!over){this.__r122FinalWhistleAt=null;return false;}const S=state(this),active=!!(this.ball&&this.ball.traveling)||!!S.activeShot;if(!active){this.__r122FinalWhistleAt=null;return true;}if(this.__r122FinalWhistleAt==null)this.__r122FinalWhistleAt=finite(this.t);if(finite(this.t)-this.__r122FinalWhistleAt<7)return false;if(S.activeShot)reconcileShot(this,'final_whistle_timeout');return true;};
+      150 │ 
+      151 │ /* Opções contextuais de chute/cruzamento sem atropelar passe claro. */
+      152 │ const oldCanCross=P._canCross;P._canCross=function(o){if(!o||!this.teams)return oldCanCross.apply(this,arguments);const tm=this.teams[o.team],adv=tm.attackDir>0?o.x:FL-o.x,wide=o.y<27||o.y>FW-27;return oldCanCross.apply(this,arguments)||(adv>57&&wide);};
+      153 │ const oldDecide=P._decide;P._decide=function(o){if(o&&!o.isGK&&this.ball&&this.ball.owner===o&&this.teams&&!(o._setPieceDeliveryUntil>this.t)){const tm=this.teams[o.team],now=finite(this.t),g=tm.oppGoal,dtg=Math.hypot(finite(o.x)-finite(g.x),finite(o.y)-finite(g.y)),near=typeof this._nearestOpponent==='function'?this._nearestOpponent(o):{dist:5},best=typeof this._bestPass==='function'?this._bestPass(o):null,superior=best&&best.intoBox&&finite(best.risk)<1.75&&finite(best.score)>1.45;/* D11 · a regra inteira do chute contextual, num lugar so. O predicado da
+      154 │    camada 20 (_r183ExcecaoAoChuteContextual) diz se existe alternativa
+      155 │    melhor: chance clara, progressao limpa, saida sob pressao ou movimento
+      156 │    para dentro. Antes ele rodava por fora e envenenava o timestamp abaixo
+      157 │    para fazer este `if` falhar — 264,67 vezes por partida, medido. */
+      158 │   if(!superior&&dtg>=10&&dtg<=27&&now-finite(tm.__r122LastContextShot,-99)>1.15
+  >   159 │      &&!(typeof this._r183ExcecaoAoChuteContextual==='function'&&this._r183ExcecaoAoChuteContextual(o))){const fin=attr(o,'finalizacao'),lng=attr(o,'chute_longe'),central=clamp(1-Math.abs(finite(o.y)-finite(g.y))/31,.35,1),pressure=clamp((3.5-finite(near.dist,5))/3.5,0,1);let p=dtg<=16?.40:dtg<=20?.285:dtg<=24?.17:.072;p*=central*(1-pressure*.58)*clamp((fin*.66+lng*.34)/72,.72,1.24);if(schance(this,p)){tm.__r122LastContextShot=now;this._shoot(o,dtg,dtg>21,o.settle>0&&o.settle<.45);return;}}
+      160 │   if(typeof this._canCross==='function'&&this._canCross(o)){const targets=tm.players.filter(p=>!p.red&&!p.isGK&&p!==o&&Math.abs(p.x-tm.oppGoal.x)<24);if(targets.length&&now-finite(tm.__r122LastCross,-99)>1.65&&!superior){const q=clamp((attr(o,'cruzamento')-50)/50,0,1),p=clamp(.17+q*.12+Math.min(3,targets.length)*.04+(finite(near.dist)>3?.035:0),.17,.40);if(schance(this,p)){tm.__r122LastCross=now;this._cross(o);return;}}}}
+      161 │   return oldDecide.apply(this,arguments);
+      162 │ };
+      163 │ 
+      164 │ /* Defesa outcome-first: contenção é resultado válido, não sinônimo de bote. */
+      165 │ P._dribble=function(o,d,g){if(!o||!d||!g)return;const tm=this.teams[o.team],stO=ensureStats(this.stats[o.team]),stD=ensureStats(this.stats[d.team]),adv=tm.attackDir>0?o.x:FL-o.x,finalThird=adv>68,wing=o.y<22||o.y>FW-22,dri=attr(o,'drible'),elite=dri>=86||(o.ref&&o.ref.traits&&o.ref.traits.includes('DRIBBLER')),best=typeof this._bestPass==='function'?this._bestPass(o):null,support=best&&best.m&&finite(best.risk)<2.35&&finite(best.score)>.55,attemptP=clamp(.45+(finalThird?.20:0)+(wing?.08:0)+(elite?.17:(dri-65)/320)-(support?.10:0),.32,elite?.88:.76);
+      166 │   if(!schance(this,attemptP)){state(this).diagnostics.duelsAvoided++;if(support&&schance(this,.62)){this._pass(o,best);return;}const a=Math.atan2(g.y-o.y,g.x-o.x),side=schance(this,.5)?1:-1;o._tx=clamp(o.x+Math.cos(a)*1.8-Math.sin(a)*3.2*side,1,FL-1);o._ty=clamp(o.y+Math.sin(a)*1.8+Math.cos(a)*3.2*side,1,FW-1);o.settle=Math.max(finite(o.settle),.18);stO.containments++;this._emit('containment',{by:d,on:o,source:'dribble_declined'});return;}
+      167 │   o._act='dribble';stO.dribblesAttempted++;stD.tackleAttempts++;const S=state(this);S.team[o.team].dribbleAttempts++;S.team[d.team].tackleAttempts++;const ctx=this._actionContext?this._actionContext(o,dist(o,d),'dribble'):{execution:1},dctx=this._actionContext?this._actionContext(d,dist(o,d),'defend'):{execution:1},basePa=facet(o,'drб_atk')*finite(ctx.execution,1)+(wing&&finalThird?4:0)+(elite?4+Math.max(0,dri-86)*.38:0),pd=facet(d,'drб_def')*finite(dctx.execution,1)+2.5,baseRaw=typeof root.duelProb==='function'?root.duelProb(basePa+.5,pd):.5,r1815Carry=this._r1815CarryDuelProfile?this._r1815CarryDuelProfile(o,d,baseRaw,dist(o,d),finalThird):null,pa=basePa+(r1815Carry?r1815Carry.attackDelta:0),raw=typeof root.duelProb==='function'?root.duelProb(pa+.5,pd):baseRaw,p=clamp(raw,.12,elite?.92:.86);if(r1815Carry)this._r1815RecordCarry&&this._r1815RecordCarry(r1815Carry,p);
+      168 │   if(schance(this,p)){stO.dribblesCompleted++;S.team[o.team].dribblesWon++;const side=schance(this,.5)?1:-1,a=Math.atan2(g.y-o.y,g.x-o.x);o._tx=clamp(o.x+Math.cos(a)*7-Math.sin(a)*3.5*side,1,FL-1);o._ty=clamp(o.y+Math.sin(a)*7+Math.cos(a)*3.5*side,1,FW-1);o.rating+=.12;d.rating-=.05;if(this._r1814MarkRecovery)this._r1814MarkRecovery(d,'dribble',0);this._emit('dribble',{by:o,on:d,ok:true,flair:schance(this,Math.max(.02,Math.min(.46,(dri-72)/72+(elite?.06:0)))),move:(function(_p,_t){try{var _a=(_p&&_p.ref&&_p.ref.a8)||[70,70,70,70,70,70,70,70];var _dri=_a[2],_vel=_a[3],_tec=_a[7],_m=[];if(_vel>=88)_m.push('arrancada');if(_tec>=88)_m.push('drible da vaca');if(_dri>=88&&_tec>=84)_m.push('elástico');if(_dri>=86)_m.push('meia-lua');if(!_m.length)_m.push('corta pra dentro');return _m[(Math.floor((Number(_t)||0)*3)+(Number(_p&&_p.num)||0))%_m.length];}catch(_){return 'corta pra dentro';}})(o,this.t)});return;}
+      169 │   const ownBox=(this.teams[d.team].attackDir>0?d.x<16.5:d.x>FL-16.5)&&Math.abs(d.y-FW/2)<20;/* §R19.03 · mesmo portao de contato do :16954. Aqui nao existe `timing`, entao o lugar do atraso e ocupado pela diferenca do proprio duelo. */const _r19d = this._r19FoulRisk ? this._r19FoulRisk(d,o,dist(o,d),null,ownBox,clamp((pa-pd+10)/45,0,1)) : null;const foulP = _r19d ? _r19d.p : clamp((this._foulProb?this._foulProb(d):.08)*(ownBox?1.00:1.30),.022,ownBox?.30:.35);d.__r19risco = _r19d ? _r19d.risco : null;if(schance(this,foulP)){this._awardFoul(d,o);return;}const winP=clamp(.52+(pd-pa)/120+(attr(d,'desarme')-70)/170,.30,.82);if(schance(this,winP)){stD.tackles++;stD.tacklesWon++;S.team[d.team].tacklesWon++;if(this._turnover(d)!==false){this._emit('tackle',{by:d,on:o,source:'dribble'});d.rating+=.10;return;}}
+      170 │   if(schance(this,.38)&&this._deflectTo){const a=Math.atan2(g.y-o.y,g.x-o.x)+(schance(this,.5)?1:-1)*sideRand(this,.45,.85);this.ball.lastTouch=schance(this,.55)?d:o;this._deflectTo(clamp(o.x+Math.cos(a)*4.2,1,FL-1),clamp(o.y+Math.sin(a)*4.2,1,FW-1),6.4);stO.looseDuels++;stD.looseDuels++;this._emit('loose_duel',{by:d,on:o});return;}const back=tm.attackDir>0?-1:1;o._tx=clamp(o.x+back*2.8,1,FL-1);o._ty=clamp(o.y+(schance(this,.5)?1:-1)*2.8,1,FW-1);o.settle=Math.max(finite(o.settle),.28);stO.containments++;this._emit('containment',{by:d,on:o,source:'failed_dribble'});
+      171 │ };
+
+  src/scripts/layers/20-cds-r183-natural-football.js:107   (o documento dizia linha 63 — o codigo andou)
+
+       95 │   if(!candidates.length)return false;
+       96 │   candidates.sort((a,b)=>passValue(this,o,b)-passValue(this,o,a));
+       97 │   const pick=candidates[0],pv=passValue(this,o,pick),risk=finite(pick.risk,9),progress=finite(pick.progressM,0);
+       98 │   const g=tm.oppGoal,dtg=dist(o.x,o.y,g.x,g.y),pressure=nearestOpponent(this,o),sv=shotValue(this,o,dtg,pressure);
+       99 │   const iq=attr(o,'decisao',68),space=receiverSpace(this,pick.m);
+      100 │   /* AS QUATRO EXCECOES. Elas sempre foram a especificacao real; so nao
+      101 │      estavam escritas ao lado do sorteio que anulavam. */
+      102 │   const chanceClara      = !!pick.intoBox && risk<(iq>=82?2.35:2.05) && pv>.58;
+      103 │   const progressaoLimpa  = progress>8 && risk<(iq>=82?1.75:1.48) && space>3.4 && pv>sv+(iq>=82?.12:.22);
+      104 │   const saidaSobPressao  = pressure<2.35 && risk<1.12 && space>2.8 && pv>sv-.02;
+      105 │   const movimentoParaDentro = edgeY(o.y)<4.9 && edgeY(pick.m.y)>edgeY(o.y)+2.4 && risk<1.8;
+      106 │   const veta = chanceClara||progressaoLimpa||saidaSobPressao||movimentoParaDentro;
+  >   107 │   if(veta)dg.smartShotVetoes=(dg.smartShotVetoes||0)+1;
+      108 │   void dtg;
+      109 │   return veta;
+      110 │ };
+      111 │ 
+      112 │ /* R18.3-C · perfis naturais de voo. O destino e a duração permanecem os
+      113 │    mesmos; muda apenas como a bola percorre o caminho, mantendo contatos e
+      114 │    resultados ancorados na mesma geometria final. */
+      115 │ const oldPhysicalTargetZ=P._physicalTargetZ,oldPhysicalArc=P._physicalArc;
+      116 │ P._physicalTargetZ=function(actor,target,kind,passKind,meta){
+      117 │   if(target&&Number.isFinite(target.z))return clamp(target.z,0,2.35);
+      118 │   if(meta&&Number.isFinite(meta.targetZ))return clamp(meta.targetZ,0,2.35);
+      119 │   const pk=passKind||kind,d=target&&actor?dist(actor.x,actor.y,target.x,target.y):18;
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:1736-1910
+──────────────────────────────────────────────────────────────────────────────
+  ## D11 🔴 ✅ Sorteio censurado nº 1 — o chute que é sorteado para ser vetado
+  
+  **Endereços:** `layers/16-cds-r12-transactional-core-r123.js:153` (o dado) e
+  `layers/20-cds-r183-natural-football.js:63` (o censor)
+  
+  **Código atual — o dado**, dentro de `_decide` da camada 16:
+  
+  ```js
+  if(!superior && dtg>=10 && dtg<=27 && now-finite(tm.__r122LastContextShot,-99)>1.15){
+    const fin=attr(o,'finalizacao'), lng=attr(o,'chute_longe'),
+          central=clamp(1-Math.abs(finite(o.y)-finite(g.y))/31,.35,1),
+          pressure=clamp((3.5-finite(near.dist,5))/3.5,0,1);
+    let p = dtg<=16?.40 : dtg<=20?.285 : dtg<=24?.17 : .072;
+    p *= central*(1-pressure*.58)*clamp((fin*.66+lng*.34)/72,.72,1.24);
+    if(schance(this,p)){
+      tm.__r122LastContextShot=now;
+      this._shoot(o,dtg,dtg>21,o.settle>0&&o.settle<.45);
+      return;
+    }
+  }
+  ```
+  
+  **Código atual — o censor**, dentro de `_decide` da camada 20:
+  
+  ```js
+  const clearChance    = !!pick.intoBox && risk<(iq>=82?2.35:2.05) && pv>.58;
+  const cleanProgress  = progress>8 && risk<(iq>=82?1.75:1.48) && space>3.4 && pv>sv+(iq>=82?.12:.22);
+  const pressureOutlet = pressure<2.35 && risk<1.12 && space>2.8 && pv>sv-.02;
+  const inward         = edgeY(o.y)<4.9 && edgeY(pick.m.y)>edgeY(o.y)+2.4 && risk<1.8;
+  if(clearChance||cleanProgress||pressureOutlet||inward){
+    /* R12 só pode tentar chute contextual se t-last > 1.15. Marcar o
+       instante atual veta unicamente essa roleta. */
+    tm.__r122LastContextShot=Math.max(finite(tm.__r122LastContextShot,-99),finite(this.t));
+    dg.smartShotVetoes=(dg.smartShotVetoes||0)+1;
+  }
+  return oldDecide.apply(this,arguments);
+  ```
+  
+  **O defeito.** A camada 20 não desliga a camada 16. Ela **envelhece uma marca de
+  tempo compartilhada** (`__r122LastContextShot`) para que o `if` da camada 16
+  falhe no quadro seguinte. Duas camadas se comunicam por um campo mutável no
+  objeto do time, com nome de release, e **nenhuma das duas documenta o contrato.**
+  
+  A consequência é que a regra verdadeira do jogo —
+  
+  > *chuta de 10 a 27 m, com probabilidade que decai com a distância, modulada por
+  > centralidade, pressão e atributos, **a menos que** exista chance clara,
+  > progressão limpa, saída sob pressão ou movimento para dentro*
+  
+  — **não está escrita em lugar nenhum.** Ela é a interseção de dois arquivos que
+  não se conhecem, separados por três camadas na ordem de carregamento.
+  
+  **A evidência** [LIDO]. O comentário da camada 20 é a prova literal do padrão:
+  *"Marcar o instante atual veta unicamente essa roleta."* Quem escreveu sabia
+  que estava vetando um sorteio — e escolheu vetar em vez de mudar.
+  
+  ### ✅ CONFIRMADO por medição — e é maior do que este texto dizia
+  
+  `tools/fisica/ramos.js`, 12 partidas [MEDIDO]:
+  
+  ```
+  decisoes examinadas pela camada 20      515,17 por partida
+  VETOS aplicados                         264,67 por partida     51,4%
+  erros de lateral prevenidos              38,83
+  erros de lateral permitidos               0,00
+  ```
+  
+  **Metade de todas as decisões do jogo passa pelo censor.** O documento tratava
+  isto como um mecanismo ocasional — "a camada 20 veta *aquela* roleta". São
+  264,67 vetos por partida, mais de quatro por minuto de jogo.
+  
+  Isso muda a prioridade: D11 deixa de ser higiene de arquitetura e passa a ser o
+  defeito estrutural com maior alcance medido do catálogo. **A regra real de
+  quando um jogador chuta é decidida por um `if` que roda 515 vezes por partida
+  num arquivo, e é anulada 265 vezes por outro arquivo que não o cita.**
+  
+  **A mudança proposta.** Fundir dado e censor num único predicado, **no lugar
+  onde a decisão pertence**:
+  
+  ```js
+  /* NOVA camada 20 (substitui as duas metades).
+     O que era "sorteia e depois veta" vira "decide uma vez". O CENSOR JA ERA A
+     ESPECIFICACAO — a lista de excecoes abaixo e literalmente a da r183. */
+  P._decide = function (o) {
+    if (!this._podeChutarNoContexto(o)) return oldDecide.apply(this, arguments);
+    /* ... o sorteio da r12, agora com o veto ja embutido ... */
+  };
+  
+  P._podeChutarNoContexto = function (o) {
+    const tm = this.teams[o.team], g = tm.oppGoal;
+    const dtg = D(o.x, o.y, g.x, g.y);
+    if (dtg < 10 || dtg > 27) return false;
+    const pick = this._melhorAlternativa(o);        // best/safe, ja normalizados
+    if (!pick) return true;
+    const iq = getAttr(o, 'decisao');
+    /* as quatro excecoes da r183, agora visiveis no mesmo lugar do sorteio */
+    if (pick.intoBox && pick.risk < (iq>=82?2.35:2.05) && pick.valor > .58) return false;
+    if (pick.progressM > 8 && pick.risk < (iq>=82?1.75:1.48) && pick.espaco > 3.4) return false;
+    if (pick.pressao < 2.35 && pick.risk < 1.12 && pick.espaco > 2.8) return false;
+    if (pick.paraDentro && pick.risk < 1.8) return false;
+    return true;
+  };
+  ```
+  
+  Some `__r122LastContextShot` inteiro. Some a camada 20 inteira (148 linhas).
+  
+  **Quem intercepta** [MEDIDO]: `_decide` é sobrescrito por **oito** camadas —
+  16, 17, 18, 20, 27, 43, 45, 51. A ordem importa: 51 (`r1820-chance-intelligence`,
+  526 linhas) roda por fora de todas. Antes de fundir 16 e 20, é obrigatório
+  verificar com `pilha.js` se 51 já não está decidindo o chute antes das duas.
+  
+  **Risco.** Médio. O comportamento agregado **deve** ficar igual — é uma
+  refatoração de expressão, não de política. Mas o sorteio consome RNG, e remover
+  uma chamada a `schance` **desalinha a sequência de números aleatórios**. Isso
+  significa que a comparação pareada por semente deixa de valer para esta
+  mudança: é preciso comparar **distribuições**, não partidas.
+  
+  **Critério de aceite:** todas as 14 métricas dentro de 2 SE, com n = 300, sem
+  pareamento de semente. E `−250 linhas` no total (148 da camada 20 + o bloco de
+  sorteio duplicado).
+  
+  ### ✅ FEITO — o sorteio e o censor viraram uma coisa só
+  
+  O `_decide` da camada 20 deixou de existir. No lugar dele há um **predicado
+  puro**, sem efeito colateral, sem RNG e sem estado compartilhado:
+  
+  ```js
+  P._r183ExcecaoAoChuteContextual = function (o) {
+    /* ... as quatro excecoes, agora com nome ... */
+    const chanceClara         = !!pick.intoBox && risk < (iq>=82?2.35:2.05) && pv > .58;
+    const progressaoLimpa     = progress > 8 && risk < (iq>=82?1.75:1.48) && space > 3.4 && …;
+    const saidaSobPressao     = pressure < 2.35 && risk < 1.12 && space > 2.8 && …;
+    const movimentoParaDentro = edgeY(o.y) < 4.9 && edgeY(pick.m.y) > edgeY(o.y)+2.4 && …;
+    return chanceClara || progressaoLimpa || saidaSobPressao || movimentoParaDentro;
+  };
+  ```
+  
+  E a camada 16 passou a consultá-lo **no momento exato do sorteio**, de modo que
+  o `if` diz a regra inteira num lugar só:
+  
+  ```js
+  if (!superior && dtg>=10 && dtg<=27 && now - finite(tm.__r122LastContextShot,-99) > 1.15
+      && !(typeof this._r183ExcecaoAoChuteContextual === 'function'
+           && this._r183ExcecaoAoChuteContextual(o))) {
+  ```
+  
+  **A variável de contrato `__r122LastContextShot` deixou de ser envenenada.** Ela
+  continua existindo para o auto-limite legítimo da camada 16 — um chute
+  contextual a cada 1,15 s — que é regra de futebol, não hack.
+  
+  #### O efeito colateral que sai junto, e ninguém tinha declarado
+  
+  Envenenar o timestamp fazia o veto **persistir por 1,15 s**, bloqueando também
+  as decisões seguintes. Isso nunca foi regra: era consequência de reusar um
+  campo que serve para outra coisa. Agora a exceção vale no instante em que ela é
+  verdadeira — que é o que o nome sempre prometeu.
+  
+  #### E o custo de computação caiu 13×
+  
+  `tools/fisica/ramos.js`, antes e depois [MEDIDO]:
+  
+  ```
+                            antes      depois
+  decisoes examinadas      515,17       38,83   por partida
+  vetos aplicados          264,67       11,67
+  ```
+  
+  O predicado deixou de rodar em toda decisão do jogo e passa a rodar só quando o
+  sorteio realmente vai acontecer — quando o portador já está entre 10 e 27 m, sem
+  alternativa superior e fora do cooldown. **As 476 avaliações por partida que
+  sobravam eram trabalho jogado fora:** decisões que nunca chegariam ao sorteio,
+  sendo examinadas mesmo assim para poder vetá-lo.
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

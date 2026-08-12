@@ -1,0 +1,157 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D13  Sorteio censurado 3: erro de chute sorteado ate 6,5 m e comprimido pela camada 55
+     severidade: futebol   fase: F3   estado: aberto
+
+  DONO (quem realmente executa):
+     camada 88 e TERMINAL para a mira; territorio seguro
+  CAMADAS QUE INTERCEPTAM: 88
+     confirme com: node tools/fisica/pilha.js dist/index.html 14
+
+  EVIDENCIA MEDIDA:
+     o comentario diz 'pior caso observado no motor' — a camada foi calibrada contra o motor, nao contra futebol
+
+  CRITERIO DE ACEITE:
+     - onTarget >=7,72
+     - acerto ao alvo 0,34-0,40
+     - goals +-0,20
+     - -111 linhas
+
+  DEPENDE DE: D01  <- faca esses ANTES
+
+  RISCO: ALTO para onTargetRate, que ja esta em 0,326. Varrer sigmaGraus com calibrar.py.
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/layers/55-cds-r1821-shot-plausibility.js:72
+
+       60 │         const g = tm && tm.oppGoal;
+       61 │         if (g) {
+       62 │           const gy = finite(g.y, FW / 2);
+       63 │           const dy = finite(target.y) - gy;
+       64 │           const amp = Math.abs(dy);
+       65 │           // Só age em chute que JÁ ia para fora. Quem ia para dentro não é tocado.
+       66 │           if (amp > POST) {
+       67 │             a.amplitudeAntesSoma += amp;
+       68 │             if (amp > a.amplitudeMaxAntes) a.amplitudeMaxAntes = amp;
+       69 │             // Reescala o excesso para a faixa plausível, preservando o lado e a
+       70 │             // ordem relativa do erro sorteado (erro maior continua maior).
+       71 │             const excesso = amp - POST;
+  >    72 │             const excessoMax = 6.5 - POST;           // pior caso observado no motor
+       73 │             const t = clamp(excesso / excessoMax, 0, 1);
+       74 │             const novoExcesso = ERRO_MIN + t * (ERRO_MAX - ERRO_MIN);
+       75 │             const novoAmp = POST + novoExcesso;
+       76 │             a.amplitudeDepoisSoma += novoAmp;
+       77 │             a.comprimidos++;
+       78 │             target = {
+       79 │               x: target.x,
+       80 │               y: clamp(gy + Math.sign(dy || 1) * novoAmp, 1, FW - 1)
+       81 │             };
+       82 │             if (Number.isFinite(target.z)) target.z = target.z;
+       83 │           }
+       84 │         }
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2020-2109
+──────────────────────────────────────────────────────────────────────────────
+  ## D13 🟠 Sorteio censurado nº 3 — o erro de chute, sorteado grande e comprimido
+  
+  **Endereços:** o erro nasce em `_shoot`/`_r1817FinishPlan`; o censor está em
+  `layers/55-cds-r1821-shot-plausibility.js:72`
+  
+  **Código atual — o censor:**
+  
+  ```js
+  /* Trave em 3,3-3,35 no motor. Um erro plausível de finalização passa perto: */
+  // ordem relativa do erro sorteado (erro maior continua maior).
+  const excessoMax = 6.5 - POST;           // pior caso observado no motor
+  ```
+  
+  **O defeito.** O motor sorteia um erro de pontaria que pode colocar a bola a
+  **6,5 metros** do centro do gol — um chute que, visto de fora, vai para a
+  arquibancada. A camada 55 existe para **comprimir a amplitude** desse erro,
+  preservando a ordem relativa (erro maior continua maior), de modo que a bola
+  "raspe" a trave em vez de sumir.
+  
+  É o mesmo padrão: o dado é sorteado errado e um censor conserta o resultado. E
+  o comentário, de novo, é a prova: *"pior caso observado no motor"* — a camada
+  foi calibrada **contra o comportamento do motor**, não contra futebol.
+  
+  **A evidência** [LIDO]. `POST` = 3,3 a 3,35 m; `excessoMax` = 6,5 − POST ≈
+  3,15 m de erro excedente sendo espremido a cada chute errado.
+  
+  ### ✅ CONFIRMADO — e o pior caso é o dobro do que o código supõe
+  
+  `tools/fisica/ramos.js`, 12 partidas, lendo o auditor da própria camada 55
+  [MEDIDO]:
+  
+  ```
+  chutes vistos                            23,42 por partida
+  chutes fora COMPRIMIDOS                  12,33 por partida     52,7%
+  
+  amplitude media ANTES da compressao       6,80 m
+  amplitude media DEPOIS                    4,57 m
+  amplitude MAXIMA observada antes         13,30 m
+  ```
+  
+  Dois números importam:
+  
+  1. **52,7% dos chutes têm o erro comprimido.** Não é um caso de borda: é a
+     maioria dos chutes errados do jogo.
+  2. **O pior caso medido é 13,30 m**, e a constante do código diz
+     `excessoMax = 6.5 - POST`, com o comentário *"pior caso observado no motor"*.
+     O pior caso real é **o dobro** do que o censor foi calibrado para conter.
+  
+  Uma bola a 13,3 m do centro do gol é uma bola na arquibancada. O censor a traz
+  para 4,57 m — dentro do plausível — mas o modelo de erro por trás continua
+  gerando disparates, e o censor cobre isso com uma constante desatualizada.
+  
+  **A mudança proposta.** Reescrever o modelo de erro **na origem**, como
+  dispersão angular, que é como pontaria funciona:
+  
+  ```js
+  /* na camada 88, junto de _os200Mira — o erro e ANGULAR, nao linear.
+     Um finalizador de 80 erra ~2,4 graus; um de 50, ~5,1 graus. A 16 m isso da
+     0,67 m e 1,43 m de desvio lateral — plausivel por construcao, sem censor. */
+  const sigmaGraus = lerp(5.4, 2.1, clamp(getAttr(o,'finalizacao')/100, 0, 1))
+                   * (1 + pressao * 0.45)
+                   * (1 + Math.max(0, dtg - 16) * 0.012);
+  const desvio = gaussiana() * sigmaGraus * Math.PI / 180;
+  ```
+  
+  Com dispersão angular, o erro **cresce com a distância automaticamente** — que
+  é justamente o que o censor da camada 55 estava tentando produzir à mão. Some a
+  camada 55 inteira (111 linhas).
+  
+  **Quem intercepta.** A camada 88 é **TERMINAL** para `_planPhysicalSegment` e
+  `_trajectoryPoint`, e é ela que define `_os200Mira`. Este é território seguro:
+  o dono é conhecido.
+  
+  **Risco.** Alto para `onTargetRate`. O acerto ao alvo hoje é 0,326, já abaixo
+  do mínimo de design (0,34) — ver D22. Trocar o modelo de erro mexe direto
+  nessa métrica. É obrigatório varrer `sigmaGraus` com `tools/fisica/calibrar.py`
+  antes de aceitar.
+  
+  **Critério de aceite:**
+  
+  | métrica | hoje | esperado |
+  |---|---|---|
+  | `onTarget` | 7,720 | ≥ 7,72 (pode subir) |
+  | acerto ao alvo | 0,326 | **0,34–0,40** |
+  | `goals` | 2,930 | ±0,20 |
+  | `porCimaDoTravessao` (sonda) | referência | ±2 SE |
+  | linhas | | **−111** |
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

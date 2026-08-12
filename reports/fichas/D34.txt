@@ -1,0 +1,75 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D34  Ate 81 sobrescritas nunca alcancadas — TETO SUPERIOR, nao contagem
+     severidade: estrutural   fase: F4   estado: aberto
+
+  DONO (quem realmente executa):
+     —
+
+  EVIDENCIA MEDIDA:
+     14 partidas nao exercitam penalti decisivo, expulsao dupla, prorrogacao nem metade da bola parada
+
+  CRITERIO DE ACEITE:
+     - rodar pilha.js com 300 partidas ANTES de apagar qualquer coisa
+     - <=15 em zero ao final
+
+  RISCO: ALTO se alguem apagar as 81 direto. O primeiro plano escreveu este numero como se fosse fato — era teto.
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+  (este defeito nao tem endereco unico — e distribuido)
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:3294-3334
+──────────────────────────────────────────────────────────────────────────────
+  ## D34 🔴 Até 81 sobrescritas nunca alcançadas
+  
+  **Endereço:** distribuído — a saída de `tools/fisica/pilha.js`
+  
+  **A evidência** [MEDIDO, 14 partidas]: aproximadamente **81 sobrescritas** com
+  contador zero.
+  
+  **O aviso que acompanha o número, e que é parte do achado:**
+  
+  > **81 é teto superior, não contagem de código morto.** Catorze partidas não
+  > exercitam pênalti decisivo, expulsão dupla, prorrogação, nem metade da
+  > máquina de bola parada. É viés de amostra.
+  
+  O primeiro plano desta série afirmou "87 sobrescritas mortas" como fato. Estava
+  errado em duas dimensões — o número e o status — e só foi corrigido porque
+  alguém perguntou "você tem certeza?".
+  
+  **A mudança proposta — em duas etapas, e a primeira é obrigatória:**
+  
+  **Etapa 1 · Aumentar a amostra até o número estabilizar.**
+  
+  ```bash
+  node tools/fisica/pilha.js dist/index.html 300
+  ```
+  
+  Depois, comparar 14, 50, 150 e 300 partidas. As sobrescritas que continuam em
+  zero com 300 partidas **e** com prorrogação forçada são candidatas de verdade.
+  Espero que o número caia bastante — muitas devem ser bola parada rara.
+  
+  **Etapa 2 · Para cada candidata, a mesma manobra de D14:** trocar o corpo por
+  um contador, rodar, e apagar só o que não disparar.
+  
+  **Risco.** Baixo se a etapa 1 for respeitada. **Alto se alguém apagar as 81
+  direto** — e o número no primeiro plano estava escrito de um jeito que
+  convidava a isso.
+  
+  **Critério de aceite:** ≤ 15 sobrescritas em zero com 300 partidas e
+  prorrogação; as 14 métricas idênticas ao dígito após cada remoção.
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

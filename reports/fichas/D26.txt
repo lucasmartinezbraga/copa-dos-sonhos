@@ -1,0 +1,167 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D26  decideT escrito em tres lugares e reescrito todo quadro pela camada 17
+     severidade: higiene   fase: F4   estado: aberto
+
+  DONO (quem realmente executa):
+     a camada 17 e a autoridade real. A mudanca tem de ser feita LA.
+  CAMADAS QUE INTERCEPTAM: 17
+     confirme com: node tools/fisica/pilha.js dist/index.html 14
+
+  EVIDENCIA MEDIDA:
+     a curva de sobrevivencia da posse tem um vale exatamente em 0,28 s — o relogio de decisao vazando para a estatistica
+
+  CRITERIO DE ACEITE:
+     - passes +-5,53
+     - shots +-0,84
+     - mediana de posse 0,9-1,3 s
+     - curva de sobrevivencia sem vale em 0,28
+
+  DEPENDE DE: D14  <- faca esses ANTES
+
+  RISCO: medio: mexe no ritmo de decisao
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/40-match-engine-and-manager-ai.js:491   (o documento dizia linha 503 — o codigo andou)
+
+      479 │       {
+      480 │       const ow = this.ball.owner;
+      481 │       const rit = ow ? clamp(this.teams[ow.team].fx.ritmo + 0.06, 0.95, 1.12) : 1;
+      482 │       const fat = ow ? 1 + (100 - ow.stamina) / 100 * 0.14 : 1;   // cansado decide mais devagar (§13)
+      483 │       // REAÇÃO POR QI (§craque): o craque LÊ a jogada antes e decide mais rápido —
+      484 │       // REAÇÃO POR QI (§craque): a referência é o jogador COMUM, que decide na
+      485 │       // velocidade padrão (1.0). O craque de leitura (INT alto) é o único que ganha
+      486 │       // bônus — pensa MAIS rápido ainda. Ninguém fica mais lento que o normal: o
+      487 │       // jogo mantém o ritmo, e o craque se destaca por cima. Xavi/Pirlo/Iniesta
+      488 │       // reagem antes; o mediano joga no tempo normal (não desacelera o jogo).
+      489 │       const iq = ow && ow.ref && ow.ref.a8 ? ow.ref.a8[5] : 70;
+      490 │       const iqReact = iq >= 80 ? clamp(1 - (iq - 80) / 100 * 1.1, 0.79, 1) : 1;
+  >   491 │       this.decideT = CAL.timing.decisionInterval * fat * iqReact / rit;
+      492 │     }
+      493 │       this._decide(this.ball.owner);
+      494 │     }
+      495 │     // MOMENTO DE LENDA (§dinâmica): aos 75'+, com o jogo empatado ou perdendo
+      496 │     // por 1, a lenda CLUTCH "chama a responsabilidade" — buff até o fim.
+      497 │     if (this.minute >= 75 && !this._legendFired) {
+      498 │       for (const tm of this.teams) {
+      499 │         const diff = this.score[tm.side] - this.score[1 - tm.side];
+      500 │         if (diff > 0 || diff < -1) continue;
+      501 │         const hero = tm.players.find(p => !p.red && p.ref && p.ref.legend &&
+      502 │           (p.ref.traits || []).includes('CLUTCH_PLAYER') && !p.isGK);
+      503 │         if (hero) {
+
+  src/scripts/40-match-engine-and-manager-ai.js:2434   (o documento dizia linha 2582 — o codigo andou)
+
+     2422 │       this.teams[oldPoss]._counterPressUntil=this.t+ADV4.pressing.counterPressWindow;
+     2423 │       this.teams[p.team]._transitionWonAt=this.t;
+     2424 │     }
+     2425 │     this.ball.owner=p;this.ball.traveling=false;this.ball.lastTouch=p;this.ball._looseT=0;
+     2426 │     this.poss=p.team;this.stats[p.team].poss++;
+     2427 │     if(switched)p.settle=Math.max(p.settle,CAL.possession.transitionProtection);
+     2428 │     /* §SONDA OS-98 · o OPERADOR, nao o valor.
+     2429 │        Medido: `decideT` ja esta NEGATIVO em 96,92% das recepcoes (mediana
+     2430 │        -0,802 s), entao `Math.min(-0,80 , 0,10)` = -0,80 e este teto nunca e
+     2431 │        aplicado — ele mudou algo em apenas 1,87% das 4162 recepcoes medidas.
+     2432 │        A OS-68 multiplicou o VALOR e mediu dominio identico; era inevitavel.
+     2433 │        Aqui a recepcao ATRIBUI o intervalo, e o receptor espera de verdade. */
+  >  2434 │     this.decideT=0.28;
+     2435 │   }
+     2436 │   _turnover(d) {
+     2437 │     if(!d){this._contestLoose();return;}
+     2438 │     const wonAgainst=this.poss;
+     2439 │     const heldFor=this.possT||0;
+     2440 │     const previousOwner=this.ball.owner;
+     2441 │     this._giveBall(d);
+     2442 │     d.settle=Math.max(d.settle,lerp(.34,.16,facet(d,'control')/100));
+     2443 │     // Recuperações por pressão são contabilizadas no duelo ativo de pressão,
+     2444 │     // não em qualquer troca de posse. Isso evita dupla contagem com desarmes comuns.
+     2445 │   }
+     2446 │ 
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2897-2968
+──────────────────────────────────────────────────────────────────────────────
+  ## D26 🟡 `decideT` é escrito em dois lugares e reescrito todo quadro
+  
+  **Endereços:** `40-…:503`, `40-…:761`, `40-…:2582`, e a camada 17
+  
+  **Código atual — três escritas no core:**
+  
+  ```js
+  /* :503 — no step, quando a decisao acontece */
+  this.decideT = CAL.timing.decisionInterval * fat * iqReact / rit;
+  
+  /* :761 — na distribuicao do goleiro */
+  if (_pn < 2.4) this.decideT = Math.min(this.decideT, 0.20);
+  
+  /* :2582 — em _giveBall, TODA recepcao */
+  this.decideT=0.28;
+  ```
+  
+  **O defeito.** Três escritas, com três políticas diferentes, e uma quarta
+  autoridade: **a camada 17 (`r13`) reescreve `decideT` todo quadro, e só para
+  baixo.** Foi isso que matou a primeira tentativa da OS-206 — editei `decideT`
+  no core e nada aconteceu, pela quinta vez.
+  
+  Note que `:503` respeita atributos (`iqReact`, `rit`) e `:2582` é um literal
+  que ignora tudo. **Um jogador de decisão 90 e um de 50 decidem no mesmo tempo
+  depois de receber a bola.**
+  
+  **A mudança proposta** — uma única autoridade, com um método:
+  
+  ```js
+  /* no core */
+  _agendarDecisao(p, motivo) {
+    const base = CAL.timing.decisionInterval;
+    const iq   = clamp(getAttr(p,'decisao')/70, .7, 1.35);
+    const fat  = this._fadigaDe(p);
+    const mult = { recepcao: 1.0, disputa: 0.72, saidaDeGol: 0.71, normal: 1.0 }[motivo] || 1;
+    this.decideT = base * mult * fat / iq;
+    if (CDS_DEBUG) this.__decideTrace.push({ motivo, valor: this.decideT, quem: p.ref.n });
+  }
+  ```
+  
+  E as três escritas viram `this._agendarDecisao(p, 'recepcao'|'saidaDeGol'|'normal')`.
+  A camada 17 passa a envolver `_agendarDecisao` em vez de escrever o campo.
+  
+  **Quem intercepta.** A camada 17 é a autoridade real hoje. **A mudança tem de
+  ser feita lá**, ou o core continuará sendo sobrescrito todo quadro. Confirmar
+  com `pilha.js`.
+  
+  **Risco.** Médio. Mexe no ritmo de decisão, que governa passes e chutes.
+  
+  **Critério de aceite:** `passes` ±5,53; `shots` ±0,84; mediana de posse do
+  portador entre 0,9 e 1,3 s (`tools/fisica/tela/olhar.js`).
+  
+  ### ✅ CONFIRMADO — a camada 17 reescreve quase todo quadro
+  
+  `tools/fisica/ramos.js`, 12 partidas [MEDIDO]:
+  
+  ```
+  mudancas de decideT observadas       35.195,25 por partida
+  das quais o literal exato 0,28           55,25 por partida
+  ```
+  
+  Trinta e cinco mil mudanças por partida confirmam ao pé da letra o que o
+  documento afirmava por leitura: **a camada 17 reescreve `decideT` praticamente
+  todo quadro.** As 55,25 ocorrências do literal `0.28` são as recepções — o
+  `_giveBall:2582`, que ignora atributos.
+  
+  É a confirmação de que editar `decideT` no motor não adianta, e a razão pela
+  qual o conserto tem de ser feito na camada 17. **Este é o único dos sete
+  defeitos formulados por leitura cuja descrição sobreviveu intacta à medição.**
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

@@ -1,0 +1,156 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D17  Promover para o core os metodos cuja camada e TERMINAL
+     severidade: higiene   fase: F5   estado: aberto
+
+  DONO (quem realmente executa):
+     camada 16 (_integrate), camada 17 (_defendTarget), camada 07 (os tres de fisica)
+  CAMADAS QUE INTERCEPTAM: 07, 08, 16, 17, 88
+     confirme com: node tools/fisica/pilha.js dist/index.html 14
+
+  EVIDENCIA MEDIDA:
+     _integrate e _defendTarget EXISTEM no core e estao mortos (camadas 16 e 17 sao TERMINAIS). CORRECAO v2: _planPhysicalSegment, _trajectoryPoint e _physicalTargetZ NUNCA existiram no core — nascem na camada 07 e sao substituidos pela 88. O codigo morto ali e da camada 07, nao do motor.
+
+  CRITERIO DE ACEITE:
+     - metricas identicas ao digito por promocao
+     - pilha.js mostra uma sobrescrita a menos
+
+  DEPENDE DE: D16  <- faca esses ANTES
+
+  RISCO: baixo em comportamento, alto em atrito. UM metodo por commit.
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/40-match-engine-and-manager-ai.js:3045   (o documento dizia linha 3193 — o codigo andou)
+
+     3033 │             const dd = D(p.x,p.y,q.x,q.y);
+     3034 │             if (dd < 5.5 && dd > 0.01) { sepx += (p.x-q.x)/dd * (5.5-dd); sepy += (p.y-q.y)/dd * (5.5-dd); }
+     3035 │           }
+     3036 │           const opp = this.teams[1 - tm.side];
+     3037 │           for (const q of opp.players) {                   // adversários: raio curto (marcação respira)
+     3038 │             if (q.red) continue;
+     3039 │             const dd = D(p.x,p.y,q.x,q.y);
+     3040 │             if (dd < 3.2 && dd > 0.01) { sepx += (p.x-q.x)/dd * (3.2-dd) * 0.9; sepy += (p.y-q.y)/dd * (3.2-dd) * 0.9; }
+     3041 │           }
+     3042 │           tx += sepx * 1.5; ty += sepy * 1.5;
+     3043 │         }
+     3044 │         tx = clamp(tx, 1, FL-1); ty = clamp(ty, 1, FW-1);
+  >  3045 │         this._integrate(p, tx, ty, dt, freeze);
+     3046 │       }
+     3047 │     }
+     3048 │     this._resolveOverlaps();
+     3049 │   }
+     3050 │ 
+     3051 │   // Resolução física de sobreposição (relatório §5.1): pares travados a <1.7m
+     3052 │   // são empurrados diretamente — exceto quem disputa a bola de fato.
+     3053 │   _resolveOverlaps() {
+     3054 │     const b = this.ball;
+     3055 │     const all = [];
+     3056 │     for (const tm of this.teams) for (const p of tm.players) if (!p.red && !p.isGK) all.push(p);
+     3057 │     for (let i = 0; i < all.length; i++) {
+
+  src/scripts/layers/07-cds-physics-timeline-581.js:33
+
+       21 │ function velocityAt(samples,i){const a=samples[Math.max(0,i-1)],b=samples[Math.min(samples.length-1,i+1)],dt=Math.max(.001,b.t-a.t);return{vx:(b.x-a.x)/dt,vy:(b.y-a.y)/dt,vz:(b.z-a.z)/dt};}
+       22 │ function segmentPoint(seg,t){const ss=seg.samples;if(!ss.length)return{x:seg.origin.x,y:seg.origin.y,z:seg.origin.z,vx:0,vy:0,vz:0};const u=clamp(t/Math.max(.001,seg.duration),0,1)*(ss.length-1),i=Math.floor(u),q=u-i,a=ss[i],b=ss[Math.min(ss.length-1,i+1)];return{x:lerp(a.x,b.x,q),y:lerp(a.y,b.y,q),z:lerp(a.z,b.z,q),vx:lerp(a.vx,b.vx,q),vy:lerp(a.vy,b.vy,q),vz:lerp(a.vz,b.vz,q)};}
+       23 │ function quality(a,type){if(!a)return .45;if(Number.isFinite(a._debugQuality))return clamp(a._debugQuality,0,1);if(type==='gk')return clamp((attr(a,'reflexos')*.34+attr(a,'agilidade')*.22+attr(a,'defesa')*.27+attr(a,'posicionamento')*.17)/100,.3,1);return clamp((attr(a,'antecipacao')*.35+attr(a,'agilidade')*.24+attr(a,'ritmo')*.23+attr(a,'posicionamento')*.18)/100,.3,1);}
+       24 │ function maxVerticalReach(a,available,type){const h=heightM(a),imp=attr(a,'impulsao')/100,agi=attr(a,'agilidade')/100,ready=clamp(available/(type==='gk'?.30:.42),0,1);if(type==='gk')return h*1.05+.24+(.16+.42*imp+.10*agi)*ready;return h*.91+(.10+.30*imp)*ready;}
+       25 │ function horizontalReach(a,available,type){const q=quality(a,type),vmax=type==='gk'?6.4+q*3.1:5.6+q*2.6,acc=type==='gk'?15+attr(a,'aceleracao')/100*14:14+attr(a,'aceleracao')/100*12,tV=vmax/acc,center=available<=0?0:(available<tV?.5*acc*available*available:.5*acc*tV*tV+vmax*(available-tV)),body=type==='gk'?1.18+heightM(a)*.22+q*.18:.62+heightM(a)*.13+q*.18;return{center,body,vmax,acc,total:center+body};}
+       26 │ 
+       27 │ const oldReset=P.reset;
+       28 │ P.reset=function(){const r=oldReset.apply(this,arguments);root.__CDS_PHYSICS_SESSION_SEQ__=(root.__CDS_PHYSICS_SESSION_SEQ__||0)+1;this._physicsSession='sim'+root.__CDS_PHYSICS_SESSION_SEQ__;this.physicsTimeline=[];this.physicsGallery=[];this._physicsActive=null;this._physicsSeq=0;this._physicsSegmentSeq=0;this._physicsP06Executed=false;this.physicsVersion=VER;this.visualIntegrity=this.visualIntegrity||{};Object.assign(this.visualIntegrity,{verticalFailures:0,contactEvents3D:0,timelineEvents:0,timelineFaults:0,presentationFaults:0,presentationEvents:0,replayFrames:0});return r;};
+       29 │ P.__CDS_PHYSICS_581__=true;
+       30 │ 
+       31 │ P._physicalTargetZ=function(actor,target,kind,passKind,meta){if(target&&Number.isFinite(target.z))return clamp(target.z,0,3.4);if(meta&&Number.isFinite(meta.targetZ))return clamp(meta.targetZ,0,3.4);if(kind==='shot'){const id=actorId(actor)||0,n=noise(id,Math.floor((this.minute||0)*8),Math.round((target&&target.y||0)*10));return clamp(.18+n*1.58,.16,1.78);}if(passKind==='launch')return .55;if(passKind==='through')return .10;return .05;};
+       32 │ P._physicalArc=function(kind,passKind,origin,target,targetZ,meta){if(meta&&Number.isFinite(meta.arc))return meta.arc;if(kind==='shot')return .34+Math.min(1.0,dist(origin.x,origin.y,target.x,target.y)/70);if(passKind==='launch')return 3.0;if(passKind==='through')return .20;return .06;};
+  >    33 │ P._planPhysicalSegment=function(origin,target,kind,passKind,speed,meta){const ox=finite(origin&&origin.x),oy=finite(origin&&origin.y),oz=finite(origin&&origin.z,.1),tx=finite(target&&target.x,ox),ty=finite(target&&target.y,oy),safeOrigin={x:ox,y:oy,z:oz},safeTarget={x:tx,y:ty,z:target&&target.z},d=Math.max(.01,dist(ox,oy,tx,ty)),v=Math.max(8,finite(speed,28)),dur=Math.max(1/120,d/v),targetZ=this._physicalTargetZ(meta&&meta.actor?meta.actor:(this.ball&&this.ball.lastTouch),safeTarget,kind,passKind,meta),arc=this._physicalArc(kind,passKind,safeOrigin,safeTarget,targetZ,meta),n=Math.max(8,Math.min(420,Math.ceil(dur*120))),raw=[];for(let i=0;i<=n;i++){const p=i/n,t=dur*p,x=lerp(ox,tx,p),y=lerp(oy,ty,p),z=Math.max(0,lerp(oz,targetZ,p)+4*arc*p*(1-p));raw.push({t,x,y,z});}const samples=raw.map((q,i)=>Object.assign({},q,velocityAt(raw,i)));return deepFreeze({id:'seg_'+(++this._physicsSegmentSeq),kind,passKind:passKind||kind,duration:dur,origin:safeOrigin,target:{x:tx,y:ty,z:targetZ},arc,speed:v,samples});};
+       34 │ P._trajectoryPoint=function(origin,target,speed,p,kind,passKind,targetZ,arc){const d=Math.max(.01,dist(origin.x,origin.y,target.x,target.y)),dur=d/Math.max(8,speed||28),q=clamp(p,0,1),a=Number.isFinite(arc)?arc:this._physicalArc(kind,passKind,origin,target,targetZ,{});return{x:lerp(origin.x,target.x,q),y:lerp(origin.y,target.y,q),z:Math.max(0,lerp(origin.z||0,targetZ||0,q)+4*a*q*(1-q)),t:dur*q,duration:dur};};
+       35 │ 
+       36 │ P._gkInterceptTarget=function(gk,sx,sy,goalTarget,shotSpeed,contactRadius){if(!gk||!goalTarget)return null;const origin={x:Number.isFinite(this.ball&&this.ball.x)?this.ball.x:sx,y:Number.isFinite(this.ball&&this.ball.y)?this.ball.y:sy,z:Number.isFinite(this.ball&&this.ball.z)?this.ball.z:0.12},speed=Math.max(16,shotSpeed||40),targetZ=this._physicalTargetZ(this.ball&&this.ball.owner||this.ball&&this.ball.lastTouch,goalTarget,'shot','shot',{}),arc=this._physicalArc('shot','shot',origin,goalTarget,targetZ,{}),reaction=.095+(1-quality(gk,'gk'))*.205,radius=contactRadius==null?1.9:contactRadius;let best=null;for(let i=5;i<=118;i++){const p=i/120,pt=this._trajectoryPoint(origin,goalTarget,speed,p,'shot','shot',targetZ,arc),available=Math.max(0,pt.t-reaction),hr=horizontalReach(gk,available,'gk'),required=Math.max(0,dist(gk.x,gk.y,pt.x,pt.y)-radius),maxZ=maxVerticalReach(gk,available,'gk'),hMargin=hr.center-required,vMargin=maxZ-pt.z;if(hMargin<-.025||vMargin<-.025)continue;const projection=Math.abs(p-clamp(((gk.x-origin.x)*(goalTarget.x-origin.x)+(gk.y-origin.y)*(goalTarget.y-origin.y))/Math.max(.001,(goalTarget.x-origin.x)**2+(goalTarget.y-origin.y)**2),.05,.99)),score=projection-Math.min(.12,Math.max(0,hMargin)*.015)-Math.min(.06,Math.max(0,vMargin)*.012);if(!best||score<best.score)best={x:pt.x,y:pt.y,z:pt.z,t:p,ballTime:pt.t,margin:hMargin,verticalMargin:vMargin,score,contactRadius:radius,reaction,moveSpeed:hr.vmax,acceleration:hr.acc,maxZ,targetZ,arc};}return best;};
+       37 │ P._actorInterceptTarget=function(actor,sx,sy,target,ballSpeed,contactRadius,kind,passKind){if(!actor||!target)return null;const type=actor.isGK?'gk':'field',origin={x:sx,y:sy,z:Number.isFinite(this.ball&&this.ball.z)?this.ball.z:.08},speed=Math.max(8,ballSpeed||24),k=kind||'pass',pk=passKind||k,targetZ=this._physicalTargetZ(this.ball&&this.ball.owner||this.ball&&this.ball.lastTouch,target,k,pk,{}),arc=this._physicalArc(k,pk,origin,target,targetZ,{}),reaction=type==='gk'?(.10+(1-quality(actor,'gk'))*.20):(.045+(1-quality(actor,'field'))*.12),radius=contactRadius==null?(type==='gk'?1.75:1.18):contactRadius;let best=null;for(let i=6;i<=114;i++){const p=i/120,pt=this._trajectoryPoint(origin,target,speed,p,k,pk,targetZ,arc),available=Math.max(0,pt.t-reaction),hr=horizontalReach(actor,available,type==='gk'?'gk':'field'),required=Math.max(0,dist(actor.x,actor.y,pt.x,pt.y)-radius),maxZ=maxVerticalReach(actor,available,type==='gk'?'gk':'field'),hMargin=hr.center-required,vMargin=maxZ-pt.z;if(hMargin<-.025||vMargin<-.025)continue;const score=p-Math.min(.08,Math.max(0,hMargin)*.01);if(!best||score<best.score)best={x:pt.x,y:pt.y,z:pt.z,t:p,ballTime:pt.t,margin:hMargin,verticalMargin:vMargin,score,contactRadius:radius,reaction,moveSpeed:hr.vmax,acceleration:hr.acc,maxZ,targetZ,arc};}return best;};
+       38 │ P._physicalContactValid=function(actor,radius,z){if(!actor)return{ok:false,horizontal:Infinity,z:finite(z),maxZ:0,surface:'none'};const horizontal=dist(actor.x,actor.y,this.ball.x,this.ball.y),available=Math.max(0,(this.ball&&this.ball.travelT||0)-(.04)),maxZ=maxVerticalReach(actor,available,actor.isGK?'gk':'field'),zz=Math.max(0,Number.isFinite(z)?z:finite(this.ball&&this.ball.z)),ok=horizontal<=radius+.04&&zz<=maxZ+.03;return{ok,horizontal,z:zz,maxZ,surface:surfaceFor(actor,zz,this.ball&&this.ball.meta&&this.ball.meta.outcome)};};
+       39 │ P._physicalBlockPoint=function(shooter,goal,defender,minT,maxT){if(!shooter||!goal||!defender)return null;const speed=34+attr(shooter,'finalizacao')/100*16,sx=this.ball&&this.ball.owner===shooter?this.ball.x:shooter.x,sy=this.ball&&this.ball.owner===shooter?this.ball.y:shooter.y,hit=this._actorInterceptTarget(defender,sx,sy,goal,speed,2.05,'shot','shot');if(!hit)return null;return hit.t>=(minT==null?.08:minT)&&hit.t<=(maxT==null?.88:maxT)?hit:null;};
+       40 │ P._actorReachable=function(actor,sx,sy,target,ballSpeed){return !!this._actorInterceptTarget(actor,sx,sy,target,ballSpeed,actor&&actor.isGK?1.9:1.25,target&&target.kind||'pass',target&&target.passKind||'short');};
+       41 │ 
+       42 │ function captureTimelineFrame(sim,ev,force){
+       43 │   if(!sim||!ev)return;
+       44 │   const offset=Math.max(0,finite(sim.t)-finite(ev.startTime)),last=ev.visualFrames&&ev.visualFrames[ev.visualFrames.length-1];
+       45 │   if(!force&&last&&offset-last.offset<1/30)return;
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2314-2376
+──────────────────────────────────────────────────────────────────────────────
+  ## D17 🟡 Promover quem já é dono do método
+  
+  **Endereços:** `_integrate` (camada 16), `_defendTarget` (camada 17),
+  `_planPhysicalSegment` / `_trajectoryPoint` / `_physicalTargetZ` (camada 88),
+  `_looseBall` (camada 08)
+  
+  **O defeito.** Onde a camada é **TERMINAL**, a versão do core é código morto que
+  **parece vivo**. É a causa direta de três das cinco rodadas perdidas da seção
+  2.5.
+  
+  Os casos confirmados [MEDIDO com `pilha.js`]:
+  
+  | método | dono real | a versão morta está... |
+  |---|---|---|
+  | `_integrate` | camada 16 (`r12`), TERMINAL | **no core** |
+  | `_defendTarget` | camada 17 (`r13`) responde por todos os ramos | **no core** — o ramo `if (p === presser)` nunca roda |
+  | `_looseBall` (caso vivo) | camada 08 (`p04`) | **no core** |
+  | `_planPhysicalSegment` | camada 88 (`os200`) | **na camada 07** — ver correção abaixo |
+  | `_trajectoryPoint` | camada 88 | **na camada 07** |
+  | `_physicalTargetZ` | camada 88 | **na camada 07** |
+  
+  > ### ⚠ Correção — v2 deste documento
+  >
+  > A primeira versão desta tabela afirmava que os três métodos de física tinham
+  > uma **versão morta no core**. **Está errado: eles nunca existiram no core.**
+  > `grep -c "_planPhysicalSegment\|_trajectoryPoint\|_physicalTargetZ"` em
+  > `40-match-engine-and-manager-ai.js` retorna **0**. Eles nascem na camada 07
+  > (`physics-timeline`) e são substituídos pelas camadas 20, 77 e 88.
+  >
+  > O código morto existe, mas mora **na camada 07**, não no motor. A promoção
+  > continua valendo — muda o arquivo de origem, não a ação.
+  >
+  > **Como o erro apareceu:** a validação de âncoras de `tools/defeitos.py` exige
+  > que cada endereço do catálogo aponte para um trecho literal que existe
+  > exatamente uma vez no arquivo declarado. A âncora `_physicalTargetZ` no motor
+  > não casou com nada, e o script falhou. É exatamente para isso que ele existe.
+  
+  **A mudança proposta.** Mover a implementação da camada dona para o arquivo que
+  deveria abrigá-la e apagar a versão morta. O jogo fica idêntico e o código passa
+  a dizer a verdade sobre si mesmo.
+  
+  **Ordem sugerida**, do mais seguro ao menos:
+  
+  1. `_physicalTargetZ`, `_trajectoryPoint`, `_planPhysicalSegment` — consolidar
+     na camada 88 e apagar as versões da 07. A mais segura: a 88 é a mais nova e
+     a melhor documentada, e nada disso toca o motor.
+  2. `_defendTarget` (camada 17 → core) — cuidado: **nove** camadas sobrescrevem
+     este método; a 17 é terminal, mas 89 (`os202`) roda por fora dela.
+  3. `_integrate` (camada 16 → core) — só depois de D16.
+  4. `_looseBall` (camada 08 → core) — só depois de D12.
+  
+  **Risco.** Baixo em comportamento, alto em atrito de merge: são movimentos
+  grandes de código. Fazer **um por commit**, com as 14 métricas idênticas ao
+  dígito em cada um.
+  
+  **Critério de aceite:** métricas idênticas; `pilha.js` mostra uma sobrescrita a
+  menos por promoção.
+  
+  **Por que fazer.** Acaba com a classe de erro que me pegou cinco vezes. É o
+  item com melhor relação entre risco e dor evitada de todo o documento.
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois --identico
+

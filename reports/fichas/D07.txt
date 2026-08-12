@@ -1,0 +1,116 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D07  _bestPass tinha 25+ termos e nenhum era a linha de impedimento
+     severidade: futebol   fase: —   estado: feito
+
+  DONO (quem realmente executa):
+     core
+  CAMADAS QUE INTERCEPTAM: 24
+     confirme com: node tools/fisica/pilha.js dist/index.html 14
+
+  EVIDENCIA MEDIDA:
+     impedimentos 10,03 -> 5,11 por partida
+
+  CRITERIO DE ACEITE:
+     - feito
+
+  RISCO: removeu um freio: +0,42 gol, que expos D06
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/40-match-engine-and-manager-ai.js:1325   (o documento dizia linha 1379 — o codigo andou)
+
+     1313 │        impedimento com probabilidade travada em 0,97, e `_offsideLine()` já
+     1314 │        existia e estava correto, mas era consultado apenas pela MOVIMENTAÇÃO
+     1315 │        (`_attackTarget`, e as camadas 36/43/60). Nesta função, que escolhe o
+     1316 │        passe com 25 termos, a linha não entrava em nenhum deles: o portador
+     1317 │        jogava a bola no companheiro impedido e o juiz marcava depois.
+     1318 │ 
+     1319 │        No futebol real o mecanismo dominante é o inverso — o passe não sai. É
+     1320 │        isso que este termo acrescenta. Ele não impede o impedimento: encarece.
+     1321 │        Erro de leitura continua existindo, e continua sendo mais comum em quem
+     1322 │        lê pior o jogo.
+     1323 │ 
+     1324 │        Calculado UMA vez por decisão: dentro do laço seria O(n²). */
+  >  1325 │     const linhaImped = this._offsideLine(o.team);
+     1326 │     /* quem lê melhor o jogo evita mais — visão e decisão, os mesmos atributos
+     1327 │        que o resto de `_bestPass` já usa */
+     1328 │     const leituraLinha = clamp((vis * 0.5 + getAttr(o, 'decisao') * 0.5) / 100, 0.30, 1);
+     1329 │     for (const m of mates) {
+     1330 │       const dist = D(o.x, o.y, m.x, m.y);
+     1331 │       if (dist < 3.5 || dist > 62) continue;
+     1332 │       // PERCEPÇÃO (§3): opções distantes só existem para quem enxerga o jogo
+     1333 │       // Percepção previsível: visão define o alcance reconhecido; a incerteza fica
+     1334 │       // na execução do passe, não no desaparecimento aleatório de uma mesma opção.
+     1335 │       if (dist > 30 && vis < clamp(54 + (dist - 30) * 1.15, 54, 90)) continue;
+     1336 │       const progressM = dir > 0 ? (m.x - o.x) : (o.x - m.x);
+     1337 │       const progN = progressM / FL;
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:1449-1502
+──────────────────────────────────────────────────────────────────────────────
+  ## D07 🟠 ✅ O passador não enxergava a linha de impedimento
+  
+  **Endereço:** `src/scripts/40-match-engine-and-manager-ai.js:1379` (`_bestPass`)
+  **Estado: CONSERTADO.** Melhor retorno por linha do projeto.
+  
+  **O defeito.** Três fatos que só fazem sentido juntos:
+  
+  - `_pass` marcava impedimento com probabilidade **travada em 0,97**;
+  - `_offsideLine()` existia e estava correto;
+  - **`_bestPass` tinha 25+ termos de pontuação e nenhum era a linha de
+    impedimento.**
+  
+  `_offsideLine` só era consultado em **movimentação** (`_attackTarget:3466` e as
+  camadas 36, 43, 60). O portador jogava a bola no companheiro impedido e o juiz
+  marcava. No futebol real o mecanismo dominante é o inverso: **o passe não sai.**
+  
+  **A evidência** [MEDIDO]: 10,03 impedimentos por partida, contra 2,5–6 do
+  futebol de elite.
+  
+  **O conserto** — um termo em `_bestPass`:
+  
+  ```js
+  const linhaImped = this._offsideLine(o.team);
+  const leituraLinha = clamp((vis * 0.5 + getAttr(o, 'decisao') * 0.5) / 100, 0.30, 1);
+  
+  /* dentro do laco de candidatos, depois de progN: */
+  let penaImped = 0;
+  if (progressM > 2) {
+    const margem = (dir > 0 ? m.x : FL - m.x) - linhaImped;
+    if (margem > -1.2) penaImped = clamp(0.85 + margem * 0.62, 0, 3.1) * (0.55 + leituraLinha * 0.85);
+  }
+  /* e no score final: */
+  - penaImped;
+  ```
+  
+  Note `leituraLinha`: o passador **lê** a linha com qualidade proporcional a
+  visão e decisão. Um jogador de 60 continua entregando passes impedidos; um de
+  90 quase não entrega. É o atributo virando futebol.
+  
+  **O resultado** [MEDIDO]: **10,03 → 5,11 impedimentos por partida.** Dentro da
+  faixa real.
+  
+  **O efeito colateral, quantificado antes de acontecer:** 4,9 impedimentos a
+  menos × ~8,5% de conversão = **+0,42 gol por partida**. A conversão estava
+  calibrada contra um jogo que matava 10 ataques por partida no apito do juiz.
+  Foi exatamente esse excesso que expôs D06 — os dois consertos são
+  encadeados, e o segundo só foi possível porque o primeiro tirou um freio
+  artificial.
+  
+  > Quando um conserto remove um freio, **o que estava atrás dele aparece.** Meça
+  > as duas coisas na mesma rodada.
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

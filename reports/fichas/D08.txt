@@ -1,0 +1,233 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D08  Laterais pela metade — a direcao do desvio e sempre para dentro
+     severidade: futebol   fase: F2   estado: aberto
+
+  DONO (quem realmente executa):
+     pontos de chamada no motor, com clamp(...,2,FL-2)
+  CAMADAS QUE INTERCEPTAM: 45, 47, 49
+     confirme com: node tools/fisica/pilha.js dist/index.html 14
+
+  EVIDENCIA MEDIDA:
+     85,8% dos alvos a mais de 8 m da lateral; 16,8 alvos/partida mirados para fora ~ 15,9 laterais medidos. CORRECAO apos D03: dos 5 pontos de chamada que este defeito listava, UM estava dentro do ramo morto de _cross e sumiu com a limpeza. O clamp sobrevivente no motor e o do alivio na barreira; os demais estao nas camadas. Recontar antes de atacar D08.
+
+  CRITERIO DE ACEITE:
+     - throwIns 15,91 -> 30-45
+     - corners >=10,68
+     - passes >=379,7
+     - goals +-0,20
+     - futebol real >=16/21
+
+  DEPENDE DE: D01, D02, D12  <- faca esses ANTES
+
+  RISCO: ALTO. Tetos: throwIns<=48. Camada nova precisa ficar ABAIXO de 45/47/49 no manifesto.
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/40-match-engine-and-manager-ai.js:2639   (o documento dizia linha 2622 — o codigo andou)
+
+     2627 │       const wallHit=wall?this._actorInterceptTarget(wall,this.ball.x,this.ball.y,wp,30,2.05,'shot','shot'):null;
+     2628 │       if(wall&&wallHit){
+     2629 │         this._startTravel(taker,wallHit,'shot',()=>{
+     2630 │           const _cv=this._physicalContactValid(wall,2.05,this.ball.z),d=_cv.horizontal;
+     2631 │           if(!_cv.ok){
+     2632 │             if(this.visualIntegrity)this.visualIntegrity.failedContacts++;
+     2633 │             this._emit('visual_contact_failed',{kind:'wall',by:wall,distance:d});
+     2634 │             this._continueTravel({x:tmA.oppGoal.x+tmA.attackDir*2,y:tmA.oppGoal.y+R(5,9)*(chance(.5)?1:-1)},'shot',()=>{this._emit('miss',{by:taker,reason:'wall_did_not_reach'});this._goalKickOrRestart(1-team);},{outcome:'miss'},28);
+     2635 │             return;
+     2636 │           }
+     2637 │           this._recordVisualContact('wall_block',wall,this.ball.x,this.ball.y,{distance:d,z:this.ball.z,maxZ:_cv.maxZ,surface:_cv.surface});
+     2638 │           this._emit('blocked',{by:wall,kind:'wall',contact:{x:this.ball.x,y:this.ball.y,distance:d}});
+  >  2639 │           this._deflectTo(clamp(this.ball.x-tmA.attackDir*R(1,5),2,FL-2),clamp(this.ball.y+R(-6,6),2,FW-2),12);
+     2640 │         },null,'shot',{outcome:'block',actor:wall,contactRadius:2.05,targetZ:wallHit.z,interceptT:wallHit.t});
+     2641 │       } else this._startTravel(taker,{x:tmA.oppGoal.x+tmA.attackDir*2,y:tmA.oppGoal.y+R(5,9)*(chance(.5)?1:-1)},'shot',()=>{this._emit('miss',{by:taker,reason:'no_physical_wall'});this._goalKickOrRestart(1-team);},null,'shot',{outcome:'miss'});
+     2642 │     }
+     2643 │     else this._startTravel(taker,{x:tmA.oppGoal.x+tmA.attackDir*2,y:tmA.oppGoal.y+R(5,10)*(chance(.5)?1:-1)},'shot',()=>{this._emit('miss',{by:taker});this._goalKickOrRestart(1-team);},null,'shot',{outcome:'miss'});
+     2644 │     };
+     2645 │     this.dead = Math.max(Number(this.dead) || 0, .9);
+     2646 │     /* §OS-87 · a marca do cobrador morre com o lance: se sobrevivesse, a
+     2647 │        camada de caminhada elegeria o mesmo jogador na proxima bola parada. */
+     2648 │     const _os87Bater = () => { try { taker._setPieceRole = null; taker.__os87Spot = null; } catch (_) {} return _os36Bater(); };
+     2649 │     this.pendingRestart = _os87Bater;
+     2650 │   }
+     2651 │ 
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:1503-1667
+──────────────────────────────────────────────────────────────────────────────
+  ## D08 🟠 O defeito mais distante do futebol: os laterais pela metade
+  
+  **Endereços:** todos os pontos de chamada de `_deflectTo` no motor —
+  `:1240`, `:1676`, `:2152`, `:2293`, `:2787` — mais `45-…:135-148`
+  
+  **A medição que define o defeito** [MEDIDO, 300 partidas]:
+  
+  ```
+  laterais (throwIns)     15,910 por partida      futebol de elite  33–48
+  ```
+  
+  É a métrica mais distante da faixa real do painel inteiro, e ela **resistiu a
+  duas tentativas de conserto por caminhos diferentes** (Volume VII).
+  
+  ### O que já foi eliminado
+  
+  **Não é o arremesso.** A métrica `throwIns` é incrementada pela camada `r13` em
+  **toda saída pela linha lateral**, arremessada ou não. Fazer o arremesso
+  acontecer de verdade não move o contador — e a tentativa A3 provou isso
+  movendo-o **para pior** (15,82 → 13,13, d/SE = −3,83).
+  
+  **Não é resgate de bola fora.** A bola sai mesmo; o desvio físico rola em
+  direção ao ponto e `_looseRoll` chama `_ballOut` ao cruzar. A tentativa A4
+  editou o resgate e não moveu 0,15 SE em nenhuma métrica.
+  
+  ### O que sobrou, agora medido [MEDIDO, 40 partidas, `tools/fisica/direcao.js`]
+  
+  A sonda registra, para cada chamada de `_deflectTo` e `_looseBall`, a distância
+  do **alvo pedido** até a linha mais próxima:
+  
+  ```
+  chamadas por partida        _deflectTo 57,05   _looseBall 93,35   total 150,40
+  distancia media do alvo ate a LATERAL   21,59 m
+  distancia media do alvo ate o FUNDO     30,17 m
+  
+  HISTOGRAMA — distancia do alvo ate a linha LATERAL (6.016 chamadas)
+    ja fora (<= 0)            673   11,2%  ############
+    <= 1,15 m                  10    0,2%  #
+    <= 2,05 m                  13    0,2%  #
+    <= 4 m                     31    0,5%  #
+    <= 8 m                    125    2,1%  ##
+    > 8 m                   5.164   85,8%  ##################################################
+  ```
+  
+  **Oitenta e cinco vírgula oito por cento dos alvos estão a mais de 8 metros da
+  linha lateral.** O campo tem 68 m de largura; a distância média do alvo até a
+  lateral mais próxima é 21,59 m, ou seja **63,5% da meia-largura** — quando o
+  acaso puro daria 50%. Os alvos são sistematicamente empurrados para o miolo.
+  
+  E o fecho da conta:
+  
+  ```
+  alvos ja mirados para fora pela lateral    673 / 40 partidas = 16,8 por partida
+  laterais efetivamente contabilizados                          15,5–15,9 por partida
+  ```
+  
+  > **Quase todo alvo mirado para fora vira lateral, e quase nenhum lateral nasce
+  > de outra coisa.** O número de laterais do jogo é, com boa aproximação, o
+  > número de vezes que alguém mira a bola para fora. Não é um problema de
+  > resgate, de física ou de contagem: **é um problema de direção.**
+  
+  ### Por que a direção é sempre para dentro
+  
+  Praticamente todo ponto de chamada de `_deflectTo` grampeia o alvo dentro do
+  campo:
+  
+  ```js
+  /* _cross:1240 — corte de cabeca */
+  else this._deflectTo(clamp(this.ball.x-hdDir*R(2,6),2,FL-2),
+                       clamp(this.ball.y+R(-5,5),2,FW-2),10);
+  
+  /* _freeKick:2787 — alivio na barreira */
+  this._deflectTo(clamp(this.ball.x-tmA.attackDir*R(1,5),2,FL-2),
+                  clamp(this.ball.y+R(-6,6),2,FW-2),12);
+  ```
+  
+  `clamp(..., 2, FW-2)` diz, literalmente: *este desvio nunca sai do campo*.
+  
+  **No futebol real, mandar a bola para a lateral é uma jogada deliberada e
+  frequente.** Tirar a bola da zona de perigo vale mais do que mantê-la em jogo.
+  O modelo atual não oferece essa opção ao defensor.
+  
+  ### O que a camada 45 tenta fazer, e por que quase não alcança
+  
+  `45-cds-r18181-second-phase-natural-out.js:135` já tem a máquina certa:
+  
+  ```js
+  function naturalTarget(sim,x,y,kind){
+   /* ... */
+   if(inside&&by<=8.2&&ty<=1.15&&dy<-.05){ny=-.85;edge='touchline_top';}
+   else if(inside&&by>=FW-8.2&&ty>=FW-1.15&&dy>.05){ny=FW+.85;edge='touchline_bottom';}
+   if(!edge&&inside&&bx<=13.5&&tx<=1.15&&dx<-.05){nx=-.85;edge='endline_left';}
+   else if(!edge&&inside&&bx>=FL-13.5&&tx>=FL-1.15&&dx>.05){nx=FL+.85;edge='endline_right';}
+  ```
+  
+  O portão exige que o alvo **já esteja a menos de 1,15 m da linha**. Medido,
+  apenas **0,2% dos alvos** chegam lá. A máquina existe e está correta; **o
+  combustível não chega até ela.**
+  
+  Medido na auditoria da própria camada: `naturalOutDeflections` = 11,75 por
+  partida — a maioria vinda de alvos que a camada 47 já havia empurrado para
+  fora, não dos pontos de chamada do motor.
+  
+  ### A mudança proposta
+  
+  Não é uma linha. É **um modelo de decisão**: dar ao defensor a opção de mandar
+  a bola para fora, com custo e benefício.
+  
+  ```js
+  /* NOVA CAMADA 91 · o alivio pode sair pela lateral.
+     Onde entra: envolve _deflectTo, ANTES da camada 45, para que naturalTarget
+     receba um alvo que ja aponta para fora e faca o resto do trabalho. */
+  const oldDeflect91 = P._deflectTo;
+  P._deflectTo = function (x, y, spd) {
+    const b = this.ball;
+    const perigo = this._zonaDePerigo(b.x, b.y);          // 0..1: perto da propria meta
+    const bordaY = Math.min(b.y, FW - b.y);
+    /* So considera sair quando a bola JA esta perto da linha e o lance e de
+       alivio — nunca em construcao. */
+    if (perigo > 0.55 && bordaY < 14 && b.meta && b.meta.outcome === 'deflect') {
+      const quem = this._ultimoDefensor && this._ultimoDefensor();
+      const criterio = quem ? clamp(getAttr(quem,'decisao')/100, .3, 1) : .5;
+      /* quanto mais perigo e menos qualidade, mais provavel jogar fora */
+      const pFora = clamp(perigo * (1.25 - criterio * .55), 0, .62);
+      if (chance(pFora)) {
+        const ty = b.y < FW/2 ? -0.9 : FW + 0.9;
+        return oldDeflect91.call(this, clamp(x, 2, FL-2), ty, spd);
+      }
+    }
+    return oldDeflect91.call(this, x, y, spd);
+  };
+  ```
+  
+  **Quem intercepta.** A camada nova precisa ficar **abaixo** de 45, 47 e 49 na
+  ordem do manifesto — ou seja, com número menor — para que `naturalTarget`
+  continue sendo quem converte o alvo em saída registrada. Se ficar acima, ela
+  mesma terá de fazer o registro, e o contador `throwIns` da `r13` pode não ser
+  alimentado.
+  
+  **Risco.** Alto e conhecido. As três coisas que podem dar errado, todas com
+  sonda:
+  
+  1. **Laterais demais** — se `pFora` for generoso, o jogo vira arremesso. Teto:
+     `throwIns ≤ 48`.
+  2. **Menos escanteios** — bola que sai pela lateral não sai pelo fundo.
+     `corners` não pode cair mais de 2 SE (0,50).
+  3. **Menos futebol** — cada lateral é bola parada, e bola parada consome tempo.
+     `passes` não pode cair mais de 2 SE (5,53).
+  
+  **Critério de aceite:**
+  
+  | métrica | hoje | alvo |
+  |---|---|---|
+  | `throwIns` | 15,910 | **30–45** |
+  | `corners` | 11,183 | ≥ 10,68 |
+  | `passes` | 385,257 | ≥ 379,7 |
+  | `goals` | 2,930 | ±0,20 |
+  | placar do futebol real | 15/21 | **≥ 16/21** |
+  
+  **Ordem obrigatória:** D01 antes de D08. Enquanto o desvio não tiver física
+  real, um alívio mirado para a lateral vai voar com g = 20 m/s² e o jogador vai
+  ver a bola cair como uma pedra.
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

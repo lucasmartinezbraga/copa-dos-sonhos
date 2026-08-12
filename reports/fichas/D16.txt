@@ -1,0 +1,194 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D16  Quatro camadas falsificam _breaking/_markRef porque falta parametro de esforco
+     severidade: higiene   fase: F5   estado: aberto
+
+  DONO (quem realmente executa):
+     ATENCAO: a camada 16 e TERMINAL para _integrate. O parametro tem de ser adicionado LA, nao no core.
+  CAMADAS QUE INTERCEPTAM: 16, 17, 23, 24, 71
+     confirme com: node tools/fisica/pilha.js dist/index.html 14
+
+  EVIDENCIA MEDIDA:
+     _breaking e lido em _cross para montar lowPool — a elegibilidade para receber cruzamento depende de um campo que outras camadas mentem
+
+  CRITERIO DE ACEITE:
+     - comprimento do bloco com bola +-1,5 m
+     - largura +-2 m
+     - tackles +-1,07
+     - leituras falsas de _breaking: 0
+
+  DEPENDE DE: D14  <- faca esses ANTES
+
+  RISCO: medio-alto: mexe em movimentacao. Rodar forma.js antes e depois.
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/layers/71-cds-os51-beaten-defender.js:21   (o documento dizia linha 23 — o codigo andou)
+
+        9 │ var oldEmit=P._emit;
+       10 │ P._emit=function(type,data){
+       11 │   var r=oldEmit.apply(this,arguments);
+       12 │   try{
+       13 │     if(type==='dribble'&&data&&data.ok&&data.on&&!data.on.isGK&&!data.on.red){
+       14 │       data.on.__os51Ate=(Number(this.t)||0)+JANELA;
+       15 │       dbg.driblados++;
+       16 │     }
+       17 │   }catch(_){}
+       18 │   return r;
+       19 │ };
+       20 │ 
+  >    21 │ var oldInt=P._integrate;
+       22 │ if(typeof oldInt==='function'){
+       23 │   P._integrate=function(p,tx,ty,dt,freeze){
+       24 │     try{
+       25 │       if(p&&!p.isGK&&p.__os51Ate&&(Number(this.t)||0)<p.__os51Ate){
+       26 │         /* recuperacao: o alvo e puxado para perto do corpo, entao ele anda
+       27 │            menos neste quadro. Velocidade maxima e aceleracao continuam dele. */
+       28 │         var _x=Number(tx),_y=Number(ty);
+       29 │         if(isFinite(_x)&&isFinite(_y)){
+       30 │           dbg.quadros++;
+       31 │           tx=p.x+(_x-p.x)*FATOR;
+       32 │           ty=p.y+(_y-p.y)*FATOR;
+       33 │           return oldInt.call(this,p,tx,ty,dt,freeze);
+
+  src/scripts/layers/23-cds-r185-bloco-defensivo.js:51
+
+       39 │       const minDepth=line-1.8;
+       40 │       px=clamp(px,minDepth,maxAhead);
+       41 │       if(p._markRef&&!p._markRef.red){
+       42 │         const ap=ownProg(tm,p._markRef.x);
+       43 │         px=Math.min(px,ap-1.05);
+       44 │         /* Fecha lateralmente a referência sem atravessar o corredor inteiro. */
+       45 │         py=clamp(p._markRef.y,2,FW-2);
+       46 │       }
+       47 │     }
+       48 │     return[fromProg(tm,clamp(px,1,FL-1)),clamp(py,1,FW-1)];
+       49 │   };
+       50 │   const oldIntegrate=P._integrate;
+  >    51 │   P._integrate=function(p,tx,ty,dt,freeze){
+       52 │     const marked=p&&p._markRef&&!p._markRef.red;
+       53 │     const saved=p&&p._breaking;
+       54 │     /* Recuperação de cobertura entra em sprint um pouco antes. O teto físico
+       55 │        continua sendo maxSpd/acc do próprio atleta. */
+       56 │     if(marked&&dist(p,p._markRef)>2.55)p._breaking=saved||{r185Coverage:true};
+       57 │     try{return oldIntegrate.apply(this,arguments);}finally{if(marked)p._breaking=saved;}
+       58 │   };
+       59 │   const oldFull=P.getFullFootballAudit;
+       60 │   P.getFullFootballAudit=function(){const r=oldFull?oldFull.apply(this,arguments):{};r.version=VERSION;return r;};
+       61 │   try{root.CDS_BUILD_ID='R18.5';root.CDS_VERSION=VERSION;document.title='Copa dos Sonhos — R18.5';}catch(_){ }
+       62 │   root.CDS_R185=Object.freeze({version:VERSION,connectedBlock:true,goalSideRecovery:true});
+       63 │ })(typeof window!=='undefined'?window:globalThis);
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2215-2313
+──────────────────────────────────────────────────────────────────────────────
+  ## D16 🔴 Quatro camadas mentem para o integrador porque falta um parâmetro
+  
+  **Endereços:** `layers/16:72`, `layers/17:648`, `layers/23:51`, `layers/24:187`,
+  `layers/71:23` — cinco sobrescritas de `_integrate`
+  
+  **Código atual — a forma canônica** (camada 71):
+  
+  ```js
+  var oldInt=P._integrate;
+  P._integrate=function(p,tx,ty,dt,freeze){
+    const guardado = p._breaking;
+    p._breaking = true;                              // <- a mentira
+    const r = oldInt.call(this,p,tx,ty,dt,freeze);
+    p._breaking = guardado;                          // <- desfaz
+    return r;
+  };
+  ```
+  
+  **O defeito.** Quatro camadas fazem variações disto sobre `_breaking` e
+  `_markRef`. Todas querem a mesma coisa — *este jogador corre mais agora, porque
+  foi driblado / porque está fechando o bloco / porque o atributo dele mandou* — e
+  todas obtêm isso **falsificando um campo de estado**, porque `_integrate` não
+  tem parâmetro de esforço.
+  
+  Custos concretos:
+  
+  1. **Ordem importa e ninguém sabe.** Se duas camadas falsificam o mesmo campo,
+     a de dentro vê o valor da de fora, não o real.
+  2. **Qualquer leitor de `p._breaking` durante `_integrate` lê mentira.** E
+     `_breaking` é lido em `_cross:1000` para montar `lowPool`.
+  3. **Não dá para saber quantos jogadores estão "correndo mais"** — não existe
+     contador, porque não existe conceito.
+  
+  **A mudança proposta** — um parâmetro no integrador:
+  
+  ```js
+  /* no core, _integrate ganha um multiplicador de esforco explicito */
+  _integrate(p, tx, ty, dt, freeze, esforco = 1) {
+    /* ... */
+    const vMax = this._speedOf(p) * clamp(esforco, 0.6, 1.35);
+    /* ... */
+  }
+  ```
+  
+  E as quatro camadas viram uma linha cada:
+  
+  ```js
+  /* 71-os51-beaten-defender */
+  P._integrate = function (p, tx, ty, dt, freeze, esforco) {
+    const extra = (p._os51BeatenUntil||0) > this.t ? 1.18 : 1;
+    return oldInt.call(this, p, tx, ty, dt, freeze, (esforco||1) * extra);
+  };
+  ```
+  
+  Os multiplicadores **compõem por produto**, que é o que a falsificação já fazia
+  sem querer — e agora dá para contar e limitar.
+  
+  **Quem intercepta.** `_integrate` tem cinco sobrescritas; a **16 é TERMINAL**
+  (`P._integrate=function(...)` sem `old`). Portanto o parâmetro tem de ser
+  adicionado **na camada 16**, não no core, ou nunca chegará. Este é exatamente
+  o tipo de detalhe que a `pilha.js` responde em quarenta segundos e que já
+  custou três rodadas quando não foi consultado.
+  
+  **Risco.** Médio-alto: mexe em movimentação, que é o que todo o resto observa.
+  Obrigatório rodar `tools/fisica/tela/forma.js` antes e depois — se o bloco
+  mudar de comprimento, o parâmetro está composto errado.
+  
+  **Critério de aceite:**
+  
+  | métrica | hoje | esperado |
+  |---|---|---|
+  | comprimento do bloco com bola | 37,8 m | ±1,5 m |
+  | largura do bloco com bola | 49,4 m | ±2 m |
+  | `tackles` | 50,133 | ±1,07 |
+  | leituras falsas de `_breaking` | 4 camadas | **0** |
+  
+  ### ⚠ RECLASSIFICADO — o padrão existe, mas não vaza
+  
+  `tools/fisica/ramos.js`, 12 partidas [MEDIDO]:
+  
+  ```
+  _integrate chamado                    886.981,58 por partida
+  _breaking saiu DIFERENTE de como entrou       0,00
+  ```
+  
+  **Zero.** As quatro camadas falsificam o campo e o restauram corretamente, em
+  todas as ~887 mil chamadas por partida. Não há vazamento para `_cross`, que era
+  o risco concreto que este defeito apontava.
+  
+  **O que isso muda:** D16 sai da categoria *corretude* e entra em *legibilidade*.
+  O custo real é que ninguém consegue saber quantos jogadores estão "correndo
+  mais" num quadro, porque o conceito não existe — só a mentira existe. Continua
+  valendo consertar, e o parâmetro de esforço continua sendo o conserto certo,
+  mas **a urgência caiu**: não há bug escondido aqui, há um modelo ausente.
+  
+  A severidade passa de 🔴 estrutural para 🟡 higiene.
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

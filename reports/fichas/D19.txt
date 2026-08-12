@@ -1,0 +1,153 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D19  A partida murcha: 20,0% dos gols ate 15', 14,1% apos 76'
+     severidade: futebol   fase: F6   estado: aberto
+
+  DONO (quem realmente executa):
+     dreno no core, normalizado por ADV4.context.clockRateRef
+
+  EVIDENCIA MEDIDA:
+     queda de -1,17 pp por faixa, R2=0,86; r=0,814 entre stamina e taxa de chutes
+
+  CRITERIO DE ACEITE:
+     - gols 76-90' >=20%
+     - gols 0-15' <=15%
+     - goals +-0,20
+     - stamina final 55-68
+     - passes +-5,53
+
+  DEPENDE DE: D17  <- faca esses ANTES
+
+  RISCO: ALTO: toca todo lance. NAO medir junto com D20 (200 partidas de intervalo).
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/20-core.js:564   (o documento dizia linha 565 — o codigo andou)
+
+      552 │        9,6 faltas (min 16), 1,97 gol (min 2,4), e 41,7% de empates com 25% de
+      553 │        0 a 0 — consequencia direta de faltar jogo dentro dos 90 minutos.
+      554 │        Nao era compressao "arcade": era subnutricao.
+      555 │ 
+      556 │        Medido em varredura de 5 valores (tools/fisica/calibrar.py, 40 partidas
+      557 │        cada), 0,085 e onde o volume entra na faixa de design. Custo: a partida
+      558 │        passa de ~14,7 para ~22,8 minutos de observacao em 1X — mas o jogo abre
+      559 │        em 2X, entao na pratica sao ~11 minutos.
+      560 │ 
+      561 │        A fadiga foi desacoplada deste numero na mesma mudanca (OS-201 em
+      562 │        40-match-engine), senao baixar o relogio deixaria o time exausto sem que
+      563 │        nada no futebol tivesse mudado. */
+  >   564 │     clockRate: 0.085,
+      565 │     /* OS-201 · quanto de folego volta por segundo de bola parada. O motor so
+      566 │        sabia gastar; sem recuperacao a stamina final ficava abaixo do minimo de
+      567 │        design por construcao. Calibrado com a bateria. */
+      568 │     /* 0,055 e nao mais: subir para 0,075 poe a stamina em 64,4 (contra 64,2),
+      569 │        ganho irrisorio, mas jogador mais inteiro no fim faz o placar abrir —
+      570 │        os empates caem de 29,2% para 17,5% (abaixo do minimo) e as goleadas
+      571 │        sobem de 17,5% para 20,8%. Medido, 12/13 vira 10/13. */
+      572 │     deadBallRecovery: 0.062,
+      573 │     fixedStep: 1 / 60,
+      574 │     decisionInterval: 0.28,
+      575 │     tackleCooldown: 0.55,
+      576 │   }),
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2424-2510
+──────────────────────────────────────────────────────────────────────────────
+  ## D19 🟠 A partida murcha em vez de crescer
+  
+  **Endereços:** `20-core.js:548` (`timing.clockRate`, `deadBallRecovery`) e o
+  dreno de stamina em `40-match-engine…` normalizado por `ADV4.context.clockRateRef`
+  
+  **A evidência** [MEDIDO, 300 partidas, 879 gols, minuto real de cada um]:
+  
+  ```
+  DISTRIBUICAO DOS GOLS POR FAIXA DE 15 MINUTOS
+  
+   0-15'   176   20,0%  ####################
+  16-30'   153   17,4%  #################
+  31-45'   137   15,6%  ###############
+  46-60'   149   17,0%  #################
+  61-75'   134   15,2%  ###############
+  76-90'   124   14,1%  ##############
+                        ^
+                        no futebol de elite esta e a faixa MAIS produtiva
+  ```
+  
+  No futebol real a curva é **crescente**: a última faixa concentra ~19–22% dos
+  gols e a primeira ~11–13%. Aqui é o inverso quase exato. O jogo **começa
+  quente e esfria**.
+  
+  Regressão da queda: −1,17 ponto percentual por faixa, R² = 0,86. É monotônico,
+  não é ruído.
+  
+  **O defeito.** Não é bug de relógio — o tempo simulado por faixa foi medido e é
+  uniforme (`sonda.segPorFaixa` na bateria). É a **fadiga**:
+  
+  ```
+  correlacao entre stamina media e taxa de chutes por faixa:  r = 0,814
+  stamina final media:                                        64,4
+  ```
+  
+  A fadiga é uniforme demais e afeta **todo mundo do mesmo jeito, o tempo todo**.
+  No futebol real a fadiga produz o efeito **oposto** no placar, por três
+  mecanismos que o jogo não tem:
+  
+  | mecanismo real | o que faz | existe no jogo? |
+  |---|---|---|
+  | **Assimetria defensiva** | a linha defensiva cansa mais que o atacante que espera | **não** |
+  | **Substituições** | atacante fresco contra zagueiro gasto | existe `substitute`, mas não muda o duelo |
+  | **Placar aberto** | quem perde arrisca; espaços aparecem | `_bumpMom` existe, mas é momentum, não risco |
+  
+  **A mudança proposta — fadiga assimétrica por papel:**
+  
+  ```js
+  /* em ENGINE_CALIBRATION.timing */
+  staminaDrenoPorLinha: Object.freeze({
+    DEF: 1.15,   /* zagueiro e lateral correm reagindo — cansam mais */
+    MID: 1.10,
+    FWD: 0.90,   /* atacante escolhe quando arrancar */
+    GK:  0.35,
+  }),
+  /* e o efeito da fadiga passa a ser assimetrico TAMBEM no que ela degrada: */
+  fadigaDegrada: Object.freeze({
+    velocidade:   0.55,   /* pesa mais em quem persegue */
+    decisao:      0.30,
+    posicionamento: 0.85, /* <- o mecanismo real: a linha se desorganiza */
+  }),
+  ```
+  
+  O termo importante é o último. **No futebol real, o time cansado não corre
+  menos — ele se posiciona pior.** É por isso que os gols saem no fim: o bloco
+  abre. Hoje o jogo degrada velocidade e decisão, mas não posicionamento, e por
+  isso a fadiga só reduz volume.
+  
+  **Quem intercepta.** O dreno mora no core, normalizado por
+  `ADV4.context.clockRateRef`, e é **invariante ao `clockRate`** de propósito.
+  Não mexa nos dois juntos.
+  
+  **Risco.** Alto. É a mudança com maior alcance do catálogo — toca todo lance da
+  partida.
+  
+  **Critério de aceite:**
+  
+  | métrica | hoje | alvo |
+  |---|---|---|
+  | gols na faixa 76–90' | 14,1% | **≥ 20%** |
+  | gols na faixa 0–15' | 20,0% | ≤ 15% |
+  | `goals` total | 2,930 | ±0,20 |
+  | stamina final média | 64,4 | 55–68 |
+  | `passes` | 385,257 | ±5,53 |
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

@@ -150,7 +150,7 @@ DEFEITOS = [
       criterio=["orcamento unico em ENGINE_CALIBRATION.possession","mediana de posse 0,9-1,3 s"],
       depende=["D26"], risco="medio"),
 
- dict(id="D11", sev="estrutural", fase="F3", estado="aberto",
+ dict(id="D11", sev="estrutural", fase="F3", estado="medindo",
       titulo="Sorteio censurado 1: o censor roda em 51,4% das decisoes (MEDIDO)",
       locais=[dict(arquivo=L+"16-cds-r12-transactional-core-r123.js", linha=153, ancora="tm.__r122LastContextShot=now;"),
               dict(arquivo=L+"20-cds-r183-natural-football.js", linha=63, ancora="dg.smartShotVetoes=(dg.smartShotVetoes||0)+1;")],
@@ -162,6 +162,17 @@ DEFEITOS = [
               "= 51,4%. Metade das decisoes do jogo passa pelo censor. O documento tratava como "
               "mecanismo pontual. E o defeito estrutural com maior alcance medido do catalogo — "
               "sobe de F3 para o primeiro candidato depois da F1."),
+      feito_em=("FUSAO FEITA. O _decide da camada 20 deixou de existir; no lugar ha um PREDICADO "
+                "PURO _r183ExcecaoAoChuteContextual, sem efeito colateral, sem RNG e sem estado "
+                "compartilhado, com as quatro excecoes nomeadas. A camada 16 o consulta no momento "
+                "exato do sorteio. A variavel __r122LastContextShot deixou de ser envenenada — ela "
+                "continua servindo ao auto-limite legitimo de 1,15 s. Some junto um efeito colateral "
+                "que ninguem tinha declarado: o veto PERSISTIA 1,15 s porque envenenava um campo que "
+                "serve para outra coisa. E o custo caiu 13x: o predicado ia de 515,17 avaliacoes por "
+                "partida para 38,83, porque agora so roda quando o sorteio vai mesmo acontecer.\n"
+                "VEREDITO PENDENTE: a bateria de 300 partidas ainda estava rodando quando este "
+                "estado foi gravado. NAO chame de aceito ate o aceitar.sh --depois responder. "
+                "Se reprovar, reverta e escreva o laudo — nao ajuste o criterio."),
       depende=[], risco="medio: remover chance() desalinha o RNG; compare distribuicoes, nao partidas"),
 
  dict(id="D12", sev="estrutural", fase="F2", estado="aberto",

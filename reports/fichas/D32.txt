@@ -1,0 +1,109 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D32  Armadilha de escopo: CAL nao existe dentro de uma camada
+     severidade: higiene   fase: F1   estado: feito
+
+  DONO (quem realmente executa):
+     todas as camadas
+
+  EVIDENCIA MEDIDA:
+     o erro pode passar pela bateria (vm.runInThisContext) e so aparecer no navegador
+
+  CRITERIO DE ACEITE:
+     - verify.py reprova 'CAL.' em src/scripts/layers/
+
+  RISCO: nenhum: e lint
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/20-core.js:518
+
+      506 │   decisao:[['INT',1]],                posicionamento:[['INT',.85],['DEF',.15]],
+      507 │   compostura:[['INT',.6],['FIN',.4]], determinacao:[['INT',.5],['FIS',.5]],
+      508 │   trabalho_equipe:[['INT',.7],['PAS',.3]],
+      509 │   forca:[['FIS',1]],                  impulsao:[['FIS',.85],['VEL',.15]],
+      510 │   resistencia:[['FIS',1]],
+      511 │ };
+      512 │ 
+      513 │ /* ================= CALIBRAÇÃO CANÔNICA DO MOTOR V3 =====================
+      514 │    Os parâmetros globais que controlam frequência e equilíbrio vivem aqui;
+      515 │    limiares locais de decisão permanecem junto da ação que explicam. A ficha
+      516 │    e o motor usam a mesma escala 0..100, sem uma segunda nota invisível e
+      517 │    saturada em 99. Os blocos separam intenção, execução e resultado. */
+  >   518 │ const ENGINE_CALIBRATION = Object.freeze({
+      519 │   version: '4.3.2',
+      520 │   attributes: Object.freeze({
+      521 │     /* ═══ BALANCEAMENTO · ONDE O ATRIBUTO MANDA E ONDE A SORTE ENTRA ═════
+      522 │        O motor decide TUDO por sigmoide de duelo: P = 1/(1+e^(-Δ/spread)),
+      523 │        onde Δ é a diferença de facetas (combinações dos 8 atributos, ver
+      524 │        GRAN_MAP/facet). O spread é o "volume da sorte": spread alto achata a
+      525 │        curva (a moeda pesa mais), spread baixo deixa o atributo ditar.
+      526 │        · duelSpread 11.5 → 10.5: +10 de vantagem passava 70,3% e passa a
+      527 │          72,4%; +15 vai a 80,7%. O craque decide mais 1x1 sem eliminar o
+      528 │          azar — um 90 ainda perde ~1 em 5 duelos para um 75.
+      529 │        · lineJitter/keeperJitter: ruído DETERMINÍSTICO por jogador (hash do
+      530 │          nome) — variação de elenco, não de rolagem; ficam como estão.
+
+  src/scripts/layers/66-cds-os39-block-on-flight.js:15   (o documento dizia linha 8 — o codigo andou)
+
+        3 │ 'use strict';
+        4 │ var M=root.MatchSim;if(!M||!M.prototype||M.prototype.__CDS_OS39__)return;
+        5 │ var P=M.prototype;try{Object.defineProperty(P,'__CDS_OS39__',{value:true});}catch(_){P.__CDS_OS39__=true;}
+        6 │ var ALC=2.8, BASE=0.90, QUEDA=0.28;
+        7 │ /* D32 · `CAL` nao existe no escopo de uma camada — e do modulo do motor, que e
+        8 │    uma IIFE. O acesso guardado que estava aqui (`root.CAL && ...`) NUNCA acertava:
+        9 │    `window.CAL` e `undefined`, medido. Ele caia no 0.66 codificado, em silencio,
+       10 │    e a calibracao ficava desconectada: mexer em restarts.shotBlockCorner no
+       11 │    20-core.js nao teria efeito nenhum nesta camada.
+       12 │    Hoje o padrao coincidia com o valor calibrado, entao o defeito era invisivel.
+       13 │    A leitura correta e por ENGINE_CALIBRATION. O lint em tools/verify.py agora
+       14 │    reprova o build se alguem reintroduzir a forma antiga. */
+  >    15 │ var _CALIB=root.ENGINE_CALIBRATION;
+       16 │ var CORNER_SHARE=(_CALIB&&_CALIB.restarts&&_CALIB.restarts.shotBlockCorner);
+       17 │ if(typeof CORNER_SHARE!=='number')CORNER_SHARE=0.66;
+       18 │ var oldST=P._startTravel;
+       19 │ if(typeof oldST!=='function')return;
+       20 │ 
+       21 │ function cl(v,a,b){return v<a?a:(v>b?b:v);}
+       22 │ 
+       23 │ P._startTravel=function(o,target,kind,cb,receiver,style,meta){
+       24 │   try{
+       25 │     if(kind==='shot'&&o&&target&&!this.__os39In){
+       26 │       var out=meta&&meta.outcome;
+       27 │       if(out!=='block'&&out!=='save'&&!(meta&&meta.actor)){
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:3187-3207
+──────────────────────────────────────────────────────────────────────────────
+  ## D32 🟡 ✅ A armadilha de escopo que derruba camadas novas
+  
+  **Endereço:** todo arquivo em `src/scripts/layers/`
+  
+  **O defeito.** O core é uma IIFE. Estes símbolos são globais e podem ser usados
+  direto numa camada nova:
+  
+  ```
+  facet   chance   R   clamp   FL   FW   getAttr   lerp   D   srand
+  ```
+  
+  **`CAL` não é.** Uma camada que escreve `CAL.shooting.conversionScale` lança
+  `ReferenceError`. A calibração se lê por `ENGINE_CALIBRATION`.
+  
+  **Por que isso é perigoso e não só chato:** dependendo de onde o erro acontece,
+  ele pode passar despercebido pela bateria (`vm.runInThisContext` tem escopo
+  global diferente do navegador) e só aparecer no jogo real.
+  
+  **A mudança proposta** — uma verificação em `tools/verify.py`:
+  
+  ```python
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

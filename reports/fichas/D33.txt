@@ -1,0 +1,70 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D33  Treze arquivos, 81 linhas, que so publicam numero de versao
+     severidade: higiene   fase: F4   estado: aberto
+
+  DONO (quem realmente executa):
+     —
+
+  EVIDENCIA MEDIDA:
+     89 blocos poderiam ser 77; o manifesto encolhe 13%
+
+  CRITERIO DE ACEITE:
+     - grep por __CDS_* antes de fundir
+     - metricas identicas
+
+  RISCO: baixo mas nao zero: algo pode ler por nome
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/layers/59-cds-r1821rc1-build-meta.js  (sem ancora)
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:3259-3293
+──────────────────────────────────────────────────────────────────────────────
+  ## D33 🟡 Doze arquivos que só publicam número de versão
+  
+  **Endereços:** `35-r18155-build-identity.js` (10 linhas),
+  `37-cds-r18161-build-identity.js` (3), `41-cds-r181732-mobile-start-meta.js` (3),
+  `42-inline.js` (1), `44-cds-r1818-build-meta.js` (1),
+  `46-cds-r18181-build-meta.js` (1), `48-cds-r18182-build-meta.js` (1),
+  `50-cds-r18183-build-meta.js` (1), `52-cds-r1820-build-meta.js` (3),
+  `59-cds-r1821rc1-build-meta.js` (41), `72-cds-os81-low-cross-contact-meta.js` (3),
+  `73-cds-os82-intercept-control-meta.js` (3), `83-cds-r1886-build-meta.js` (10)
+  
+  **O defeito.** Treze arquivos, **81 linhas no total**, que não sobrescrevem
+  nada. São blocos `<script>` separados no bundle, cada um com sua entrada no
+  manifesto e no `verify.py`.
+  
+  **A mudança proposta.** Fundir todos num único `99-build-identity.js`:
+  
+  ```js
+  /* Identidade de build. Consolida 13 arquivos de meta que so publicavam versao.
+     Cada release acrescenta uma linha aqui, nao um arquivo novo. */
+  window.__CDS_BUILDS__ = Object.freeze({
+    r18155: '...', r18161: '...', r181732: '...', r1818: '...',
+    r18181: '...', r18182: '...', r18183: '...', r1820: '...',
+    r1821rc1: '...', os81: '...', os82: '...', r1886: '...',
+  });
+  ```
+  
+  **Risco.** Baixo, mas **não zero**: se alguma coisa lê `window.__CDS_R1818__`
+  por nome, quebra. Grep obrigatório antes.
+  
+  **Ganho.** 89 blocos viram 77. O manifesto encolhe 13%. `verify.py` roda mais
+  rápido. E — o que mais importa — o próximo leitor da lista de camadas vê 60
+  arquivos que fazem coisas, não 82 misturados.
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois --identico
+

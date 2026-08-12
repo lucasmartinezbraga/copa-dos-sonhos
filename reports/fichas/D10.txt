@@ -1,0 +1,137 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D10  O orcamento de posse mora em duas linhas que nao se conhecem
+     severidade: futebol   fase: F4   estado: parcial
+
+  DONO (quem realmente executa):
+     camada 90 compensa por cima; as duas linhas continuam la
+  CAMADAS QUE INTERCEPTAM: 17, 90
+     confirme com: node tools/fisica/pilha.js dist/index.html 14
+
+  EVIDENCIA MEDIDA:
+     settle (0,10-0,34) + decideT (0,28) = 0,38-0,62 s; mediana medida 0,43 s antes da OS-206
+
+  CRITERIO DE ACEITE:
+     - orcamento unico em ENGINE_CALIBRATION.possession
+     - mediana de posse 0,9-1,3 s
+
+  DEPENDE DE: D26  <- faca esses ANTES
+
+  RISCO: medio
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/40-match-engine-and-manager-ai.js:2400   (o documento dizia linha 2548 — o codigo andou)
+
+     2388 │     rstats.receptions++;if(ctx.pressure>.35)rstats.pressured++;if(active)rstats.attributeReceptions++;
+     2389 │     let poor=false;
+     2390 │     const poorP=clamp(.025+(1-control)*.19+ctx.pressure*.12+ctx.fatigue*.08+ctx.importance*(1-control)*.22,.015,.32);
+     2391 │     if(chance(poorP)){
+     2392 │       poor=true;rstats.poorTouches++;
+     2393 │       m._poorTouchUntil=this.t+1.25;
+     2394 │       this._emit('looseControl',{by:m,pressured:ctx.pressure>.35,receptionIQ:reception&&reception.receptionIQ});
+     2395 │       const looseP=clamp(.28+(1-control)*.38+ctx.pressure*.22,.18,.72);
+     2396 │       if(chance(looseP)){rstats.looseTouches++;this._looseBall(m.x+R(-2,2),m.y+R(-2,2));return;}
+     2397 │     }
+     2398 │     this._giveBall(m);
+     2399 │     if(active)m.settle=lerp(CAL.possession.firstTouchMax,CAL.possession.firstTouchMin,control)/ctx.execution*reception.settleMultiplier*(1+reception.incomingDifficulty*.008);
+  >  2400 │     else m.settle=lerp(CAL.possession.firstTouchMax,CAL.possession.firstTouchMin,control)/ctx.execution;
+     2401 │     if(poor||m._poorTouchUntil>this.t)m.settle=Math.max(m.settle,.38*(active?reception.settleMultiplier:1));
+     2402 │     const tmR=this.teams[m.team];
+     2403 │     if(tmR._poss&&tmR._poss.phase==='build'&&near.dist<5){
+     2404 │       if(active)m.settle=Math.min(m.settle,(.10+(1-control)*.12)*reception.settleMultiplier*(1+reception.incomingDifficulty*.005));
+     2405 │       else m.settle=Math.min(m.settle,.10+(1-control)*.12);
+     2406 │     }
+     2407 │     if(reception&&(reception.activeReception||reception.activeFirstAction)){
+     2408 │       m._r1810Reception=Object.assign({},reception,{time:this.t,poorTouch:poor,settle:m.settle});
+     2409 │       m._r1810FirstActionUntil=this.t+.95;
+     2410 │     }
+     2411 │     rstats.settleTotal+=m.settle;
+     2412 │   }
+
+  src/scripts/40-match-engine-and-manager-ai.js:2434   (o documento dizia linha 2582 — o codigo andou)
+
+     2422 │       this.teams[oldPoss]._counterPressUntil=this.t+ADV4.pressing.counterPressWindow;
+     2423 │       this.teams[p.team]._transitionWonAt=this.t;
+     2424 │     }
+     2425 │     this.ball.owner=p;this.ball.traveling=false;this.ball.lastTouch=p;this.ball._looseT=0;
+     2426 │     this.poss=p.team;this.stats[p.team].poss++;
+     2427 │     if(switched)p.settle=Math.max(p.settle,CAL.possession.transitionProtection);
+     2428 │     /* §SONDA OS-98 · o OPERADOR, nao o valor.
+     2429 │        Medido: `decideT` ja esta NEGATIVO em 96,92% das recepcoes (mediana
+     2430 │        -0,802 s), entao `Math.min(-0,80 , 0,10)` = -0,80 e este teto nunca e
+     2431 │        aplicado — ele mudou algo em apenas 1,87% das 4162 recepcoes medidas.
+     2432 │        A OS-68 multiplicou o VALOR e mediu dominio identico; era inevitavel.
+     2433 │        Aqui a recepcao ATRIBUI o intervalo, e o receptor espera de verdade. */
+  >  2434 │     this.decideT=0.28;
+     2435 │   }
+     2436 │   _turnover(d) {
+     2437 │     if(!d){this._contestLoose();return;}
+     2438 │     const wonAgainst=this.poss;
+     2439 │     const heldFor=this.possT||0;
+     2440 │     const previousOwner=this.ball.owner;
+     2441 │     this._giveBall(d);
+     2442 │     d.settle=Math.max(d.settle,lerp(.34,.16,facet(d,'control')/100));
+     2443 │     // Recuperações por pressão são contabilizadas no duelo ativo de pressão,
+     2444 │     // não em qualquer troca de posse. Isso evita dupla contagem com desarmes comuns.
+     2445 │   }
+     2446 │ 
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:1692-1735
+──────────────────────────────────────────────────────────────────────────────
+  ## D10 🟠 ✅ A posse durava 0,43 s — em duas linhas que não se conheciam
+  
+  **Endereços:** `40-match-engine-and-manager-ai.js:2582` e `:2547`
+  **Estado: CONSERTADO** na OS-206 (camada 90). Fica pelo padrão.
+  
+  **O código:**
+  
+  ```js
+  /* :2582 — dentro de _giveBall, TODA recepcao */
+  this.decideT = 0.28;
+  
+  /* :2547 — dentro de _receive */
+  m.settle = lerp(CAL.possession.firstTouchMax, CAL.possession.firstTouchMin, control)
+           / ctx.execution;
+  ```
+  
+  **O defeito.** `settle` (0,10–0,34 s) **mais** `decideT` (0,28 s) = 0,38 a
+  0,62 s no pé. Trinta e cinco linhas separam as duas atribuições e **nenhuma das
+  duas sabe da outra**. O orçamento de posse do jogo inteiro é a soma acidental
+  de dois números escritos em momentos diferentes.
+  
+  **A evidência** [MEDIDO]: mediana de **0,43 s** com a bola no pé. Fecha com a
+  soma. E o comentário da OS-98 em `:2577` documenta que o teto anterior
+  (`Math.min(decideT, 0.10)`) **nunca aplicava**, porque `decideT` já estava
+  negativo em **96,92%** das recepções — um teto que nunca tocou em nada,
+  guardado por três releases.
+  
+  **O conserto** (camada 90, `os206-plano-do-portador.js`, 220 linhas): o
+  portador ganha um plano, com `SEGURA = 0.60` deliberadamente acima da janela de
+  voleio (0,45) e `CARREGA = 0.70` para condução pós-drible. Resultado medido:
+  posse do portador **0,43 → 1,03 s**.
+  
+  **A primeira tentativa quebrou o jogo** e vale registrar: aplicar o plano no
+  campo inteiro levou o placar de design de 11/13 para **6/13**. O conserto foi
+  restringir a `limiteAvanco: 0.50` — só no próprio campo. Um time que segura a
+  bola no campo do adversário não ataca.
+  
+  **O que fica como defeito aberto:** as duas linhas continuam lá, e a camada 90
+  compensa por cima. O conserto verdadeiro é **um orçamento único de posse**,
+  declarado em `ENGINE_CALIBRATION.possession`, lido nos dois lugares. Está em
+  F4.
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

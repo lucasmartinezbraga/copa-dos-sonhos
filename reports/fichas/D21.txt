@@ -1,0 +1,122 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D21  clockRate: 23 min de fisica para 90 de partida — decisao de produto
+     severidade: estrutural   fase: F6   estado: decidir
+
+  DONO (quem realmente executa):
+     produto
+
+  EVIDENCIA MEDIDA:
+     posse realista e contagem de passes realista sao hoje mutuamente exclusivas
+
+  CRITERIO DE ACEITE:
+     - decisao registrada em calibration/targets.json
+
+  RISCO: AVISO: a fadiga ja e invariante ao clockRate. Se mexer no relogio, NAO mexa no dreno junto.
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/20-core.js:564   (o documento dizia linha 565 — o codigo andou)
+
+      552 │        9,6 faltas (min 16), 1,97 gol (min 2,4), e 41,7% de empates com 25% de
+      553 │        0 a 0 — consequencia direta de faltar jogo dentro dos 90 minutos.
+      554 │        Nao era compressao "arcade": era subnutricao.
+      555 │ 
+      556 │        Medido em varredura de 5 valores (tools/fisica/calibrar.py, 40 partidas
+      557 │        cada), 0,085 e onde o volume entra na faixa de design. Custo: a partida
+      558 │        passa de ~14,7 para ~22,8 minutos de observacao em 1X — mas o jogo abre
+      559 │        em 2X, entao na pratica sao ~11 minutos.
+      560 │ 
+      561 │        A fadiga foi desacoplada deste numero na mesma mudanca (OS-201 em
+      562 │        40-match-engine), senao baixar o relogio deixaria o time exausto sem que
+      563 │        nada no futebol tivesse mudado. */
+  >   564 │     clockRate: 0.085,
+      565 │     /* OS-201 · quanto de folego volta por segundo de bola parada. O motor so
+      566 │        sabia gastar; sem recuperacao a stamina final ficava abaixo do minimo de
+      567 │        design por construcao. Calibrado com a bateria. */
+      568 │     /* 0,055 e nao mais: subir para 0,075 poe a stamina em 64,4 (contra 64,2),
+      569 │        ganho irrisorio, mas jogador mais inteiro no fim faz o placar abrir —
+      570 │        os empates caem de 29,2% para 17,5% (abaixo do minimo) e as goleadas
+      571 │        sobem de 17,5% para 20,8%. Medido, 12/13 vira 10/13. */
+      572 │     deadBallRecovery: 0.062,
+      573 │     fixedStep: 1 / 60,
+      574 │     decisionInterval: 0.28,
+      575 │     tackleCooldown: 0.55,
+      576 │   }),
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2601-2662
+──────────────────────────────────────────────────────────────────────────────
+  ## D21 🔴 `clockRate`: 23 minutos de física para 90 minutos de partida
+  
+  **Endereço:** `src/scripts/20-core.js:565` — `timing.clockRate: 0.085`
+  
+  **Código atual, com o comentário que documenta a história:**
+  
+  ```js
+      /* OS-201 · RELOGIO DA PARTIDA — minutos de jogo por segundo de simulacao.
+         Estava em 0,13, e nesse valor o jogo nao batia NENHUM dos proprios
+         minimos de `calibration/targets.json` em volume: 13,2 chutes (min 20),
+         9,6 faltas (min 16), 1,97 gol (min 2,4) [...]
+         Nao era compressao "arcade": era subnutricao. */
+      clockRate: 0.085,
+  ```
+  
+  **O defeito — e ele não é um bug, é uma decisão de produto que nunca foi
+  tomada explicitamente.**
+  
+  Com `clockRate = 0,085`, uma partida de 90 minutos de jogo acontece em
+  **90 / 0,085 / 60 ≈ 17,6 minutos** de simulação em 1X — na prática ~22,8 min
+  com bola parada. Isso significa que o motor tem **cerca de um quarto** do tempo
+  real para produzir todos os eventos de uma partida.
+  
+  A consequência é uma tensão que nenhuma calibração resolve:
+  
+  ```
+                      o que o jogo precisa            o que impede
+  passes por partida  700-900 (futebol real)     |   so ha ~23 min de fisica
+                      385 medidos                |
+  posse por jogador   1,5-2,5 s (real)           |   se subir, os passes caem
+                      1,03 s medido              |
+  ```
+  
+  **Posse realista e contagem de passes realista são hoje mutuamente
+  exclusivas**, e a razão é o relógio. Não é possível ter 385 passes em 23
+  minutos com cada jogador segurando a bola 2 segundos: a conta não fecha.
+  
+  **As três saídas possíveis, com o custo de cada uma:**
+  
+  | saída | o que muda | custo |
+  |---|---|---|
+  | **A · Aceitar** | `clockRate` fica em 0,085; documenta-se que passes são ~45% do real | a métrica `passes` nunca fecha |
+  | **B · Baixar para ~0,045** | ~43 min de física; passes vão a ~700 | partida de 43 min em 1X; o jogador assiste em 3X = 14 min |
+  | **C · Desacoplar** | eventos "de fundo" (passes de segurança) simulados sem física | complexidade nova; risco de duas realidades |
+  
+  **A recomendação** [HIPÓTESE]: **saída A, explicitamente.** Escrever em
+  `calibration/targets.json` que `passes` é medido em escala comprimida e ajustar
+  a faixa de aceitação para 350–420 em vez de comparar com 700–900. O tempo de
+  tela já se resolve na velocidade (os botões 1X/2X/3X/TURBO, com 3X = ~7,6 min
+  por partida), não no `clockRate`.
+  
+  > **`clockRate` decide quanto futebol acontece. A velocidade decide quão rápido
+  > você assiste.** São coisas diferentes e foram confundidas por vários
+  > releases.
+  
+  **Aviso obrigatório:** a fadiga é normalizada por `ADV4.context.clockRateRef` —
+  ela mede **minuto de jogo**, não segundo de simulação. **Se mexer no
+  `clockRate`, não mexa no dreno junto:** ele já é invariante, e mexer nos dois
+  produz uma medição não interpretável.
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

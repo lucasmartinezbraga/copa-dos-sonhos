@@ -1,0 +1,110 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D18  _cross tem 255 linhas e nove correcoes embutidas
+     severidade: higiene   fase: F5   estado: aberto
+
+  DONO (quem realmente executa):
+     core
+  CAMADAS QUE INTERCEPTAM: 16
+     confirme com: node tools/fisica/pilha.js dist/index.html 14
+
+  EVIDENCIA MEDIDA:
+     OS-12, OS-27, OS-44, OS-45, OS-81, OS-83, OS-200, R18.25, R18.31 numa funcao so
+
+  CRITERIO DE ACEITE:
+     - metricas identicas em cada extracao
+     - _cross <=60 linhas ao final
+
+  RISCO: baixo por commit, alto se feito de uma vez. Nunca mais de um bloco por commit.
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/40-match-engine-and-manager-ai.js:981   (o documento dizia linha 993 — o codigo andou)
+
+      969 │ 
+      970 │     /* Um especialista pode manter a assinatura de longe, mas só quando seu
+      971 │        próprio valor de chute se aproxima do ganho da condução. Jogador comum
+      972 │        precisa preferir claramente o avanço. */
+      973 │     const preserveSpecialist=(specialistIntent||emergency)&&shotUtility>=approachUtility*.78;
+      974 │     const approach=canApproach&&!preserveSpecialist&&approachUtility>shotUtility*(longshot?.86:.98)
+      975 │       &&approachUtility>=passUtility*.64;
+      976 │     if(approach)take=false;
+      977 │     return {take,approach,longshot,oneOnOne,projectedDtg,laneQuality,blockers,shotUtility,approachUtility};
+      978 │   }
+      979 │ 
+      980 │   /* ----------------------------- CRUZAMENTO --------------------------- */
+  >   981 │   _cross(o) {
+      982 │     const tm = this.teams[o.team];
+      983 │     const g = tm.oppGoal;
+      984 │     const gk = this.teams[1-o.team].players.find(p=>p.isGK&&!p.red);
+      985 │     const setPiece = (o._setPieceDeliveryUntil||0) > this.t;
+      986 │     this.stats[o.team].crosses++;
+      987 │     const inBox = tm.players.filter(p=>p!==o&&!p.red&&!p.isGK&&D(p.x,p.y,g.x,g.y)<24);
+      988 │     const lowPool = tm.players.filter(p=>p!==o&&!p.red&&!p.isGK&&D(p.x,p.y,g.x,g.y)<44 && (C.LINE_OF[p.slotPos]==='FWD' || C.SLOT_CLASS[p.slotPos]==='AM' || p._breaking || p._runDeep || D(p.x,p.y,g.x,g.y)<27));
+      989 │     const defs = this.teams[1-o.team].players.filter(p=>!p.isGK&&!p.red);
+      990 │     const nearByline = Math.abs(o.x-g.x)<18 && Math.abs(o.y-FW/2)>11;
+      991 │     const p10SetPiece = setPiece && o.persistence ? (o.persistence.setPieceBonus || 0) : 0;
+      992 │     const crossSkill = setPiece ? facet(o,'setpiece') * (1 + p10SetPiece) : facet(o,'low_cross');
+      993 │     const lowTargets = lowPool.slice().sort((a,b)=>
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2377-2423
+──────────────────────────────────────────────────────────────────────────────
+  ## D18 🟡 `_cross` tem 255 linhas e nove correções embutidas
+  
+  **Endereço:** `src/scripts/40-match-engine-and-manager-ai.js:993`
+  
+  **O defeito.** Uma função com 255 linhas carregando correções de nove releases:
+  OS-12, OS-27, OS-44, OS-45, OS-81, OS-83, OS-200, R18.25, R18.31 — mais uma nota
+  da OS-201 explicando por que a falta no duelo aéreo foi tentada e revertida.
+  
+  O cabeçalho dá a medida:
+  
+  ```js
+    _cross(o) {
+      const tm = this.teams[o.team];
+      const g = tm.oppGoal;
+      const gk = this.teams[1-o.team].players.find(p=>p.isGK&&!p.red);
+      const setPiece = (o._setPieceDeliveryUntil||0) > this.t;
+      this.stats[o.team].crosses++;
+      const inBox = tm.players.filter(p=>p!==o&&!p.red&&!p.isGK&&D(p.x,p.y,g.x,g.y)<24);
+      const lowPool = tm.players.filter(p=>p!==o&&!p.red&&!p.isGK&&D(p.x,p.y,g.x,g.y)<44
+        && (C.LINE_OF[p.slotPos]==='FWD' || C.SLOT_CLASS[p.slotPos]==='AM'
+            || p._breaking || p._runDeep || D(p.x,p.y,g.x,g.y)<27));
+  ```
+  
+  Note `p._breaking` em `lowPool` — é exatamente o campo que quatro camadas
+  falsificam durante `_integrate` (D16). **A elegibilidade para receber um
+  cruzamento depende de um campo que outras camadas mentem.**
+  
+  **A mudança proposta.** Não reescrever de uma vez. Extrair, um por commit, os
+  três blocos que são claramente separáveis:
+  
+  ```js
+  _crossEscolherAlvo(o, tm, g)      // ~60 linhas: inBox, lowPool, ordenacao
+  _crossRasteiro(o, alvo, ctx)      // ~70 linhas: o ramo baixo
+  _crossAereo(o, alvo, ctx)         // ~70 linhas: o ramo de cabeceio
+  ```
+  
+  Cada extração com as 14 métricas idênticas ao dígito. Ao final, `_cross` fica
+  com ~50 linhas de despacho.
+  
+  **Risco.** Baixo por commit, alto se feito de uma vez. Nunca extrair mais de um
+  bloco por commit.
+  
+  **Critério de aceite:** métricas idênticas em cada passo; `_cross` ≤ 60 linhas
+  ao final.
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois --identico
+

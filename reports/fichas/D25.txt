@@ -1,0 +1,150 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D25  _ballTravel isenta 'deflect' de sair do campo, sem justificativa
+     severidade: higiene   fase: F1   estado: feito
+
+  DONO (quem realmente executa):
+     core alcancado; 07/08/16/17 sao VIVAS
+  CAMADAS QUE INTERCEPTAM: 07, 08, 16, 17
+     confirme com: node tools/fisica/pilha.js dist/index.html 14
+
+  EVIDENCIA MEDIDA:
+     o comentario justifica a excecao para 'shot' (o alvo do gol fica alem da linha) e nao justifica 'deflect'
+
+  CRITERIO DE ACEITE:
+     - throwIns >=17,4
+     - corners +-0,50
+
+  RISCO: medio. FACA ESTE PRIMEIRO de todos os de D08: uma linha, efeito medivel, reversao trivial.
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/40-match-engine-and-manager-ai.js:2242   (o documento dizia linha 2416 — o codigo andou)
+
+     2230 │       const u=clamp(((b.target.x-prevX)*segX+(b.target.y-prevY)*segY)/seg2,0,1);
+     2231 │       const cx=prevX+segX*u,cy=prevY+segY*u;
+     2232 │       closestDist=D(cx,cy,b.target.x,b.target.y);
+     2233 │       crossed=u>0&&u<1&&closestDist<=.42;
+     2234 │       if(crossed){hitX=cx;hitY=cy;}
+     2235 │     }
+     2236 │     const reached=D(b.x,b.y,b.target.x,b.target.y)<=.42;
+     2237 │ 
+     2238 │     /* Passes continuam usando a regra normal de saída. Chutes podem atravessar
+     2239 │        a linha de fundo porque o alvo de gol fica ligeiramente além da linha —
+     2240 │        essa exceção tem razão de ser.
+     2241 │ 
+  >  2242 │        D25 · `deflect` NÃO tinha. Foi acrescentado à condição sem justificativa,
+     2243 │        e o efeito era que uma bola desviada podia cruzar a linha e continuar
+     2244 │        viajando até `onArrive`, sem virar reinício. As camadas 45 e 47 chegam a
+     2245 │        reescrever alvos de desvio para FORA do campo de propósito
+     2246 │        (`naturalTarget` manda para −0,85 / FW+0,85); com a isenção, esses alvos
+     2247 │        não produziam lateral nenhum — a bola pousava fora e `_looseBall` +
+     2248 │        `_contestLoose` devolviam a posse a quem estivesse por perto.
+     2249 │        Um desvio que cruza a linha é um reinício, como qualquer outro. */
+     2250 │     if(b.kind!=='shot'&&(b.y<0||b.y>FW||b.x<0||b.x>FL)){
+     2251 │       this._ballOut();return;
+     2252 │     }
+     2253 │ 
+     2254 │     if(reached||crossed){
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2810-2896
+──────────────────────────────────────────────────────────────────────────────
+  ## D25 🟡 ✅ `_ballTravel` isenta explicitamente o desvio de sair do campo
+  
+  **Endereço:** `src/scripts/40-match-engine-and-manager-ai.js:2416`
+  
+  **Código atual:**
+  
+  ```js
+      // Passes continuam usando a regra normal de saída. Chutes podem atravessar
+      // a linha de fundo porque o alvo de gol fica ligeiramente além da linha.
+      if(b.kind!=='shot'&&b.kind!=='deflect'&&(b.y<0||b.y>FW||b.x<0||b.x>FL)){
+        this._ballOut();return;
+      }
+  ```
+  
+  **O defeito.** O comentário justifica a exceção para `'shot'` — e a
+  justificativa é boa, o alvo do gol fica além da linha. **Mas não justifica
+  `'deflect'`**, que foi acrescentado à condição sem explicação.
+  
+  O efeito é que uma bola desviada **pode atravessar a linha lateral e continuar
+  viajando** até `onArrive`, sem virar lateral. Combinado com `_looseBall`
+  entregando a posse (D02) e com os alvos grampeados para dentro (D08), fecha o
+  cerco: a bola desviada quase nunca produz reinício.
+  
+  **A mudança proposta:**
+  
+  ```js
+      /* OS-A9 · 'shot' atravessa porque o alvo do gol fica alem da linha de
+         fundo. 'deflect' NAO tem essa razao — foi acrescentado sem justificativa
+         e e um dos tres motivos de os laterais ficarem em 15,9 contra 33-48.
+         Um desvio que cruza a linha e um reinicio, como qualquer outro. */
+      if(b.kind!=='shot'&&(b.y<0||b.y>FW||b.x<0||b.x>FL)){
+        this._ballOut();return;
+      }
+  ```
+  
+  **Quem intercepta.** `_ballTravel` tem quatro sobrescritas (07, 08, 16, 17).
+  Todas VIVAS. O core é alcançado.
+  
+  **Risco.** Médio. Alguns desvios que hoje terminam em `onArrive` passarão a
+  terminar em `_ballOut`, e `onArrive` pode ser onde a camada 45 registra a
+  saída natural. Verificar `naturalOutDeflections` antes e depois.
+  
+  **Critério de aceite:** `throwIns` sobe ≥ 2 SE (≥ 17,4); `corners` ±0,50.
+  
+  **Nota de ordem:** este é o mais barato dos três consertos de D08 e deve ser o
+  **primeiro** a ser tentado — uma linha, efeito medível, reversão trivial.
+  
+  ### ✅ FEITO — e o resultado contraria este texto
+  
+  A exceção foi removida. **As 14 métricas ficaram idênticas ao dígito** em 40
+  partidas pareadas. Zero movimento.
+  
+  A sonda `tools/fisica/ramo-d25.js` explica por quê [MEDIDO, 12 partidas]:
+  
+  ```
+  quadros por partida com bola de DESVIO viajando fora do campo   77,50
+  quadros por partida com bola de CHUTE  viajando fora do campo   11,92
+  
+  _ballOut chamado com a bola VIAJANDO                             0,00
+  _ballOut chamado com a bola ROLANDO                              7,92
+  _ballOut chamado com a bola PARADA                              19,58
+  ```
+  
+  **A linha editada não é alcançada no caso do desvio.** Existem 77,5 quadros por
+  partida em que uma bola de desvio está fora do campo, e `_ballOut` nunca é
+  chamado a partir do voo — as saídas já vinham por `_looseRoll` e por bola
+  parada, um quadro depois. Alguma das quatro sobrescritas de `_ballTravel`
+  resolve o segmento antes de o corpo do motor chegar ali.
+  
+  > **Foi a sexta vez que editar o motor não produziu efeito.** Desta vez a
+  > `pilha.js` foi consultada antes e disse "VIVA" para as quatro sobrescritas —
+  > e ela estava certa: elas chamam a de baixo. O que ela **não** responde é se
+  > um caminho específico dentro do método é alcançado. VIVA é uma propriedade do
+  > método, não de cada linha dele.
+  
+  **Consequência para D08, e é a que importa:** a premissa de que o desvio
+  escapava da máquina de reinício está **errada**. A bola desviada que cruza a
+  linha já vira reinício, um quadro depois. O orçamento de laterais **não** se
+  abre por aqui — resta a direção do alvo (D08 propriamente dito), agora sem
+  esta muleta.
+  
+  **O que fica no código:** a exceção `deflect` saiu e o comentário passou a
+  explicar por que `shot` tem razão de ser e `deflect` não tinha. É documentação,
+  não conserto — e está declarado como tal.
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

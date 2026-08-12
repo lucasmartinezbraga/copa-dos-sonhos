@@ -1,0 +1,201 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D12  Sorteio censurado 2 — formulacao refutada; sobra o alvo puxado de volta
+     severidade: estrutural   fase: F2   estado: aberto
+
+  DONO (quem realmente executa):
+     ATENCAO: a camada 08 intercepta _looseBall e nao chama o core. O conserto tem de ser feito LA TAMBEM.
+  CAMADAS QUE INTERCEPTAM: 08, 17, 45, 47, 49
+     confirme com: node tools/fisica/pilha.js dist/index.html 14
+
+  EVIDENCIA MEDIDA:
+     22,2 bolas por partida pousando fora e entregues a alguem a 6,8 m
+
+  CRITERIO DE ACEITE:
+     - throwIns >=17,4 (2 SE) sem D08
+
+  DEPENDE DE: D02  <- faca esses ANTES
+
+  RISCO: medio: mais reinicios = mais bola parada; vigie passes
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/layers/17-cds-r13-football-observer-cadence.js:206   (o documento dizia linha 203 — o codigo andou)
+
+      194 │   const r=oldDeflect13.call(this,tx,ty,spd);
+      195 │   if(this.ball&&this.ball.traveling){
+      196 │     this.ball.z=Math.max(.12,finite13(this.ball.z));
+      197 │     this.ball.vz=Math.max(.8,Math.min(2.8,Math.abs(finite13(this.ball.vz))+1.05));
+      198 │   }
+      199 │   return r;
+      200 │ };
+      201 │ 
+      202 │ const oldLoose13=P._looseBall;
+      203 │ P._looseBall=function(x,y){
+      204 │   let tx=x,ty=y;
+      205 │   const edge=Math.min(finite13(y,FW13/2),FW13-finite13(y,FW13/2));
+  >   206 │   if(edge<5.5&&hit13(this,.64))ty=y<FW13/2?-.7:FW13+.7;
+      207 │   return oldLoose13.call(this,tx,ty);
+      208 │ };
+      209 │ 
+      210 │ const oldReceive13=P._receive;
+      211 │ P._receive=function(m){
+      212 │   const r=oldReceive13.apply(this,arguments);
+      213 │   if(m&&this.ball&&this.ball.owner===m){
+      214 │     const phase=state13(this).phaseByTeam[m.team];
+      215 │     const poor=(m._poorTouchUntil||0)>finite13(this.t);
+      216 │     const edge=Math.min(m.y,FW13-m.y);
+      217 │     if(poor&&edge<10&&hit13(this,.62)){
+      218 │       this.ball.owner=null;this.ball.lastTouch=m;
+
+  src/scripts/40-match-engine-and-manager-ai.js:2331   (o documento dizia linha 2483 — o codigo andou)
+
+     2319 │      bola viva e alvo a mais de 0,14 m, converte a chamada num desvio físico e
+     2320 │      RETORNA SEM CHAMAR AQUI. O que você quer editar provavelmente está lá.
+     2321 │ 
+     2322 │        node tools/fisica/pilha.js dist/index.html 14   # confirme o dono
+     2323 │        python3 tools/defeito.py D04                    # ficha + código atual
+     2324 │ 
+     2325 │      Histórico: a tentativa A4 editou este corpo e não moveu 0,15 SE em nenhuma
+     2326 │      das 14 métricas. Foi a quinta vez que editar o motor não fez nada. Ver
+     2327 │      reports/A4-tentativa-revertida.md e a seção 2.5 da investigação. */
+     2328 │   _looseBall(x, y) {
+     2329 │     const b = this.ball; b.owner = null; b.traveling = false; b.meta = null;
+     2330 │     b.x = x; b.y = y; b.z = 0; b.vx = 0; b.vy = 0;
+  >  2331 │     // jogador mais próximo assume após breve disputa
+     2332 │     this._contestLoose();
+     2333 │   }
+     2334 │   _contestLoose() {
+     2335 │     const b = this.ball; let cands = [];
+     2336 │     for (const tm of this.teams) for (const p of tm.players) {
+     2337 │       if (p.red) continue; const dd = D(p.x,p.y,b.x,b.y);
+     2338 │       cands.push({ p, dd });
+     2339 │     }
+     2340 │     cands.sort((a,c)=>a.dd-c.dd);
+     2341 │     if (!cands.length) return;
+     2342 │     // entre quem está no raio de disputa, habilidade (reação/controle) decide
+     2343 │     const zone = cands.filter(c => c.dd < cands[0].dd + 2.2).slice(0, 3);
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:1911-2019
+──────────────────────────────────────────────────────────────────────────────
+  ## D12 🔴 Sorteio censurado nº 2 — a bola mandada para a lateral, e recolhida
+  
+  **Endereços:** `layers/17-cds-r13-football-observer-cadence.js:203` (o dado) e
+  `layers/45-…:135` + `layers/47-…:131` (os censores/reescritores)
+  
+  **Código atual — o dado:**
+  
+  ```js
+  const oldLoose13=P._looseBall;
+  P._looseBall=function(x,y){
+    let tx=x,ty=y;
+    const edge=Math.min(finite13(y,FW13/2),FW13-finite13(y,FW13/2));
+    if(edge<5.5&&hit13(this,.64))ty=y<FW13/2?-.7:FW13+.7;
+    return oldLoose13.call(this,tx,ty);
+  };
+  ```
+  
+  Leia com atenção: **a camada 17 manda a bola solta para fora de propósito**,
+  com 64% de probabilidade, sempre que ela está a menos de 5,5 m da linha
+  lateral. Alguém, em algum release, entendeu exatamente o defeito D08 e escreveu
+  o conserto.
+  
+  **O defeito.** Esse alvo, `ty = -0.7` ou `FW + 0.7`, desce a pilha e encontra:
+  
+  1. **A camada 45**, cujo `naturalTarget` só reescreve alvos que **já** estejam
+     dentro de 1,15 m da linha — e −0,7 está fora do campo, então nem entra na
+     condição `inside`;
+  2. **O core `_looseBall`**, que faz `b.x = x; b.y = y;` e chama
+     `_contestLoose()` — **que entrega a bola ao jogador mais próximo sem limite
+     de distância** (D02).
+  
+  Ou seja: a camada 17 declara "isto é lateral" e o core desfaz, entregando a
+  posse a alguém que estava a metros dali.
+  
+  **A evidência** [MEDIDO]: 22,2 bolas por partida pousando fora do campo e sendo
+  entregues a alguém a 6,8 m de distância.
+  
+  **A mudança proposta.** Duas linhas, e as duas já estão neste documento:
+  
+  1. **D02** põe teto de distância em `_contestLoose`. Com ele, a bola a −0,7 m
+     não tem ninguém no raio e continua solta.
+  2. **`_looseRoll:2517`** já chama `_ballOut()` ao cruzar a linha:
+     ```js
+     if (b.x < -0.5 || b.x > FL + 0.5 || b.y < -0.5 || b.y > FW + 0.5) { this._ballOut(); return; }
+     ```
+     Só que `_looseBall` zera a velocidade (`b.vx = 0; b.vy = 0;`) e **desliga**
+     `traveling`, então a bola pousa parada em −0,7 e nunca "cruza" nada.
+  
+  O conserto direto, no core:
+  
+  ```js
+    _looseBall(x, y) {
+      const b = this.ball; b.owner = null; b.traveling = false; b.meta = null;
+      b.x = x; b.y = y; b.z = 0; b.vx = 0; b.vy = 0;
+      /* OS-A8 · se o ponto de pouso ja esta FORA, isto e um reinicio, nao uma
+         disputa. A camada 17 manda a bola para -0,7/FW+0,7 de proposito em 64%
+         das sobras perto da linha; o _contestLoose desfazia isso entregando a
+         posse a quem estava a 6,8 m, medido. */
+      if (x < 0 || x > FL || y < 0 || y > FW) { this._ballOut(); return; }
+      this._contestLoose();
+    }
+  ```
+  
+  **Quem intercepta** — e aqui está a armadilha: **a camada 08 intercepta
+  `_looseBall` e não chama o core** quando a bola está viva. Foi exatamente isso
+  que matou a tentativa A4. Portanto **este conserto tem de ser feito na camada
+  08 também**, ou o ramo do core continuará morto.
+  
+  Verificação obrigatória antes de escrever a primeira linha:
+  
+  ```bash
+  node tools/fisica/pilha.js dist/index.html 14 | grep _looseBall
+  ```
+  
+  **Risco.** Médio. Mais reinícios significam mais tempo de bola parada. Vigie
+  `passes`.
+  
+  **Critério de aceite:** `throwIns` sobe pelo menos 2 SE (≥ 17,4) **sem** D08
+  implementado. Com D08, ver o critério de lá.
+  
+  ### ⚠ FORMULAÇÃO REFUTADA — o core não recolhe a bola
+  
+  `tools/fisica/ramos.js`, 12 partidas, medido no topo da pilha [MEDIDO]:
+  
+  ```
+  _looseBall chamado                       92,08 por partida
+    ja chega com alvo FORA do campo        19,92
+    a bola POUSA fora                      11,00
+  
+  terminou com DONO                         2,58   (2,8%)
+  ficou SOLTA                              89,50  (97,2%)
+  ```
+  
+  **O core devolve a posse em 2,8% das chamadas.** A premissa deste defeito —
+  *"uma camada declara isto é lateral e o core desfaz entregando a posse"* — está
+  errada. Em 97,2% dos casos a bola fica solta, que é exatamente o que deveria
+  acontecer.
+  
+  É a mesma refutação do D02, pelo mesmo motivo: o `_contestLoose` sem teto que o
+  texto acusa não é alcançado com a bola distante, porque as camadas 08 e 45
+  filtram antes.
+  
+  **O que sobra de real:** 19,92 alvos por partida já chegam fora do campo e
+  apenas 11 pousam fora. A diferença — **~9 por partida** — é onde alguma camada
+  puxa o alvo de volta para dentro. *Isso* é mensurável e ainda não foi
+  investigado. É o único fio vivo que resta deste defeito.
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

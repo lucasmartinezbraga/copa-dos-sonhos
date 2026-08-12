@@ -1,0 +1,101 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D29  Duas faixas de design conflitantes para escanteios no mesmo arquivo
+     severidade: higiene   fase: F2   estado: aberto
+
+  DONO (quem realmente executa):
+     —
+
+  EVIDENCIA MEDIDA:
+     o comentario diz 5,0-11,5; targets.corners diz [3, 9]; medido 11,18
+
+  CRITERIO DE ACEITE:
+     - uma faixa so, alinhada ao futebol real
+
+  DEPENDE DE: D08  <- faca esses ANTES
+
+  RISCO: fazer DEPOIS de D08 ou o alvo tera de mudar duas vezes
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/20-core.js:643   (o documento dizia linha 634 — o codigo andou)
+
+      631 │     maxGoalChance: 0.58,
+      632 │     savedShare: 0.20,
+      633 │     keeperSaveInfluence: 0.21,
+      634 │     blockedShare: 0.18,
+      635 │     postShare: 0.055,
+      636 │   }),
+      637 │   restarts: Object.freeze({
+      638 │     /* CALIBRAÇÃO (auditoria v5.2.2): escanteios mediam 4.08/partida com a
+      639 │        faixa de design em 5.0–11.5. Shares elevados ~25% de forma distribuída
+      640 │        — desvios, bloqueios e bolas na trave passam a morrer mais na linha de
+      641 │        fundo, como no futebol real (~10/jogo). Validado por bateria de 100
+      642 │        partidas antes do commit. */
+  >   643 │     lowCrossSaveCorner: 0.55,
+      644 │     failedCrossCorner: 0.76,
+      645 │     aerialSaveCorner: 0.58,
+      646 │     aerialBlockCorner: 0.70,
+      647 │     shotSaveCorner: 0.68,
+      648 │     shotBlockCorner: 0.66,
+      649 │     postCorner: 0.64,
+      650 │     freeKickSaveCorner: 0.68,
+      651 │   }),
+      652 │   targets: Object.freeze({
+      653 │     goals: Object.freeze([1.8, 2.8]),
+      654 │     shots: Object.freeze([13, 21]),
+      655 │     passCompletion: Object.freeze([0.76, 0.88]),
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:3080-3118
+──────────────────────────────────────────────────────────────────────────────
+  ## D29 🟡 Escanteios acima da faixa de design, dentro da faixa real
+  
+  **Endereço:** `src/scripts/20-core.js:634` (`restarts.*Corner`)
+  
+  **A evidência** [MEDIDO]: `corners` = **11,183** por partida.
+  
+  | referência | faixa | resultado |
+  |---|---|---|
+  | design (`targets.corners`) | 3 – 9 | **FORA, acima** |
+  | futebol de elite | ~10 | ✓ |
+  
+  **O defeito.** Não é do jogo — é do alvo. A faixa de design 3–9 foi escrita
+  quando o jogo produzia 4,08 escanteios por partida e a calibração da auditoria
+  v5.2.2 elevou deliberadamente os *shares* de escanteio em ~25%:
+  
+  ```js
+      /* CALIBRAÇÃO (auditoria v5.2.2): escanteios mediam 4.08/partida com a
+         faixa de design em 5.0–11.5. Shares elevados ~25% de forma distribuída
+         — desvios, bloqueios e bolas na trave passam a morrer mais na linha de
+         fundo, como no futebol real (~10/jogo). */
+      lowCrossSaveCorner: 0.55,
+      failedCrossCorner: 0.76,
+      /* ... mais seis ... */
+  ```
+  
+  Note que o comentário diz "faixa de design em 5.0–11.5" enquanto
+  `ENGINE_CALIBRATION.targets.corners` diz `[3, 9]`. **Há duas faixas de design
+  conflitantes no mesmo arquivo.**
+  
+  **A mudança proposta.** Reconciliar: `targets.corners` passa a `[8, 13]`,
+  alinhado ao futebol real e ao comentário da própria calibração. É correção de
+  alvo, não de jogo.
+  
+  **Atenção — D08 vai empurrar isto para baixo.** Bola que sai pela lateral não
+  sai pelo fundo. Fazer a reconciliação **depois** de D08, ou o alvo terá de ser
+  mexido duas vezes.
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

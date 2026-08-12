@@ -1,0 +1,82 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D23  Distribuicao de placares — saudavel, serve de guarda-corpo
+     severidade: higiene   fase: —   estado: guarda-corpo
+
+  DONO (quem realmente executa):
+     —
+
+  EVIDENCIA MEDIDA:
+     0 a 0 em 7,7% (real 7-9%); goleadas ~3% (real 2-4%)
+
+  CRITERIO DE ACEITE:
+     - goleadas <=6% apos qualquer mudanca de D19 ou D20
+
+  RISCO: deadBallRecovery +0,02 ja derrubou empates de 29,2% para 17,5%
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+  (este defeito nao tem endereco unico — e distribuido)
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2700-2748
+──────────────────────────────────────────────────────────────────────────────
+  ## D23 🟡 A bola de neve: o placar abre demais?
+  
+  **A evidência** [MEDIDO, 300 partidas]:
+  
+  ```
+  DISTRIBUICAO DE PLACARES (os 12 mais comuns)
+  
+  2-1   44   14,7%  ##############
+  1-0   41   13,7%  #############
+  2-0   38   12,7%  ############
+  1-1   28    9,3%  #########
+  0-0   23    7,7%  ########
+  2-2   22    7,3%  #######
+  3-1   21    7,0%  #######
+  3-0   20    6,7%  #######
+  3-2   16    5,3%  #####
+  4-1    9    3,0%  ###
+  4-0    9    3,0%  ###
+  4-2    9    3,0%  ###
+  ```
+  
+  Comparado ao futebol de elite:
+  
+  | | jogo | real |
+  |---|---|---|
+  | 0 a 0 | 7,7% | 7–9% ✓ |
+  | gols totais | 2,93 | 2,5–3,0 ✓ |
+  | goleadas (4+ de diferença) | ~3% | 2–4% ✓ |
+  
+  **Está bom.** A distribuição de placares é uma das partes mais saudáveis do
+  jogo, e vale registrar porque a bateria mede **sequência de gols** exatamente
+  para detectar bola de neve:
+  
+  > Se o motor for justo e os dois times são o **mesmo elenco**, a chance de o
+  > próximo gol sair de quem já está na frente tem de ficar em ~50%. Acima disso
+  > existe efeito acumulativo.
+  
+  **Nenhuma ação proposta.** Fica no catálogo como **guarda-corpo**: qualquer
+  mudança de D19 (fadiga) ou D20 (bloco) precisa deixar esta distribuição
+  intacta. Se as goleadas subirem acima de 6%, a mudança introduziu bola de neve.
+  
+  **Registro histórico que confirma a sensibilidade:** subir
+  `deadBallRecovery` de 0,055 para 0,075 — ganho irrisório de stamina (64,2 →
+  64,4) — derrubou os empates de 29,2% para 17,5% e subiu as goleadas de 17,5%
+  para 20,8%. **Design 12/13 virou 10/13.** Jogador mais inteiro no fim faz o
+  placar abrir.
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

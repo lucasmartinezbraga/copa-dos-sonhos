@@ -1,0 +1,137 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D06  Goleiro mergulhava no primeiro instante alcancavel (folga ~0 por construcao)
+     severidade: futebol   fase: —   estado: feito
+
+  DONO (quem realmente executa):
+     camada 88
+  CAMADAS QUE INTERCEPTAM: 88
+     confirme com: node tools/fisica/pilha.js dist/index.html 14
+
+  EVIDENCIA MEDIDA:
+     golPorChuteNoAlvo 0,428 -> 0,378; folga media 0,24 -> 1,31 m; design 11/13 -> 12/13
+
+  CRITERIO DE ACEITE:
+     - feito
+
+  RISCO: XG_ESCALA teve de ser re-derivada (0,651)
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/layers/88-os200-balistica-real.js:730
+
+      718 │       const folga = vMergulho * disponivel - preciso;
+      719 │       /* A MELHOR CHANCE, NAO A PRIMEIRA.
+      720 │          O laco parava no PRIMEIRO instante teoricamente alcancavel — e esse
+      721 │          instante tem folga proxima de zero por construcao, porque e exatamente
+      722 │          onde o alcance passa a existir. Com `p = DEFESA_BASE + folga*...`, todo
+      723 │          chute era resolvido no pior ponto possivel da defesa.
+      724 │ 
+      725 │          O sintoma que denunciou isso: aumentar a envergadura de 1,05 para 1,45
+      726 │          PIOROU o jogo (gols 3,27 -> 3,40). Mais alcance antecipava o encontro
+      727 │          para um ponto ainda mais apertado, em vez de dar conforto ao goleiro.
+      728 │          Um goleiro nao mergulha no primeiro milissegundo em que poderia
+      729 │          encostar: ele escolhe onde chega melhor. */
+  >   730 │       if (folga >= 0 && (!achado || folga > achado.folga)) achado = { ponto: s, folga, disponivel };
+      731 │     }
+      732 │ 
+      733 │     const d = this.__os200Diag || (this.__os200Diag = {});
+      734 │     d.defTentativas = (d.defTentativas || 0) + 1;
+      735 │     d.defSomaTempoBola = (d.defSomaTempoBola || 0) + cruz.t;
+      736 │     d.defSomaDistLinha = (d.defSomaDistLinha || 0)
+      737 │       + Math.min(Math.abs(finito(gk.x)), Math.abs(finito(gk.x) - FL));
+      738 │ 
+      739 │     if (!achado) {
+      740 │       d.defForaDeAlcance = (d.defForaDeAlcance || 0) + 1;
+      741 │       return { defendeu: false, motivo: 'fora_de_alcance' };
+      742 │     }
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:1374-1448
+──────────────────────────────────────────────────────────────────────────────
+  ## D06 🟠 ✅ O goleiro mergulhava no primeiro instante alcançável
+  
+  **Endereço:** `src/scripts/layers/88-os200-balistica-real.js`, `_os200Defesa`
+  **Estado: CONSERTADO.** Fica no catálogo porque é o melhor exemplo de método do projeto.
+  
+  **O código anterior:**
+  
+  ```js
+  if (folga >= 0) { achado = { ponto: s, folga, disponivel }; break; }
+  ```
+  
+  **O defeito.** `_os200Defesa` varria a trajetória do chute procurando o
+  **primeiro** instante em que o goleiro poderia tocar a bola, e parava ali. Esse
+  instante tem folga próxima de zero **por construção** — é exatamente o ponto
+  onde o alcance passa a existir. Como a chance de defesa é
+  `DEFESA_BASE + folga × DEFESA_POR_METRO`, **todo chute era resolvido no pior
+  ponto possível da defesa.**
+  
+  Um goleiro não mergulha no primeiro milissegundo em que poderia encostar. Ele
+  escolhe onde chega melhor.
+  
+  **A evidência, e o caminho até ela** [MEDIDO, 300 partidas]:
+  
+  ```
+  chutes que entraram na boca do gol   1.805
+    fora de alcance do goleiro           613   (34,0%)
+    alcancados                         1.192   (66,0%)
+      folga media quando alcanca        0,24 m     <- raspando
+      P media de defesa                 0,795
+  ```
+  
+  A primeira hipótese foi a envergadura — 1,05 a 1,60 m é menos do que um
+  goleiro alcança parado. **Subir a envergadura para 1,45 piorou o jogo:** gols
+  de 3,27 para 3,40, `golPorChuteNoAlvo` para 0,436.
+  
+  Foi esse resultado **invertido** que denunciou a causa real: mais alcance
+  antecipava o encontro para um ponto ainda mais apertado.
+  
+  **O conserto — uma linha:**
+  
+  ```js
+  if (folga >= 0 && (!achado || folga > achado.folga)) achado = { ponto: s, folga, disponivel };
+  ```
+  
+  **O resultado** [MEDIDO, 300 partidas]:
+  
+  | | antes | depois | faixa |
+  |---|---|---|---|
+  | gol por chute no alvo | 0,428 | **0,378** | 0,27–0,38 real ✓ |
+  | gols por partida | 3,27 | **2,833** | 2,4–3,2 design ✓ |
+  | folga média do goleiro | 0,24 m | **1,31 m** | |
+  | P média de defesa | 0,795 | **0,886** | |
+  | **placar de design** | 11/13 | **12/13** | |
+  | **placar do futebol real** | 12/21 | **15/21** | |
+  
+  Entraram na faixa do futebol real de uma vez: gols, conversão, gol por chute no
+  alvo, acerto ao alvo, chutes no alvo, impedimentos, goleadas e 0 a 0.
+  
+  **A escala de xG teve de ser re-derivada.** `XG_ESCALA` é, por definição, a
+  razão medida entre gol realizado e `pGoal` acumulado. O modelo de defesa mudou,
+  logo a razão mudou: `0,70 × 2,93/3,15 = **0,651**`. Não é ajuste de gosto.
+  
+  **O que guardar deste defeito:**
+  
+  1. Ele **não aparece em nenhuma métrica agregada** — gols, chutes e xG saíam
+     todos plausíveis.
+  2. Ele só apareceu porque a camada 88 tinha **diagnóstico próprio por ramo**
+     (`defForaDeAlcance`, `defSomaFolga`, `defSomaP`).
+  3. E porque a hipótese errada produziu um resultado **invertido**.
+  
+  > Toda camada nova deve carregar contadores por ramo. Sem eles, o defeito
+  > D06 seria invisível para sempre.
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

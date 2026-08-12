@@ -1,0 +1,99 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D30  Minigame de bola parada desligado desde a R18
+     severidade: higiene   fase: F1   estado: decidir
+
+  DONO (quem realmente executa):
+     produto
+  CAMADAS QUE INTERCEPTAM: 63, 64
+     confirme com: node tools/fisica/pilha.js dist/index.html 14
+
+  EVIDENCIA MEDIDA:
+     15 linhas mortas + 2 pontos de chamada que testam input==null sem necessidade + camadas 63/64 (255 linhas) de status desconhecido
+
+  CRITERIO DE ACEITE:
+     - pilha.js diz se 63/64 rodam, ANTES de decidir
+
+  RISCO: baixo se medido antes
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/40-match-engine-and-manager-ai.js:378   (o documento dizia linha 369 — o codigo andou)
+
+      366 │ 
+      367 │   /* Suspende somente o relógio/física enquanto o jogador prepara a cobrança.
+      368 │      O callback resolve uma única vez e devolve o controle ao motor. */
+      369 │   /* MOTOR VISUAL · minigames de falta e pênalti DESATIVADOS desde a R18: as
+      370 │      cobranças resolvem no motor, com voo real e goleiro convergindo.
+      371 │ 
+      372 │      D03 · aqui havia 17 linhas montando a requisição interativa, todas depois
+      373 │      de um `return false;` — inalcançáveis, e escritas de forma a parecerem
+      374 │      vivas. Foram removidas. A reconexão futura de um minigame não passa por
+      375 │      este método: passa por `_freeKick` e `_penalty`, que são os donos do lance.
+      376 │      Os dois pontos de chamada continuam testando `input == null` por hábito;
+      377 │      ver D30, que é a decisão de produto pendente. */
+  >   378 │   _requestSetPiece() { return false; }
+      379 │ 
+      380 │   _switchSides() {
+      381 │     for (const tm of this.teams) {
+      382 │       tm.attackDir *= -1;
+      383 │       const g = tm.goal; tm.goal = tm.oppGoal; tm.oppGoal = g;
+      384 │       for (const p of tm.players) {
+      385 │         p.hx = FL - p.hx;  p.hy = FW - p.hy;
+      386 │         p.dhx = FL - p.dhx; p.dhy = FW - p.dhy;
+      387 │         p.ahx = FL - p.ahx; p.ahy = FW - p.ahy;
+      388 │         p.x = FL - p.x;    p.y = FW - p.y;
+      389 │         p.vx = 0; p.vy = 0;
+      390 │       }
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:3119-3155
+──────────────────────────────────────────────────────────────────────────────
+  ## D30 🟡 O minigame de bola parada está desligado desde a R18
+  
+  **Endereço:** `src/scripts/40-match-engine-and-manager-ai.js:369`
+  
+  ```js
+    _requestSetPiece(kind, data, execute) {
+      /* MOTOR VISUAL · minigames de falta e pênalti DESATIVADOS [...]
+         A arquitetura de requisição fica preservada para reconexão futura */
+      return false;
+  ```
+  
+  **O defeito — se é que é um.** Esta é uma **decisão de produto pendente**, não
+  um bug. O jogo teve minigames de falta e pênalti; eles foram desligados quando
+  as cobranças passaram a resolver no motor com voo real e goleiro convergindo.
+  
+  O que sobrou:
+  
+  - 15 linhas mortas em `_requestSetPiece` (D03);
+  - dois pontos de chamada que testam `input == null` sem que `input` possa ser
+    outra coisa (`:2685` no `_freeKick`, `:2804` no `_penalty`);
+  - `layers/63-cds-os20-setpiece-hud.js` (79 linhas) e
+    `layers/64-cds-os21-wall-taker.js` (176 linhas) — a interface do minigame,
+    que pode estar viva ou morta. **Não foi medido.**
+  
+  **A ação proposta — decidir, e a decisão é do produto:**
+  
+  **Se o minigame volta:** manter `_requestSetPiece`, ligar o guarda por opção
+  (`opts.setPieceMinigame`), e medir as camadas 63/64 com `pilha.js` antes.
+  
+  **Se o minigame não volta:** apagar `_requestSetPiece` (D03), simplificar os
+  dois pontos de chamada, e medir se 63/64 podem sair — **até 255 linhas**.
+  
+  **Risco.** Baixo se medido antes. `pilha.js` responde em 40 segundos se as
+  camadas 63/64 rodam.
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+

@@ -1,0 +1,102 @@
+
+──────────────────────────────────────────────────────────────────────────────
+D22  Acerto ao alvo 0,326 abaixo do minimo de design 0,34 (unica metrica que falta para 13/13)
+     severidade: futebol   fase: F6   estado: aberto
+
+  DONO (quem realmente executa):
+     camada 88 (mira)
+  CAMADAS QUE INTERCEPTAM: 88
+     confirme com: node tools/fisica/pilha.js dist/index.html 14
+
+  EVIDENCIA MEDIDA:
+     0,326 medido; dentro da faixa real 0,30-0,40, fora da faixa de design
+
+  CRITERIO DE ACEITE:
+     - design 13/13 por qualquer via
+     - goals +-0,20
+
+  DEPENDE DE: D13  <- faca esses ANTES
+
+  RISCO: baixo: pode se resolver sozinho com D13
+
+──────────────────────────────────────────────────────────────────────────────
+CODIGO ATUAL (localizado por ancora, nao por numero de linha)
+──────────────────────────────────────────────────────────────────────────────
+
+  src/scripts/20-core.js:615   (o documento dizia linha 611 — o codigo andou)
+
+      603 │        A distorcao ficou invisivel enquanto o jogo tinha 15,5 faltas por
+      604 │        partida: o numero de cartoes saia certo por compensacao de dois erros.
+      605 │        Quando a OS-206 levou as faltas para 22 (dentro da faixa real de 19-26),
+      606 │        os cartoes estouraram e mostraram a taxa verdadeira. */
+      607 │     yellowFirst: 0.125,
+      608 │     yellowSecond: 0.05,
+      609 │     straightRed: 0.0008,
+      610 │   }),
+      611 │   shooting: Object.freeze({
+      612 │     distanceXg: Object.freeze([
+      613 │       [6, 0.48], [11, 0.27], [16, 0.135], [22, 0.064], [30, 0.032], [Infinity, 0.015],
+      614 │     ]),
+  >   615 │     conversionScale: 2.25,
+      616 │     /* BALANCEAMENTO · finalizador e goleiro com voz de verdade:
+      617 │        · skillInfluence 0.90 → 1.05: o termo (FIN−GK)/100 modula a conversão
+      618 │          em ±~26% na faixa típica (antes ±22%). A POSIÇÃO do chute continua
+      619 │          soberana (xG a 6 m é 7,5× o de 22 m) — talento não substitui estar
+      620 │          bem colocado, apenas aproveita melhor.
+      621 │        · goleiro: a fatia de DEFESA nos não-gols era 0.15 + qual×0.08 — um
+      622 │          paredão de 90 defendia quase igual a um goleiro de 60 (Δ≈2,4 pts
+      623 │          percentuais). Agora 0.05 + qual×0.21: média preservada (~20,8% com
+      624 │          goleiro 75), mas o intervalo abre para 16,6%↔23,9% — cada +10 de
+      625 │          goleiro ≈ +2 defesas a mais a cada 100 finalizações, além do efeito
+      626 │          que ele já exerce dentro do pGoal. A sorte segue existindo (o roll
+      627 │          r2 é uma moeda), só que a moeda agora é visivelmente viciada pela
+
+──────────────────────────────────────────────────────────────────────────────
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2663-2699
+──────────────────────────────────────────────────────────────────────────────
+  ## D22 🟠 Acerto ao alvo abaixo do mínimo de design
+  
+  **Endereço:** `20-core.js:611` (`shooting`) + `_os200Mira` na camada 88
+  
+  **A evidência** [MEDIDO]:
+  
+  ```
+  acerto ao alvo (onTargetRate)   0,326      minimo de design 0,34    FORA
+                                             faixa do futebol real 0,30-0,40  ok
+  ```
+  
+  É a **única** métrica que falta para o placar de design fechar em 13/13.
+  
+  **O defeito.** Está dentro da faixa do futebol real, mas fora da faixa do
+  próprio projeto. As duas faixas discordam, e a de design é mais estreita.
+  
+  **A mudança proposta.** Duas opções, e a escolha é de produto:
+  
+  **Opção 1 — mexer no jogo.** Reduzir a dispersão de mira em `_os200Mira`. É o
+  mesmo lugar de D13, e as duas mudanças devem ser feitas **juntas**, porque
+  mexem no mesmo parâmetro.
+  
+  **Opção 2 — mexer no alvo.** Reconhecer que `calibration/targets.json` foi
+  escrito antes de o placar do futebol real existir, e que 0,34 é mais estreito
+  do que a evidência empírica sustenta. Alargar para 0,30–0,40.
+  
+  **A recomendação** [HIPÓTESE]: **opção 2, com D13 como teste.** Fazer D13
+  primeiro; se o modelo angular de erro trouxer o acerto para 0,34+ naturalmente,
+  o problema se resolve sozinho e o alvo não precisa mudar. Se ficar em 0,32,
+  alargar o alvo é honesto — não se deve deformar o jogo para caber numa faixa
+  que a própria referência real contradiz.
+  
+  **Critério de aceite:** placar de design **13/13**, por qualquer das duas vias,
+  com `goals` dentro de ±0,20.
+  
+  ---
+  
+
+──────────────────────────────────────────────────────────────────────────────
+ANTES DE EDITAR
+──────────────────────────────────────────────────────────────────────────────
+  node tools/fisica/pilha.js dist/index.html 14   # confirme o DONO acima
+  bash tools/aceitar.sh --antes
+  # ... edite src/, NUNCA dist/ ...
+  bash tools/aceitar.sh --depois
+
