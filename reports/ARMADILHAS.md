@@ -1,6 +1,6 @@
 # As armadilhas deste código
 
-**Vinte e sete.** Cada uma custou pelo menos uma rodada de medição de 25
+**Vinte e oito.** Cada uma custou pelo menos uma rodada de medição de 25
 minutos; várias custaram mais. Estavam espalhadas por `CLAUDE.md`, pelo Volume
 VIII‑A do relatório, pelos laudos e pelos comentários do código.
 
@@ -11,7 +11,7 @@ Elas estão em quatro grupos, porque erram por motivos diferentes:
 | grupo | o que engana | quantas |
 |---|---|---|
 | **A · a pilha de camadas** | o código que você lê não é o que executa | 6 |
-| **B · a medição** | o número existe e mede outra coisa | 9 |
+| **B · a medição** | o número existe e mede outra coisa | 10 |
 | **C · as ferramentas** | a ferramenta funciona e mente | 7 |
 | **D · o processo** | você mesmo, com pressa | 5 |
 
@@ -213,6 +213,32 @@ custou três tentativas de conserto e quatro baterias de 300 partidas.
 
 > Antes de tratar uma diferença como *mudança*, pergunte: **é a mesma coisa
 > medida duas vezes, ou duas coisas medidas uma vez?**
+
+## B10 · As seis faixas de 15 minutos não têm 15 minutos
+
+Medido em 96 partidas, lendo `sim.minute`:
+
+| faixa | min de jogo por partida |
+|---|---|
+| 0–15 · 16–30 · 31–45 · 61–75 | **15,00** |
+| **46–60** | **18,70** |
+| **76+** | **21,14** |
+
+O 76+ é aberto, então ser maior é esperado. O **46–60 é maior porque os
+acréscimos do 1º tempo caem nele** — o minuto 45,0–48,7 tem índice de faixa 3.
+
+O histograma de gols do projeto — o número que sustenta o D19 e aparece em todo
+laudo — comparava percentuais **brutos** entre essas faixas. O erro anda nos dois
+sentidos: **inventa** um pico no 46–60 (18,1% brutos → 15,7% por minuto) e
+**disfarça** a queda do 76+ (14,7% → 11,3%). A razão início/fim vai de 1,36× para
+**1,92×**: o D19 estava subestimado.
+
+Corrigido: `bateria.js` mede `minutosDeJogoPorPartida` por faixa e
+`futebol_real.py` publica as duas colunas.
+
+> Irmã da **B3**. Lá era faixa aberta comparada por total; aqui é faixa fechada
+> que não tem o tamanho que o nome diz. **Meça a largura do balde antes de
+> comparar o que cabe dentro dele.**
 
 ---
 

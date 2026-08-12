@@ -49,34 +49,8 @@ CODIGO ATUAL (localizado por ancora, nao por numero de linha)
       720 │     passCompletion: Object.freeze([0.76, 0.88]),
 
 ──────────────────────────────────────────────────────────────────────────────
-DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:3098-3136
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:3124-3162
 ──────────────────────────────────────────────────────────────────────────────
-  | `yellowFirst` | 0,180 → 0,125 | cartão por falta 0,279 → 0,177 |
-  | envergadura do goleiro | 1,05 → 1,45 | gols +0,13 (**para pior**) |
-  | `XG_ESCALA` | 0,700 → 0,651 | xG alinhado ao gol medido |
-  
-  **Risco.** Nenhum — é documentação.
-  
-  ### ✅ FEITO — `calibration/sensibilidade.json`
-  
-  Dez constantes, cada uma com o **delta medido** e a lição que deixou. O
-  conhecimento existia espalhado em comentários de `20-core.js` e das camadas;
-  agora está num arquivo só, consultável antes de qualquer ajuste.
-  
-  As três mais perigosas:
-  
-  | constante | delta | efeito |
-  |---|---|---|
-  | `deadBallRecovery` | +0,020 | design 12/13 → **10/13** |
-  | envergadura do goleiro | 1,05 → 1,45 | gols 3,27 → 3,40 (**piorou**) |
-  | `LIMITE_AVANCO` (camada 90) | 0,50 → 1,00 | design 11/13 → **6/13** |
-  
-  O arquivo também registra as de **baixa** sensibilidade — os cinco erros de
-  passe nunca moveram uma métrica sozinhos nesta série — para que ninguém gaste
-  uma rodada de medição ali.
-  
-  ---
-  
   ## D29 🟡 Escanteios acima da faixa de design, dentro da faixa real
   
   **Endereço:** `src/scripts/20-core.js:634` (`restarts.*Corner`)
@@ -90,6 +64,32 @@ DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:3098-3136
   
   **O defeito.** Não é do jogo — é do alvo. A faixa de design 3–9 foi escrita
   quando o jogo produzia 4,08 escanteios por partida e a calibração da auditoria
+  v5.2.2 elevou deliberadamente os *shares* de escanteio em ~25%:
+  
+  ```js
+      /* CALIBRAÇÃO (auditoria v5.2.2): escanteios mediam 4.08/partida com a
+         faixa de design em 5.0–11.5. Shares elevados ~25% de forma distribuída
+         — desvios, bloqueios e bolas na trave passam a morrer mais na linha de
+         fundo, como no futebol real (~10/jogo). */
+      lowCrossSaveCorner: 0.55,
+      failedCrossCorner: 0.76,
+      /* ... mais seis ... */
+  ```
+  
+  Note que o comentário diz "faixa de design em 5.0–11.5" enquanto
+  `ENGINE_CALIBRATION.targets.corners` diz `[3, 9]`. **Há duas faixas de design
+  conflitantes no mesmo arquivo.**
+  
+  **A mudança proposta.** Reconciliar: `targets.corners` passa a `[8, 13]`,
+  alinhado ao futebol real e ao comentário da própria calibração. É correção de
+  alvo, não de jogo.
+  
+  **Atenção — D08 vai empurrar isto para baixo.** Bola que sai pela lateral não
+  sai pelo fundo. Fazer a reconciliação **depois** de D08, ou o alvo terá de ser
+  mexido duas vezes.
+  
+  ---
+  
 
 ──────────────────────────────────────────────────────────────────────────────
 ANTES DE EDITAR

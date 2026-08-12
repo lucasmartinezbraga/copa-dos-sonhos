@@ -172,6 +172,14 @@ function sondaVazia() {
     porCimaEntreOsPostes: 0, quiques: 0, somaSegundosSimulados: 0, partidasMedidas: 0, os200: {},
     /* por faixa de 15 min de relogio de jogo */
     segPorFaixa: new Array(FAIXAS).fill(0),
+    /* MINUTOS DE JOGO por faixa — nao e 15 para todas, e por isso este campo
+       existe. Medido em 96 partidas: 0-15, 16-30, 31-45 e 61-75 dao 15,00;
+       o 46-60 da 18,70 porque os ACRESCIMOS DO PRIMEIRO TEMPO caem nele
+       (minuto 45,0-48,7 tem indice de faixa 3); o 76+ da 21,14 por ser aberto.
+       Sem isto, comparar percentuais brutos entre faixas mede o tamanho da
+       faixa junto com o ritmo do jogo — inventa um pico no 46-60 e disfarca a
+       queda do 76+. */
+    minutosPorFaixa: new Array(FAIXAS).fill(0),
     chutesPorFaixa: new Array(FAIXAS).fill(0),
     golsPorFaixa: new Array(FAIXAS).fill(0),
     passesPorFaixa: new Array(FAIXAS).fill(0),
@@ -246,8 +254,11 @@ function rodarFatia(indices) {
     const soma = (k) => (+sim.stats[0][k] || 0) + (+sim.stats[1][k] || 0);
     while (!sim.isOver() && s++ < 500000) {
       const f = faixaDe(sim.minute);
+      const _minAntes = sim.minute;
       sim.step(DT);
       sonda.segPorFaixa[f] += DT;
+      const _dm = sim.minute - _minAntes;
+      if (_dm > 0 && _dm < 0.5) sonda.minutosPorFaixa[f] += _dm;
       const nShots = soma('shots'), nGoals = soma('goals'), nPasses = soma('passes');
       sonda.chutesPorFaixa[f] += nShots - cShots; cShots = nShots;
       sonda.golsPorFaixa[f] += nGoals - cGoals; cGoals = nGoals;
@@ -327,6 +338,7 @@ function agregar(partidas, sonda, extra) {
       faixa: i < 5 ? `${i * 15 + (i ? 1 : 0)}-${i * 15 + 15}` : '76+',
       segundosPorPartida: +(s / N).toFixed(1),
       fracaoDoTempo: +(s / tot).toFixed(4),
+      minutosDeJogoPorPartida: +((sonda.minutosPorFaixa[i] || 0) / N).toFixed(2),
       chutes: +((sonda.chutesPorFaixa[i] || 0) / N).toFixed(2),
       gols: +((sonda.golsPorFaixa[i] || 0) / N).toFixed(3),
       passes: +((sonda.passesPorFaixa[i] || 0) / N).toFixed(1),

@@ -75,29 +75,29 @@ CODIGO ATUAL (localizado por ancora, nao por numero de linha)
        27 │       if(out!=='block'&&out!=='save'&&!(meta&&meta.actor)){
 
 ──────────────────────────────────────────────────────────────────────────────
-DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:3205-3225
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:3231-3251
 ──────────────────────────────────────────────────────────────────────────────
-  **O defeito.** O arquivo mais importante do projeto (5.251 linhas) contém duas
-  responsabilidades diferentes: o motor de simulação e a IA que troca formação e
-  faz substituições. Elas convivem porque a IA usa **estado privado da IIFE**.
+  ## D32 🟡 ✅ A armadilha de escopo que derruba camadas novas
   
-  **Estado registrado no `CLAUDE.md`:**
+  **Endereço:** todo arquivo em `src/scripts/layers/`
   
-  > Permanece no módulo MatchSim por enquanto porque usa estado privado (IIFE).
-  > Será separada após contratos públicos e testes específicos. Não fazer
-  > separação agora — violaria objetivo da Fase 1.
+  **O defeito.** O core é uma IIFE. Estes símbolos são globais e podem ser usados
+  direto numa camada nova:
   
-  **A ação proposta.** Nenhuma agora — a decisão já foi tomada e está
-  documentada. Fica no catálogo por três razões:
+  ```
+  facet   chance   R   clamp   FL   FW   getAttr   lerp   D   srand
+  ```
   
-  1. **É 21% do arquivo.** As ~1.100 linhas são a maior fatia não lida deste
-     documento (seção 1.5).
-  2. **Ela influencia futebol.** `ai_shape` e `ai_sub` mudam formação no meio da
-     partida e aparecem na narração. Qualquer mudança de D19 (fadiga) interage
-     com a política de substituição.
-  3. **É pré-requisito de qualquer teste de IA adversária.** Sem contrato
-     público, não há como medir se um treinador joga melhor que outro.
+  **`CAL` não é.** Uma camada que escreve `CAL.shooting.conversionScale` lança
+  `ReferenceError`. A calibração se lê por `ENGINE_CALIBRATION`.
   
+  **Por que isso é perigoso e não só chato:** dependendo de onde o erro acontece,
+  ele pode passar despercebido pela bateria (`vm.runInThisContext` tem escopo
+  global diferente do navegador) e só aparecer no jogo real.
+  
+  **A mudança proposta** — uma verificação em `tools/verify.py`:
+  
+  ```python
 
 ──────────────────────────────────────────────────────────────────────────────
 ANTES DE EDITAR

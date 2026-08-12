@@ -49,34 +49,8 @@ CODIGO ATUAL (localizado por ancora, nao por numero de linha)
       390 │       }
 
 ──────────────────────────────────────────────────────────────────────────────
-DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:3137-3173
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:3163-3199
 ──────────────────────────────────────────────────────────────────────────────
-  v5.2.2 elevou deliberadamente os *shares* de escanteio em ~25%:
-  
-  ```js
-      /* CALIBRAÇÃO (auditoria v5.2.2): escanteios mediam 4.08/partida com a
-         faixa de design em 5.0–11.5. Shares elevados ~25% de forma distribuída
-         — desvios, bloqueios e bolas na trave passam a morrer mais na linha de
-         fundo, como no futebol real (~10/jogo). */
-      lowCrossSaveCorner: 0.55,
-      failedCrossCorner: 0.76,
-      /* ... mais seis ... */
-  ```
-  
-  Note que o comentário diz "faixa de design em 5.0–11.5" enquanto
-  `ENGINE_CALIBRATION.targets.corners` diz `[3, 9]`. **Há duas faixas de design
-  conflitantes no mesmo arquivo.**
-  
-  **A mudança proposta.** Reconciliar: `targets.corners` passa a `[8, 13]`,
-  alinhado ao futebol real e ao comentário da própria calibração. É correção de
-  alvo, não de jogo.
-  
-  **Atenção — D08 vai empurrar isto para baixo.** Bola que sai pela lateral não
-  sai pelo fundo. Fazer a reconciliação **depois** de D08, ou o alvo terá de ser
-  mexido duas vezes.
-  
-  ---
-  
   ## D30 🟡 O minigame de bola parada está desligado desde a R18
   
   **Endereço:** `src/scripts/40-match-engine-and-manager-ai.js:369`
@@ -87,6 +61,32 @@ DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:3137-3173
          A arquitetura de requisição fica preservada para reconexão futura */
       return false;
   ```
+  
+  **O defeito — se é que é um.** Esta é uma **decisão de produto pendente**, não
+  um bug. O jogo teve minigames de falta e pênalti; eles foram desligados quando
+  as cobranças passaram a resolver no motor com voo real e goleiro convergindo.
+  
+  O que sobrou:
+  
+  - 15 linhas mortas em `_requestSetPiece` (D03);
+  - dois pontos de chamada que testam `input == null` sem que `input` possa ser
+    outra coisa (`:2685` no `_freeKick`, `:2804` no `_penalty`);
+  - `layers/63-cds-os20-setpiece-hud.js` (79 linhas) e
+    `layers/64-cds-os21-wall-taker.js` (176 linhas) — a interface do minigame,
+    que pode estar viva ou morta. **Não foi medido.**
+  
+  **A ação proposta — decidir, e a decisão é do produto:**
+  
+  **Se o minigame volta:** manter `_requestSetPiece`, ligar o guarda por opção
+  (`opts.setPieceMinigame`), e medir as camadas 63/64 com `pilha.js` antes.
+  
+  **Se o minigame não volta:** apagar `_requestSetPiece` (D03), simplificar os
+  dois pontos de chamada, e medir se 63/64 podem sair — **até 255 linhas**.
+  
+  **Risco.** Baixo se medido antes. `pilha.js` responde em 40 segundos se as
+  camadas 63/64 rodam.
+  
+  ---
   
 
 ──────────────────────────────────────────────────────────────────────────────

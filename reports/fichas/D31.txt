@@ -49,38 +49,38 @@ CODIGO ATUAL (localizado por ancora, nao por numero de linha)
      4285 │     if(Array.isArray(prev.roles)&&typeof sim.setPlayerPhaseRole==='function')for(const r of prev.roles){try{const rp=tm.players.find(x=>playerId(x)===r.id||String(playerId(x))===String(r.id));if(rp){sim.setPlayerPhaseRole(t,rp.idx,{inPossession:r.inPossession,outOfPossession:r.outOfPossession});restored=true;}}catch(_){}}
 
 ──────────────────────────────────────────────────────────────────────────────
-DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:3174-3204
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:3200-3230
 ──────────────────────────────────────────────────────────────────────────────
-  **O defeito — se é que é um.** Esta é uma **decisão de produto pendente**, não
-  um bug. O jogo teve minigames de falta e pênalti; eles foram desligados quando
-  as cobranças passaram a resolver no motor com voo real e goleiro convergindo.
-  
-  O que sobrou:
-  
-  - 15 linhas mortas em `_requestSetPiece` (D03);
-  - dois pontos de chamada que testam `input == null` sem que `input` possa ser
-    outra coisa (`:2685` no `_freeKick`, `:2804` no `_penalty`);
-  - `layers/63-cds-os20-setpiece-hud.js` (79 linhas) e
-    `layers/64-cds-os21-wall-taker.js` (176 linhas) — a interface do minigame,
-    que pode estar viva ou morta. **Não foi medido.**
-  
-  **A ação proposta — decidir, e a decisão é do produto:**
-  
-  **Se o minigame volta:** manter `_requestSetPiece`, ligar o guarda por opção
-  (`opts.setPieceMinigame`), e medir as camadas 63/64 com `pilha.js` antes.
-  
-  **Se o minigame não volta:** apagar `_requestSetPiece` (D03), simplificar os
-  dois pontos de chamada, e medir se 63/64 podem sair — **até 255 linhas**.
-  
-  **Risco.** Baixo se medido antes. `pilha.js` responde em 40 segundos se as
-  camadas 63/64 rodam.
-  
-  ---
-  
   ## D31 🟡 A IA de treinador mora dentro do módulo do motor
   
   **Endereço:** `src/scripts/40-match-engine-and-manager-ai.js`, últimas ~1.100
   linhas
+  
+  **O defeito.** O arquivo mais importante do projeto (5.251 linhas) contém duas
+  responsabilidades diferentes: o motor de simulação e a IA que troca formação e
+  faz substituições. Elas convivem porque a IA usa **estado privado da IIFE**.
+  
+  **Estado registrado no `CLAUDE.md`:**
+  
+  > Permanece no módulo MatchSim por enquanto porque usa estado privado (IIFE).
+  > Será separada após contratos públicos e testes específicos. Não fazer
+  > separação agora — violaria objetivo da Fase 1.
+  
+  **A ação proposta.** Nenhuma agora — a decisão já foi tomada e está
+  documentada. Fica no catálogo por três razões:
+  
+  1. **É 21% do arquivo.** As ~1.100 linhas são a maior fatia não lida deste
+     documento (seção 1.5).
+  2. **Ela influencia futebol.** `ai_shape` e `ai_sub` mudam formação no meio da
+     partida e aparecem na narração. Qualquer mudança de D19 (fadiga) interage
+     com a política de substituição.
+  3. **É pré-requisito de qualquer teste de IA adversária.** Sem contrato
+     público, não há como medir se um treinador joga melhor que outro.
+  
+  **Quando fazer:** depois de F5 (promoções), porque separar um módulo que
+  depende de métodos que estão prestes a mudar de lugar é trabalho dobrado.
+  
+  ---
   
 
 ──────────────────────────────────────────────────────────────────────────────

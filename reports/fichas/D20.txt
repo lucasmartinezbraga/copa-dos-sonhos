@@ -51,7 +51,7 @@ CODIGO ATUAL (localizado por ancora, nao por numero de linha)
      3057 │     for (let i = 0; i < all.length; i++) {
 
 ──────────────────────────────────────────────────────────────────────────────
-DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2529-2618
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2529-2644
 ──────────────────────────────────────────────────────────────────────────────
   ## D20 🟠 ❌ REFUTADO — o bloco compacta 9 m em 4 segundos
   
@@ -142,6 +142,32 @@ DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2529-2618
     return r;
   };
   ```
+  
+  `_comprimirBloco` **não teleporta** — ele desloca o **alvo** de cada jogador na
+  direção do centroide, proporcionalmente ao excesso, e deixa `_integrate` levar
+  o corpo até lá. Sem isso, cai direto no bug que a camada 84 contém há 255
+  linhas.
+  
+  **Quem intercepta.** `_movePlayers` tem cinco sobrescritas (07, 16, 26, 65, 70).
+  A camada 92 precisa ser a de número mais alto.
+  
+  **Risco.** Alto. Um bloco mais compacto muda tudo: menos espaço, mais desarmes,
+  menos chutes de longe, provavelmente menos gols. É por isso que ele vem
+  **depois** de D19 no plano — os dois interagem, e medir os dois juntos não diz
+  qual fez o quê.
+  
+  **Critério de aceite:**
+  
+  | métrica | hoje | alvo |
+  |---|---|---|
+  | comprimento do bloco sem bola | 37,4 m | **28–34 m** |
+  | largura do bloco sem bola | 45,2 m | **34–44 m** |
+  | comprimento **com** bola | 37,8 m | 30–40 m (não pode sair) |
+  | `tackles` | 50,133 | ±2 SE |
+  | `goals` | 2,930 | ±0,20 |
+  | `shots` | 23,667 | ±0,84 |
+  
+  ---
   
 
 ──────────────────────────────────────────────────────────────────────────────

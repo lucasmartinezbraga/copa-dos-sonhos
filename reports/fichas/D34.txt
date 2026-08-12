@@ -21,34 +21,8 @@ CODIGO ATUAL (localizado por ancora, nao por numero de linha)
   (este defeito nao tem endereco unico — e distribuido)
 
 ──────────────────────────────────────────────────────────────────────────────
-DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:3312-3352
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:3338-3378
 ──────────────────────────────────────────────────────────────────────────────
-  
-  **O defeito.** Treze arquivos, **81 linhas no total**, que não sobrescrevem
-  nada. São blocos `<script>` separados no bundle, cada um com sua entrada no
-  manifesto e no `verify.py`.
-  
-  **A mudança proposta.** Fundir todos num único `99-build-identity.js`:
-  
-  ```js
-  /* Identidade de build. Consolida 13 arquivos de meta que so publicavam versao.
-     Cada release acrescenta uma linha aqui, nao um arquivo novo. */
-  window.__CDS_BUILDS__ = Object.freeze({
-    r18155: '...', r18161: '...', r181732: '...', r1818: '...',
-    r18181: '...', r18182: '...', r18183: '...', r1820: '...',
-    r1821rc1: '...', os81: '...', os82: '...', r1886: '...',
-  });
-  ```
-  
-  **Risco.** Baixo, mas **não zero**: se alguma coisa lê `window.__CDS_R1818__`
-  por nome, quebra. Grep obrigatório antes.
-  
-  **Ganho.** 89 blocos viram 77. O manifesto encolhe 13%. `verify.py` roda mais
-  rápido. E — o que mais importa — o próximo leitor da lista de camadas vê 60
-  arquivos que fazem coisas, não 82 misturados.
-  
-  ---
-  
   ## D34 🔴 Até 81 sobrescritas nunca alcançadas
   
   **Endereço:** distribuído — a saída de `tools/fisica/pilha.js`
@@ -64,6 +38,32 @@ DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:3312-3352
   
   O primeiro plano desta série afirmou "87 sobrescritas mortas" como fato. Estava
   errado em duas dimensões — o número e o status — e só foi corrigido porque
+  alguém perguntou "você tem certeza?".
+  
+  **A mudança proposta — em duas etapas, e a primeira é obrigatória:**
+  
+  **Etapa 1 · Aumentar a amostra até o número estabilizar.**
+  
+  ```bash
+  node tools/fisica/pilha.js dist/index.html 300
+  ```
+  
+  Depois, comparar 14, 50, 150 e 300 partidas. As sobrescritas que continuam em
+  zero com 300 partidas **e** com prorrogação forçada são candidatas de verdade.
+  Espero que o número caia bastante — muitas devem ser bola parada rara.
+  
+  **Etapa 2 · Para cada candidata, a mesma manobra de D14:** trocar o corpo por
+  um contador, rodar, e apagar só o que não disparar.
+  
+  **Risco.** Baixo se a etapa 1 for respeitada. **Alto se alguém apagar as 81
+  direto** — e o número no primeiro plano estava escrito de um jeito que
+  convidava a isso.
+  
+  **Critério de aceite:** ≤ 15 sobrescritas em zero com 300 partidas e
+  prorrogação; as 14 métricas idênticas ao dígito após cada remoção.
+  
+  ---
+  
 
 ──────────────────────────────────────────────────────────────────────────────
 ANTES DE EDITAR

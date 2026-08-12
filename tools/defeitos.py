@@ -266,7 +266,7 @@ DEFEITOS = [
       depende=[], risco="baixo por commit, alto se feito de uma vez. Nunca mais de um bloco por commit."),
 
  dict(id="D19", sev="futebol", fase="F6", estado="aberto",
-      titulo="A partida murcha: 20,0% dos gols ate 15', 14,1% apos 76'",
+      titulo="A partida murcha — SUBESTIMADO: 21,8% ate 15' e 11,3% apos 76' por MINUTO de jogo",
       locais=[dict(arquivo=CORE, linha=565, ancora="clockRate: 0.085")],
       evidencia="queda de -1,17 pp por faixa, R2=0,86; r=0,814 entre stamina e taxa de chutes",
       dono="dreno no core, normalizado por ADV4.context.clockRateRef",
@@ -281,7 +281,15 @@ DEFEITOS = [
                 "CONCLUSAO: forma e volume de chances sao a MESMA alavanca em sentidos opostos. Falta "
                 "ao motor uma FASE DE TRANSICAO (o time que perde a bola recompoe, nao so troca de "
                 "alvo). E trabalho de modelo, nao de constante."),
-      medido=("CAUSA ISOLADA — tools/fisica/ramo-d19.js, 48 partidas. O r=0,814 do documento "
+      medido=("O NUMERO PUBLICADO ESTAVA SUBESTIMADO. As seis faixas nao tem a mesma duracao: "
+              "0-15, 16-30, 31-45 e 61-75 dao 15,00 minutos de jogo por partida, o 46-60 da 18,70 "
+              "(os acrescimos do 1o tempo caem nele) e o 76+ da 21,14 (e aberto). Medido em 96 "
+              "partidas lendo sim.minute. Comparar percentuais BRUTOS entre faixas de tamanhos "
+              "diferentes inventava um pico no 46-60 (18,1% brutos -> 15,7% por minuto) e "
+              "disfarcava a queda do fim (14,7% -> 11,3%). Por minuto de jogo: 21,8% ate os 15 e "
+              "11,3% depois dos 76 — razao inicio/fim de 1,92x, nao 1,36x. bateria.js passou a "
+              "medir minutosDeJogoPorPartida e futebol_real.py publica as duas colunas.\n"
+              "CAUSA ISOLADA — tools/fisica/ramo-d19.js, 48 partidas. O r=0,814 do documento "
               "e correlacao, nao mecanismo: stamina cai monotonicamente e qualquer coisa que "
               "caia junto correlaciona alto com ela. A sonda separou as quatro historias "
               "possiveis pela razao 76+ / 0-15, tudo POR MINUTO DE JOGO (`sim.minute`, nao "

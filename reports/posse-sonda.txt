@@ -1,0 +1,164 @@
+
+A POSSE INTEIRA · 48 partidas — distribuicao, nao media
+
+faixa   posses/min | progresso max | %chega a area  %chega ao terco | %0 passes %1 %2-3 %4+ | %chuta
+------------------------------------------------------------------------------------------------------------------------------------
+0-15          0.99 |         75.39 |        44.66            59.83 |      12.1  16.4   24.9  46.6 |  26.40
+16-30         0.98 |         73.69 |        42.82            57.75 |      16.2  15.1   24.9  43.8 |  24.18
+31-45         0.88 |         74.62 |        44.69            58.32 |      13.3  13.9   23.6  49.1 |  23.14
+46-60         0.95 |         74.04 |        43.42            57.30 |      12.9  12.9   25.7  48.4 |  19.22
+61-75         0.95 |         75.23 |        44.28            59.24 |      12.6  14.4   26.2  46.8 |  23.61
+76+           0.88 |         72.88 |        37.95            56.08 |      11.5  13.3   25.5  49.8 |  18.47
+
+razao 76+ / 0-15   (1,00 = nao muda ao longo da partida)
+  posses por minuto .......... 0.891   <== CAI
+  progresso maximo da posse .. 0.967   estavel
+  % chega a area (<=27 m) .... 0.850   <== CAI
+  % chega ao terco (<=40 m) .. 0.937   estavel
+  % posses com 0 passes ...... 0.951   estavel
+  % posses com 4+ passes ..... 1.067   estavel
+  % posses que chutam ........ 0.699   <== CAI
+  duracao media da posse ..... 0.952   estavel
+
+  -- so as que chegaram a area --
+  tempo NA area por chegada .. 0.896   <== CAI
+  % delas que chutam ......... 0.823   <== CAI
+  % que SAEM da area ......... 1.140   <== SOBE
+  % que perdem a bola la ..... 1.399   <== SOBE
+
+{
+ "partidas": 48,
+ "rotulos": [
+  "0-15",
+  "16-30",
+  "31-45",
+  "46-60",
+  "61-75",
+  "76+"
+ ],
+ "porFaixa": [
+  {
+   "faixa": "0-15",
+   "posses": 712,
+   "minutos": 720.1,
+   "possesPorMinuto": 0.989,
+   "progressoMaximoMedio": 75.39,
+   "pctChegaArea": 44.66,
+   "pctChegaTerco": 59.83,
+   "pct0passes": 12.08,
+   "pct4maisPasses": 46.63,
+   "pctChuta": 26.4,
+   "duracaoMedia": 15.18,
+   "chegadasNaArea": 318,
+   "tempoNaAreaPorChegada": 6.301,
+   "pctChutaDaArea": 59.12,
+   "pctSaiDaArea": 22.64,
+   "pctPerdeNaArea": 18.24
+  },
+  {
+   "faixa": "16-30",
+   "posses": 703,
+   "minutos": 720,
+   "possesPorMinuto": 0.976,
+   "progressoMaximoMedio": 73.69,
+   "pctChegaArea": 42.82,
+   "pctChegaTerco": 57.75,
+   "pct0passes": 16.22,
+   "pct4maisPasses": 43.81,
+   "pctChuta": 24.18,
+   "duracaoMedia": 14.27,
+   "chegadasNaArea": 301,
+   "tempoNaAreaPorChegada": 5.721,
+   "pctChutaDaArea": 56.48,
+   "pctSaiDaArea": 22.92,
+   "pctPerdeNaArea": 20.6
+  },
+  {
+   "faixa": "31-45",
+   "posses": 631,
+   "minutos": 720,
+   "possesPorMinuto": 0.876,
+   "progressoMaximoMedio": 74.62,
+   "pctChegaArea": 44.69,
+   "pctChegaTerco": 58.32,
+   "pct0passes": 13.31,
+   "pct4maisPasses": 49.13,
+   "pctChuta": 23.14,
+   "duracaoMedia": 15.34,
+   "chegadasNaArea": 282,
+   "tempoNaAreaPorChegada": 5.883,
+   "pctChutaDaArea": 51.77,
+   "pctSaiDaArea": 21.63,
+   "pctPerdeNaArea": 26.6
+  },
+  {
+   "faixa": "46-60",
+   "posses": 843,
+   "minutos": 888.5,
+   "possesPorMinuto": 0.949,
+   "progressoMaximoMedio": 74.04,
+   "pctChegaArea": 43.42,
+   "pctChegaTerco": 57.3,
+   "pct0passes": 12.93,
+   "pct4maisPasses": 48.4,
+   "pctChuta": 19.22,
+   "duracaoMedia": 14.42,
+   "chegadasNaArea": 366,
+   "tempoNaAreaPorChegada": 5.509,
+   "pctChutaDaArea": 44.26,
+   "pctSaiDaArea": 25.96,
+   "pctPerdeNaArea": 29.78
+  },
+  {
+   "faixa": "61-75",
+   "posses": 682,
+   "minutos": 720,
+   "possesPorMinuto": 0.947,
+   "progressoMaximoMedio": 75.23,
+   "pctChegaArea": 44.28,
+   "pctChegaTerco": 59.24,
+   "pct0passes": 12.61,
+   "pct4maisPasses": 46.77,
+   "pctChuta": 23.61,
+   "duracaoMedia": 14.35,
+   "chegadasNaArea": 302,
+   "tempoNaAreaPorChegada": 5.69,
+   "pctChutaDaArea": 53.31,
+   "pctSaiDaArea": 22.52,
+   "pctPerdeNaArea": 24.17
+  },
+  {
+   "faixa": "76+",
+   "posses": 888,
+   "minutos": 1008.6,
+   "possesPorMinuto": 0.88,
+   "progressoMaximoMedio": 72.88,
+   "pctChegaArea": 37.95,
+   "pctChegaTerco": 56.08,
+   "pct0passes": 11.49,
+   "pct4maisPasses": 49.77,
+   "pctChuta": 18.47,
+   "duracaoMedia": 14.45,
+   "chegadasNaArea": 337,
+   "tempoNaAreaPorChegada": 5.645,
+   "pctChutaDaArea": 48.66,
+   "pctSaiDaArea": 25.82,
+   "pctPerdeNaArea": 25.52
+  }
+ ],
+ "razoes": {
+  "posses por minuto": 0.891,
+  "progresso maximo da posse": 0.967,
+  "% chega a area (<=27 m)": 0.85,
+  "% chega ao terco (<=40 m)": 0.937,
+  "% posses com 0 passes": 0.951,
+  "% posses com 4+ passes": 1.067,
+  "% posses que chutam": 0.699,
+  "duracao media da posse": 0.952,
+  "-- so as que chegaram a area --": 1,
+  "tempo NA area por chegada": 0.896,
+  "% delas que chutam": 0.823,
+  "% que SAEM da area": 1.14,
+  "% que perdem a bola la": 1.399
+ }
+}

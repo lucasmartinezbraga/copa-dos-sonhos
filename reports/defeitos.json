@@ -733,7 +733,7 @@
    "sev": "futebol",
    "fase": "F6",
    "estado": "aberto",
-   "titulo": "A partida murcha: 20,0% dos gols ate 15', 14,1% apos 76'",
+   "titulo": "A partida murcha — SUBESTIMADO: 21,8% ate 15' e 11,3% apos 76' por MINUTO de jogo",
    "locais": [
     {
      "arquivo": "src/scripts/20-core.js",
@@ -753,7 +753,7 @@
     "passes +-5,53"
    ],
    "feito_em": "TRES TENTATIVAS REPROVADAS, todas medidas em 300 partidas. Laudo completo em reports/D19-D20-a-mesma-alavanca.md. Resumo: (1) achatar a fadiga na velocidade passou nos dois portoes e levou os gols de 76+ de 14,7% para 16,1%, mas nao atingiu os criterios declarados e PIOROU o D20 (encurtamento do bloco 2,8 -> 0,8 m); (2) compactar o bloco reprovou feio (chutes -2,18, gols -0,374); (3) o piso que envelhece com a stamina quase recuperou os gols (-0,07) e NAO moveu a distribuicao. CONCLUSAO: forma e volume de chances sao a MESMA alavanca em sentidos opostos. Falta ao motor uma FASE DE TRANSICAO (o time que perde a bola recompoe, nao so troca de alvo). E trabalho de modelo, nao de constante.",
-   "medido": "CAUSA ISOLADA — tools/fisica/ramo-d19.js, 48 partidas. O r=0,814 do documento e correlacao, nao mecanismo: stamina cai monotonicamente e qualquer coisa que caia junto correlaciona alto com ela. A sonda separou as quatro historias possiveis pela razao 76+ / 0-15, tudo POR MINUTO DE JOGO (`sim.minute`, nao `sim.t`):\n  H1 chutes por minuto ....... 0,685  <== E ESTA\n  H2 acerto ao alvo por chute  0,996  estavel — DESCARTADA\n  H3 fracao de bola em jogo .. 1,078  estavel — DESCARTADA\n  H4 simulacao por minuto .... 0,928  uniforme — DESCARTADA\nO jogo NAO erra mais no fim: ele CRIA 31% menos chutes e converte igual. O conserto e no que gera a chance, nao na finalizacao nem no relogio.\nAVISO: a MESMA sonda com 8 partidas deu H2 = 0,504, que parecia um segundo mecanismo e era ruido (131 gols em 48 partidas dao SE ~3,1 pp por faixa; com 8 partidas nao da para concluir nada). E a armadilha B7 acontecendo ao vivo.",
+   "medido": "O NUMERO PUBLICADO ESTAVA SUBESTIMADO. As seis faixas nao tem a mesma duracao: 0-15, 16-30, 31-45 e 61-75 dao 15,00 minutos de jogo por partida, o 46-60 da 18,70 (os acrescimos do 1o tempo caem nele) e o 76+ da 21,14 (e aberto). Medido em 96 partidas lendo sim.minute. Comparar percentuais BRUTOS entre faixas de tamanhos diferentes inventava um pico no 46-60 (18,1% brutos -> 15,7% por minuto) e disfarcava a queda do fim (14,7% -> 11,3%). Por minuto de jogo: 21,8% ate os 15 e 11,3% depois dos 76 — razao inicio/fim de 1,92x, nao 1,36x. bateria.js passou a medir minutosDeJogoPorPartida e futebol_real.py publica as duas colunas.\nCAUSA ISOLADA — tools/fisica/ramo-d19.js, 48 partidas. O r=0,814 do documento e correlacao, nao mecanismo: stamina cai monotonicamente e qualquer coisa que caia junto correlaciona alto com ela. A sonda separou as quatro historias possiveis pela razao 76+ / 0-15, tudo POR MINUTO DE JOGO (`sim.minute`, nao `sim.t`):\n  H1 chutes por minuto ....... 0,685  <== E ESTA\n  H2 acerto ao alvo por chute  0,996  estavel — DESCARTADA\n  H3 fracao de bola em jogo .. 1,078  estavel — DESCARTADA\n  H4 simulacao por minuto .... 0,928  uniforme — DESCARTADA\nO jogo NAO erra mais no fim: ele CRIA 31% menos chutes e converte igual. O conserto e no que gera a chance, nao na finalizacao nem no relogio.\nAVISO: a MESMA sonda com 8 partidas deu H2 = 0,504, que parecia um segundo mecanismo e era ruido (131 gols em 48 partidas dao SE ~3,1 pp por faixa; com 8 partidas nao da para concluir nada). E a armadilha B7 acontecendo ao vivo.",
    "depende": [
     "D17"
    ],
@@ -799,8 +799,8 @@
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
     "linha_inicio": 2529,
-    "linha_fim": 2618,
-    "titulo": "D20 🟠 O bloco não compacta quando o time perde a bola"
+    "linha_fim": 2644,
+    "titulo": "D20 🟠 ❌ REFUTADO — o bloco compacta 9 m em 4 segundos"
    }
   },
   {
@@ -827,8 +827,8 @@
    "risco": "AVISO: a fadiga ja e invariante ao clockRate. Se mexer no relogio, NAO mexa no dreno junto.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2619,
-    "linha_fim": 2680,
+    "linha_inicio": 2645,
+    "linha_fim": 2706,
     "titulo": "D21 🔴 `clockRate`: 23 minutos de física para 90 minutos de partida"
    }
   },
@@ -861,8 +861,8 @@
    "risco": "baixo: pode se resolver sozinho com D13",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2681,
-    "linha_fim": 2717,
+    "linha_inicio": 2707,
+    "linha_fim": 2743,
     "titulo": "D22 🟠 Acerto ao alvo abaixo do mínimo de design"
    }
   },
@@ -883,8 +883,8 @@
    "risco": "deadBallRecovery +0,02 ja derrubou empates de 29,2% para 17,5%",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2718,
-    "linha_fim": 2766,
+    "linha_inicio": 2744,
+    "linha_fim": 2792,
     "titulo": "D23 🟡 A bola de neve: o placar abre demais?"
    }
   },
@@ -913,8 +913,8 @@
    "risco": "a recomendacao MENOS fundamentada do documento",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2767,
-    "linha_fim": 2827,
+    "linha_inicio": 2793,
+    "linha_fim": 2853,
     "titulo": "D24 🔵 Tarja preta: 24% a 43% da caixa do campo"
    }
   },
@@ -949,8 +949,8 @@
    "feito_em": "FEITO E SEM EFEITO MEDIDO. A excecao foi removida (o comentario dela agora explica por que 'shot' tem razao de ser e 'deflect' nao tinha), mas as 14 metricas ficaram IDENTICAS ao digito em 40 partidas pareadas. A sonda tools/fisica/ramo-d25.js explica: ha 77,5 quadros por partida com bola de desvio viajando FORA do campo, e _ballOut e chamado em voo ZERO vezes — as saidas ja vinham por _looseRoll (7,9/partida) e por bola parada (19,6/partida). A linha editada nao e alcancada no caso do desvio: alguma das 4 sobrescritas de _ballTravel resolve o segmento antes. CONSEQUENCIA PARA D08: a premissa de que o desvio escapava da maquina de reinicio esta ERRADA. O orcamento de laterais nao se abre por aqui.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2828,
-    "linha_fim": 2914,
+    "linha_inicio": 2854,
+    "linha_fim": 2940,
     "titulo": "D25 🟡 ✅ `_ballTravel` isenta explicitamente o desvio de sair do campo"
    }
   },
@@ -992,8 +992,8 @@
    "risco": "medio: mexe no ritmo de decisao",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2915,
-    "linha_fim": 2986,
+    "linha_inicio": 2941,
+    "linha_fim": 3012,
     "titulo": "D26 🟡 `decideT` é escrito em dois lugares e reescrito todo quadro"
    }
   },
@@ -1021,8 +1021,8 @@
    "risco": "dois erros se compensavam: poucas faltas + cartoes demais por falta",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2987,
-    "linha_fim": 3036,
+    "linha_inicio": 3013,
+    "linha_fim": 3062,
     "titulo": "D27 🟠 As faltas não saem do parâmetro — saem do número de duelos"
    }
   },
@@ -1051,8 +1051,8 @@
    "risco": "nenhum: e documentacao",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 3037,
-    "linha_fim": 3097,
+    "linha_inicio": 3063,
+    "linha_fim": 3123,
     "titulo": "D28 🟡 ✅ `deadBallRecovery` — a calibração mais frágil do jogo"
    }
   },
@@ -1082,8 +1082,8 @@
    "risco": "fazer DEPOIS de D08 ou o alvo tera de mudar duas vezes",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 3098,
-    "linha_fim": 3136,
+    "linha_inicio": 3124,
+    "linha_fim": 3162,
     "titulo": "D29 🟡 Escanteios acima da faixa de design, dentro da faixa real"
    }
   },
@@ -1114,8 +1114,8 @@
    "risco": "baixo se medido antes",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 3137,
-    "linha_fim": 3173,
+    "linha_inicio": 3163,
+    "linha_fim": 3199,
     "titulo": "D30 🟡 O minigame de bola parada está desligado desde a R18"
    }
   },
@@ -1145,8 +1145,8 @@
    "risco": "separar um modulo que depende de metodos prestes a mudar de lugar e trabalho dobrado",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 3174,
-    "linha_fim": 3204,
+    "linha_inicio": 3200,
+    "linha_fim": 3230,
     "titulo": "D31 🟡 A IA de treinador mora dentro do módulo do motor"
    }
   },
@@ -1181,8 +1181,8 @@
    "feito_em": "lint em tools/verify.py (passo 6). Na PRIMEIRA execucao ele pegou uma violacao real e viva: a camada 66 lia restarts.shotBlockCorner por `root.CAL && ...`, que NUNCA acerta porque window.CAL e undefined (medido). Caia no 0,66 codificado em silencio — a calibracao estava desconectada e mexer no 20-core.js nao teria efeito ali. O padrao por acaso era igual ao valor calibrado, entao o defeito era invisivel. Corrigido para ENGINE_CALIBRATION; o lint impede a reintroducao.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 3205,
-    "linha_fim": 3225,
+    "linha_inicio": 3231,
+    "linha_fim": 3251,
     "titulo": "D32 🟡 ✅ A armadilha de escopo que derruba camadas novas"
    }
   },
@@ -1210,8 +1210,8 @@
    "risco": "baixo mas nao zero: algo pode ler por nome",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 3277,
-    "linha_fim": 3311,
+    "linha_inicio": 3303,
+    "linha_fim": 3337,
     "titulo": "D33 🟡 Doze arquivos que só publicam número de versão"
    }
   },
@@ -1233,8 +1233,8 @@
    "risco": "ALTO se alguem apagar as 81 direto. O primeiro plano escreveu este numero como se fosse fato — era teto.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 3312,
-    "linha_fim": 3352,
+    "linha_inicio": 3338,
+    "linha_fim": 3378,
     "titulo": "D34 🔴 Até 81 sobrescritas nunca alcançadas"
    }
   }

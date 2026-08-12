@@ -98,6 +98,7 @@ def metricas(d: dict) -> dict:
     }
     out["__placares"] = placares
     out["__minutos"] = minutos
+    out["__ritmo"] = (d.get("fisica") or {}).get("ritmoPorFaixa") or []
     out["__n"] = n
     return out
 
@@ -183,12 +184,56 @@ def main() -> None:
 
     mins = atual["__minutos"]
     if mins:
+        # ── AS FAIXAS NAO TEM A MESMA DURACAO, e isso distorcia este histograma.
+        # Medido com tools/fisica/ramo-posse.js, 96 partidas, lendo `sim.minute`:
+        #
+        #     0-15, 16-30, 31-45, 61-75 .... 15,00 min de jogo por partida
+        #     46-60 ........................ 18,70   (+25%)
+        #     76+ .......................... 21,14   (+41%)
+        #
+        # O 76+ e aberto — vai ate o fim, acrescimos incluidos — entao ser maior
+        # e esperado. O 46-60 e maior porque os ACRESCIMOS DO PRIMEIRO TEMPO
+        # caem nele: o minuto 45,0-48,7 tem indice de faixa 3.
+        #
+        # Comparar percentuais BRUTOS entre faixas de tamanhos diferentes mede o
+        # tamanho da faixa junto com o ritmo do jogo. O efeito nao e pequeno e
+        # anda nos DOIS sentidos: inventa um pico no 46-60 e disfarca a queda do
+        # 76+. Por isso o histograma passa a publicar as duas colunas — a bruta,
+        # que e a que sempre foi citada, e a normalizada por minuto de jogo, que
+        # e a comparavel.
+        # A bateria publica isto desde 2026-08-12 (fisica.ritmoPorFaixa
+        # [].minutosDeJogoPorPartida). Os valores abaixo sao so o fallback para
+        # medicoes gravadas ANTES disso — se voce mudar o clockRate ou o calculo
+        # de acrescimos, o fallback envelhece e a medida nova nao.
+        FALLBACK = {"0-15": 15.00, "16-30": 15.00, "31-45": 15.00,
+                    "46-60": 18.70, "61-75": 15.00, "76+": 21.14}
+        ritmo = (atual.get("__ritmo") or [])
+        DURACAO, medido = {}, False
+        for item in ritmo:
+            if isinstance(item, dict) and item.get("minutosDeJogoPorPartida"):
+                DURACAO[item.get("faixa")] = item["minutosDeJogoPorPartida"]
+                medido = True
+        if not medido:
+            DURACAO = FALLBACK
         print("\n  GOLS POR FAIXA DE 15 MINUTOS (o futebol real cresce ate o fim)")
+        if not medido:
+            print("    (duracao das faixas: FALLBACK — esta medicao e anterior ao campo"
+                  " minutosDeJogoPorPartida)")
+        print(f"    {'faixa':>7}  {'bruto':>6}  {'min':>5}  {'por minuto (normalizado)':<34}")
         faixas = [(0, 15), (16, 30), (31, 45), (46, 60), (61, 75), (76, 200)]
+        linhas = []
         for lo, hi in faixas:
             c = sum(1 for x in mins if lo <= x <= hi)
             rot = f"{lo}-{hi}" if hi < 200 else f"{lo}+"
-            print(f"    {rot:>7}  {c/len(mins)*100:5.1f}%  {'#' * round(c / len(mins) * 100)}")
+            dur = DURACAO.get(rot, FALLBACK.get(rot, 15.0))
+            linhas.append((rot, c / len(mins) * 100, dur, (c / len(mins) * 100) / dur))
+        tot = sum(x[3] for x in linhas) or 1
+        for rot, bruto, dur, taxa in linhas:
+            norm = 100 * taxa / tot
+            print(f"    {rot:>7}  {bruto:5.1f}%  {dur:5.2f}  {norm:5.1f}%  {'#' * round(norm)}")
+        prim, ult = linhas[0][3], linhas[-1][3]
+        print(f"\n    inicio/fim por minuto de jogo: {prim/(ult or 1):.2f}x")
+        print("    (no futebol de elite este numero e MENOR que 1 — o jogo cresce)")
 
 
 if __name__ == "__main__":
