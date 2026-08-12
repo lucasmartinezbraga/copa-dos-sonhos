@@ -189,7 +189,7 @@ Em ordem de distância medida:
 |---|---|---|---|---|
 | 1 | **Laterais pela metade** | 15,91/partida | 33–48 | D08 |
 | 2 | **A partida murcha em vez de crescer** | 20,0% dos gols até 15', 14,1% após 76' | inverso disso | D19 |
-| 3 | **O bloco não compacta ao defender** | encurta 0,4 m ao perder a bola | encurta 8–10 m | D20 |
+| 3 | ~~**O bloco não compacta ao defender**~~ **REFUTADO** | encurta **9,0 m em 4 s** (medido pelo mesmo time, antes e depois) | encurta 8–10 m | D20 |
 | 4 | **Duas físicas de bola convivendo** | g = 20 m/s² em ~57 lances/partida | uma física, g = 9,81 | D01 |
 | 5 | **Tarja preta na tela** | 24% a 43% da caixa do campo | 0% | D24 |
 
@@ -2526,7 +2526,33 @@ partida.
 
 ---
 
-## D20 🟠 O bloco não compacta quando o time perde a bola
+## D20 🟠 ❌ REFUTADO — o bloco compacta 9 m em 4 segundos
+
+> **Este defeito não existe.** O número "encurta 0,4 m" (depois 2,8 m) vinha de
+> comparar, no mesmo instante, o time **que ataca** com o time **que defende** —
+> dois times diferentes. Foto transversal lida como filme.
+>
+> Medido do jeito certo por `tools/fisica/ramo-transicao.js`, seguindo o **mesmo**
+> time depois da perda (32 partidas, ~20 mil amostras por faixa):
+>
+> | desde a perda | 1º tempo | 2º tempo |
+> |---|---|---|
+> | 0–0,5 s | 42,6 m | 40,2 m |
+> | 2–3 s | 36,3 | 35,0 |
+> | 4–6 s | **33,6** | **33,2** |
+> | **encurtamento** | **9,0 m** | **7,0 m** |
+>
+> A fase de transição existe e recompõe como o futebol de elite. O bloco
+> assentado fica em 33,6 m, dentro da faixa real de 25–35.
+>
+> **O que sobra e não é este defeito:** no 2º tempo o bloco só estica até 40,2 m
+> quando a posse é perdida. Não é a recomposição que piora — é o ataque
+> adversário que estica menos. Isso é o D19 visto do outro lado.
+>
+> Custou três tentativas de conserto e quatro baterias de 300 partidas. Laudo em
+> `reports/D19-D20-a-mesma-alavanca.md`; a lição virou a armadilha **B9**.
+
+### O texto original, mantido para registro
 
 **Endereços:** `layers/23-cds-r185-bloco-defensivo.js:51`,
 `layers/60-cds-r1843-block-depth.js`, `_defendTarget` (nove camadas)

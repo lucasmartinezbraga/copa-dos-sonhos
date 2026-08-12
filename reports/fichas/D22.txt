@@ -54,6 +54,32 @@ CODIGO ATUAL (localizado por ancora, nao por numero de linha)
 ──────────────────────────────────────────────────────────────────────────────
 DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2681-2717
 ──────────────────────────────────────────────────────────────────────────────
+  
+  **As três saídas possíveis, com o custo de cada uma:**
+  
+  | saída | o que muda | custo |
+  |---|---|---|
+  | **A · Aceitar** | `clockRate` fica em 0,085; documenta-se que passes são ~45% do real | a métrica `passes` nunca fecha |
+  | **B · Baixar para ~0,045** | ~43 min de física; passes vão a ~700 | partida de 43 min em 1X; o jogador assiste em 3X = 14 min |
+  | **C · Desacoplar** | eventos "de fundo" (passes de segurança) simulados sem física | complexidade nova; risco de duas realidades |
+  
+  **A recomendação** [HIPÓTESE]: **saída A, explicitamente.** Escrever em
+  `calibration/targets.json` que `passes` é medido em escala comprimida e ajustar
+  a faixa de aceitação para 350–420 em vez de comparar com 700–900. O tempo de
+  tela já se resolve na velocidade (os botões 1X/2X/3X/TURBO, com 3X = ~7,6 min
+  por partida), não no `clockRate`.
+  
+  > **`clockRate` decide quanto futebol acontece. A velocidade decide quão rápido
+  > você assiste.** São coisas diferentes e foram confundidas por vários
+  > releases.
+  
+  **Aviso obrigatório:** a fadiga é normalizada por `ADV4.context.clockRateRef` —
+  ela mede **minuto de jogo**, não segundo de simulação. **Se mexer no
+  `clockRate`, não mexa no dreno junto:** ele já é invariante, e mexer nos dois
+  produz uma medição não interpretável.
+  
+  ---
+  
   ## D22 🟠 Acerto ao alvo abaixo do mínimo de design
   
   **Endereço:** `20-core.js:611` (`shooting`) + `_os200Mira` na camada 88
@@ -64,32 +90,6 @@ DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2681-2717
   acerto ao alvo (onTargetRate)   0,326      minimo de design 0,34    FORA
                                              faixa do futebol real 0,30-0,40  ok
   ```
-  
-  É a **única** métrica que falta para o placar de design fechar em 13/13.
-  
-  **O defeito.** Está dentro da faixa do futebol real, mas fora da faixa do
-  próprio projeto. As duas faixas discordam, e a de design é mais estreita.
-  
-  **A mudança proposta.** Duas opções, e a escolha é de produto:
-  
-  **Opção 1 — mexer no jogo.** Reduzir a dispersão de mira em `_os200Mira`. É o
-  mesmo lugar de D13, e as duas mudanças devem ser feitas **juntas**, porque
-  mexem no mesmo parâmetro.
-  
-  **Opção 2 — mexer no alvo.** Reconhecer que `calibration/targets.json` foi
-  escrito antes de o placar do futebol real existir, e que 0,34 é mais estreito
-  do que a evidência empírica sustenta. Alargar para 0,30–0,40.
-  
-  **A recomendação** [HIPÓTESE]: **opção 2, com D13 como teste.** Fazer D13
-  primeiro; se o modelo angular de erro trouxer o acerto para 0,34+ naturalmente,
-  o problema se resolve sozinho e o alvo não precisa mudar. Se ficar em 0,32,
-  alargar o alvo é honesto — não se deve deformar o jogo para caber numa faixa
-  que a própria referência real contradiz.
-  
-  **Critério de aceite:** placar de design **13/13**, por qualquer das duas vias,
-  com `goals` dentro de ±0,20.
-  
-  ---
   
 
 ──────────────────────────────────────────────────────────────────────────────

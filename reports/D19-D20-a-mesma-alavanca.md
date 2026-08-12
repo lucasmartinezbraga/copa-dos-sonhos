@@ -1,10 +1,16 @@
-# D19 e D20 são a mesma alavanca — laudo de três tentativas reprovadas
+# D19 e D20 — três tentativas reprovadas e um defeito que não existe
 
-**Data:** 2026-08-12 · **Baterias gastas:** 4 × 300 partidas · **Resultado: nenhuma
-das três mudanças entrou.**
+**Data:** 2026-08-12 · **Baterias gastas:** 4 × 300 partidas · **Resultado:
+nenhuma das três mudanças entrou, e o D20 foi refutado.**
 
 Este laudo existe porque resultado negativo é resultado, e porque a próxima
 pessoa vai querer fazer exatamente o que eu fiz.
+
+> **Leia o ADENDO no fim antes de agir sobre qualquer coisa daqui.** O corpo do
+> laudo termina propondo uma "fase de transição". Testei a proposta com uma
+> sonda antes de escrever o conserto: **a fase já existe e funciona** — o bloco
+> encurta 9 m em 4 s, que é futebol de elite. O D20 era artefato de uma métrica
+> que comparava dois times diferentes.
 
 ---
 
@@ -155,20 +161,65 @@ Provável razão: o bloco só afrouxa quando o time está exausto — e nessa al
 3. **Nenhum parâmetro isolado paga as duas pontas.** Não é falta de calibração:
    é que o modelo não tem o que o futebol tem.
 
-## O que falta, e não é calibração
+## ADENDO — a hipótese acima foi TESTADA e está ERRADA
 
-O motor não tem **fase de transição**. Quando o time perde a bola, ele troca de
-alvo — não *recompõe*. No futebol real existe um intervalo de 3 a 6 segundos em
-que o time corre para trás em bloco, e é isso que produz ao mesmo tempo:
+A versão original deste laudo terminava assim:
 
-- bloco curto **depois** de recomposto (o que o D20 quer), e
-- espaço aberto **durante** a recomposição (o que o D19 quer),
+> "O motor não tem **fase de transição**. Quando o time perde a bola, ele troca
+> de alvo — não *recompõe*. (…) Isso é trabalho de modelo, não de constante. É
+> a próxima OS."
 
-com a fadiga decidindo **quanto tempo** a recomposição leva. Uma fase, dois
-efeitos, um mecanismo — em vez de um piso que tenta ser as duas coisas ao mesmo
-tempo e não consegue ser nenhuma.
+**Escrevi a sonda antes de escrever o conserto, e a sonda derrubou a hipótese.**
+`tools/fisica/ramo-transicao.js`, 32 partidas, ~20 mil amostras por faixa,
+seguindo o **mesmo** time depois de perder a bola:
 
-Isso é trabalho de modelo, não de constante. É a próxima OS.
+| desde a perda | 1º tempo | 2º tempo |
+|---|---|---|
+| 0–0,5 s | 42,6 m | 40,2 m |
+| 0,5–1 s | 42,3 | 39,9 |
+| 1–2 s | 39,3 | 37,6 |
+| 2–3 s | 36,3 | 35,0 |
+| 3–4 s | 34,7 | 34,0 |
+| **4–6 s** | **33,6** | **33,2** |
+| **encurtamento** | **9,0 m** | **7,0 m** |
+
+**A fase de transição existe e recompõe como o futebol de elite: ~9 m em ~4
+segundos.** O bloco assentado fica em 33,6 m, dentro da faixa real de 25–35.
+
+### Então de onde veio o "encurta 0,4 m" do D20?
+
+De comparar, no mesmo instante, **o time que ataca com o time que defende** —
+dois times diferentes. Foto transversal lida como filme. A pergunta certa é
+longitudinal: o mesmo time, antes e depois.
+
+**O D20 descrevia um defeito que não existe.** Está marcado como `refutado` no
+catálogo, e `forma.js` foi corrigido para publicar as duas coisas separadas: a
+foto transversal e o bloco defensivo **já recomposto**, que é o número
+comparável com a referência.
+
+### O que a medição deixa de pé
+
+No 2º tempo o bloco só estica até **40,2 m** quando a posse é perdida, contra
+42,6 no 1º. Não é a recomposição que piora — **é o ataque adversário que estica
+menos**. O tempo de recuperação é o mesmo; o que encolhe é o quanto havia para
+recuperar.
+
+Isso é o D19 visto do outro lado, e reforça o funil: o alvo continua sendo
+**penetração**, não forma. As três tentativas deste laudo falharam porque todas
+mexiam em forma.
+
+### O que fica como próxima OS
+
+Não é uma fase de transição — é fazer o time **penetrar mais no fim da
+partida** sem torná-lo mais rápido (que foi a tentativa 1, e ela paga em
+goleadas). Candidatos que a medição ainda não descartou:
+
+1. a decisão de arriscar o passe vertical não muda com o placar nem com o
+   relógio — o time perdendo aos 85 joga igual ao time empatando aos 10;
+2. os passes **sobem** monotonicamente (15,5 → 18,2 por minuto) enquanto os
+   chutes caem: o time cansado circula em vez de arriscar. É decisão, não
+   física, e decisão é onde este projeto tem histórico de ganho real (o
+   impedimento no `_bestPass`, a folga do goleiro).
 
 ---
 

@@ -49,6 +49,32 @@ CODIGO ATUAL (localizado por ancora, nao por numero de linha)
 ──────────────────────────────────────────────────────────────────────────────
 DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2987-3036
 ──────────────────────────────────────────────────────────────────────────────
+  
+  **Risco.** Médio. Mexe no ritmo de decisão, que governa passes e chutes.
+  
+  **Critério de aceite:** `passes` ±5,53; `shots` ±0,84; mediana de posse do
+  portador entre 0,9 e 1,3 s (`tools/fisica/tela/olhar.js`).
+  
+  ### ✅ CONFIRMADO — a camada 17 reescreve quase todo quadro
+  
+  `tools/fisica/ramos.js`, 12 partidas [MEDIDO]:
+  
+  ```
+  mudancas de decideT observadas       35.195,25 por partida
+  das quais o literal exato 0,28           55,25 por partida
+  ```
+  
+  Trinta e cinco mil mudanças por partida confirmam ao pé da letra o que o
+  documento afirmava por leitura: **a camada 17 reescreve `decideT` praticamente
+  todo quadro.** As 55,25 ocorrências do literal `0.28` são as recepções — o
+  `_giveBall:2582`, que ignora atributos.
+  
+  É a confirmação de que editar `decideT` no motor não adianta, e a razão pela
+  qual o conserto tem de ser feito na camada 17. **Este é o único dos sete
+  defeitos formulados por leitura cuja descrição sobreviveu intacta à medição.**
+  
+  ---
+  
   ## D27 🟠 As faltas não saem do parâmetro — saem do número de duelos
   
   **Endereço:** `src/scripts/20-core.js:598` (`defending.foulBase: 0.29`)
@@ -73,32 +99,6 @@ DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2987-3036
   **O que fica.** Uma armadilha documentada, e ela vale como princípio geral:
   
   > **Quando uma métrica de volume não sai do parâmetro, ela sai da frequência do
-  > evento que a produz.** Faltas não saem de `foulBase`, saem de quantos duelos
-  > acontecem. Cartões não saem de `yellowFirst`, saem de quantas faltas
-  > acontecem.
-  
-  E a confirmação disso está no parâmetro vizinho:
-  
-  ```js
-      /* CARTAO POR FALTA (OS-206).
-         Estava em 0,18 e entregava 0,279 cartao por falta [...] contra 0,177 do
-         futebol real. A distorcao ficou invisivel enquanto o jogo tinha 15,5
-         faltas por partida: o numero de cartoes saia certo por COMPENSACAO DE
-         DOIS ERROS. Quando a OS-206 levou as faltas para 22 [...] os cartoes
-         estouraram e mostraram a taxa verdadeira. */
-      yellowFirst: 0.125,
-  ```
-  
-  **Dois erros que se compensavam** — poucas faltas e cartões demais por falta —
-  produzindo um número final correto. Só apareceram quando um dos dois foi
-  consertado.
-  
-  **Nenhuma ação proposta.** Fica como guarda-corpo: qualquer mudança que mexa no
-  número de duelos (D02, D20, D26) precisa reverificar faltas **e** cartões
-  juntos, porque eles estão acoplados por uma razão, não por uma soma.
-  
-  ---
-  
 
 ──────────────────────────────────────────────────────────────────────────────
 ANTES DE EDITAR

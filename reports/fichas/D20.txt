@@ -1,7 +1,7 @@
 
 ──────────────────────────────────────────────────────────────────────────────
-D20  O bloco nao compacta ao perder a bola (encurta 0,4 m; real 8-10 m)
-     severidade: futebol   fase: F6   estado: aberto
+D20  O bloco nao compacta — REFUTADO: ele compacta 9 m em 4 s
+     severidade: futebol   fase: F6   estado: refutado
 
   DONO (quem realmente executa):
      _defendTarget tem 9 camadas e NENHUMA tem autoridade sobre a forma coletiva
@@ -12,16 +12,11 @@ D20  O bloco nao compacta ao perder a bola (encurta 0,4 m; real 8-10 m)
      forma.js, 1.198 amostras: comprimento 37,8 com bola -> 37,4 sem; largura 49,4 -> 45,2
 
   CRITERIO DE ACEITE:
-     - comprimento sem bola 28-34 m
-     - largura sem bola 34-44 m
-     - comprimento COM bola 30-40 m
-     - tackles +-1,07
-     - goals +-0,20
-     - shots +-0,84
+     - REFUTADO — nao implementar
 
   DEPENDE DE: D19  <- faca esses ANTES
 
-  RISCO: ALTO. _comprimirBloco desloca ALVO, nunca corpo — senao cai no bug que a camada 84 contem.
+  RISCO: nenhum: nao ha o que implementar
 
 ──────────────────────────────────────────────────────────────────────────────
 CODIGO ATUAL (localizado por ancora, nao por numero de linha)
@@ -58,7 +53,33 @@ CODIGO ATUAL (localizado por ancora, nao por numero de linha)
 ──────────────────────────────────────────────────────────────────────────────
 DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2529-2618
 ──────────────────────────────────────────────────────────────────────────────
-  ## D20 🟠 O bloco não compacta quando o time perde a bola
+  ## D20 🟠 ❌ REFUTADO — o bloco compacta 9 m em 4 segundos
+  
+  > **Este defeito não existe.** O número "encurta 0,4 m" (depois 2,8 m) vinha de
+  > comparar, no mesmo instante, o time **que ataca** com o time **que defende** —
+  > dois times diferentes. Foto transversal lida como filme.
+  >
+  > Medido do jeito certo por `tools/fisica/ramo-transicao.js`, seguindo o **mesmo**
+  > time depois da perda (32 partidas, ~20 mil amostras por faixa):
+  >
+  > | desde a perda | 1º tempo | 2º tempo |
+  > |---|---|---|
+  > | 0–0,5 s | 42,6 m | 40,2 m |
+  > | 2–3 s | 36,3 | 35,0 |
+  > | 4–6 s | **33,6** | **33,2** |
+  > | **encurtamento** | **9,0 m** | **7,0 m** |
+  >
+  > A fase de transição existe e recompõe como o futebol de elite. O bloco
+  > assentado fica em 33,6 m, dentro da faixa real de 25–35.
+  >
+  > **O que sobra e não é este defeito:** no 2º tempo o bloco só estica até 40,2 m
+  > quando a posse é perdida. Não é a recomposição que piora — é o ataque
+  > adversário que estica menos. Isso é o D19 visto do outro lado.
+  >
+  > Custou três tentativas de conserto e quatro baterias de 300 partidas. Laudo em
+  > `reports/D19-D20-a-mesma-alavanca.md`; a lição virou a armadilha **B9**.
+  
+  ### O texto original, mantido para registro
   
   **Endereços:** `layers/23-cds-r185-bloco-defensivo.js:51`,
   `layers/60-cds-r1843-block-depth.js`, `_defendTarget` (nove camadas)
@@ -121,32 +142,6 @@ DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2529-2618
     return r;
   };
   ```
-  
-  `_comprimirBloco` **não teleporta** — ele desloca o **alvo** de cada jogador na
-  direção do centroide, proporcionalmente ao excesso, e deixa `_integrate` levar
-  o corpo até lá. Sem isso, cai direto no bug que a camada 84 contém há 255
-  linhas.
-  
-  **Quem intercepta.** `_movePlayers` tem cinco sobrescritas (07, 16, 26, 65, 70).
-  A camada 92 precisa ser a de número mais alto.
-  
-  **Risco.** Alto. Um bloco mais compacto muda tudo: menos espaço, mais desarmes,
-  menos chutes de longe, provavelmente menos gols. É por isso que ele vem
-  **depois** de D19 no plano — os dois interagem, e medir os dois juntos não diz
-  qual fez o quê.
-  
-  **Critério de aceite:**
-  
-  | métrica | hoje | alvo |
-  |---|---|---|
-  | comprimento do bloco sem bola | 37,4 m | **28–34 m** |
-  | largura do bloco sem bola | 45,2 m | **34–44 m** |
-  | comprimento **com** bola | 37,8 m | 30–40 m (não pode sair) |
-  | `tackles` | 50,133 | ±2 SE |
-  | `goals` | 2,930 | ±0,20 |
-  | `shots` | 23,667 | ±0,84 |
-  
-  ---
   
 
 ──────────────────────────────────────────────────────────────────────────────

@@ -49,6 +49,32 @@ CODIGO ATUAL (localizado por ancora, nao por numero de linha)
 ──────────────────────────────────────────────────────────────────────────────
 DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:3037-3097
 ──────────────────────────────────────────────────────────────────────────────
+  > evento que a produz.** Faltas não saem de `foulBase`, saem de quantos duelos
+  > acontecem. Cartões não saem de `yellowFirst`, saem de quantas faltas
+  > acontecem.
+  
+  E a confirmação disso está no parâmetro vizinho:
+  
+  ```js
+      /* CARTAO POR FALTA (OS-206).
+         Estava em 0,18 e entregava 0,279 cartao por falta [...] contra 0,177 do
+         futebol real. A distorcao ficou invisivel enquanto o jogo tinha 15,5
+         faltas por partida: o numero de cartoes saia certo por COMPENSACAO DE
+         DOIS ERROS. Quando a OS-206 levou as faltas para 22 [...] os cartoes
+         estouraram e mostraram a taxa verdadeira. */
+      yellowFirst: 0.125,
+  ```
+  
+  **Dois erros que se compensavam** — poucas faltas e cartões demais por falta —
+  produzindo um número final correto. Só apareceram quando um dos dois foi
+  consertado.
+  
+  **Nenhuma ação proposta.** Fica como guarda-corpo: qualquer mudança que mexa no
+  número de duelos (D02, D20, D26) precisa reverificar faltas **e** cartões
+  juntos, porque eles estão acoplados por uma razão, não por uma soma.
+  
+  ---
+  
   ## D28 🟡 ✅ `deadBallRecovery` — a calibração mais frágil do jogo
   
   **Endereço:** `src/scripts/20-core.js:572`
@@ -84,32 +110,6 @@ DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:3037-3097
   | `deadBallRecovery` | +0,020 | design 12/13 → 10/13 |
   | `clockRate` | 0,130 → 0,085 | todos os mínimos de volume |
   | `conversionScale` | 2,25 → 2,05 | gols −0,4 |
-  | `yellowFirst` | 0,180 → 0,125 | cartão por falta 0,279 → 0,177 |
-  | envergadura do goleiro | 1,05 → 1,45 | gols +0,13 (**para pior**) |
-  | `XG_ESCALA` | 0,700 → 0,651 | xG alinhado ao gol medido |
-  
-  **Risco.** Nenhum — é documentação.
-  
-  ### ✅ FEITO — `calibration/sensibilidade.json`
-  
-  Dez constantes, cada uma com o **delta medido** e a lição que deixou. O
-  conhecimento existia espalhado em comentários de `20-core.js` e das camadas;
-  agora está num arquivo só, consultável antes de qualquer ajuste.
-  
-  As três mais perigosas:
-  
-  | constante | delta | efeito |
-  |---|---|---|
-  | `deadBallRecovery` | +0,020 | design 12/13 → **10/13** |
-  | envergadura do goleiro | 1,05 → 1,45 | gols 3,27 → 3,40 (**piorou**) |
-  | `LIMITE_AVANCO` (camada 90) | 0,50 → 1,00 | design 11/13 → **6/13** |
-  
-  O arquivo também registra as de **baixa** sensibilidade — os cinco erros de
-  passe nunca moveram uma métrica sozinhos nesta série — para que ninguém gaste
-  uma rodada de medição ali.
-  
-  ---
-  
 
 ──────────────────────────────────────────────────────────────────────────────
 ANTES DE EDITAR

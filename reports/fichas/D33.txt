@@ -24,6 +24,32 @@ CODIGO ATUAL (localizado por ancora, nao por numero de linha)
 ──────────────────────────────────────────────────────────────────────────────
 DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:3277-3311
 ──────────────────────────────────────────────────────────────────────────────
+  
+  ```js
+  /* CAL nao e global: fica no escopo do modulo do motor. 0.66 e o valor de
+     CAL.restarts.shotBlockCorner em :2780. */
+  var CORNER_SHARE=(root.CAL&&root.CAL.restarts&&root.CAL.restarts.shotBlockCorner)||0.66;
+  ```
+  
+  **`window.CAL` é `undefined`** [MEDIDO, em Chromium real]. O acesso guardado
+  nunca acertava: caía no `0.66` codificado, em silêncio. Ou seja,
+  `restarts.shotBlockCorner` estava **desconectado da calibração** — mexer nele em
+  `20-core.js` não teria efeito nenhum nesta camada.
+  
+  O defeito era invisível porque o padrão codificado por acaso é igual ao valor
+  calibrado. Corrigido para ler `ENGINE_CALIBRATION`; o lint impede a
+  reintrodução.
+  
+  > É a forma mais silenciosa do padrão 4 (substituição de contrato): não é uma
+  > camada descartando o que a outra escreveu, é uma camada **nunca lendo** o que
+  > ela pensa que lê. Um `||` de fallback transforma um erro de escopo em um
+  > número congelado.
+  
+  **Vale varrer o resto do código atrás de outros fallbacks assim** — todo
+  `(a && a.b) || literal` é um candidato a valor congelado.
+  
+  ---
+  
   ## D33 🟡 Doze arquivos que só publicam número de versão
   
   **Endereços:** `35-r18155-build-identity.js` (10 linhas),
@@ -33,32 +59,6 @@ DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:3277-3311
   `50-cds-r18183-build-meta.js` (1), `52-cds-r1820-build-meta.js` (3),
   `59-cds-r1821rc1-build-meta.js` (41), `72-cds-os81-low-cross-contact-meta.js` (3),
   `73-cds-os82-intercept-control-meta.js` (3), `83-cds-r1886-build-meta.js` (10)
-  
-  **O defeito.** Treze arquivos, **81 linhas no total**, que não sobrescrevem
-  nada. São blocos `<script>` separados no bundle, cada um com sua entrada no
-  manifesto e no `verify.py`.
-  
-  **A mudança proposta.** Fundir todos num único `99-build-identity.js`:
-  
-  ```js
-  /* Identidade de build. Consolida 13 arquivos de meta que so publicavam versao.
-     Cada release acrescenta uma linha aqui, nao um arquivo novo. */
-  window.__CDS_BUILDS__ = Object.freeze({
-    r18155: '...', r18161: '...', r181732: '...', r1818: '...',
-    r18181: '...', r18182: '...', r18183: '...', r1820: '...',
-    r1821rc1: '...', os81: '...', os82: '...', r1886: '...',
-  });
-  ```
-  
-  **Risco.** Baixo, mas **não zero**: se alguma coisa lê `window.__CDS_R1818__`
-  por nome, quebra. Grep obrigatório antes.
-  
-  **Ganho.** 89 blocos viram 77. O manifesto encolhe 13%. `verify.py` roda mais
-  rápido. E — o que mais importa — o próximo leitor da lista de camadas vê 60
-  arquivos que fazem coisas, não 82 misturados.
-  
-  ---
-  
 
 ──────────────────────────────────────────────────────────────────────────────
 ANTES DE EDITAR

@@ -9,8 +9,8 @@
  "total": 34,
  "por_estado": {
   "feito": 10,
-  "refutado": 1,
-  "aberto": 17,
+  "refutado": 2,
+  "aberto": 16,
   "parcial": 1,
   "decidir": 2,
   "guarda-corpo": 2,
@@ -769,8 +769,8 @@
    "id": "D20",
    "sev": "futebol",
    "fase": "F6",
-   "estado": "aberto",
-   "titulo": "O bloco nao compacta ao perder a bola (encurta 0,4 m; real 8-10 m)",
+   "estado": "refutado",
+   "titulo": "O bloco nao compacta — REFUTADO: ele compacta 9 m em 4 s",
    "locais": [
     {
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
@@ -789,17 +789,13 @@
     "70"
    ],
    "criterio": [
-    "comprimento sem bola 28-34 m",
-    "largura sem bola 34-44 m",
-    "comprimento COM bola 30-40 m",
-    "tackles +-1,07",
-    "goals +-0,20",
-    "shots +-0,84"
+    "REFUTADO — nao implementar"
    ],
+   "medido": "PREMISSA REFUTADA — NAO IMPLEMENTAR. O numero 0,4 m (depois 2,8 m) vinha de comparar, no MESMO instante, o time que ataca com o time que defende — dois times diferentes. E foto transversal lida como se fosse longitudinal.\nMedido corretamente por tools/fisica/ramo-transicao.js, seguindo o MESMO time antes e depois da perda, 32 partidas e ~20 mil amostras por faixa:\n    desde a perda    1o tempo   2o tempo\n    0-0,5 s ......... 42,6 m     40,2 m\n    2-3 s ........... 36,3       35,0\n    4-6 s ........... 33,6       33,2\n    encurtamento .... 9,0 m      7,0 m   (futebol real: 8-10)\nA fase de transicao EXISTE e recompoe como o futebol de elite: ~9 m em ~4 s. O bloco assentado fica em 33,6 m, dentro da faixa real de 25-35.\nO QUE SOBRA, e nao e este defeito: no 2o tempo o bloco so estica ate 40,2 m em vez de 42,6 quando a posse e perdida. Nao e a recomposicao que piora — e o ataque adversario que estica menos. Isso e o D19 visto do outro lado, e o alvo continua sendo penetracao, nao forma.\ntools/fisica/tela/forma.js foi corrigido: agora publica o bloco defensivo separado por fase (recompondo x assentado) alem da foto transversal.",
    "depende": [
     "D19"
    ],
-   "risco": "ALTO. _comprimirBloco desloca ALVO, nunca corpo — senao cai no bug que a camada 84 contem.",
+   "risco": "nenhum: nao ha o que implementar",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
     "linha_inicio": 2529,

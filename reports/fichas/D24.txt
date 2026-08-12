@@ -50,6 +50,32 @@ CODIGO ATUAL (localizado por ancora, nao por numero de linha)
 ──────────────────────────────────────────────────────────────────────────────
 DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2767-2827
 ──────────────────────────────────────────────────────────────────────────────
+  | | jogo | real |
+  |---|---|---|
+  | 0 a 0 | 7,7% | 7–9% ✓ |
+  | gols totais | 2,93 | 2,5–3,0 ✓ |
+  | goleadas (4+ de diferença) | ~3% | 2–4% ✓ |
+  
+  **Está bom.** A distribuição de placares é uma das partes mais saudáveis do
+  jogo, e vale registrar porque a bateria mede **sequência de gols** exatamente
+  para detectar bola de neve:
+  
+  > Se o motor for justo e os dois times são o **mesmo elenco**, a chance de o
+  > próximo gol sair de quem já está na frente tem de ficar em ~50%. Acima disso
+  > existe efeito acumulativo.
+  
+  **Nenhuma ação proposta.** Fica no catálogo como **guarda-corpo**: qualquer
+  mudança de D19 (fadiga) ou D20 (bloco) precisa deixar esta distribuição
+  intacta. Se as goleadas subirem acima de 6%, a mudança introduziu bola de neve.
+  
+  **Registro histórico que confirma a sensibilidade:** subir
+  `deadBallRecovery` de 0,055 para 0,075 — ganho irrisório de stamina (64,2 →
+  64,4) — derrubou os empates de 29,2% para 17,5% e subiu as goleadas de 17,5%
+  para 20,8%. **Design 12/13 virou 10/13.** Jogador mais inteiro no fim faz o
+  placar abrir.
+  
+  ---
+  
   ## D24 🔵 Tarja preta: 24% a 43% da caixa do campo
   
   **Endereço:** `src/scripts/70-game-runtime-and-rendering.js` (desenho do campo)
@@ -85,32 +111,6 @@ DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2767-2827
   o contêiner é mais **alto** que essa proporção — que é o caso em toda janela
   menos larga que 2:1 — o `contain` centraliza o desenho e deixa o resto vazio
   **em cima e embaixo**. Quanto mais quadrada a janela, maior a sobra: daí os
-  42,7% em 1024×768 contra 19,2% em 1920×1080.
-  
-  **A mudança proposta** [HIPÓTESE — a área de desenho é a menos lida deste
-  documento, 10% de cobertura]:
-  
-  ```js
-  /* o fator de escala deve considerar as DUAS dimensoes e escolher a que
-     preenche, nao a que cabe: */
-  const escala = Math.max(W / larguraProjetada, H / alturaProjetada);
-  /* com recorte controlado das bordas em vez de faixa preta */
-  ```
-  
-  Alternativa mais conservadora: manter a proporção e **reduzir a altura do
-  canvas** para que a largura preencha, deixando o espaço vertical para os
-  painéis.
-  
-  **Risco.** Baixo em futebol, alto em enquadramento: se a escala preencher, o
-  recorte pode cortar as linhas laterais. `tools/fisica/tela/olhar.js` mede
-  exatamente o que a câmera enquadra e deve ser rodado antes e depois.
-  
-  **Critério de aceite:** letterbox ≤ 4% em todas as quatro resoluções de
-  `caixa.js`; `olhar.js` mostra as quatro linhas do campo visíveis em todos os
-  lances.
-  
-  ---
-  
 
 ──────────────────────────────────────────────────────────────────────────────
 ANTES DE EDITAR

@@ -1,0 +1,169 @@
+
+TRANSICAO · o bloco do time que ACABOU de perder a bola — 32 partidas
+3015 perdas de posse observadas
+
+  1o tempo
+  desde a perda  amostras   comprimento   largura   FWD-zaga   atras da bola
+  ------------------------------------------------------------------------------
+  0-0,5s             3462         42.59     44.19      34.64           6.67
+  0,5-1s             2180         42.31     42.71      34.97           6.86
+  1-2s               3835         39.25     41.63      33.08           7.03
+  2-3s               3819         36.30     40.59      30.89           7.57
+  3-4s               3292         34.69     39.48      29.60           7.84
+  4-6s               5013         33.59     38.97      28.74           7.97
+  6s+               19063         34.92     40.31      30.20           8.01
+
+  2o tempo
+  desde a perda  amostras   comprimento   largura   FWD-zaga   atras da bola
+  ------------------------------------------------------------------------------
+  0-0,5s             4179         40.16     41.61      32.26           6.88
+  0,5-1s             2706         39.85     40.91      32.61           7.18
+  1-2s               4545         37.60     40.62      31.48           7.31
+  2-3s               4672         35.01     40.08      30.06           7.76
+  3-4s               4102         34.01     39.80      29.61           8.02
+  4-6s               6241         33.21     39.86      29.18           8.05
+  6s+               23582         33.68     40.46      30.16           7.65
+
+EXISTE FASE DE TRANSICAO?
+  1o tempo: o bloco vai de 42.6 m (recem-perdida) a 34.9 m (6 s depois) — encurta 7.7 m
+  2o tempo: 40.2 -> 33.7 m — encurta 6.5 m
+
+  >> HA recomposicao. A fase existe; o defeito e a intensidade ou a duracao,
+     nao a ausencia. NAO implemente uma fase nova — ajuste esta.
+
+  fadiga alonga a recomposicao? 1o tempo 7.7 m x 2o tempo 6.5 m
+  (se forem iguais, a fadiga nao toca a transicao — que e o que o laudo previu)
+
+{
+ "partidas": 32,
+ "perdasDePosse": 3015,
+ "rotulos": [
+  "0-0,5s",
+  "0,5-1s",
+  "1-2s",
+  "2-3s",
+  "3-4s",
+  "4-6s",
+  "6s+"
+ ],
+ "primeiroTempo": [
+  {
+   "faixa": "0-0,5s",
+   "n": 3462,
+   "comprimento": 42.59,
+   "largura": 44.19,
+   "fwdMenosZaga": 34.64,
+   "atrasDaBola": 6.67
+  },
+  {
+   "faixa": "0,5-1s",
+   "n": 2180,
+   "comprimento": 42.31,
+   "largura": 42.71,
+   "fwdMenosZaga": 34.97,
+   "atrasDaBola": 6.86
+  },
+  {
+   "faixa": "1-2s",
+   "n": 3835,
+   "comprimento": 39.25,
+   "largura": 41.63,
+   "fwdMenosZaga": 33.08,
+   "atrasDaBola": 7.03
+  },
+  {
+   "faixa": "2-3s",
+   "n": 3819,
+   "comprimento": 36.3,
+   "largura": 40.59,
+   "fwdMenosZaga": 30.89,
+   "atrasDaBola": 7.57
+  },
+  {
+   "faixa": "3-4s",
+   "n": 3292,
+   "comprimento": 34.69,
+   "largura": 39.48,
+   "fwdMenosZaga": 29.6,
+   "atrasDaBola": 7.84
+  },
+  {
+   "faixa": "4-6s",
+   "n": 5013,
+   "comprimento": 33.59,
+   "largura": 38.97,
+   "fwdMenosZaga": 28.74,
+   "atrasDaBola": 7.97
+  },
+  {
+   "faixa": "6s+",
+   "n": 19063,
+   "comprimento": 34.92,
+   "largura": 40.31,
+   "fwdMenosZaga": 30.2,
+   "atrasDaBola": 8.01
+  }
+ ],
+ "segundoTempo": [
+  {
+   "faixa": "0-0,5s",
+   "n": 4179,
+   "comprimento": 40.16,
+   "largura": 41.61,
+   "fwdMenosZaga": 32.26,
+   "atrasDaBola": 6.88
+  },
+  {
+   "faixa": "0,5-1s",
+   "n": 2706,
+   "comprimento": 39.85,
+   "largura": 40.91,
+   "fwdMenosZaga": 32.61,
+   "atrasDaBola": 7.18
+  },
+  {
+   "faixa": "1-2s",
+   "n": 4545,
+   "comprimento": 37.6,
+   "largura": 40.62,
+   "fwdMenosZaga": 31.48,
+   "atrasDaBola": 7.31
+  },
+  {
+   "faixa": "2-3s",
+   "n": 4672,
+   "comprimento": 35.01,
+   "largura": 40.08,
+   "fwdMenosZaga": 30.06,
+   "atrasDaBola": 7.76
+  },
+  {
+   "faixa": "3-4s",
+   "n": 4102,
+   "comprimento": 34.01,
+   "largura": 39.8,
+   "fwdMenosZaga": 29.61,
+   "atrasDaBola": 8.02
+  },
+  {
+   "faixa": "4-6s",
+   "n": 6241,
+   "comprimento": 33.21,
+   "largura": 39.86,
+   "fwdMenosZaga": 29.18,
+   "atrasDaBola": 8.05
+  },
+  {
+   "faixa": "6s+",
+   "n": 23582,
+   "comprimento": 33.68,
+   "largura": 40.46,
+   "fwdMenosZaga": 30.16,
+   "atrasDaBola": 7.65
+  }
+ ],
+ "encurtamentoEm6s": {
+  "primeiroTempo": 7.67,
+  "segundoTempo": 6.48
+ }
+}

@@ -22,6 +22,32 @@ CODIGO ATUAL (localizado por ancora, nao por numero de linha)
 ──────────────────────────────────────────────────────────────────────────────
 DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2718-2766
 ──────────────────────────────────────────────────────────────────────────────
+  É a **única** métrica que falta para o placar de design fechar em 13/13.
+  
+  **O defeito.** Está dentro da faixa do futebol real, mas fora da faixa do
+  próprio projeto. As duas faixas discordam, e a de design é mais estreita.
+  
+  **A mudança proposta.** Duas opções, e a escolha é de produto:
+  
+  **Opção 1 — mexer no jogo.** Reduzir a dispersão de mira em `_os200Mira`. É o
+  mesmo lugar de D13, e as duas mudanças devem ser feitas **juntas**, porque
+  mexem no mesmo parâmetro.
+  
+  **Opção 2 — mexer no alvo.** Reconhecer que `calibration/targets.json` foi
+  escrito antes de o placar do futebol real existir, e que 0,34 é mais estreito
+  do que a evidência empírica sustenta. Alargar para 0,30–0,40.
+  
+  **A recomendação** [HIPÓTESE]: **opção 2, com D13 como teste.** Fazer D13
+  primeiro; se o modelo angular de erro trouxer o acerto para 0,34+ naturalmente,
+  o problema se resolve sozinho e o alvo não precisa mudar. Se ficar em 0,32,
+  alargar o alvo é honesto — não se deve deformar o jogo para caber numa faixa
+  que a própria referência real contradiz.
+  
+  **Critério de aceite:** placar de design **13/13**, por qualquer das duas vias,
+  com `goals` dentro de ±0,20.
+  
+  ---
+  
   ## D23 🟡 A bola de neve: o placar abre demais?
   
   **A evidência** [MEDIDO, 300 partidas]:
@@ -44,32 +70,6 @@ DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2718-2766
   ```
   
   Comparado ao futebol de elite:
-  
-  | | jogo | real |
-  |---|---|---|
-  | 0 a 0 | 7,7% | 7–9% ✓ |
-  | gols totais | 2,93 | 2,5–3,0 ✓ |
-  | goleadas (4+ de diferença) | ~3% | 2–4% ✓ |
-  
-  **Está bom.** A distribuição de placares é uma das partes mais saudáveis do
-  jogo, e vale registrar porque a bateria mede **sequência de gols** exatamente
-  para detectar bola de neve:
-  
-  > Se o motor for justo e os dois times são o **mesmo elenco**, a chance de o
-  > próximo gol sair de quem já está na frente tem de ficar em ~50%. Acima disso
-  > existe efeito acumulativo.
-  
-  **Nenhuma ação proposta.** Fica no catálogo como **guarda-corpo**: qualquer
-  mudança de D19 (fadiga) ou D20 (bloco) precisa deixar esta distribuição
-  intacta. Se as goleadas subirem acima de 6%, a mudança introduziu bola de neve.
-  
-  **Registro histórico que confirma a sensibilidade:** subir
-  `deadBallRecovery` de 0,055 para 0,075 — ganho irrisório de stamina (64,2 →
-  64,4) — derrubou os empates de 29,2% para 17,5% e subiu as goleadas de 17,5%
-  para 20,8%. **Design 12/13 virou 10/13.** Jogador mais inteiro no fim faz o
-  placar abrir.
-  
-  ---
   
 
 ──────────────────────────────────────────────────────────────────────────────

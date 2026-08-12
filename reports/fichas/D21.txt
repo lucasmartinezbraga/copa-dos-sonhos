@@ -49,6 +49,32 @@ CODIGO ATUAL (localizado por ancora, nao por numero de linha)
 ──────────────────────────────────────────────────────────────────────────────
 DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2619-2680
 ──────────────────────────────────────────────────────────────────────────────
+  `_comprimirBloco` **não teleporta** — ele desloca o **alvo** de cada jogador na
+  direção do centroide, proporcionalmente ao excesso, e deixa `_integrate` levar
+  o corpo até lá. Sem isso, cai direto no bug que a camada 84 contém há 255
+  linhas.
+  
+  **Quem intercepta.** `_movePlayers` tem cinco sobrescritas (07, 16, 26, 65, 70).
+  A camada 92 precisa ser a de número mais alto.
+  
+  **Risco.** Alto. Um bloco mais compacto muda tudo: menos espaço, mais desarmes,
+  menos chutes de longe, provavelmente menos gols. É por isso que ele vem
+  **depois** de D19 no plano — os dois interagem, e medir os dois juntos não diz
+  qual fez o quê.
+  
+  **Critério de aceite:**
+  
+  | métrica | hoje | alvo |
+  |---|---|---|
+  | comprimento do bloco sem bola | 37,4 m | **28–34 m** |
+  | largura do bloco sem bola | 45,2 m | **34–44 m** |
+  | comprimento **com** bola | 37,8 m | 30–40 m (não pode sair) |
+  | `tackles` | 50,133 | ±2 SE |
+  | `goals` | 2,930 | ±0,20 |
+  | `shots` | 23,667 | ±0,84 |
+  
+  ---
+  
   ## D21 🔴 `clockRate`: 23 minutos de física para 90 minutos de partida
   
   **Endereço:** `src/scripts/20-core.js:565` — `timing.clockRate: 0.085`
@@ -85,32 +111,6 @@ DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2619-2680
   **Posse realista e contagem de passes realista são hoje mutuamente
   exclusivas**, e a razão é o relógio. Não é possível ter 385 passes em 23
   minutos com cada jogador segurando a bola 2 segundos: a conta não fecha.
-  
-  **As três saídas possíveis, com o custo de cada uma:**
-  
-  | saída | o que muda | custo |
-  |---|---|---|
-  | **A · Aceitar** | `clockRate` fica em 0,085; documenta-se que passes são ~45% do real | a métrica `passes` nunca fecha |
-  | **B · Baixar para ~0,045** | ~43 min de física; passes vão a ~700 | partida de 43 min em 1X; o jogador assiste em 3X = 14 min |
-  | **C · Desacoplar** | eventos "de fundo" (passes de segurança) simulados sem física | complexidade nova; risco de duas realidades |
-  
-  **A recomendação** [HIPÓTESE]: **saída A, explicitamente.** Escrever em
-  `calibration/targets.json` que `passes` é medido em escala comprimida e ajustar
-  a faixa de aceitação para 350–420 em vez de comparar com 700–900. O tempo de
-  tela já se resolve na velocidade (os botões 1X/2X/3X/TURBO, com 3X = ~7,6 min
-  por partida), não no `clockRate`.
-  
-  > **`clockRate` decide quanto futebol acontece. A velocidade decide quão rápido
-  > você assiste.** São coisas diferentes e foram confundidas por vários
-  > releases.
-  
-  **Aviso obrigatório:** a fadiga é normalizada por `ADV4.context.clockRateRef` —
-  ela mede **minuto de jogo**, não segundo de simulação. **Se mexer no
-  `clockRate`, não mexa no dreno junto:** ele já é invariante, e mexer nos dois
-  produz uma medição não interpretável.
-  
-  ---
-  
 
 ──────────────────────────────────────────────────────────────────────────────
 ANTES DE EDITAR

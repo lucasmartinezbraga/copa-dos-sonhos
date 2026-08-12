@@ -1,6 +1,6 @@
 # As armadilhas deste código
 
-**Vinte e seis.** Cada uma custou pelo menos uma rodada de medição de 25
+**Vinte e sete.** Cada uma custou pelo menos uma rodada de medição de 25
 minutos; várias custaram mais. Estavam espalhadas por `CLAUDE.md`, pelo Volume
 VIII‑A do relatório, pelos laudos e pelos comentários do código.
 
@@ -11,7 +11,7 @@ Elas estão em quatro grupos, porque erram por motivos diferentes:
 | grupo | o que engana | quantas |
 |---|---|---|
 | **A · a pilha de camadas** | o código que você lê não é o que executa | 6 |
-| **B · a medição** | o número existe e mede outra coisa | 8 |
+| **B · a medição** | o número existe e mede outra coisa | 9 |
 | **C · as ferramentas** | a ferramenta funciona e mente | 7 |
 | **D · o processo** | você mesmo, com pressa | 5 |
 
@@ -189,6 +189,30 @@ por isso os dois exigem as duas metades:
 > aponta o caso conhecido **e** cala depois do conserto.
 
 Detector que aponta sempre vira ruído, e ruído ninguém lê.
+
+## B9 · Foto transversal lida como filme — o erro que criou o D20
+
+`forma.js` mede, no mesmo instante, o bloco do time **que ataca** e o do time
+**que defende**. São **dois times diferentes**. A diferença entre os dois
+números (41,0 − 38,2 = 2,8 m) foi lida como *"quanto o time encurta ao perder a
+bola"* — que é uma pergunta **longitudinal**: o mesmo time, antes e depois.
+
+Medido do jeito certo (`ramo-transicao.js`, 32 partidas, ~20 mil amostras por
+faixa, seguindo o **mesmo** time após a perda):
+
+| desde a perda | 1º tempo | 2º tempo |
+|---|---|---|
+| 0–0,5 s | 42,6 m | 40,2 m |
+| 2–3 s | 36,3 | 35,0 |
+| 4–6 s | **33,6** | **33,2** |
+| **encurtamento** | **9,0 m** | **7,0 m** |
+
+**A recomposição existe e é de futebol de elite: ~9 m em ~4 s.** O D20 — "o
+bloco não compacta, encurta 0,4 m" — descrevia um defeito que não existe, e
+custou três tentativas de conserto e quatro baterias de 300 partidas.
+
+> Antes de tratar uma diferença como *mudança*, pergunte: **é a mesma coisa
+> medida duas vezes, ou duas coisas medidas uma vez?**
 
 ---
 
