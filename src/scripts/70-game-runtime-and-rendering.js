@@ -3040,10 +3040,49 @@ function bindControls() {
 
 /* ─── CANVAS ──────────────────────────────────────────────────────────── */
 let _cdsChipFrame = 0; /* OS-62 · vira a cada quadro para zerar a ocupacao dos chips */
-const CW=1024, CH=500, M=14;
+/* D24 · A ALTURA DO MUNDO LOGICO ACOMPANHA O QUADRO.
+   ---------------------------------------------------
+   `CH` era 500 fixo. O canvas tinha proporcao 1024:500 = 2,048 e o quadro do
+   jogo fica entre 1,17 e 1,66 conforme a resolucao — sempre MAIS ALTO. A
+   sobra virava faixa preta, de 22% a 46% do quadro.
+
+   Nao da para resolver isso com outro valor fixo: com proporcao fixa o vazio e
+   `1 - min(A,Acaixa)/max(A,Acaixa)`, e as caixas vao de 1,174 a 1,655 (razao
+   0,709). Nenhum A fixo fica abaixo de 4% nas quatro; o melhor possivel deixa
+   15,8% nas pontas.
+
+   Entao `CH` passa a ser calculado a partir da caixa, em `syncCanvasResolution`.
+   Isso e seguro por causa de duas coisas medidas:
+
+     · A FORMA DO CAMPO NAO DEPENDE DE CH. A projecao do palco 2.5D faz
+       `vn = (fy - M) / fH` — normaliza a altura logica antes de projetar. Quem
+       decide o desenho e fW, topY, bottomY e R0.
+     · A FAIXA DA PROJECAO E FIXA (camada 21). Antes `bottomY = CH - 3` e
+       `topY = M + 34` faziam a faixa CRESCER com CH; foi isso que quebrou a
+       tela numa tentativa anterior, com o gramado virando um trapezio torto.
+
+   O que sobra de altura vira ceu e arquibancada, que o palco ja desenha de 0
+   ate standBot. Preto vira estadio.
+
+   `fH` deixa de ser const pelo mesmo motivo; `cy` ja le CH em tempo de
+   chamada. A chave do palco (`M + ':' + fW + 'x' + fH`) muda junto, entao a
+   camada 21 se reconstroi sozinha. */
+const CW=1024, M=14;
+let CH=500;
 const cx = x => M + x*(CW-M*2);
 const cy = y => M + y*(CH-M*2);
-const fW = CW-M*2, fH = CH-M*2;
+const fW = CW-M*2;
+let fH = CH-M*2;
+/* Faixa sa para CH: 1024/2,44 ate 1024/1,25. Fora dela o enquadramento deixa
+   de fazer sentido — janela extremamente larga nao precisa de arquibancada
+   ate o teto, e janela quase quadrada esticaria o ceu sem ganho. */
+const CH_MIN = 420, CH_MAX = 820;
+function definirCH(novo){
+  const v = Math.max(CH_MIN, Math.min(CH_MAX, Math.round(novo / 4) * 4));
+  if (v === CH) return false;
+  CH = v; fH = CH - M*2;
+  return true;
+}
 
 /* ============================================================================
    PONTO 3 · CANVAS EM TELAS DE ALTA DENSIDADE — syncCanvasResolution()
@@ -3070,10 +3109,15 @@ function syncCanvasResolution(cv){
   try{
     const rect = cv.getBoundingClientRect();
     const cssW = rect.width || CW;                       // 0 => usa o lógico
+    const cssH = rect.height || 0;
+    /* D24 · a altura lógica acompanha a CAIXA. Quantizada em passos de 4 para
+       não realocar o backing store a cada subpixel do layout, e só quando a
+       caixa tem altura real (durante a montagem ela pode vir 0). */
+    const mudouCH = (cssH > 8 && cssW > 8) ? definirCH(CW * cssH / cssW) : false;
     const dpr  = Math.min(window.devicePixelRatio || 1, 2.5);
     let k = clamp((cssW * dpr) / CW, .75, 2.5);
     k = Math.round(k * 20) / 20;                         // quantiza (passos .05)
-    if (cv._k === k) return;                             // nada mudou: não realoca
+    if (cv._k === k && !mudouCH) return;                 // nada mudou: não realoca
     cv._k = k;
     cv.width  = Math.max(1, Math.round(CW * k));
     cv.height = Math.max(1, Math.round(CH * k));
@@ -3155,7 +3199,25 @@ function paintField() {
     const z = zClose + (1 - zClose) * tEase;
     const vw = CW / z, vh = CH / z;
     const cpx = Math.max(vw / 2, Math.min(CW - vw / 2, camX));
-    const cpy = Math.max(vh / 2, Math.min(CH - vh / 2, camY));
+    /* D24 · A CAMERA SE ENQUADRA NA FAIXA DO GRAMADO, NAO NA CAIXA.
+       -------------------------------------------------------------
+       `camY` persegue a posicao PROJETADA da bola (ver o `project` logo
+       acima), que vive entre topY e bottomY. O limite, porem, era a altura do
+       canvas inteiro — e enquanto a faixa ocupava quase todo o canvas isso deu
+       na mesma. Quando o canvas fica mais alto que a faixa, o limite passa a
+       cortar o campo justamente embaixo, que foi o que a tentativa com CH=619
+       mostrou.
+       Agora o limite e a propria faixa. Se a vista for mais alta que ela, os
+       dois lados se cruzam e a camera assenta no CENTRO da faixa — o gramado
+       inteiro em quadro, e o que sobra acima e arquibancada. */
+    let cpy;
+    const _fx = window.CDS_F25D && window.CDS_F25D.faixa && window.CDS_F25D.faixa();
+    if (_fx && _fx.ready) {
+      const lo = _fx.topY + vh / 2, hi = _fx.bottomY - vh / 2;
+      cpy = lo > hi ? (_fx.topY + _fx.bottomY) / 2 : Math.max(lo, Math.min(hi, camY));
+    } else {
+      cpy = Math.max(vh / 2, Math.min(CH - vh / 2, camY));
+    }
     ctx.translate(CW / 2, CH / 2);
     ctx.scale(z, z);
     ctx.translate(-cpx, -cpy);

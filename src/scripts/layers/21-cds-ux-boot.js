@@ -75,7 +75,25 @@
   };
   function setGeom(M, fW, fH) {
     G.M = M; G.CW = fW + 2 * M; G.CH = fH + 2 * M;
-    G.topY = M + 34; G.bottomY = G.CH - 3;
+    /* D24 · A FAIXA DO GRAMADO PROJETADO E FIXA E ANCORADA EMBAIXO.
+       ------------------------------------------------------------
+       Antes: `topY = M + 34` e `bottomY = G.CH - 3`. A faixa media
+       (CH-3) - (M+34) = 449 px com CH=500, e CRESCIA JUNTO com CH. Foi isso
+       que quebrou a tela quando tentei um canvas mais alto: com CH=673 a
+       faixa virou 624 px e a mesma razao de perspectiva (R0=0,72) se espalhou
+       por 38% mais altura — o gramado saiu como um trapezio torto.
+
+       A forma do campo NAO depende de CH: `vn = (fy - M) / fH` normaliza a
+       altura logica antes de projetar. Quem decide o desenho e fW, topY,
+       bottomY e R0. Fixando a faixa, o canvas pode ter a altura que quiser e o
+       gramado sai identico; o que sobrar acima vira ceu e arquibancada, que o
+       palco ja desenha de 0 ate standBot.
+
+       Com CH=500 isto devolve topY=48 e bottomY=497 — exatamente os valores
+       anteriores. A mudanca e nula ate alguem mexer em CH. */
+    var CH_REF = 500;
+    G.bottomY = G.CH - 3;
+    G.topY = G.bottomY - ((CH_REF - 3) - (M + 34));
     G.ready = true;
   }
   function project(fx, fy) {
@@ -701,7 +719,11 @@
     ctx.restore();
   }
 
-  root.CDS_F25D = Object.freeze({ version: '2.1.0', project, grass, pitch, body, trail, ball, traj });
+  /* D24 · a faixa do gramado, para quem precisa enquadrar (a camera do runtime).
+     Sem isto o `paintField` so tem CH, que passou a nao dizer onde o campo
+     esta. */
+  function faixa() { return { topY: G.topY, bottomY: G.bottomY, ready: G.ready }; }
+  root.CDS_F25D = Object.freeze({ version: '2.2.0', project, grass, pitch, body, trail, ball, traj, faixa });
 })(typeof window !== 'undefined' ? window : globalThis);
 
 /*

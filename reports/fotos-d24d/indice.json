@@ -1,0 +1,56 @@
+[
+ {
+  "arquivo": "01-partida-em-andamento.png",
+  "titulo": "Uma partida em andamento",
+  "nota": "O estado normal do jogo, em 1440×900. A faixa escura acima e abaixo do gramado era o D24; o quadro passou a abraçar o campo e o vazio dentro dele caiu de 31,8% para 0,5% nesta resolução. O respiro que sobra agora é fundo de página, fora da moldura.",
+  "viewport": "1440x900",
+  "minutoDeJogo": 0.5,
+  "partidaSubiu": true,
+  "errosDePagina": 0
+ },
+ {
+  "arquivo": "02-tarja-preta-1920.png",
+  "titulo": "D24 · o quadro depois do conserto, em 1920×1080",
+  "nota": "Vazio no quadro: 22,3% antes, 0,3% agora. O quadro esticava para preencher a linha do grid e o canvas, de proporção fixa 1024:500, só cobria parte dela — o resto era preto DENTRO da moldura. Agora o quadro tem altura de conteúdo. A proporção do canvas NÃO mudou: ela é calibração do palco 2.5D e mexer nela desmonta a perspectiva (ver reports/D24-a-tarja-preta.md).",
+  "viewport": "1920x1080",
+  "minutoDeJogo": 0.5,
+  "partidaSubiu": true,
+  "errosDePagina": 0
+ },
+ {
+  "arquivo": "03-tarja-preta-1024.png",
+  "titulo": "D24 · a pior resolução, em 1024×768",
+  "nota": "Era a pior das quatro: 46,0% do quadro vazio. Agora 0,8%. Quanto mais quadrada a janela, mais o object-fit: contain sobrava — e é aqui que o ganho é maior. O layout fica esparso: o campo é limitado pela LARGURA da coluna, e usar o espaço que sobrou embaixo exigiria mudar o arranjo do cockpit, não a moldura.",
+  "viewport": "1024x768",
+  "minutoDeJogo": 0.5,
+  "partidaSubiu": true,
+  "errosDePagina": 0
+ },
+ {
+  "arquivo": "04-bloco-defensivo.png",
+  "titulo": "D20 · a forma do time sem a bola",
+  "nota": "Medido com forma.js em 90 partidas, nao nesta captura: o bloco encurta 0,4 m ao perder a bola. No futebol real encurta 8 a 10 m. Com a bola a forma está correta — o time simplesmente não muda de forma quando muda de fase.",
+  "viewport": "1440x900",
+  "minutoDeJogo": 0.5,
+  "partidaSubiu": true,
+  "errosDePagina": 0
+ },
+ {
+  "arquivo": "05-aglomeracao.png",
+  "titulo": "Concentração de jogadores em torno da bola",
+  "nota": "Lido pela narração (Volume IX) sobre partidas inteiras, nao nesta captura: três jogadores concentram 25% das ações identificadas. Não aparece em métrica nenhuma — passes, chutes e gols saem todos na faixa.",
+  "viewport": "1440x900",
+  "minutoDeJogo": 0.5,
+  "partidaSubiu": true,
+  "errosDePagina": 0
+ },
+ {
+  "arquivo": "06-celular.png",
+  "titulo": "A mesma partida em tela de celular",
+  "nota": "O layout responsivo troca de arranjo. Esta superfície não foi auditada por sonda nenhuma — é mancha cega declarada (seção 8.4).",
+  "viewport": "412x892",
+  "minutoDeJogo": 0.6,
+  "partidaSubiu": true,
+  "errosDePagina": 0
+ }
+]

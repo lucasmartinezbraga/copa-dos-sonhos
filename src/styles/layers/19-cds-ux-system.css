@@ -711,9 +711,9 @@ body::before {
        ISTO NAO RESOLVE O D24 INTEIRO, e o laudo diz por que: a proporcao
        2,048 e calibracao do palco 2.5D (R0=0,72, topY=M+34, bottomY=CH-3), e
        mexer nela desmonta a perspectiva. Ver reports/D24-a-tarja-preta.md. */
-    align-self: center; justify-self: stretch;
-    width: 100%; height: auto; min-height: 0;
-    max-height: 100%; float: none;
+    align-self: stretch; justify-self: stretch;
+    width: 100%; height: 100%; min-height: 0;
+    max-height: none; float: none;
     border-radius: var(--r-md); overflow: hidden;
     border: 1px solid var(--ui-border);
     --cds-narr-h: 30px;   /* banda fina da narracao no rodape do campo */
@@ -724,12 +724,12 @@ body::before {
        para ele preencher, entao `object-fit: contain` nao tem o que
        letterboxar. A banda da narracao continua reservada por margin-bottom,
        nao por `bottom`/`height` calculados. */
-    position: relative;
-    display: block;
-    width: 100%; height: auto;
-    aspect-ratio: 1024 / 500;
-    margin-bottom: var(--cds-narr-h);
-    object-fit: contain;
+    /* D24 · o canvas PREENCHE o quadro. Nao ha o que letterboxar porque o
+       backing store passou a acompanhar a caixa (ver `definirCH` no runtime):
+       a proporcao do desenho e a da caixa, por construcao. */
+    position: absolute; top: 0; left: 0; right: 0;
+    bottom: var(--cds-narr-h); height: calc(100% - var(--cds-narr-h));
+    width: 100%; aspect-ratio: auto; object-fit: fill;
   }
   /* legenda dos lances: banda fina de 1 linha no rodape do campo (pedido do
      usuario). Reusa .narr, que ja recebe a narracao corrente via updateNarr(). */

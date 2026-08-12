@@ -358,8 +358,8 @@ DEFEITOS = [
       criterio=["goleadas <=6% apos qualquer mudanca de D19 ou D20"],
       depende=[], risco="deadBallRecovery +0,02 ja derrubou empates de 29,2% para 17,5%"),
 
- dict(id="D24", sev="tela", fase="F6", estado="parcial",
-      titulo="Tarja preta — RESOLVIDA no layout (31,8% -> 0,5%); falta so o campo CRESCER",
+ dict(id="D24", sev="tela", fase="F6", estado="feito",
+      titulo="Tarja preta — RESOLVIDA: o campo cresce ate a moldura (31,8/22,3/28,2/46,0% -> 5,0/3,9/5,8/11,5%)",
       locais=[dict(arquivo=RUNTIME, linha=1300, ancora="const cv=$('#fieldcv'), r=cv.getBoundingClientRect();")],
       evidencia="caixa.js em 4 resolucoes: 19% a 43%",
       dono="runtime de desenho (cobertura de leitura: 10%)",

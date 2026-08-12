@@ -1,9 +1,21 @@
-# D24 · a tarja preta — resolvida no layout, com o caminho da solução completa provado
+# D24 · a tarja preta — RESOLVIDA, e o campo ficou maior
 
-**Data:** 2026-08-12 · **Resultado: ENTREGUE** — o vazio dentro do quadro caiu de
-**31,8% / 22,3% / 28,2% / 46,0%** para **0,5% / 0,3% / 0,5% / 0,8%**, com as 14
-métricas **idênticas ao dígito**. Duas tentativas anteriores foram revertidas, e
-o caminho para o passo seguinte está provado por experimento.
+**Data:** 2026-08-12 · **Resultado: ENTREGUE em duas etapas.** Duas tentativas
+foram revertidas antes, e a segunda delas é que ensinou o caminho.
+
+| viewport | original | etapa 1 · quadro abraça | **etapa 2 · campo preenche** |
+|---|---|---|---|
+| 1400×900 | 31,8% | 0,5% | **5,0%** |
+| 1920×1080 | 22,3% | 0,3% | **3,9%** |
+| 1280×800 | 28,2% | 0,5% | **5,8%** |
+| 1024×768 | 46,0% | 0,8% | **11,5%** |
+
+A etapa 1 encolhia a moldura até o campo. **A etapa 2 faz o campo crescer até a
+moldura** — é a que vale, e é por isso que o número dela é maior que o da etapa
+1 e ainda assim é melhor: na etapa 1 o vazio saía do quadro, na etapa 2 ele
+vira gramado e arquibancada.
+
+`aceitar.sh --depois --identico` nas duas: **14/14 idênticas ao dígito.**
 
 ---
 
@@ -218,3 +230,66 @@ Com isso o vazio é **zero em qualquer formato de janela**, sem distorcer o
 campo e sem cortar nada. É trabalho de render com verificação por captura em
 pelo menos quatro resoluções — não é ajuste de constante, mas o caminho deixou
 de ser hipótese: os itens 1 e 2 estão medidos e o item 3 é o que resta.
+
+
+---
+
+# ADENDO 4 — a solução completa, entregue
+
+Os passos 3 e 4 do adendo anterior foram feitos. A receita inteira:
+
+**1 · `CH` acompanha a caixa** (`definirCH`, em `syncCanvasResolution`)
+
+```js
+const mudouCH = (cssH > 8 && cssW > 8) ? definirCH(CW * cssH / cssW) : false;
+```
+
+Quantizado em passos de 4 px e travado em 420–820, para não realocar o backing
+store a cada subpixel do layout.
+
+**2 · a faixa da projeção é fixa e ancorada embaixo** (camada 21)
+
+```js
+var CH_REF = 500;
+G.bottomY = G.CH - 3;
+G.topY = G.bottomY - ((CH_REF - 3) - (M + 34));   // 449 px, sempre
+```
+
+Com `CH = 500` isto devolve `topY = 48` e `bottomY = 497` — exatamente os
+valores antigos. **A mudança é nula até alguém mexer em `CH`**, e foi assim que
+verifiquei que não quebrei nada antes de mexer.
+
+**3 · a câmera se enquadra na faixa, não na caixa**
+
+```js
+const _fx = window.CDS_F25D.faixa();
+const lo = _fx.topY + vh / 2, hi = _fx.bottomY - vh / 2;
+cpy = lo > hi ? (_fx.topY + _fx.bottomY) / 2 : Math.max(lo, Math.min(hi, camY));
+```
+
+Era o que faltava. `camY` já perseguia a posição **projetada** da bola; o limite
+é que era a altura do canvas inteiro. Quando os dois lados se cruzam — vista
+mais alta que a faixa — a câmera assenta no centro da faixa e o gramado inteiro
+fica em quadro.
+
+**4 · o que sobra vira estádio.** O palco já desenhava céu e arquibancada de 0
+até `standBot`; com o canvas mais alto eles simplesmente ocupam o espaço que
+era preto.
+
+## O que foi verificado
+
+- `caixa.js` nas 4 resoluções (a sonda mede **área** e **contra o quadro**, as
+  duas correções que este defeito obrigou a fazer);
+- capturas nas 4 resoluções, olhadas uma a uma — perspectiva intacta, campo
+  cheio, estádio no topo;
+- `browser_smoke.js`;
+- `aceitar.sh --depois --identico`: **14/14 idênticas**;
+- `forma.js`: bloco assentado **32,5 m** (faixa real 25–35), recomposição
+  6,0 m.
+
+## O que ainda sobra
+
+Em **1024×768** restam 11,5%. A janela é quase quadrada (caixa 1,174) e a
+coluna do campo é estreita: o campo é limitado pela **largura**, não pela
+altura. Fechar isso exigiria o cockpit empilhar em vez de dividir em colunas
+nessa largura — mudança de arranjo, não de render.

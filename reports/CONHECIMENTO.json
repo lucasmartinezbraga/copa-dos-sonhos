@@ -2,7 +2,7 @@
  "_leia_primeiro": "Este arquivo e a base de conhecimento do projeto num lugar so. Se voce e uma IA: carregue ISTO, nao o relatorio de 5.000 linhas. Depois use `python3 tools/defeito.py <ID>` para o defeito em que vai trabalhar.",
  "projeto": "Copa dos Sonhos — simulador de futebol web",
  "gerado_em": "2026-08-12",
- "commit": "e4f1cb37e081e562e6ecf6f90c6a267d96a86467",
+ "commit": "552db1b8358f0a7534e369094c85d57a5f13a089",
  "branch": "claude/game-ball-physics-issues-50m9e6",
  "placar": {
   "design": "12/13",
@@ -1003,8 +1003,8 @@
    "id": "D24",
    "sev": "tela",
    "fase": "F6",
-   "estado": "parcial",
-   "titulo": "Tarja preta — RESOLVIDA no layout (31,8% -> 0,5%); falta so o campo CRESCER",
+   "estado": "feito",
+   "titulo": "Tarja preta — RESOLVIDA: o campo cresce ate a moldura (31,8/22,3/28,2/46,0% -> 5,0/3,9/5,8/11,5%)",
    "locais": [
     {
      "arquivo": "src/scripts/70-game-runtime-and-rendering.js",
@@ -1353,10 +1353,10 @@
   }
  ],
  "defeitos_por_estado": {
-  "feito": 10,
+  "feito": 11,
   "refutado": 2,
   "aberto": 15,
-  "parcial": 2,
+  "parcial": 1,
   "decidir": 2,
   "guarda-corpo": 2,
   "adiado": 1
@@ -1899,7 +1899,7 @@
  },
  "inventario_de_camadas": {
   "arquivos": 82,
-  "linhas": 12386,
+  "linhas": 12408,
   "com_sobrescrita": 60,
   "nomes_distintos": 173,
   "atribuicoes_totais": 362,
@@ -2168,7 +2168,7 @@
    },
    {
     "arquivo": "21-cds-ux-boot.js",
-    "linhas": 1085,
+    "linhas": 1107,
     "sobrescreve": []
    },
    {
