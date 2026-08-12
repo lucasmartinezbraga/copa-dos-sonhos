@@ -2,35 +2,47 @@
 
 | | |
 |---|---|
-| Data | 11 de agosto de 2026 |
-| Commit | `3c8965d` |
+| Data | 12 de agosto de 2026 |
+| Commit | `a2fceaf` |
 | Branch | `claude/game-ball-physics-issues-50m9e6` |
 | Placar de design | **12/13** |
 | Placar do futebol real | **15/21** |
 | Motor | **5.086 linhas** (eram 5.262) |
 
-## A fase F1 foi executada — e metade dela refutou o próprio documento
+## Fase F1 — executada
 
 | # | resultado |
 |---|---|
-| **D01** | ✅ premissa **corrigida** · a segunda física estava em `_looseRoll`, não no voo · aprovado |
-| **D02** | ⛔ **REFUTADO** · a entrega mais longa é 1,53 m, não 6,8 m · não implementar |
-| **D03** | ✅ **176 linhas mortas removidas** · 14/14 idênticas ao dígito |
+| **D01** | ✅ premissa **corrigida** · a 2ª física estava em `_looseRoll` · aprovado |
+| **D02** | ⛔ **REFUTADO** · entrega mais longa 1,53 m, não 6,8 m |
+| **D03** | ✅ **176 linhas mortas removidas** · 14/14 idênticas |
 | **D04** | ✅ aviso no código · idênticas |
-| **D25** | ✅ feito · **sem efeito medido** — a linha não é alcançada |
+| **D25** | ✅ feito · **sem efeito** — a linha não é alcançada |
 | **D28** | ✅ `calibration/sensibilidade.json` · 10 constantes |
-| **D32** | ✅ lint de escopo · **pegou um defeito vivo** |
+| **D32** | ✅ lint · **pegou um defeito vivo** |
 
-> ### Leia o Volume VIII-A antes de continuar
+## Segunda rodada de sondas — os sete formulados por leitura
+
+| # | veredito | o número |
+|---|---|---|
+| **D11** | ✅ confirmado, **e maior** | 264,67 vetos em 515,17 decisões — **51,4%** |
+| **D13** | ✅ confirmado, **e maior** | 52,7% dos chutes comprimidos; pior caso **13,30 m** vs 6,5 m suposto |
+| **D26** | ✅ confirmado, intacto | 35.195 mudanças/partida de `decideT` |
+| **D12** | ⚠ formulação refutada | o core devolve a posse em **2,8%** das chamadas |
+| **D16** | ⚠ reclassificado | `_breaking` sai diferente **0×** em 887 mil chamadas |
+| **D15** | ⛔ não mensurável | a camada 84 não publica auditor nenhum |
+| **D08** | ⏸ pendente | fenômeno medido; causa sem sonda |
+
+> ### O que mudou de prioridade
 >
-> **Quatro premissas caíram na mesma rodada** (D25, D01, D02, D08). A causa é
-> comum: as sondas originais mediram o código do motor, e o motor não é o que
-> roda. Antes de consertar um ramo específico, escreva uma sonda de 40 linhas
-> que conte **aquele ramo**. Custa 2 minutos e já economizou quatro ciclos de
-> medição de 25 minutos.
-
-**Sete defeitos** ainda formulados por leitura de código precisam de sonda de
-ramo antes de virar conserto: D08, D11, D12, D13, D14, D15, D16 e D26.
+> **D11 sobe.** Metade das decisões do jogo passa pelo censor — 264,67 vetos
+> por partida, mais de quatro por minuto. É o defeito estrutural com maior
+> alcance medido do catálogo, e sai de F3 para o primeiro depois da F1.
+>
+> **D16 desce.** A falsificação não vaza; é modelo ausente, não bug escondido.
+>
+> **D15 volta uma casa.** O primeiro passo não é consertar nem apagar: é
+> acrescentar um contador na camada 84. Sem isso, remover 255 linhas é aposta.
 
 ## Os 34 defeitos
 
@@ -63,16 +75,10 @@ ramo antes de virar conserto: D08, D11, D12, D13, D14, D15, D16 e D26.
 | `throwIns` | 15.810 |
 | `goalKicks` | 12.960 |
 
-## O que continua de pé
+## Leia o Volume VIII-A antes de continuar
 
-Os defeitos medidos por **agregado** não dependem de eu ter acertado qual linha
-executa, e seguem válidos:
-
-| métrica | jogo | faixa real | defeito |
-|---|---|---|---|
-| gols no último terço | 14,8% | 19–22% | **D19** |
-| gols no primeiro terço | 20,0% | 11–13% | **D19** |
-| bloco defensivo | 37,4 m | 25–35 m | **D20** |
-| acerto ao alvo (design) | 0,326 | ≥ 0,34 | **D13/D22** |
-| tarja preta | 24–43% | 0% | **D24** |
-| laterais | 15,81 | 33–48 | **D08** — fenômeno de pé, causa a refazer |
+Quatro premissas caíram na primeira rodada e duas na segunda. A causa é comum:
+as sondas originais mediram o código do motor, e o motor não é o que roda.
+**Antes de consertar um ramo, escreva uma sonda de 40 linhas que conte aquele**
+**ramo.** Modelos: `ramo-d25.js`, `ramo-g20.js`, `ramo-rolagem.js`,
+`ramo-d02.js`, `ramos.js`.

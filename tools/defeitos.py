@@ -151,23 +151,31 @@ DEFEITOS = [
       depende=["D26"], risco="medio"),
 
  dict(id="D11", sev="estrutural", fase="F3", estado="aberto",
-      titulo="Sorteio censurado 1: r12 sorteia o chute contextual, r183 existe para veta-lo",
+      titulo="Sorteio censurado 1: o censor roda em 51,4% das decisoes (MEDIDO)",
       locais=[dict(arquivo=L+"16-cds-r12-transactional-core-r123.js", linha=153, ancora="tm.__r122LastContextShot=now;"),
               dict(arquivo=L+"20-cds-r183-natural-football.js", linha=63, ancora="dg.smartShotVetoes=(dg.smartShotVetoes||0)+1;")],
       evidencia="o comentario da camada 20 e a prova literal: 'Marcar o instante atual veta unicamente essa roleta'",
       dono="_decide tem 8 camadas; 51 roda por fora de todas",
       intercepta=["16","17","18","20","27","43","45","51"],
       criterio=["14 metricas dentro de 2 SE SEM pareamento de semente","-250 linhas","zero variaveis de contrato com nome de release"],
+      medido=("CONFIRMADO E MAIOR. ramos.js, 12 partidas: 264,67 VETOS em 515,17 decisoes examinadas "
+              "= 51,4%. Metade das decisoes do jogo passa pelo censor. O documento tratava como "
+              "mecanismo pontual. E o defeito estrutural com maior alcance medido do catalogo — "
+              "sobe de F3 para o primeiro candidato depois da F1."),
       depende=[], risco="medio: remover chance() desalinha o RNG; compare distribuicoes, nao partidas"),
 
  dict(id="D12", sev="estrutural", fase="F2", estado="aberto",
-      titulo="Sorteio censurado 2: r13 manda a bola para fora a 64% e o core recolhe",
+      titulo="Sorteio censurado 2 — formulacao refutada; sobra o alvo puxado de volta",
       locais=[dict(arquivo=L+"17-cds-r13-football-observer-cadence.js", linha=203, ancora="if(edge<5.5&&hit13(this,.64))ty=y<FW13/2?-.7:FW13+.7;"),
               dict(arquivo=MOTOR, linha=2483, ancora="// jogador mais próximo assume após breve disputa")],
       evidencia="22,2 bolas por partida pousando fora e entregues a alguem a 6,8 m",
       dono="ATENCAO: a camada 08 intercepta _looseBall e nao chama o core. O conserto tem de ser feito LA TAMBEM.",
       intercepta=["08","17","45","47","49"],
       criterio=["throwIns >=17,4 (2 SE) sem D08"],
+      medido=("FORMULACAO REFUTADA. ramos.js: _looseBall chamado 92,08/partida; terminou COM DONO "
+              "apenas 2,58 (2,8%), ficou solta 89,50 (97,2%). O core NAO recolhe a bola. Sobra um fio "
+              "vivo: 19,92 alvos ja chegam fora e so 11 pousam fora — os ~9 de diferenca sao alguma "
+              "camada puxando o alvo de volta, e isso ainda nao foi investigado."),
       depende=["D02"], risco="medio: mais reinicios = mais bola parada; vigie passes"),
 
  dict(id="D13", sev="futebol", fase="F3", estado="aberto",
@@ -177,6 +185,9 @@ DEFEITOS = [
       dono="camada 88 e TERMINAL para a mira; territorio seguro",
       intercepta=["88"],
       criterio=["onTarget >=7,72","acerto ao alvo 0,34-0,40","goals +-0,20","-111 linhas"],
+      medido=("CONFIRMADO E MAIOR. ramos.js: 12,33 de 23,42 chutes por partida tem o erro comprimido "
+              "(52,7%). Amplitude media antes 6,80 m, depois 4,57 m, MAXIMA antes 13,30 m — o dobro "
+              "dos 6,5 m que a constante excessoMax do censor supoe como pior caso."),
       depende=["D01"], risco="ALTO para onTargetRate, que ja esta em 0,326. Varrer sigmaGraus com calibrar.py."),
 
  dict(id="D14", sev="estrutural", fase="F4", estado="aberto",
@@ -196,9 +207,12 @@ DEFEITOS = [
       dono="camada 84",
       intercepta=["84"],
       criterio=["salto.js correlaciona os saltos com quadros de escrita dupla de intencao"],
+      medido=("NAO MENSURAVEL HOJE. getR1899Audit() nao existe — as 255 linhas de antiteleporte nao "
+              "publicam contador nenhum. PRIMEIRO PASSO nao e consertar nem apagar: e acrescentar um "
+              "contador e rodar 300 partidas. Sem isso, remover 255 linhas e aposta."),
       depende=["D14"], risco="baixo enquanto for so diagnostico"),
 
- dict(id="D16", sev="estrutural", fase="F5", estado="aberto",
+ dict(id="D16", sev="higiene", fase="F5", estado="aberto",
       titulo="Quatro camadas falsificam _breaking/_markRef porque falta parametro de esforco",
       locais=[dict(arquivo=L+"71-cds-os51-beaten-defender.js", linha=23, ancora="var oldInt=P._integrate;"),
               dict(arquivo=L+"23-cds-r185-bloco-defensivo.js", linha=51, ancora="P._integrate=function(p,tx,ty,dt,freeze){")],
@@ -206,6 +220,10 @@ DEFEITOS = [
       dono="ATENCAO: a camada 16 e TERMINAL para _integrate. O parametro tem de ser adicionado LA, nao no core.",
       intercepta=["16","17","23","24","71"],
       criterio=["comprimento do bloco com bola +-1,5 m","largura +-2 m","tackles +-1,07","leituras falsas de _breaking: 0"],
+      medido=("RECLASSIFICADO. ramos.js: _integrate chamado 886.981,58 vezes por partida e _breaking "
+              "saiu diferente ZERO vezes. A falsificacao nao vaza para _cross, que era o risco "
+              "apontado. Sai de corretude e entra em legibilidade: nao ha bug escondido, ha um modelo "
+              "ausente. Severidade rebaixada de estrutural para higiene."),
       depende=["D14"], risco="medio-alto: mexe em movimentacao. Rodar forma.js antes e depois."),
 
  dict(id="D17", sev="higiene", fase="F5", estado="aberto",
@@ -309,6 +327,9 @@ DEFEITOS = [
       dono="a camada 17 e a autoridade real. A mudanca tem de ser feita LA.",
       intercepta=["17"],
       criterio=["passes +-5,53","shots +-0,84","mediana de posse 0,9-1,3 s","curva de sobrevivencia sem vale em 0,28"],
+      medido=("CONFIRMADO, DESCRICAO INTACTA. ramos.js: 35.195,25 mudancas de decideT por partida — a "
+              "camada 17 reescreve quase todo quadro, como o documento dizia por leitura. O literal "
+              "0,28 aparece 55,25 vezes (as recepcoes). Unico dos sete que sobreviveu intacto."),
       depende=["D14"], risco="medio: mexe no ritmo de decisao"),
 
  dict(id="D27", sev="futebol", fase="—", estado="guarda-corpo",

@@ -402,7 +402,7 @@
    "sev": "estrutural",
    "fase": "F3",
    "estado": "aberto",
-   "titulo": "Sorteio censurado 1: r12 sorteia o chute contextual, r183 existe para veta-lo",
+   "titulo": "Sorteio censurado 1: o censor roda em 51,4% das decisoes (MEDIDO)",
    "locais": [
     {
      "arquivo": "src/scripts/layers/16-cds-r12-transactional-core-r123.js",
@@ -434,12 +434,13 @@
     "-250 linhas",
     "zero variaveis de contrato com nome de release"
    ],
+   "medido": "CONFIRMADO E MAIOR. ramos.js, 12 partidas: 264,67 VETOS em 515,17 decisoes examinadas = 51,4%. Metade das decisoes do jogo passa pelo censor. O documento tratava como mecanismo pontual. E o defeito estrutural com maior alcance medido do catalogo — sobe de F3 para o primeiro candidato depois da F1.",
    "depende": [],
    "risco": "medio: remover chance() desalinha o RNG; compare distribuicoes, nao partidas",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
     "linha_inicio": 1736,
-    "linha_fim": 1838,
+    "linha_fim": 1858,
     "titulo": "D11 🔴 Sorteio censurado nº 1 — o chute que é sorteado para ser vetado"
    }
   },
@@ -448,7 +449,7 @@
    "sev": "estrutural",
    "fase": "F2",
    "estado": "aberto",
-   "titulo": "Sorteio censurado 2: r13 manda a bola para fora a 64% e o core recolhe",
+   "titulo": "Sorteio censurado 2 — formulacao refutada; sobra o alvo puxado de volta",
    "locais": [
     {
      "arquivo": "src/scripts/layers/17-cds-r13-football-observer-cadence.js",
@@ -475,14 +476,15 @@
    "criterio": [
     "throwIns >=17,4 (2 SE) sem D08"
    ],
+   "medido": "FORMULACAO REFUTADA. ramos.js: _looseBall chamado 92,08/partida; terminou COM DONO apenas 2,58 (2,8%), ficou solta 89,50 (97,2%). O core NAO recolhe a bola. Sobra um fio vivo: 19,92 alvos ja chegam fora e so 11 pousam fora — os ~9 de diferenca sao alguma camada puxando o alvo de volta, e isso ainda nao foi investigado.",
    "depende": [
     "D02"
    ],
    "risco": "medio: mais reinicios = mais bola parada; vigie passes",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 1839,
-    "linha_fim": 1920,
+    "linha_inicio": 1859,
+    "linha_fim": 1967,
     "titulo": "D12 🔴 Sorteio censurado nº 2 — a bola mandada para a lateral, e recolhida"
    }
   },
@@ -511,14 +513,15 @@
     "goals +-0,20",
     "-111 linhas"
    ],
+   "medido": "CONFIRMADO E MAIOR. ramos.js: 12,33 de 23,42 chutes por partida tem o erro comprimido (52,7%). Amplitude media antes 6,80 m, depois 4,57 m, MAXIMA antes 13,30 m — o dobro dos 6,5 m que a constante excessoMax do censor supoe como pior caso.",
    "depende": [
     "D01"
    ],
    "risco": "ALTO para onTargetRate, que ja esta em 0,326. Varrer sigmaGraus com calibrar.py.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 1921,
-    "linha_fim": 1984,
+    "linha_inicio": 1968,
+    "linha_fim": 2057,
     "titulo": "D13 🟠 Sorteio censurado nº 3 — o erro de chute, sorteado grande e comprimido"
    }
   },
@@ -562,8 +565,8 @@
    "risco": "medio, controlado pela ordem: assercao (segura) antes de remocao",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 1985,
-    "linha_fim": 2022,
+    "linha_inicio": 2058,
+    "linha_fim": 2095,
     "titulo": "D14 🔴 Sete contenções em `step` que consertam bugs nunca procurados"
    }
   },
@@ -589,20 +592,21 @@
    "criterio": [
     "salto.js correlaciona os saltos com quadros de escrita dupla de intencao"
    ],
+   "medido": "NAO MENSURAVEL HOJE. getR1899Audit() nao existe — as 255 linhas de antiteleporte nao publicam contador nenhum. PRIMEIRO PASSO nao e consertar nem apagar: e acrescentar um contador e rodar 300 partidas. Sem isso, remover 255 linhas e aposta.",
    "depende": [
     "D14"
    ],
    "risco": "baixo enquanto for so diagnostico",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2047,
-    "linha_fim": 2075,
+    "linha_inicio": 2120,
+    "linha_fim": 2162,
     "titulo": "D15 🟡 As 255 linhas de antiteleporte"
    }
   },
   {
    "id": "D16",
-   "sev": "estrutural",
+   "sev": "higiene",
    "fase": "F5",
    "estado": "aberto",
    "titulo": "Quatro camadas falsificam _breaking/_markRef porque falta parametro de esforco",
@@ -635,14 +639,15 @@
     "tackles +-1,07",
     "leituras falsas de _breaking: 0"
    ],
+   "medido": "RECLASSIFICADO. ramos.js: _integrate chamado 886.981,58 vezes por partida e _breaking saiu diferente ZERO vezes. A falsificacao nao vaza para _cross, que era o risco apontado. Sai de corretude e entra em legibilidade: nao ha bug escondido, ha um modelo ausente. Severidade rebaixada de estrutural para higiene.",
    "depende": [
     "D14"
    ],
    "risco": "medio-alto: mexe em movimentacao. Rodar forma.js antes e depois.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2076,
-    "linha_fim": 2153,
+    "linha_inicio": 2163,
+    "linha_fim": 2261,
     "titulo": "D16 🔴 Quatro camadas mentem para o integrador porque falta um parâmetro"
    }
   },
@@ -685,8 +690,8 @@
    "risco": "baixo em comportamento, alto em atrito. UM metodo por commit.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2154,
-    "linha_fim": 2216,
+    "linha_inicio": 2262,
+    "linha_fim": 2324,
     "titulo": "D17 🟡 Promover quem já é dono do método"
    }
   },
@@ -717,8 +722,8 @@
    "risco": "baixo por commit, alto se feito de uma vez. Nunca mais de um bloco por commit.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2217,
-    "linha_fim": 2263,
+    "linha_inicio": 2325,
+    "linha_fim": 2371,
     "titulo": "D18 🟡 `_cross` tem 255 linhas e nove correções embutidas"
    }
   },
@@ -752,8 +757,8 @@
    "risco": "ALTO: toca todo lance. NAO medir junto com D20 (200 partidas de intervalo).",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2264,
-    "linha_fim": 2350,
+    "linha_inicio": 2372,
+    "linha_fim": 2458,
     "titulo": "D19 🟠 A partida murcha em vez de crescer"
    }
   },
@@ -794,8 +799,8 @@
    "risco": "ALTO. _comprimirBloco desloca ALVO, nunca corpo — senao cai no bug que a camada 84 contem.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2351,
-    "linha_fim": 2440,
+    "linha_inicio": 2459,
+    "linha_fim": 2548,
     "titulo": "D20 🟠 O bloco não compacta quando o time perde a bola"
    }
   },
@@ -823,8 +828,8 @@
    "risco": "AVISO: a fadiga ja e invariante ao clockRate. Se mexer no relogio, NAO mexa no dreno junto.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2441,
-    "linha_fim": 2502,
+    "linha_inicio": 2549,
+    "linha_fim": 2610,
     "titulo": "D21 🔴 `clockRate`: 23 minutos de física para 90 minutos de partida"
    }
   },
@@ -857,8 +862,8 @@
    "risco": "baixo: pode se resolver sozinho com D13",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2503,
-    "linha_fim": 2539,
+    "linha_inicio": 2611,
+    "linha_fim": 2647,
     "titulo": "D22 🟠 Acerto ao alvo abaixo do mínimo de design"
    }
   },
@@ -879,8 +884,8 @@
    "risco": "deadBallRecovery +0,02 ja derrubou empates de 29,2% para 17,5%",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2540,
-    "linha_fim": 2588,
+    "linha_inicio": 2648,
+    "linha_fim": 2696,
     "titulo": "D23 🟡 A bola de neve: o placar abre demais?"
    }
   },
@@ -909,8 +914,8 @@
    "risco": "a recomendacao MENOS fundamentada do documento",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2589,
-    "linha_fim": 2628,
+    "linha_inicio": 2697,
+    "linha_fim": 2736,
     "titulo": "D24 🔵 Tarja preta: 24% a 43% da caixa do campo"
    }
   },
@@ -945,8 +950,8 @@
    "feito_em": "FEITO E SEM EFEITO MEDIDO. A excecao foi removida (o comentario dela agora explica por que 'shot' tem razao de ser e 'deflect' nao tinha), mas as 14 metricas ficaram IDENTICAS ao digito em 40 partidas pareadas. A sonda tools/fisica/ramo-d25.js explica: ha 77,5 quadros por partida com bola de desvio viajando FORA do campo, e _ballOut e chamado em voo ZERO vezes — as saidas ja vinham por _looseRoll (7,9/partida) e por bola parada (19,6/partida). A linha editada nao e alcancada no caso do desvio: alguma das 4 sobrescritas de _ballTravel resolve o segmento antes. CONSEQUENCIA PARA D08: a premissa de que o desvio escapava da maquina de reinicio esta ERRADA. O orcamento de laterais nao se abre por aqui.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2629,
-    "linha_fim": 2715,
+    "linha_inicio": 2737,
+    "linha_fim": 2823,
     "titulo": "D25 🟡 ✅ `_ballTravel` isenta explicitamente o desvio de sair do campo"
    }
   },
@@ -981,14 +986,15 @@
     "mediana de posse 0,9-1,3 s",
     "curva de sobrevivencia sem vale em 0,28"
    ],
+   "medido": "CONFIRMADO, DESCRICAO INTACTA. ramos.js: 35.195,25 mudancas de decideT por partida — a camada 17 reescreve quase todo quadro, como o documento dizia por leitura. O literal 0,28 aparece 55,25 vezes (as recepcoes). Unico dos sete que sobreviveu intacto.",
    "depende": [
     "D14"
    ],
    "risco": "medio: mexe no ritmo de decisao",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2716,
-    "linha_fim": 2769,
+    "linha_inicio": 2824,
+    "linha_fim": 2895,
     "titulo": "D26 🟡 `decideT` é escrito em dois lugares e reescrito todo quadro"
    }
   },
@@ -1016,8 +1022,8 @@
    "risco": "dois erros se compensavam: poucas faltas + cartoes demais por falta",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2770,
-    "linha_fim": 2819,
+    "linha_inicio": 2896,
+    "linha_fim": 2945,
     "titulo": "D27 🟠 As faltas não saem do parâmetro — saem do número de duelos"
    }
   },
@@ -1046,8 +1052,8 @@
    "risco": "nenhum: e documentacao",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2820,
-    "linha_fim": 2880,
+    "linha_inicio": 2946,
+    "linha_fim": 3006,
     "titulo": "D28 🟡 ✅ `deadBallRecovery` — a calibração mais frágil do jogo"
    }
   },
@@ -1077,8 +1083,8 @@
    "risco": "fazer DEPOIS de D08 ou o alvo tera de mudar duas vezes",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2881,
-    "linha_fim": 2919,
+    "linha_inicio": 3007,
+    "linha_fim": 3045,
     "titulo": "D29 🟡 Escanteios acima da faixa de design, dentro da faixa real"
    }
   },
@@ -1109,8 +1115,8 @@
    "risco": "baixo se medido antes",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2920,
-    "linha_fim": 2956,
+    "linha_inicio": 3046,
+    "linha_fim": 3082,
     "titulo": "D30 🟡 O minigame de bola parada está desligado desde a R18"
    }
   },
@@ -1140,8 +1146,8 @@
    "risco": "separar um modulo que depende de metodos prestes a mudar de lugar e trabalho dobrado",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2957,
-    "linha_fim": 2987,
+    "linha_inicio": 3083,
+    "linha_fim": 3113,
     "titulo": "D31 🟡 A IA de treinador mora dentro do módulo do motor"
    }
   },
@@ -1176,8 +1182,8 @@
    "feito_em": "lint em tools/verify.py (passo 6). Na PRIMEIRA execucao ele pegou uma violacao real e viva: a camada 66 lia restarts.shotBlockCorner por `root.CAL && ...`, que NUNCA acerta porque window.CAL e undefined (medido). Caia no 0,66 codificado em silencio — a calibracao estava desconectada e mexer no 20-core.js nao teria efeito ali. O padrao por acaso era igual ao valor calibrado, entao o defeito era invisivel. Corrigido para ENGINE_CALIBRATION; o lint impede a reintroducao.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 2988,
-    "linha_fim": 3008,
+    "linha_inicio": 3114,
+    "linha_fim": 3134,
     "titulo": "D32 🟡 ✅ A armadilha de escopo que derruba camadas novas"
    }
   },
@@ -1205,8 +1211,8 @@
    "risco": "baixo mas nao zero: algo pode ler por nome",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 3060,
-    "linha_fim": 3094,
+    "linha_inicio": 3186,
+    "linha_fim": 3220,
     "titulo": "D33 🟡 Doze arquivos que só publicam número de versão"
    }
   },
@@ -1228,8 +1234,8 @@
    "risco": "ALTO se alguem apagar as 81 direto. O primeiro plano escreveu este numero como se fosse fato — era teto.",
    "secao": {
     "arquivo": "reports/INVESTIGACAO-COMPLETA-2026-08.md",
-    "linha_inicio": 3095,
-    "linha_fim": 3135,
+    "linha_inicio": 3221,
+    "linha_fim": 3261,
     "titulo": "D34 🔴 Até 81 sobrescritas nunca alcançadas"
    }
   }

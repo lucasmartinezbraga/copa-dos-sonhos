@@ -1789,6 +1789,26 @@ não se conhecem, separados por três camadas na ordem de carregamento.
 *"Marcar o instante atual veta unicamente essa roleta."* Quem escreveu sabia
 que estava vetando um sorteio — e escolheu vetar em vez de mudar.
 
+### ✅ CONFIRMADO por medição — e é maior do que este texto dizia
+
+`tools/fisica/ramos.js`, 12 partidas [MEDIDO]:
+
+```
+decisoes examinadas pela camada 20      515,17 por partida
+VETOS aplicados                         264,67 por partida     51,4%
+erros de lateral prevenidos              38,83
+erros de lateral permitidos               0,00
+```
+
+**Metade de todas as decisões do jogo passa pelo censor.** O documento tratava
+isto como um mecanismo ocasional — "a camada 20 veta *aquela* roleta". São
+264,67 vetos por partida, mais de quatro por minuto de jogo.
+
+Isso muda a prioridade: D11 deixa de ser higiene de arquitetura e passa a ser o
+defeito estrutural com maior alcance medido do catálogo. **A regra real de
+quando um jogador chuta é decidida por um `if` que roda 515 vezes por partida
+num arquivo, e é anulada 265 vezes por outro arquivo que não o cita.**
+
 **A mudança proposta.** Fundir dado e censor num único predicado, **no lugar
 onde a decisão pertence**:
 
@@ -1916,6 +1936,33 @@ node tools/fisica/pilha.js dist/index.html 14 | grep _looseBall
 **Critério de aceite:** `throwIns` sobe pelo menos 2 SE (≥ 17,4) **sem** D08
 implementado. Com D08, ver o critério de lá.
 
+### ⚠ FORMULAÇÃO REFUTADA — o core não recolhe a bola
+
+`tools/fisica/ramos.js`, 12 partidas, medido no topo da pilha [MEDIDO]:
+
+```
+_looseBall chamado                       92,08 por partida
+  ja chega com alvo FORA do campo        19,92
+  a bola POUSA fora                      11,00
+
+terminou com DONO                         2,58   (2,8%)
+ficou SOLTA                              89,50  (97,2%)
+```
+
+**O core devolve a posse em 2,8% das chamadas.** A premissa deste defeito —
+*"uma camada declara isto é lateral e o core desfaz entregando a posse"* — está
+errada. Em 97,2% dos casos a bola fica solta, que é exatamente o que deveria
+acontecer.
+
+É a mesma refutação do D02, pelo mesmo motivo: o `_contestLoose` sem teto que o
+texto acusa não é alcançado com a bola distante, porque as camadas 08 e 45
+filtram antes.
+
+**O que sobra de real:** 19,92 alvos por partida já chegam fora do campo e
+apenas 11 pousam fora. A diferença — **~9 por partida** — é onde alguma camada
+puxa o alvo de volta para dentro. *Isso* é mensurável e ainda não foi
+investigado. É o único fio vivo que resta deste defeito.
+
 ---
 
 ## D13 🟠 Sorteio censurado nº 3 — o erro de chute, sorteado grande e comprimido
@@ -1943,6 +1990,32 @@ foi calibrada **contra o comportamento do motor**, não contra futebol.
 
 **A evidência** [LIDO]. `POST` = 3,3 a 3,35 m; `excessoMax` = 6,5 − POST ≈
 3,15 m de erro excedente sendo espremido a cada chute errado.
+
+### ✅ CONFIRMADO — e o pior caso é o dobro do que o código supõe
+
+`tools/fisica/ramos.js`, 12 partidas, lendo o auditor da própria camada 55
+[MEDIDO]:
+
+```
+chutes vistos                            23,42 por partida
+chutes fora COMPRIMIDOS                  12,33 por partida     52,7%
+
+amplitude media ANTES da compressao       6,80 m
+amplitude media DEPOIS                    4,57 m
+amplitude MAXIMA observada antes         13,30 m
+```
+
+Dois números importam:
+
+1. **52,7% dos chutes têm o erro comprimido.** Não é um caso de borda: é a
+   maioria dos chutes errados do jogo.
+2. **O pior caso medido é 13,30 m**, e a constante do código diz
+   `excessoMax = 6.5 - POST`, com o comentário *"pior caso observado no motor"*.
+   O pior caso real é **o dobro** do que o censor foi calibrado para conter.
+
+Uma bola a 13,3 m do centro do gol é uma bola na arquibancada. O censor a traz
+para 4,57 m — dentro do plausível — mas o modelo de erro por trás continua
+gerando disparates, e o censor cobre isso com uma constante desatualizada.
 
 **A mudança proposta.** Reescrever o modelo de erro **na origem**, como
 dispersão angular, que é como pontaria funciona:
@@ -2071,6 +2144,20 @@ hipótese fecha.
 **Se fechar**, o conserto é em `_integrate`: um único ponto de escrita de
 posição, e as 255 linhas somem.
 
+### ⚠ NÃO MENSURÁVEL HOJE — a camada não publica auditor
+
+`tools/fisica/ramos.js` procurou `getR1899Audit()` e **não existe**. As 255
+linhas de antiteleporte não expõem nenhum contador: não há como saber quantas
+vezes elas corrigem alguma coisa sem editar a camada.
+
+É a prova viva da regra que o próprio documento estabelece — *toda camada nova
+deve publicar contadores por ramo*. A camada 45 publica e por isso o D09 foi
+mensurável em vinte minutos; a 84 não publica e por isso o D15 continua sendo
+opinião depois de todo este trabalho.
+
+**Primeiro passo do D15, portanto, não é consertar nem apagar: é acrescentar
+um contador** e rodar 300 partidas. Sem isso, remover 255 linhas é aposta.
+
 ---
 
 ## D16 🔴 Quatro camadas mentem para o integrador porque falta um parâmetro
@@ -2148,6 +2235,27 @@ mudar de comprimento, o parâmetro está composto errado.
 | largura do bloco com bola | 49,4 m | ±2 m |
 | `tackles` | 50,133 | ±1,07 |
 | leituras falsas de `_breaking` | 4 camadas | **0** |
+
+### ⚠ RECLASSIFICADO — o padrão existe, mas não vaza
+
+`tools/fisica/ramos.js`, 12 partidas [MEDIDO]:
+
+```
+_integrate chamado                    886.981,58 por partida
+_breaking saiu DIFERENTE de como entrou       0,00
+```
+
+**Zero.** As quatro camadas falsificam o campo e o restauram corretamente, em
+todas as ~887 mil chamadas por partida. Não há vazamento para `_cross`, que era
+o risco concreto que este defeito apontava.
+
+**O que isso muda:** D16 sai da categoria *corretude* e entra em *legibilidade*.
+O custo real é que ninguém consegue saber quantos jogadores estão "correndo
+mais" num quadro, porque o conceito não existe — só a mentira existe. Continua
+valendo consertar, e o parâmetro de esforço continua sendo o conserto certo,
+mas **a urgência caiu**: não há bug escondido aqui, há um modelo ausente.
+
+A severidade passa de 🔴 estrutural para 🟡 higiene.
 
 ---
 
@@ -2764,6 +2872,24 @@ com `pilha.js`.
 
 **Critério de aceite:** `passes` ±5,53; `shots` ±0,84; mediana de posse do
 portador entre 0,9 e 1,3 s (`tools/fisica/tela/olhar.js`).
+
+### ✅ CONFIRMADO — a camada 17 reescreve quase todo quadro
+
+`tools/fisica/ramos.js`, 12 partidas [MEDIDO]:
+
+```
+mudancas de decideT observadas       35.195,25 por partida
+das quais o literal exato 0,28           55,25 por partida
+```
+
+Trinta e cinco mil mudanças por partida confirmam ao pé da letra o que o
+documento afirmava por leitura: **a camada 17 reescreve `decideT` praticamente
+todo quadro.** As 55,25 ocorrências do literal `0.28` são as recepções — o
+`_giveBall:2582`, que ignora atributos.
+
+É a confirmação de que editar `decideT` no motor não adianta, e a razão pela
+qual o conserto tem de ser feito na camada 17. **Este é o único dos sete
+defeitos formulados por leitura cuja descrição sobreviveu intacta à medição.**
 
 ---
 
@@ -4138,7 +4264,48 @@ sim._contestLoose = function () {
 Os modelos estão no repositório: `tools/fisica/ramo-d25.js`,
 `ramo-g20.js`, `ramo-rolagem.js` e `ramo-d02.js`.
 
-## 8A.4 O que isso faz com o resto do catálogo
+## 8A.4 A segunda rodada de sondas — os sete suspeitos, medidos
+
+Depois de escrever a seção acima, apliquei a própria regra: escrevi
+`tools/fisica/ramos.js`, que mede os ramos dos sete defeitos formulados por
+leitura numa única execução. **12 partidas, topo da pilha.** O resultado:
+
+| defeito | veredito | o número |
+|---|---|---|
+| **D11** sorteio censurado | ✅ **confirmado, e maior** | 264,67 vetos em 515,17 decisões — **51,4%** |
+| **D13** erro de chute censurado | ✅ **confirmado, e maior** | 52,7% dos chutes comprimidos; pior caso **13,30 m** contra os 6,5 m que o censor supõe |
+| **D26** `decideT` em três lugares | ✅ **confirmado, intacto** | 35.195 mudanças/partida; o literal 0,28 aparece 55,25× |
+| **D12** a bola solta recolhida | ⚠ **formulação refutada** | o core devolve a posse em **2,8%** das chamadas, não na maioria |
+| **D16** falsificação de `_integrate` | ⚠ **reclassificado** | `_breaking` sai diferente **0** vezes em 887 mil chamadas — não vaza |
+| **D15** antiteleporte | ⛔ **não mensurável** | a camada não publica auditor nenhum |
+| **D08** a direção do desvio | ⏸ **pendente** | o fenômeno segue medido; a causa continua sem sonda |
+
+**Três de sete confirmados, e dois deles são maiores do que o documento
+dizia.** Dois tiveram a formulação corrigida sem perder o mérito, um não pôde
+ser medido, e um continua aberto.
+
+### O que o D11 revelou, e é o achado com maior alcance do catálogo
+
+Metade de todas as decisões do jogo — 264,67 de 515,17 por partida — passa pelo
+censor da camada 20. O documento tratava isso como um mecanismo pontual. **A
+regra real de quando um jogador chuta está distribuída entre um arquivo que
+sorteia 515 vezes por partida e outro que anula 265 vezes sem citá-lo.**
+
+Isso reordena o plano: D11 sai de F3 e vira o primeiro candidato estrutural
+depois da F1.
+
+### E o D15 é a prova viva da regra da casa
+
+`getR1899Audit()` **não existe**. As 255 linhas de antiteleporte não publicam um
+contador sequer, então não há como saber se elas ainda corrigem alguma coisa.
+A camada 45 publica, e por isso o D09 foi mensurável em vinte minutos. A 84 não
+publica, e por isso o D15 continua sendo opinião depois de todo este trabalho.
+
+> **Toda camada nova deve publicar contadores por ramo.** Não é preferência de
+> estilo: é a diferença entre um defeito que se mede em vinte minutos e um que
+> não se mede nunca.
+
+## 8A.5 O que isso faz com o resto do catálogo
 
 **Não invalida os defeitos medidos por agregado.** D19 (a partida murcha), D20
 (o bloco não compacta), D24 (a tarja preta) e D22 (o acerto ao alvo) vêm de
@@ -4157,7 +4324,11 @@ antes de virar conserto. Pela lista, os que ainda não têm:
 
 **Sete defeitos** para os quais o próximo passo não é consertar: é medir o ramo.
 
-## 8A.5 O que continua valendo, e por quê
+> **Atualização:** seis dos sete foram medidos na segunda rodada (seção 8A.4).
+> Sobram **D08**, que precisa de uma sonda de direção nova, e **D15**, que
+> precisa que a camada 84 ganhe um contador antes de qualquer coisa.
+
+## 8A.6 O que continua valendo, e por quê
 
 O método não falhou — **ele funcionou**. Quatro premissas erradas foram
 descobertas em uma rodada, ao custo de quatro sondas de 40 linhas, e nenhuma

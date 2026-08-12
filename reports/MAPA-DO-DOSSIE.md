@@ -161,6 +161,20 @@ não envelhece — e `tools/defeitos.py` falha se ela deixar de apontar certo.
 
 ---
 
+## O que a execução mediu — leia antes de confiar numa seção
+
+| defeito | veredito da medição |
+|---|---|
+| D01, D02, D25, D08 | **quatro premissas caíram** na primeira rodada |
+| D11, D13 | ✅ confirmados — e **maiores** do que o texto dizia |
+| D26 | ✅ confirmado, descrição intacta |
+| D12, D16 | ⚠ formulação corrigida |
+| D15 | ⛔ não mensurável — a camada não publica contador |
+
+Os defeitos medidos por **agregado** (D19, D20, D22, D24) não dependem de qual
+linha executa e seguem válidos. Os formulados por **leitura de código** foram
+todos remedidos, e a seção 8A.4 do relatório traz o resultado de cada um.
+
 ## A regra que mais quebra trabalho aqui
 
 ```bash
