@@ -1,40 +1,53 @@
-[
- {
-  "arquivo": "partida-inteira-turbo.webm",
-  "titulo": "Uma partida inteira, na velocidade TURBO",
-  "olhe": "D19 · o ritmo ao longo dos 90 minutos. O jogo NAO cresce para o fim: 21,4% dos gols saem antes dos 15 minutos e 12,7% depois dos 76 — no futebol de elite e o inverso. Tambem em quadro o tempo inteiro: a tarja preta acima e abaixo do gramado (D24), aqui em 960x540.",
-  "viewport": "960x540",
-  "velocidade": "TURBO",
-  "trocouDeVelocidade": true,
-  "segundosDeParede": 210.48,
-  "partida": "Bélgica x Inglaterra",
-  "minutoDeJogoAoFim": 108.8,
-  "segundoDeSimulacao": 1280,
-  "terminou": false,
-  "placar": [
-   null,
-   null
-  ],
-  "bytes": 33229896,
-  "errosDePagina": 0
+{
+ "retratacao": {
+  "quando": "2026-08-12",
+  "afirmacao_retirada": "isOver() falso aos ~102 minutos de jogo",
+  "motivo": "minuto calculado por sim.t * clockRate em vez de sim.minute (armadilha C1)",
+  "medicao_que_refuta": {
+   "segundos_de_parede": 195,
+   "t_simulacao": 632,
+   "sim_minute": 45.4
+  },
+  "o_que_sobra": "os botoes 3X e TURBO avancam na mesma taxa em headless; provavel limite de requestAnimationFrame, nao defeito do jogo"
  },
- {
-  "arquivo": "transicao-perda-de-bola.webm",
-  "titulo": "Os primeiros minutos, em velocidade 1X",
-  "olhe": "D20 · acompanhe a forma do time no instante em que ele perde a bola. No futebol real o bloco encurta 8 a 10 m ao virar defensor. Aqui encurta 0,4 m — medido por forma.js. O time troca de fase e nao troca de forma. Repare tambem na concentracao de jogadores em volta da bola.",
-  "viewport": "960x540",
-  "velocidade": "1X",
-  "trocouDeVelocidade": true,
-  "segundosDeParede": 40.35,
-  "partida": "Bélgica x Inglaterra",
-  "minutoDeJogoAoFim": 4.2,
-  "segundoDeSimulacao": 49,
-  "terminou": false,
-  "placar": [
-   null,
-   null
-  ],
-  "bytes": 6356523,
-  "errosDePagina": 0
- }
-]
+ "clipes": [
+  {
+   "arquivo": "jogo-rodando-turbo.webm",
+   "titulo": "O jogo rodando, do apito inicial, na velocidade TURBO",
+   "olhe": "D19 · o ritmo ao longo dos 90 minutos. O jogo NAO cresce para o fim: 20,0% dos gols saem antes dos 15 minutos e 14,7% depois dos 76 — no futebol de elite e o inverso. E em quadro o tempo inteiro: a tarja preta acima e abaixo do gramado (D24). Confira `terminou` e `minutoDeJogoAoFim` no indice.json antes de citar este clipe como partida completa.",
+   "viewport": "960x540",
+   "velocidade": "TURBO",
+   "trocouDeVelocidade": true,
+   "segundosDeParede": 240.31,
+   "partida": "Bélgica x Inglaterra",
+   "minutoDeJogoAoFim": 94,
+   "segundoDeSimulacao": 1443,
+   "terminou": true,
+   "placar": [
+    null,
+    null
+   ],
+   "bytes": 33358204,
+   "errosDePagina": 0
+  },
+  {
+   "arquivo": "transicao-perda-de-bola.webm",
+   "titulo": "Os primeiros minutos, em velocidade 1X",
+   "olhe": "D20 · acompanhe a forma do time no instante em que ele perde a bola. No futebol real o bloco encurta 8 a 10 m ao virar defensor. Aqui encurta 0,4 m — medido por forma.js. O time troca de fase e nao troca de forma. Repare tambem na concentracao de jogadores em volta da bola.",
+   "viewport": "960x540",
+   "velocidade": "1X",
+   "trocouDeVelocidade": true,
+   "segundosDeParede": 40.29,
+   "partida": "Bélgica x Inglaterra",
+   "minutoDeJogoAoFim": 3.4,
+   "segundoDeSimulacao": 49,
+   "terminou": false,
+   "placar": [
+    null,
+    null
+   ],
+   "bytes": 6242605,
+   "errosDePagina": 0
+  }
+ ]
+}

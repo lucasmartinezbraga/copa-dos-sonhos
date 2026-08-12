@@ -1,0 +1,102 @@
+
+D19 · onde a partida murcha — 48 partidas
+
+faixa   min-jogo  %tempo | gols   %gols | chutes/min  alvo/min  gols/min | passes/min  %certo | stamina | %bola em jogo
+------------------------------------------------------------------------------------------------------------------------------------
+0-15       720.1   15.1% |   24  18.3% |      0.28      0.09     0.033 |       3.7   84.3% |   97.0 |        82.1%
+16-30      720.0   15.1% |   22  16.8% |      0.27      0.06     0.031 |       3.7   83.3% |   91.1 |        84.9%
+31-45      720.0   15.1% |   16  12.2% |      0.21      0.06     0.022 |       3.7   83.3% |   85.4 |        88.0%
+46-60      888.5   18.6% |   21  16.0% |      0.21      0.07     0.024 |       3.8   82.3% |   79.2 |        85.7%
+61-75      720.0   15.1% |   30  22.9% |      0.26      0.08     0.042 |       3.8   80.4% |   73.5 |        86.4%
+76+       1008.6   21.1% |   18  13.7% |      0.19      0.06     0.018 |       4.0   81.5% |   68.1 |        88.5%
+
+razao 76+ / 0-15   (1,00 = nao muda ao longo da partida)
+  H1  chutes por minuto ........ 0.685   <== CRIA MENOS
+  H2  acerto ao alvo por chute .. 0.996   estavel
+  H3  fracao de bola em jogo .... 1.078   estavel
+  H4  segundos de simulacao/min . 0.928   uniforme (como o projeto ja media)
+
+A hipotese que ficar abaixo de 0,90 e onde o conserto tem de ser feito.
+Se mais de uma ficar, conserte UMA e meça de novo — elas se contaminam.
+
+{
+ "partidas": 48,
+ "rotulos": [
+  "0-15",
+  "16-30",
+  "31-45",
+  "46-60",
+  "61-75",
+  "76+"
+ ],
+ "minutosPorFaixa": [
+  720.12,
+  719.98,
+  719.98,
+  888.47,
+  719.98,
+  1008.56
+ ],
+ "golsPorFaixa": [
+  24,
+  22,
+  16,
+  21,
+  30,
+  18
+ ],
+ "distribuicaoGols": [
+  18.3,
+  16.8,
+  12.2,
+  16,
+  22.9,
+  13.7
+ ],
+ "chutesPorMinuto": [
+  0.278,
+  0.268,
+  0.206,
+  0.215,
+  0.256,
+  0.19
+ ],
+ "alvoPorChute": [
+  0.34,
+  0.238,
+  0.284,
+  0.335,
+  0.293,
+  0.339
+ ],
+ "passesPorMinuto": [
+  3.67,
+  3.66,
+  3.73,
+  3.79,
+  3.85,
+  4.04
+ ],
+ "staminaMedia": [
+  97,
+  91.1,
+  85.4,
+  79.2,
+  73.5,
+  68.1
+ ],
+ "fracaoBolaEmJogo": [
+  0.821,
+  0.849,
+  0.88,
+  0.857,
+  0.864,
+  0.885
+ ],
+ "razao76sobre015": {
+  "chutesPorMinuto": 0.685,
+  "alvoPorChute": 0.996,
+  "bolaEmJogo": 1.078,
+  "minutosDeJogo": 0.928
+ }
+}

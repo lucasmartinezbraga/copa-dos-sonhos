@@ -4,7 +4,7 @@
   "titulo": "Uma partida em andamento",
   "nota": "O estado normal do jogo, em 1440×900. A faixa escura ACIMA e ABAIXO do gramado é o defeito D24 — medida em 28,4% da caixa do canvas nesta resolução.",
   "viewport": "1440x900",
-  "segundo": 25,
+  "minutoDeJogo": 0.5,
   "partidaSubiu": true,
   "errosDePagina": 0
  },
@@ -13,7 +13,7 @@
   "titulo": "D24 · a tarja preta em 1920×1080",
   "nota": "Medido pela sonda caixa.js: 19,2% da caixa do canvas vazia. O canvas tem aspect-ratio 1024/500 com object-fit: contain, e o contêiner é mais alto que essa proporção — sobra em cima e embaixo, não nas laterais. Esta é a MELHOR das quatro resoluções testadas.",
   "viewport": "1920x1080",
-  "segundo": 18,
+  "minutoDeJogo": 0.5,
   "partidaSubiu": true,
   "errosDePagina": 0
  },
@@ -22,25 +22,25 @@
   "titulo": "D24 · a mesma tela em 1024×768",
   "nota": "A PIOR das quatro: 42,7% da caixa vazia. Quanto mais quadrada a janela, mais o object-fit: contain sobra. O campo usa 310 px de 540 disponíveis.",
   "viewport": "1024x768",
-  "segundo": 18,
+  "minutoDeJogo": 0.4,
   "partidaSubiu": true,
   "errosDePagina": 0
  },
  {
   "arquivo": "04-bloco-defensivo.png",
   "titulo": "D20 · a forma do time sem a bola",
-  "nota": "Medido com forma.js: o bloco encurta 0,4 m ao perder a bola. No futebol real encurta 8 a 10 m. Com a bola a forma está correta — o time simplesmente não muda de forma quando muda de fase.",
+  "nota": "Medido com forma.js em 90 partidas, nao nesta captura: o bloco encurta 0,4 m ao perder a bola. No futebol real encurta 8 a 10 m. Com a bola a forma está correta — o time simplesmente não muda de forma quando muda de fase.",
   "viewport": "1440x900",
-  "segundo": 55,
+  "minutoDeJogo": 0.5,
   "partidaSubiu": true,
   "errosDePagina": 0
  },
  {
   "arquivo": "05-aglomeracao.png",
   "titulo": "Concentração de jogadores em torno da bola",
-  "nota": "Lido pela narração (Volume IX): três jogadores concentram 25% das ações identificadas de uma partida. Não aparece em métrica nenhuma — passes, chutes e gols saem todos na faixa.",
+  "nota": "Lido pela narração (Volume IX) sobre partidas inteiras, nao nesta captura: três jogadores concentram 25% das ações identificadas. Não aparece em métrica nenhuma — passes, chutes e gols saem todos na faixa.",
   "viewport": "1440x900",
-  "segundo": 80,
+  "minutoDeJogo": 0.5,
   "partidaSubiu": true,
   "errosDePagina": 0
  },
@@ -49,7 +49,7 @@
   "titulo": "A mesma partida em tela de celular",
   "nota": "O layout responsivo troca de arranjo. Esta superfície não foi auditada por sonda nenhuma — é mancha cega declarada (seção 8.4).",
   "viewport": "412x892",
-  "segundo": 25,
+  "minutoDeJogo": 0.6,
   "partidaSubiu": true,
   "errosDePagina": 0
  }

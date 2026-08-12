@@ -1,0 +1,178 @@
+commit a743c22143c1825bf8742ef699c7b45680f866c2
+Author:     Claude <noreply@anthropic.com>
+AuthorDate: Wed Aug 12 03:06:18 2026 +0000
+Commit:     Claude <noreply@anthropic.com>
+CommitDate: Wed Aug 12 03:06:18 2026 +0000
+
+    fix(D11): funde o dado e o censor do chute contextual num predicado puro
+    
+    O `_decide` da camada 20 existia para vetar UM sorteio da camada 16, e o
+    fazia envenenando `__r122LastContextShot` — um campo que serve para outra
+    coisa (o auto-limite de 1,15 s do proprio sorteio). O veto, por isso,
+    persistia 1,15 s depois de acontecer: efeito colateral que ninguem tinha
+    declarado.
+    
+    Medido antes de editar (ramos.js, 12 partidas): 264,67 vetos em 515,17
+    decisoes = 51,4% das decisoes do jogo passavam pelo censor. O documento
+    tratava como mecanismo pontual.
+    
+    Agora:
+    - camada 20 expoe `_r183ExcecaoAoChuteContextual(o)` — predicado PURO, sem
+      RNG, sem efeito colateral, sem estado compartilhado, com as quatro
+      excecoes nomeadas (chance clara, progressao limpa, saida sob pressao,
+      movimento para dentro)
+    - camada 16 o consulta no momento exato do sorteio
+    - `__r122LastContextShot` volta a significar so o que o nome diz
+    
+    Efeito colateral medido e favoravel: o predicado cai de 515,17 para 38,83
+    avaliacoes por partida (13x), porque so roda quando o sorteio vai mesmo
+    acontecer.
+    
+    VEREDITO DA BATERIA PENDENTE — estado do catalogo marcado como `medindo`,
+    nao `feito`. Build, verify, balistica e smoke em Chromium passaram
+    (sha256 439d56657e2e802c). As 300 partidas ainda rodavam neste commit; se
+    reprovarem em 2 SE, reverter e escrever o laudo.
+    
+    Junto:
+    - reports/fichas/ — as 34 fichas pre-renderizadas (tools/defeito.py)
+    - reports/COMO-TRABALHAR.md — o ciclo completo, do doutor.sh ao --fixar
+    - CONHECIMENTO.json, PDF e defeitos.json regravados
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+    Claude-Session: https://claude.ai/code/session_017A9p2a2tqbo4khijg4vdCb
+---
+ .../layers/16-cds-r12-transactional-core-r123.js   |  8 ++-
+ src/scripts/layers/20-cds-r183-natural-football.js | 64 ++++++++++++++--------
+ tools/defeitos.py                                  | 13 ++++-
+ 3 files changed, 61 insertions(+), 24 deletions(-)
+
+diff --git a/src/scripts/layers/16-cds-r12-transactional-core-r123.js b/src/scripts/layers/16-cds-r12-transactional-core-r123.js
+index 493ec69..84d92e2 100644
+--- a/src/scripts/layers/16-cds-r12-transactional-core-r123.js
++++ b/src/scripts/layers/16-cds-r12-transactional-core-r123.js
+@@ -150,7 +150,13 @@ const oldIsOver=P.isOver;P.isOver=function(){const over=oldIsOver.apply(this,arg
+ 
+ /* Opções contextuais de chute/cruzamento sem atropelar passe claro. */
+ const oldCanCross=P._canCross;P._canCross=function(o){if(!o||!this.teams)return oldCanCross.apply(this,arguments);const tm=this.teams[o.team],adv=tm.attackDir>0?o.x:FL-o.x,wide=o.y<27||o.y>FW-27;return oldCanCross.apply(this,arguments)||(adv>57&&wide);};
+-const oldDecide=P._decide;P._decide=function(o){if(o&&!o.isGK&&this.ball&&this.ball.owner===o&&this.teams&&!(o._setPieceDeliveryUntil>this.t)){const tm=this.teams[o.team],now=finite(this.t),g=tm.oppGoal,dtg=Math.hypot(finite(o.x)-finite(g.x),finite(o.y)-finite(g.y)),near=typeof this._nearestOpponent==='function'?this._nearestOpponent(o):{dist:5},best=typeof this._bestPass==='function'?this._bestPass(o):null,superior=best&&best.intoBox&&finite(best.risk)<1.75&&finite(best.score)>1.45;if(!superior&&dtg>=10&&dtg<=27&&now-finite(tm.__r122LastContextShot,-99)>1.15){const fin=attr(o,'finalizacao'),lng=attr(o,'chute_longe'),central=clamp(1-Math.abs(finite(o.y)-finite(g.y))/31,.35,1),pressure=clamp((3.5-finite(near.dist,5))/3.5,0,1);let p=dtg<=16?.40:dtg<=20?.285:dtg<=24?.17:.072;p*=central*(1-pressure*.58)*clamp((fin*.66+lng*.34)/72,.72,1.24);if(schance(this,p)){tm.__r122LastContextShot=now;this._shoot(o,dtg,dtg>21,o.settle>0&&o.settle<.45);return;}}
++const oldDecide=P._decide;P._decide=function(o){if(o&&!o.isGK&&this.ball&&this.ball.owner===o&&this.teams&&!(o._setPieceDeliveryUntil>this.t)){const tm=this.teams[o.team],now=finite(this.t),g=tm.oppGoal,dtg=Math.hypot(finite(o.x)-finite(g.x),finite(o.y)-finite(g.y)),near=typeof this._nearestOpponent==='function'?this._nearestOpponent(o):{dist:5},best=typeof this._bestPass==='function'?this._bestPass(o):null,superior=best&&best.intoBox&&finite(best.risk)<1.75&&finite(best.score)>1.45;/* D11 · a regra inteira do chute contextual, num lugar so. O predicado da
++   camada 20 (_r183ExcecaoAoChuteContextual) diz se existe alternativa
++   melhor: chance clara, progressao limpa, saida sob pressao ou movimento
++   para dentro. Antes ele rodava por fora e envenenava o timestamp abaixo
++   para fazer este `if` falhar — 264,67 vezes por partida, medido. */
++  if(!superior&&dtg>=10&&dtg<=27&&now-finite(tm.__r122LastContextShot,-99)>1.15
++     &&!(typeof this._r183ExcecaoAoChuteContextual==='function'&&this._r183ExcecaoAoChuteContextual(o))){const fin=attr(o,'finalizacao'),lng=attr(o,'chute_longe'),central=clamp(1-Math.abs(finite(o.y)-finite(g.y))/31,.35,1),pressure=clamp((3.5-finite(near.dist,5))/3.5,0,1);let p=dtg<=16?.40:dtg<=20?.285:dtg<=24?.17:.072;p*=central*(1-pressure*.58)*clamp((fin*.66+lng*.34)/72,.72,1.24);if(schance(this,p)){tm.__r122LastContextShot=now;this._shoot(o,dtg,dtg>21,o.settle>0&&o.settle<.45);return;}}
+   if(typeof this._canCross==='function'&&this._canCross(o)){const targets=tm.players.filter(p=>!p.red&&!p.isGK&&p!==o&&Math.abs(p.x-tm.oppGoal.x)<24);if(targets.length&&now-finite(tm.__r122LastCross,-99)>1.65&&!superior){const q=clamp((attr(o,'cruzamento')-50)/50,0,1),p=clamp(.17+q*.12+Math.min(3,targets.length)*.04+(finite(near.dist)>3?.035:0),.17,.40);if(schance(this,p)){tm.__r122LastCross=now;this._cross(o);return;}}}}
+   return oldDecide.apply(this,arguments);
+ };
+diff --git a/src/scripts/layers/20-cds-r183-natural-football.js b/src/scripts/layers/20-cds-r183-natural-football.js
+index 02f882d..205ef10 100644
+--- a/src/scripts/layers/20-cds-r183-natural-football.js
++++ b/src/scripts/layers/20-cds-r183-natural-football.js
+@@ -60,33 +60,53 @@ P._startTravel=function(actor,target,kind,onArrive,receiver,travelKind,meta){
+    Não força passe nem chute. Apenas bloqueia por uma janela curta a roleta
+    contextual da R12 quando existe um passe objetivamente superior, deixando
+    R13 + motor-base escolherem a ação final pelo fluxo normal. */
+-const oldDecide=P._decide;
+-P._decide=function(o){
+-  if(!o||o.isGK||!this.ball||this.ball.owner!==o||this.__r14Pending||finite(this.dead)>0||this.pendingRestart||this.waiting)return oldDecide.apply(this,arguments);
+-  const tm=this.teams&&this.teams[o.team];if(!tm)return oldDecide.apply(this,arguments);
++/* D11 · O SORTEIO E O CENSOR VIRARAM UMA COISA SÓ.
++   ---------------------------------------------------------------------------
++   Isto aqui era um `_decide` que rodava por FORA da camada 16 e, quando via
++   uma alternativa boa ao chute, envenenava `tm.__r122LastContextShot` com o
++   instante atual — o que fazia o `if` da camada 16 falhar. Duas camadas se
++   comunicando por um campo mutável com nome de release, e nenhuma das duas
++   documentando o contrato.
++
++   MEDIDO antes de mexer (tools/fisica/ramos.js, 12 partidas):
++     515,17 decisões examinadas por partida
++     264,67 VETOS aplicados  =  51,4% delas
++
++   Metade das decisões do jogo passava por aqui. A regra real de quando um
++   jogador chuta estava repartida entre um arquivo que sorteava e outro que
++   anulava sem citá-lo.
++
++   Agora é um PREDICADO PURO: sem efeito colateral, sem RNG, sem estado
++   compartilhado. A camada 16 o consulta no momento exato do sorteio, e o `if`
++   de lá passa a dizer a regra inteira em um lugar só.
++
++   O que mudou de comportamento: o veto deixou de PERSISTIR por 1,15 s. Aquela
++   persistência não era regra de futebol — era efeito colateral de envenenar um
++   campo que também serve de auto-limite da camada 16. Agora a exceção vale no
++   instante em que ela é verdadeira, que é o que o nome sempre prometeu. */
++P._r183ExcecaoAoChuteContextual=function(o){
++  if(!o||o.isGK||!this.ball||this.ball.owner!==o||this.__r14Pending||finite(this.dead)>0||this.pendingRestart||this.waiting)return false;
++  const tm=this.teams&&this.teams[o.team];if(!tm)return false;
+   const dg=diag(this);dg.decisionChecks++;
+   let best=null,safe=null;
+   try{best=normalizeCandidate(this._bestPass&&this._bestPass(o),o);}catch(_){}
+   try{const opps=(this.teams[1-o.team]&&this.teams[1-o.team].players||[]).filter(activePlayer);safe=normalizeCandidate(this._safePass&&this._safePass(o,opps),o);}catch(_){}
+   const candidates=[];if(best)candidates.push(best);if(safe&&(!best||safe.m!==best.m))candidates.push(safe);
+-  if(candidates.length){
+-    candidates.sort((a,b)=>passValue(this,o,b)-passValue(this,o,a));
+-    const pick=candidates[0],pv=passValue(this,o,pick),risk=finite(pick.risk,9),progress=finite(pick.progressM,0);
+-    const g=tm.oppGoal,dtg=dist(o.x,o.y,g.x,g.y),pressure=nearestOpponent(this,o),sv=shotValue(this,o,dtg,pressure);
+-    const iq=attr(o,'decisao',68),space=receiverSpace(this,pick.m);
+-    const clearChance=!!pick.intoBox&&risk<(iq>=82?2.35:2.05)&&pv>.58;
+-    const cleanProgress=progress>8&&risk<(iq>=82?1.75:1.48)&&space>3.4&&pv>sv+(iq>=82?.12:.22);
+-    const pressureOutlet=pressure<2.35&&risk<1.12&&space>2.8&&pv>sv-.02;
+-    const inward=edgeY(o.y)<4.9&&edgeY(pick.m.y)>edgeY(o.y)+2.4&&risk<1.8;
+-    if(clearChance||cleanProgress||pressureOutlet||inward){
+-      /* R12 só pode tentar chute contextual se t-last > 1.15. Marcar o
+-         instante atual veta unicamente essa roleta; o restante da cadeia
+-         de decisão continua intacto e ainda pode chutar pelo motor-base. */
+-      tm.__r122LastContextShot=Math.max(finite(tm.__r122LastContextShot,-99),finite(this.t));
+-      dg.smartShotVetoes=(dg.smartShotVetoes||0)+1;
+-    }
+-  }
+-  return oldDecide.apply(this,arguments);
++  if(!candidates.length)return false;
++  candidates.sort((a,b)=>passValue(this,o,b)-passValue(this,o,a));
++  const pick=candidates[0],pv=passValue(this,o,pick),risk=finite(pick.risk,9),progress=finite(pick.progressM,0);
++  const g=tm.oppGoal,dtg=dist(o.x,o.y,g.x,g.y),pressure=nearestOpponent(this,o),sv=shotValue(this,o,dtg,pressure);
++  const iq=attr(o,'decisao',68),space=receiverSpace(this,pick.m);
++  /* AS QUATRO EXCECOES. Elas sempre foram a especificacao real; so nao
++     estavam escritas ao lado do sorteio que anulavam. */
++  const chanceClara      = !!pick.intoBox && risk<(iq>=82?2.35:2.05) && pv>.58;
++  const progressaoLimpa  = progress>8 && risk<(iq>=82?1.75:1.48) && space>3.4 && pv>sv+(iq>=82?.12:.22);
++  const saidaSobPressao  = pressure<2.35 && risk<1.12 && space>2.8 && pv>sv-.02;
++  const movimentoParaDentro = edgeY(o.y)<4.9 && edgeY(pick.m.y)>edgeY(o.y)+2.4 && risk<1.8;
++  const veta = chanceClara||progressaoLimpa||saidaSobPressao||movimentoParaDentro;
++  if(veta)dg.smartShotVetoes=(dg.smartShotVetoes||0)+1;
++  void dtg;
++  return veta;
+ };
+ 
+ /* R18.3-C · perfis naturais de voo. O destino e a duração permanecem os
+diff --git a/tools/defeitos.py b/tools/defeitos.py
+index 1439427..f42ca0e 100755
+--- a/tools/defeitos.py
++++ b/tools/defeitos.py
+@@ -150,7 +150,7 @@ DEFEITOS = [
+       criterio=["orcamento unico em ENGINE_CALIBRATION.possession","mediana de posse 0,9-1,3 s"],
+       depende=["D26"], risco="medio"),
+ 
+- dict(id="D11", sev="estrutural", fase="F3", estado="aberto",
++ dict(id="D11", sev="estrutural", fase="F3", estado="medindo",
+       titulo="Sorteio censurado 1: o censor roda em 51,4% das decisoes (MEDIDO)",
+       locais=[dict(arquivo=L+"16-cds-r12-transactional-core-r123.js", linha=153, ancora="tm.__r122LastContextShot=now;"),
+               dict(arquivo=L+"20-cds-r183-natural-football.js", linha=63, ancora="dg.smartShotVetoes=(dg.smartShotVetoes||0)+1;")],
+@@ -162,6 +162,17 @@ DEFEITOS = [
+               "= 51,4%. Metade das decisoes do jogo passa pelo censor. O documento tratava como "
+               "mecanismo pontual. E o defeito estrutural com maior alcance medido do catalogo — "
+               "sobe de F3 para o primeiro candidato depois da F1."),
++      feito_em=("FUSAO FEITA. O _decide da camada 20 deixou de existir; no lugar ha um PREDICADO "
++                "PURO _r183ExcecaoAoChuteContextual, sem efeito colateral, sem RNG e sem estado "
++                "compartilhado, com as quatro excecoes nomeadas. A camada 16 o consulta no momento "
++                "exato do sorteio. A variavel __r122LastContextShot deixou de ser envenenada — ela "
++                "continua servindo ao auto-limite legitimo de 1,15 s. Some junto um efeito colateral "
++                "que ninguem tinha declarado: o veto PERSISTIA 1,15 s porque envenenava um campo que "
++                "serve para outra coisa. E o custo caiu 13x: o predicado ia de 515,17 avaliacoes por "
++                "partida para 38,83, porque agora so roda quando o sorteio vai mesmo acontecer.\n"
++                "VEREDITO PENDENTE: a bateria de 300 partidas ainda estava rodando quando este "
++                "estado foi gravado. NAO chame de aceito ate o aceitar.sh --depois responder. "
++                "Se reprovar, reverta e escreva o laudo — nao ajuste o criterio."),
+       depende=[], risco="medio: remover chance() desalinha o RNG; compare distribuicoes, nao partidas"),
+ 
+  dict(id="D12", sev="estrutural", fase="F2", estado="aberto",

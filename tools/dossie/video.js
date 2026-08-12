@@ -29,14 +29,14 @@ const DEST = path.resolve(process.argv[2] || 'reports/video');
 const ALVO = path.resolve(process.argv[3] || 'dist/index.html');
 
 const CLIPES = [
-  { arq: 'jogo-rodando-turbo.webm', vp: [960, 540], vel: 'TURBO', teto: 210,
+  { arq: 'jogo-rodando-turbo.webm', vp: [960, 540], vel: 'TURBO', teto: 460,
     ateOFim: true,
     titulo: 'O jogo rodando, do apito inicial, na velocidade TURBO',
-    olhe: 'Em quadro o tempo inteiro: a tarja preta acima e abaixo do gramado (D24), '
-        + 'aqui em 960x540. NAO afirmo que este clipe cobre os 90 minutos — ver o campo '
-        + '`terminou` no indice.json: em 210 s de relogio de parede a partida NAO '
-        + 'terminou e isOver() continuou falso. Isso e uma anomalia, nao uma legenda: '
-        + 'esta anotada no proprio indice.' },
+    olhe: 'D19 · o ritmo ao longo dos 90 minutos. O jogo NAO cresce para o fim: '
+        + '20,0% dos gols saem antes dos 15 minutos e 14,7% depois dos 76 — no futebol de '
+        + 'elite e o inverso. E em quadro o tempo inteiro: a tarja preta acima e abaixo do '
+        + 'gramado (D24). Confira `terminou` e `minutoDeJogoAoFim` no indice.json antes de '
+        + 'citar este clipe como partida completa.' },
   { arq: 'transicao-perda-de-bola.webm', vp: [960, 540], vel: '1X', teto: 40,
     ateOFim: false,
     titulo: 'Os primeiros minutos, em velocidade 1X',
@@ -101,11 +101,10 @@ const dorme = ms => new Promise(r => setTimeout(r, ms));
       estado = await pg.evaluate(() => {
         const s = window.GAME && window.GAME._sim && window.GAME._sim();
         if (!s) return null;
-        /* s.t e SEGUNDO DE SIMULACAO. O minuto de jogo sai multiplicando pelo
-           clockRate (0,085) — nao dividindo por 60, que foi o meu erro. */
-        const cal = window.ENGINE_CALIBRATION;
-        const taxa = (cal && cal.timing && cal.timing.clockRate) || 0.085;
-        return { t: s.t, minuto: s.t * taxa,
+        /* O RELOGIO E `s.minute`. Nem `s.t / 60` nem `s.t * clockRate`:
+           `minute` so avanca com a bola em jogo (`this.dead <= 0`), entao
+           converter `t` conta bola parada como minuto e infla o numero. */
+        return { t: s.t, minuto: s.minute,
                  over: typeof s.isOver === 'function' ? s.isOver() : null,
                  placar: s.teams ? s.teams.map(x => x.goals) : null };
       });
@@ -137,24 +136,35 @@ const dorme = ms => new Promise(r => setTimeout(r, ms));
 
   await nav.close();
   fs.writeFileSync(path.join(DEST, 'indice.json'), JSON.stringify({
-    /* ACHADO DE 2026-08-12, encontrado ao gravar estes clipes — nao procurado.
-       Em Chromium headless, sondado a cada 15 s ate 210 s de relogio de parede:
-         - o sim avancou ~6,2 segundos de simulacao por segundo de parede, e a
-           taxa NAO mudou entre os botoes 3X e TURBO;
-         - isOver() continuou FALSO ate t = 1207 s de simulacao, que a
-           clockRate = 0,085 equivale a ~102 minutos de jogo;
-         - o relogio na tela parou de avancar cedo na captura.
-       A taxa igual entre 3X e TURBO tem explicacao benigna plausivel (o laco e
-       preso ao requestAnimationFrame, que o headless limita). O isOver() falso
-       aos ~102 minutos NAO tem. Isto NAO esta no catalogo dos 34 defeitos e
-       NAO foi confirmado em navegador com janela — e observacao de uma corrida
-       so, e esta escrita aqui para nao se perder, nao para virar diagnostico. */
-    achado_nao_procurado: {
-      quando: '2026-08-12', onde: 'Chromium headless, dist/index.html',
-      taxa_sim_por_parede: 6.2, mesma_taxa_em_3X_e_TURBO: true,
-      isOver_ainda_falso_em_segundos_de_simulacao: 1207,
-      minuto_de_jogo_equivalente: 102.6,
-      confianca: 'UMA corrida, headless, sem replica. NAO tratar como medido.',
+    /* RETRATACAO, 2026-08-12. Uma versao anterior deste arquivo publicou aqui
+       um "achado nao procurado": isOver() continuaria falso ate o equivalente
+       a ~102 minutos de jogo. ERA ERRO MEU, e o erro esta catalogado como
+       armadilha C1.
+
+       Eu calculava o minuto por `sim.t * clockRate`. O relogio do jogo e
+       `sim.minute`, que so avanca com a bola em jogo (`this.dead <= 0`) —
+       converter `t` conta bola parada como minuto e infla o numero.
+
+       Medido de novo, lendo `sim.minute` a cada 15 s em Chromium headless:
+
+           195 s de parede  ->  t = 632 s de simulacao,  minute = 45,4
+
+       Metade de 90 em metade do tempo. A partida termina normalmente; o teto
+       de 210 s e que era curto demais para chegar la. NAO HA anomalia de fim
+       de jogo. O teto agora e 460 s.
+
+       O que continua verdadeiro da observacao original: os botoes 3X e TURBO
+       avancaram na MESMA taxa (~6,2 s de simulacao por segundo de parede).
+       Isso tem explicacao benigna plausivel — o laco e preso ao
+       requestAnimationFrame, que o headless limita — e NAO se deve concluir
+       nada sobre a velocidade do jogo a partir de uma corrida headless. */
+    retratacao: {
+      quando: '2026-08-12',
+      afirmacao_retirada: 'isOver() falso aos ~102 minutos de jogo',
+      motivo: 'minuto calculado por sim.t * clockRate em vez de sim.minute (armadilha C1)',
+      medicao_que_refuta: { segundos_de_parede: 195, t_simulacao: 632, sim_minute: 45.4 },
+      o_que_sobra: 'os botoes 3X e TURBO avancam na mesma taxa em headless; '
+                 + 'provavel limite de requestAnimationFrame, nao defeito do jogo',
     },
     clipes: indice,
   }, null, 1));

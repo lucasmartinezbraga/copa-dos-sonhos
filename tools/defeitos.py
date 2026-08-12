@@ -272,6 +272,20 @@ DEFEITOS = [
       dono="dreno no core, normalizado por ADV4.context.clockRateRef",
       intercepta=[],
       criterio=["gols 76-90' >=20%","gols 0-15' <=15%","goals +-0,20","stamina final 55-68","passes +-5,53"],
+      medido=("CAUSA ISOLADA — tools/fisica/ramo-d19.js, 48 partidas. O r=0,814 do documento "
+              "e correlacao, nao mecanismo: stamina cai monotonicamente e qualquer coisa que "
+              "caia junto correlaciona alto com ela. A sonda separou as quatro historias "
+              "possiveis pela razao 76+ / 0-15, tudo POR MINUTO DE JOGO (`sim.minute`, nao "
+              "`sim.t`):\n"
+              "  H1 chutes por minuto ....... 0,685  <== E ESTA\n"
+              "  H2 acerto ao alvo por chute  0,996  estavel — DESCARTADA\n"
+              "  H3 fracao de bola em jogo .. 1,078  estavel — DESCARTADA\n"
+              "  H4 simulacao por minuto .... 0,928  uniforme — DESCARTADA\n"
+              "O jogo NAO erra mais no fim: ele CRIA 31% menos chutes e converte igual. O "
+              "conserto e no que gera a chance, nao na finalizacao nem no relogio.\n"
+              "AVISO: a MESMA sonda com 8 partidas deu H2 = 0,504, que parecia um segundo "
+              "mecanismo e era ruido (131 gols em 48 partidas dao SE ~3,1 pp por faixa; com 8 "
+              "partidas nao da para concluir nada). E a armadilha B7 acontecendo ao vivo."),
       depende=["D17"], risco="ALTO: toca todo lance. NAO medir junto com D20 (200 partidas de intervalo)."),
 
  dict(id="D20", sev="futebol", fase="F6", estado="aberto",

@@ -60,7 +60,10 @@ Para varrer parâmetros sem reconstruir o bundle, use `CDS_OS200_TUNE` via
 - Use `src/index.dev.html` com servidor local
 - Arquivos CSS/JS são carregados externamente
 - Sem necessidade de rebuild a cada mudança
-- Roda testes com `python3 tests/dev_server_smoke.py`
+- Confere o grafo de inclusoes com `python3 tests/dev_graph_check.py`
+  (o antigo `tests/dev_server_smoke.py` **nao existe** — a instrucao
+  ficou apontando para um arquivo ausente e so foi notada em 2026-08-12,
+  ao rodar a suite inteira)
 
 ## Regras Importantes
 
@@ -263,12 +266,24 @@ Permanece no módulo MatchSim por enquanto porque usa estado privado (IIFE).
 ## Validação
 
 Cada commit deve passar:
+
 ```bash
-python3 tools/verify.py
-python3 tests/browser_smoke.py
+python3 tools/verify.py                  # build, sintaxe dos 89 blocos, lint de escopo
+node    tests/browser_smoke.js           # Chromium de verdade — prova que o jogo SOBE
+node    tests/fisica_balistica.js        # unidade da balistica
+node    tests/phase2_engine_smoke.js     # integridade V3, 1 goleiro/time, estado finito
+python3 tests/dev_graph_check.py         # o grafo de inclusoes da versao de dev
+python3 tests/regressao_design_test.py   # o portao de design reprova o que deve
+python3 tools/defeitos.py --check        # os enderecos do catalogo ainda apontam certo
 ```
 
 Se falhar, não faça commit.
+
+> **`python3 tests/browser_smoke.py` NÃO roda** — o Playwright está instalado
+> para Node, não para Python (`ModuleNotFoundError: No module named
+> 'playwright'`). A versão que vale é a `.js`. Esta linha esteve errada aqui por
+> tempo indeterminado; foi descoberta rodando a suite inteira, o que ninguém
+> fazia.
 
 ## Como eu (Claude) trabalho aqui
 

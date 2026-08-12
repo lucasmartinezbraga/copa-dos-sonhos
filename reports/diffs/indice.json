@@ -45,7 +45,26 @@
  },
  {
   "defeito": "D11",
-  "arquivo": "D11-a743c221.patch",
+  "arquivo": "D11-1-5a7542dd.patch",
+  "sha": "5a7542dd",
+  "data": "2026-08-12",
+  "assunto": "fix(D11): restaura a janela de 1,15 s do veto — e um portao para o placar de design",
+  "linhas_add": 740,
+  "linhas_del": 8,
+  "arquivos": [
+   "src/scripts/layers/16-cds-r12-transactional-core-r123.js",
+   "tools/aceitar.sh",
+   "tools/defeitos.py",
+   "tools/dossie/diffs.py",
+   "tools/dossie/tabelas.py",
+   "tools/dossie/video.js",
+   "tools/fisica/ramo-d19.js",
+   "tools/regressao_design.py"
+  ]
+ },
+ {
+  "defeito": "D11",
+  "arquivo": "D11-2-a743c221.patch",
   "sha": "a743c221",
   "data": "2026-08-12",
   "assunto": "fix(D11): funde o dado e o censor do chute contextual num predicado puro",

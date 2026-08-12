@@ -182,9 +182,13 @@ Com o laço preso ao `requestAnimationFrame`, o headless limita a cadência: os
 botões **3X e TURBO avançaram na mesma taxa** (~6,2 s de simulação por segundo
 de parede). Não conclua nada sobre velocidade do jogo a partir daí.
 
-*(Na mesma corrida, `isOver()` continuou falso até o equivalente a ~102 minutos.
-Isso não tem explicação benigna e está anotado em `reports/video/indice.json` —
-uma corrida só, não confirmado, não é diagnóstico.)*
+*Na mesma corrida eu “achei” que `isOver()` continuava falso aos ~102 minutos.
+**Era a armadilha C1 me mordendo:** eu convertia `sim.t * clockRate` em vez de
+ler `sim.minute`. Medido de novo — aos 195 s de parede, `minute` = **45,4**,
+metade de 90 em metade do tempo. Não há anomalia; o teto de gravação é que era
+curto. A retratação está em `reports/video/indice.json`.*
+
+**Duas armadilhas na mesma corrida, e a segunda foi eu acreditando na primeira.**
 
 ## C5 · Não dê a um arquivo Python o nome de um módulo da biblioteca
 

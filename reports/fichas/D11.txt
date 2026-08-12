@@ -22,33 +22,33 @@ D11  Sorteio censurado 1: o censor roda em 51,4% das decisoes (MEDIDO)
 CODIGO ATUAL (localizado por ancora, nao por numero de linha)
 ──────────────────────────────────────────────────────────────────────────────
 
-  src/scripts/layers/16-cds-r12-transactional-core-r123.js:159   (o documento dizia linha 153 — o codigo andou)
+  src/scripts/layers/16-cds-r12-transactional-core-r123.js:171   (o documento dizia linha 153 — o codigo andou)
 
-      147 │ const oldGoalKick=P._goalKickOrRestart;P._goalKickOrRestart=function(team){if(state(this).activeShot)finishShot(this,'miss','goal_kick');return oldGoalKick.apply(this,arguments);};
-      148 │ const oldSetCorner=P._setCorner;P._setCorner=function(team){if(state(this).activeShot)finishShot(this,'blocked','corner');return oldSetCorner.apply(this,arguments);};
-      149 │ const oldIsOver=P.isOver;P.isOver=function(){const over=oldIsOver.apply(this,arguments);if(!over){this.__r122FinalWhistleAt=null;return false;}const S=state(this),active=!!(this.ball&&this.ball.traveling)||!!S.activeShot;if(!active){this.__r122FinalWhistleAt=null;return true;}if(this.__r122FinalWhistleAt==null)this.__r122FinalWhistleAt=finite(this.t);if(finite(this.t)-this.__r122FinalWhistleAt<7)return false;if(S.activeShot)reconcileShot(this,'final_whistle_timeout');return true;};
-      150 │ 
-      151 │ /* Opções contextuais de chute/cruzamento sem atropelar passe claro. */
-      152 │ const oldCanCross=P._canCross;P._canCross=function(o){if(!o||!this.teams)return oldCanCross.apply(this,arguments);const tm=this.teams[o.team],adv=tm.attackDir>0?o.x:FL-o.x,wide=o.y<27||o.y>FW-27;return oldCanCross.apply(this,arguments)||(adv>57&&wide);};
-      153 │ const oldDecide=P._decide;P._decide=function(o){if(o&&!o.isGK&&this.ball&&this.ball.owner===o&&this.teams&&!(o._setPieceDeliveryUntil>this.t)){const tm=this.teams[o.team],now=finite(this.t),g=tm.oppGoal,dtg=Math.hypot(finite(o.x)-finite(g.x),finite(o.y)-finite(g.y)),near=typeof this._nearestOpponent==='function'?this._nearestOpponent(o):{dist:5},best=typeof this._bestPass==='function'?this._bestPass(o):null,superior=best&&best.intoBox&&finite(best.risk)<1.75&&finite(best.score)>1.45;/* D11 · a regra inteira do chute contextual, num lugar so. O predicado da
-      154 │    camada 20 (_r183ExcecaoAoChuteContextual) diz se existe alternativa
-      155 │    melhor: chance clara, progressao limpa, saida sob pressao ou movimento
-      156 │    para dentro. Antes ele rodava por fora e envenenava o timestamp abaixo
-      157 │    para fazer este `if` falhar — 264,67 vezes por partida, medido. */
-      158 │   if(!superior&&dtg>=10&&dtg<=27&&now-finite(tm.__r122LastContextShot,-99)>1.15
-  >   159 │      &&!(typeof this._r183ExcecaoAoChuteContextual==='function'&&this._r183ExcecaoAoChuteContextual(o))){const fin=attr(o,'finalizacao'),lng=attr(o,'chute_longe'),central=clamp(1-Math.abs(finite(o.y)-finite(g.y))/31,.35,1),pressure=clamp((3.5-finite(near.dist,5))/3.5,0,1);let p=dtg<=16?.40:dtg<=20?.285:dtg<=24?.17:.072;p*=central*(1-pressure*.58)*clamp((fin*.66+lng*.34)/72,.72,1.24);if(schance(this,p)){tm.__r122LastContextShot=now;this._shoot(o,dtg,dtg>21,o.settle>0&&o.settle<.45);return;}}
-      160 │   if(typeof this._canCross==='function'&&this._canCross(o)){const targets=tm.players.filter(p=>!p.red&&!p.isGK&&p!==o&&Math.abs(p.x-tm.oppGoal.x)<24);if(targets.length&&now-finite(tm.__r122LastCross,-99)>1.65&&!superior){const q=clamp((attr(o,'cruzamento')-50)/50,0,1),p=clamp(.17+q*.12+Math.min(3,targets.length)*.04+(finite(near.dist)>3?.035:0),.17,.40);if(schance(this,p)){tm.__r122LastCross=now;this._cross(o);return;}}}}
-      161 │   return oldDecide.apply(this,arguments);
-      162 │ };
-      163 │ 
-      164 │ /* Defesa outcome-first: contenção é resultado válido, não sinônimo de bote. */
-      165 │ P._dribble=function(o,d,g){if(!o||!d||!g)return;const tm=this.teams[o.team],stO=ensureStats(this.stats[o.team]),stD=ensureStats(this.stats[d.team]),adv=tm.attackDir>0?o.x:FL-o.x,finalThird=adv>68,wing=o.y<22||o.y>FW-22,dri=attr(o,'drible'),elite=dri>=86||(o.ref&&o.ref.traits&&o.ref.traits.includes('DRIBBLER')),best=typeof this._bestPass==='function'?this._bestPass(o):null,support=best&&best.m&&finite(best.risk)<2.35&&finite(best.score)>.55,attemptP=clamp(.45+(finalThird?.20:0)+(wing?.08:0)+(elite?.17:(dri-65)/320)-(support?.10:0),.32,elite?.88:.76);
-      166 │   if(!schance(this,attemptP)){state(this).diagnostics.duelsAvoided++;if(support&&schance(this,.62)){this._pass(o,best);return;}const a=Math.atan2(g.y-o.y,g.x-o.x),side=schance(this,.5)?1:-1;o._tx=clamp(o.x+Math.cos(a)*1.8-Math.sin(a)*3.2*side,1,FL-1);o._ty=clamp(o.y+Math.sin(a)*1.8+Math.cos(a)*3.2*side,1,FW-1);o.settle=Math.max(finite(o.settle),.18);stO.containments++;this._emit('containment',{by:d,on:o,source:'dribble_declined'});return;}
-      167 │   o._act='dribble';stO.dribblesAttempted++;stD.tackleAttempts++;const S=state(this);S.team[o.team].dribbleAttempts++;S.team[d.team].tackleAttempts++;const ctx=this._actionContext?this._actionContext(o,dist(o,d),'dribble'):{execution:1},dctx=this._actionContext?this._actionContext(d,dist(o,d),'defend'):{execution:1},basePa=facet(o,'drб_atk')*finite(ctx.execution,1)+(wing&&finalThird?4:0)+(elite?4+Math.max(0,dri-86)*.38:0),pd=facet(d,'drб_def')*finite(dctx.execution,1)+2.5,baseRaw=typeof root.duelProb==='function'?root.duelProb(basePa+.5,pd):.5,r1815Carry=this._r1815CarryDuelProfile?this._r1815CarryDuelProfile(o,d,baseRaw,dist(o,d),finalThird):null,pa=basePa+(r1815Carry?r1815Carry.attackDelta:0),raw=typeof root.duelProb==='function'?root.duelProb(pa+.5,pd):baseRaw,p=clamp(raw,.12,elite?.92:.86);if(r1815Carry)this._r1815RecordCarry&&this._r1815RecordCarry(r1815Carry,p);
-      168 │   if(schance(this,p)){stO.dribblesCompleted++;S.team[o.team].dribblesWon++;const side=schance(this,.5)?1:-1,a=Math.atan2(g.y-o.y,g.x-o.x);o._tx=clamp(o.x+Math.cos(a)*7-Math.sin(a)*3.5*side,1,FL-1);o._ty=clamp(o.y+Math.sin(a)*7+Math.cos(a)*3.5*side,1,FW-1);o.rating+=.12;d.rating-=.05;if(this._r1814MarkRecovery)this._r1814MarkRecovery(d,'dribble',0);this._emit('dribble',{by:o,on:d,ok:true,flair:schance(this,Math.max(.02,Math.min(.46,(dri-72)/72+(elite?.06:0)))),move:(function(_p,_t){try{var _a=(_p&&_p.ref&&_p.ref.a8)||[70,70,70,70,70,70,70,70];var _dri=_a[2],_vel=_a[3],_tec=_a[7],_m=[];if(_vel>=88)_m.push('arrancada');if(_tec>=88)_m.push('drible da vaca');if(_dri>=88&&_tec>=84)_m.push('elástico');if(_dri>=86)_m.push('meia-lua');if(!_m.length)_m.push('corta pra dentro');return _m[(Math.floor((Number(_t)||0)*3)+(Number(_p&&_p.num)||0))%_m.length];}catch(_){return 'corta pra dentro';}})(o,this.t)});return;}
-      169 │   const ownBox=(this.teams[d.team].attackDir>0?d.x<16.5:d.x>FL-16.5)&&Math.abs(d.y-FW/2)<20;/* §R19.03 · mesmo portao de contato do :16954. Aqui nao existe `timing`, entao o lugar do atraso e ocupado pela diferenca do proprio duelo. */const _r19d = this._r19FoulRisk ? this._r19FoulRisk(d,o,dist(o,d),null,ownBox,clamp((pa-pd+10)/45,0,1)) : null;const foulP = _r19d ? _r19d.p : clamp((this._foulProb?this._foulProb(d):.08)*(ownBox?1.00:1.30),.022,ownBox?.30:.35);d.__r19risco = _r19d ? _r19d.risco : null;if(schance(this,foulP)){this._awardFoul(d,o);return;}const winP=clamp(.52+(pd-pa)/120+(attr(d,'desarme')-70)/170,.30,.82);if(schance(this,winP)){stD.tackles++;stD.tacklesWon++;S.team[d.team].tacklesWon++;if(this._turnover(d)!==false){this._emit('tackle',{by:d,on:o,source:'dribble'});d.rating+=.10;return;}}
-      170 │   if(schance(this,.38)&&this._deflectTo){const a=Math.atan2(g.y-o.y,g.x-o.x)+(schance(this,.5)?1:-1)*sideRand(this,.45,.85);this.ball.lastTouch=schance(this,.55)?d:o;this._deflectTo(clamp(o.x+Math.cos(a)*4.2,1,FL-1),clamp(o.y+Math.sin(a)*4.2,1,FW-1),6.4);stO.looseDuels++;stD.looseDuels++;this._emit('loose_duel',{by:d,on:o});return;}const back=tm.attackDir>0?-1:1;o._tx=clamp(o.x+back*2.8,1,FL-1);o._ty=clamp(o.y+(schance(this,.5)?1:-1)*2.8,1,FW-1);o.settle=Math.max(finite(o.settle),.28);stO.containments++;this._emit('containment',{by:d,on:o,source:'failed_dribble'});
-      171 │ };
+      159 │ 
+      160 │    A JANELA DE 1,15 s NAO E DETALHE. Vetar so o instante do sorteio custou
+      161 │    drawRate 0,270 -> 0,190 (3,53 SE, FORA da faixa de design) e blowoutRate
+      162 │    0,153 -> 0,197 (1,92 SE, fora da faixa) numa bateria de 300 partidas: as
+      163 │    14 metricas agregadas nao se moveram e o placar de design caiu 12/13 ->
+      164 │    10/13. O veto sempre teve memoria; o efeito colateral era o mecanismo.
+      165 │    Ele volta aqui, em campo PROPRIO e declarado. MEDIDO, nao inferido. */
+      166 │   if(typeof this._r183ExcecaoAoChuteContextual==='function'
+      167 │      &&!this.__r14Pending&&!(finite(this.dead)>0)&&!this.pendingRestart&&!this.waiting
+      168 │      &&this._r183ExcecaoAoChuteContextual(o))
+      169 │     tm.__r183VetoChuteContextual=Math.max(finite(tm.__r183VetoChuteContextual,-99),now);
+      170 │   if(!superior&&dtg>=10&&dtg<=27&&now-finite(tm.__r122LastContextShot,-99)>1.15
+  >   171 │      &&now-finite(tm.__r183VetoChuteContextual,-99)>1.15){const fin=attr(o,'finalizacao'),lng=attr(o,'chute_longe'),central=clamp(1-Math.abs(finite(o.y)-finite(g.y))/31,.35,1),pressure=clamp((3.5-finite(near.dist,5))/3.5,0,1);let p=dtg<=16?.40:dtg<=20?.285:dtg<=24?.17:.072;p*=central*(1-pressure*.58)*clamp((fin*.66+lng*.34)/72,.72,1.24);if(schance(this,p)){tm.__r122LastContextShot=now;this._shoot(o,dtg,dtg>21,o.settle>0&&o.settle<.45);return;}}
+      172 │   if(typeof this._canCross==='function'&&this._canCross(o)){const targets=tm.players.filter(p=>!p.red&&!p.isGK&&p!==o&&Math.abs(p.x-tm.oppGoal.x)<24);if(targets.length&&now-finite(tm.__r122LastCross,-99)>1.65&&!superior){const q=clamp((attr(o,'cruzamento')-50)/50,0,1),p=clamp(.17+q*.12+Math.min(3,targets.length)*.04+(finite(near.dist)>3?.035:0),.17,.40);if(schance(this,p)){tm.__r122LastCross=now;this._cross(o);return;}}}}
+      173 │   return oldDecide.apply(this,arguments);
+      174 │ };
+      175 │ 
+      176 │ /* Defesa outcome-first: contenção é resultado válido, não sinônimo de bote. */
+      177 │ P._dribble=function(o,d,g){if(!o||!d||!g)return;const tm=this.teams[o.team],stO=ensureStats(this.stats[o.team]),stD=ensureStats(this.stats[d.team]),adv=tm.attackDir>0?o.x:FL-o.x,finalThird=adv>68,wing=o.y<22||o.y>FW-22,dri=attr(o,'drible'),elite=dri>=86||(o.ref&&o.ref.traits&&o.ref.traits.includes('DRIBBLER')),best=typeof this._bestPass==='function'?this._bestPass(o):null,support=best&&best.m&&finite(best.risk)<2.35&&finite(best.score)>.55,attemptP=clamp(.45+(finalThird?.20:0)+(wing?.08:0)+(elite?.17:(dri-65)/320)-(support?.10:0),.32,elite?.88:.76);
+      178 │   if(!schance(this,attemptP)){state(this).diagnostics.duelsAvoided++;if(support&&schance(this,.62)){this._pass(o,best);return;}const a=Math.atan2(g.y-o.y,g.x-o.x),side=schance(this,.5)?1:-1;o._tx=clamp(o.x+Math.cos(a)*1.8-Math.sin(a)*3.2*side,1,FL-1);o._ty=clamp(o.y+Math.sin(a)*1.8+Math.cos(a)*3.2*side,1,FW-1);o.settle=Math.max(finite(o.settle),.18);stO.containments++;this._emit('containment',{by:d,on:o,source:'dribble_declined'});return;}
+      179 │   o._act='dribble';stO.dribblesAttempted++;stD.tackleAttempts++;const S=state(this);S.team[o.team].dribbleAttempts++;S.team[d.team].tackleAttempts++;const ctx=this._actionContext?this._actionContext(o,dist(o,d),'dribble'):{execution:1},dctx=this._actionContext?this._actionContext(d,dist(o,d),'defend'):{execution:1},basePa=facet(o,'drб_atk')*finite(ctx.execution,1)+(wing&&finalThird?4:0)+(elite?4+Math.max(0,dri-86)*.38:0),pd=facet(d,'drб_def')*finite(dctx.execution,1)+2.5,baseRaw=typeof root.duelProb==='function'?root.duelProb(basePa+.5,pd):.5,r1815Carry=this._r1815CarryDuelProfile?this._r1815CarryDuelProfile(o,d,baseRaw,dist(o,d),finalThird):null,pa=basePa+(r1815Carry?r1815Carry.attackDelta:0),raw=typeof root.duelProb==='function'?root.duelProb(pa+.5,pd):baseRaw,p=clamp(raw,.12,elite?.92:.86);if(r1815Carry)this._r1815RecordCarry&&this._r1815RecordCarry(r1815Carry,p);
+      180 │   if(schance(this,p)){stO.dribblesCompleted++;S.team[o.team].dribblesWon++;const side=schance(this,.5)?1:-1,a=Math.atan2(g.y-o.y,g.x-o.x);o._tx=clamp(o.x+Math.cos(a)*7-Math.sin(a)*3.5*side,1,FL-1);o._ty=clamp(o.y+Math.sin(a)*7+Math.cos(a)*3.5*side,1,FW-1);o.rating+=.12;d.rating-=.05;if(this._r1814MarkRecovery)this._r1814MarkRecovery(d,'dribble',0);this._emit('dribble',{by:o,on:d,ok:true,flair:schance(this,Math.max(.02,Math.min(.46,(dri-72)/72+(elite?.06:0)))),move:(function(_p,_t){try{var _a=(_p&&_p.ref&&_p.ref.a8)||[70,70,70,70,70,70,70,70];var _dri=_a[2],_vel=_a[3],_tec=_a[7],_m=[];if(_vel>=88)_m.push('arrancada');if(_tec>=88)_m.push('drible da vaca');if(_dri>=88&&_tec>=84)_m.push('elástico');if(_dri>=86)_m.push('meia-lua');if(!_m.length)_m.push('corta pra dentro');return _m[(Math.floor((Number(_t)||0)*3)+(Number(_p&&_p.num)||0))%_m.length];}catch(_){return 'corta pra dentro';}})(o,this.t)});return;}
+      181 │   const ownBox=(this.teams[d.team].attackDir>0?d.x<16.5:d.x>FL-16.5)&&Math.abs(d.y-FW/2)<20;/* §R19.03 · mesmo portao de contato do :16954. Aqui nao existe `timing`, entao o lugar do atraso e ocupado pela diferenca do proprio duelo. */const _r19d = this._r19FoulRisk ? this._r19FoulRisk(d,o,dist(o,d),null,ownBox,clamp((pa-pd+10)/45,0,1)) : null;const foulP = _r19d ? _r19d.p : clamp((this._foulProb?this._foulProb(d):.08)*(ownBox?1.00:1.30),.022,ownBox?.30:.35);d.__r19risco = _r19d ? _r19d.risco : null;if(schance(this,foulP)){this._awardFoul(d,o);return;}const winP=clamp(.52+(pd-pa)/120+(attr(d,'desarme')-70)/170,.30,.82);if(schance(this,winP)){stD.tackles++;stD.tacklesWon++;S.team[d.team].tacklesWon++;if(this._turnover(d)!==false){this._emit('tackle',{by:d,on:o,source:'dribble'});d.rating+=.10;return;}}
+      182 │   if(schance(this,.38)&&this._deflectTo){const a=Math.atan2(g.y-o.y,g.x-o.x)+(schance(this,.5)?1:-1)*sideRand(this,.45,.85);this.ball.lastTouch=schance(this,.55)?d:o;this._deflectTo(clamp(o.x+Math.cos(a)*4.2,1,FL-1),clamp(o.y+Math.sin(a)*4.2,1,FW-1),6.4);stO.looseDuels++;stD.looseDuels++;this._emit('loose_duel',{by:d,on:o});return;}const back=tm.attackDir>0?-1:1;o._tx=clamp(o.x+back*2.8,1,FL-1);o._ty=clamp(o.y+(schance(this,.5)?1:-1)*2.8,1,FW-1);o.settle=Math.max(finite(o.settle),.28);stO.containments++;this._emit('containment',{by:d,on:o,source:'failed_dribble'});
+      183 │ };
 
   src/scripts/layers/20-cds-r183-natural-football.js:107   (o documento dizia linha 63 — o codigo andou)
 
@@ -79,9 +79,27 @@ CODIGO ATUAL (localizado por ancora, nao por numero de linha)
       119 │   const pk=passKind||kind,d=target&&actor?dist(actor.x,actor.y,target.x,target.y):18;
 
 ──────────────────────────────────────────────────────────────────────────────
-DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:1736-1910
+DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:1736-1928
 ──────────────────────────────────────────────────────────────────────────────
   ## D11 🔴 ✅ Sorteio censurado nº 1 — o chute que é sorteado para ser vetado
+  
+  > **Aceito na segunda tentativa — e a primeira ensina mais que o conserto.**
+  >
+  > A fusão trocou o `_decide` da camada 20 por um predicado puro e removeu o
+  > envenenamento de `__r122LastContextShot`. Passou o portão de 2 SE **e reprovou
+  > no placar de design**: 12/13 → 10/13, com `drawRate` 0,270 → 0,190 (3,53 SE,
+  > fora da faixa) e `blowoutRate` 0,153 → 0,197 (1,89 SE, fora).
+  >
+  > **Causa:** o carimbo que eu tratei como abuso de variável também **suprimia a
+  > roleta por 1,15 s**. Consultar o predicado só no instante do sorteio matou essa
+  > janela. Efeito colateral pode ser o mecanismo.
+  >
+  > Com a janela restaurada em campo próprio (`__r183VetoChuteContextual`):
+  > **14/14 em 2 SE com deltas ≤ 0,13, design de volta a 12/13.**
+  >
+  > **Consequência para a ferramenta:** `drawRate` e `blowoutRate` não estão entre
+  > as 14 métricas agregadas — o portão estava cego. Daí nasceu
+  > `tools/regressao_design.py`, hoje dentro do `aceitar.sh`.
   
   **Endereços:** `layers/16-cds-r12-transactional-core-r123.js:153` (o dado) e
   `layers/20-cds-r183-natural-football.js:63` (o censor)

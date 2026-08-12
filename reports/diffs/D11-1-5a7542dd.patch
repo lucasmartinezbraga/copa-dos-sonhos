@@ -1,0 +1,890 @@
+commit 5a7542dd781762a8ae7cc88629b73c63ecc98770
+Author:     Claude <noreply@anthropic.com>
+AuthorDate: Wed Aug 12 03:54:03 2026 +0000
+Commit:     Claude <noreply@anthropic.com>
+CommitDate: Wed Aug 12 03:54:03 2026 +0000
+
+    fix(D11): restaura a janela de 1,15 s do veto — e um portao para o placar de design
+    
+    A primeira tentativa do D11 (a743c22) trocou o `_decide` da camada 20 por um
+    predicado puro e tirou o envenenamento de `__r122LastContextShot`. Passou no
+    criterio de 2 SE e REPROVOU no placar de design, que ninguem estava olhando:
+    
+        drawRate      0,270 -> 0,190   (3,53 SE)  SAIU da faixa 0,20-0,33
+        blowoutRate   0,153 -> 0,197   (1,89 SE)  SAIU da faixa 0,09-0,19
+        placar de design  12/13 -> 10/13
+    
+    Causa: o carimbo que eu tratei como abuso de variavel tambem SUPRIMIA a
+    roleta do chute contextual por 1,15 s. Consultar o predicado so no instante
+    do sorteio matou essa janela. O efeito colateral era o mecanismo.
+    
+    Agora a janela existe em campo PROPRIO e declarado
+    (`__r183VetoChuteContextual`), avaliada sob os mesmos guardas que a camada 20
+    usava. O predicado continua puro e `__r122LastContextShot` continua
+    significando so o que o nome diz.
+    
+    Medido, 300 partidas contra REFERENCIA.json:
+      - 14/14 metricas dentro de 2 SE, deltas <= 0,13
+      - placar de design de volta a 12/13
+      - drawRate 0,270  blowoutRate 0,157
+    
+    O portao ganhou o que faltava
+    -----------------------------
+    `comparar.py` olha 14 metricas agregadas. drawRate, zeroZeroRate, blowoutRate
+    e averageEndingStamina NAO estao entre elas — saem da distribuicao de placares.
+    Um jogo em que ninguem empata e todo mundo goleia esta quebrado de um jeito
+    que nenhuma media por partida denuncia.
+    
+      - tools/regressao_design.py: reprova quando uma metrica de design que estava
+        DENTRO da faixa sai dela; nao reprova ruido nem metrica que ja estava fora
+      - ligado ao aceitar.sh --depois: passar em 2 SE virou necessario, nao
+        suficiente
+    
+    Ferramentas e material novos
+    ----------------------------
+      - tools/fisica/ramo-d19.js  sonda que separa as quatro hipoteses do D19
+        ANTES de editar. Ja respondeu: caem DUAS coisas juntas, nao uma
+      - tools/dossie/video.js     clipes do jogo rodando (o que a foto nao mostra)
+      - tools/dossie/diffs.py     um patch por defeito executado, so do codigo
+      - tools/dossie/tabelas.py   as 300 partidas em CSV, conferidas contra placar.py
+      - reports/ARMADILHAS.md     as 23 armadilhas deste codigo, em um lugar so
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+    Claude-Session: https://claude.ai/code/session_017A9p2a2tqbo4khijg4vdCb
+---
+ .../layers/16-cds-r12-transactional-core-r123.js   |  18 ++-
+ tools/aceitar.sh                                   |  13 +-
+ tools/defeitos.py                                  |  16 +-
+ tools/dossie/diffs.py                              | 139 +++++++++++++++++
+ tools/dossie/tabelas.py                            | 109 +++++++++++++
+ tools/dossie/video.js                              | 162 +++++++++++++++++++
+ tools/fisica/ramo-d19.js                           | 173 +++++++++++++++++++++
+ tools/regressao_design.py                          | 118 ++++++++++++++
+ 8 files changed, 740 insertions(+), 8 deletions(-)
+
+diff --git a/src/scripts/layers/16-cds-r12-transactional-core-r123.js b/src/scripts/layers/16-cds-r12-transactional-core-r123.js
+index 84d92e2..5dc74e3 100644
+--- a/src/scripts/layers/16-cds-r12-transactional-core-r123.js
++++ b/src/scripts/layers/16-cds-r12-transactional-core-r123.js
+@@ -153,10 +153,22 @@ const oldCanCross=P._canCross;P._canCross=function(o){if(!o||!this.teams)return
+ const oldDecide=P._decide;P._decide=function(o){if(o&&!o.isGK&&this.ball&&this.ball.owner===o&&this.teams&&!(o._setPieceDeliveryUntil>this.t)){const tm=this.teams[o.team],now=finite(this.t),g=tm.oppGoal,dtg=Math.hypot(finite(o.x)-finite(g.x),finite(o.y)-finite(g.y)),near=typeof this._nearestOpponent==='function'?this._nearestOpponent(o):{dist:5},best=typeof this._bestPass==='function'?this._bestPass(o):null,superior=best&&best.intoBox&&finite(best.risk)<1.75&&finite(best.score)>1.45;/* D11 · a regra inteira do chute contextual, num lugar so. O predicado da
+    camada 20 (_r183ExcecaoAoChuteContextual) diz se existe alternativa
+    melhor: chance clara, progressao limpa, saida sob pressao ou movimento
+-   para dentro. Antes ele rodava por fora e envenenava o timestamp abaixo
+-   para fazer este `if` falhar — 264,67 vezes por partida, medido. */
++   para dentro. Antes ele rodava num _decide proprio e envenenava
++   __r122LastContextShot — um campo que ja significa outra coisa (o
++   auto-limite do proprio sorteio).
++
++   A JANELA DE 1,15 s NAO E DETALHE. Vetar so o instante do sorteio custou
++   drawRate 0,270 -> 0,190 (3,53 SE, FORA da faixa de design) e blowoutRate
++   0,153 -> 0,197 (1,92 SE, fora da faixa) numa bateria de 300 partidas: as
++   14 metricas agregadas nao se moveram e o placar de design caiu 12/13 ->
++   10/13. O veto sempre teve memoria; o efeito colateral era o mecanismo.
++   Ele volta aqui, em campo PROPRIO e declarado. MEDIDO, nao inferido. */
++  if(typeof this._r183ExcecaoAoChuteContextual==='function'
++     &&!this.__r14Pending&&!(finite(this.dead)>0)&&!this.pendingRestart&&!this.waiting
++     &&this._r183ExcecaoAoChuteContextual(o))
++    tm.__r183VetoChuteContextual=Math.max(finite(tm.__r183VetoChuteContextual,-99),now);
+   if(!superior&&dtg>=10&&dtg<=27&&now-finite(tm.__r122LastContextShot,-99)>1.15
+-     &&!(typeof this._r183ExcecaoAoChuteContextual==='function'&&this._r183ExcecaoAoChuteContextual(o))){const fin=attr(o,'finalizacao'),lng=attr(o,'chute_longe'),central=clamp(1-Math.abs(finite(o.y)-finite(g.y))/31,.35,1),pressure=clamp((3.5-finite(near.dist,5))/3.5,0,1);let p=dtg<=16?.40:dtg<=20?.285:dtg<=24?.17:.072;p*=central*(1-pressure*.58)*clamp((fin*.66+lng*.34)/72,.72,1.24);if(schance(this,p)){tm.__r122LastContextShot=now;this._shoot(o,dtg,dtg>21,o.settle>0&&o.settle<.45);return;}}
++     &&now-finite(tm.__r183VetoChuteContextual,-99)>1.15){const fin=attr(o,'finalizacao'),lng=attr(o,'chute_longe'),central=clamp(1-Math.abs(finite(o.y)-finite(g.y))/31,.35,1),pressure=clamp((3.5-finite(near.dist,5))/3.5,0,1);let p=dtg<=16?.40:dtg<=20?.285:dtg<=24?.17:.072;p*=central*(1-pressure*.58)*clamp((fin*.66+lng*.34)/72,.72,1.24);if(schance(this,p)){tm.__r122LastContextShot=now;this._shoot(o,dtg,dtg>21,o.settle>0&&o.settle<.45);return;}}
+   if(typeof this._canCross==='function'&&this._canCross(o)){const targets=tm.players.filter(p=>!p.red&&!p.isGK&&p!==o&&Math.abs(p.x-tm.oppGoal.x)<24);if(targets.length&&now-finite(tm.__r122LastCross,-99)>1.65&&!superior){const q=clamp((attr(o,'cruzamento')-50)/50,0,1),p=clamp(.17+q*.12+Math.min(3,targets.length)*.04+(finite(near.dist)>3?.035:0),.17,.40);if(schance(this,p)){tm.__r122LastCross=now;this._cross(o);return;}}}}
+   return oldDecide.apply(this,arguments);
+ };
+diff --git a/tools/aceitar.sh b/tools/aceitar.sh
+index 8e036ae..5a90168 100755
+--- a/tools/aceitar.sh
++++ b/tools/aceitar.sh
+@@ -77,6 +77,12 @@ case "${1:-}" in
+     echo
+     echo "── placar de design ───────────────────────────────────────────"
+     python3 tools/fisica/placar.py "$DEPOIS" | tail -6
++    # As 14 metricas agregadas NAO contem drawRate, zeroZeroRate, blowoutRate
++    # nem averageEndingStamina. No D11 o criterio de 2 SE aprovou uma mudanca
++    # que levou o placar de design de 12/13 para 10/13. Este portao existe por
++    # causa daquele dia.
++    python3 tools/regressao_design.py "$base" "$DEPOIS"
++    veredito_design=$?
+     echo "── placar do futebol real ─────────────────────────────────────"
+     python3 tools/fisica/futebol_real.py "$DEPOIS" | tail -6
+     echo
+@@ -84,7 +90,12 @@ case "${1:-}" in
+       vermelho "REPROVADO — nao faca commit. Leia a comparacao acima."
+       exit 1
+     fi
+-    verde "APROVADO pelo criterio de 2 SE."
++    if [ "$veredito_design" -ne 0 ]; then
++      vermelho "REPROVADO pelo placar de design — nao faca commit."
++      vermelho "Passar em 2 SE e necessario, nao suficiente."
++      exit 1
++    fi
++    verde "APROVADO pelo criterio de 2 SE e pelo placar de design."
+     amarelo "Se voce mexeu em TRAJETORIA, isto ainda nao basta:"
+     amarelo "  node tools/fisica/tela/pinga.js dist/index.html 60"
+     amarelo "Se voce mexeu em MOVIMENTACAO:"
+diff --git a/tools/defeitos.py b/tools/defeitos.py
+index f42ca0e..31e959b 100755
+--- a/tools/defeitos.py
++++ b/tools/defeitos.py
+@@ -150,7 +150,7 @@ DEFEITOS = [
+       criterio=["orcamento unico em ENGINE_CALIBRATION.possession","mediana de posse 0,9-1,3 s"],
+       depende=["D26"], risco="medio"),
+ 
+- dict(id="D11", sev="estrutural", fase="F3", estado="medindo",
++ dict(id="D11", sev="estrutural", fase="F3", estado="feito",
+       titulo="Sorteio censurado 1: o censor roda em 51,4% das decisoes (MEDIDO)",
+       locais=[dict(arquivo=L+"16-cds-r12-transactional-core-r123.js", linha=153, ancora="tm.__r122LastContextShot=now;"),
+               dict(arquivo=L+"20-cds-r183-natural-football.js", linha=63, ancora="dg.smartShotVetoes=(dg.smartShotVetoes||0)+1;")],
+@@ -170,9 +170,17 @@ DEFEITOS = [
+                 "que ninguem tinha declarado: o veto PERSISTIA 1,15 s porque envenenava um campo que "
+                 "serve para outra coisa. E o custo caiu 13x: o predicado ia de 515,17 avaliacoes por "
+                 "partida para 38,83, porque agora so roda quando o sorteio vai mesmo acontecer.\n"
+-                "VEREDITO PENDENTE: a bateria de 300 partidas ainda estava rodando quando este "
+-                "estado foi gravado. NAO chame de aceito ate o aceitar.sh --depois responder. "
+-                "Se reprovar, reverta e escreva o laudo — nao ajuste o criterio."),
++                "ACEITO NA SEGUNDA TENTATIVA. A PRIMEIRA REPROVOU e o motivo vale mais que "
++                "o conserto: eu tratei a persistencia como efeito colateral a limpar. O veto "
++                "antigo carimbava __r122LastContextShot e com isso SUPRIMIA a roleta por 1,15 s; "
++                "consultar o predicado so no instante do sorteio matou essa janela. Resultado "
++                "medido em 300 partidas: as 14 metricas agregadas NAO se moveram e o placar de "
++                "design caiu 12/13 -> 10/13, com drawRate 0,270 -> 0,190 (3,53 SE, fora da faixa) "
++                "e blowoutRate 0,153 -> 0,197 (1,89 SE, fora). Com a janela restaurada em campo "
++                "PROPRIO (__r183VetoChuteContextual): 14/14 em 2 SE com deltas <= 0,13, design de "
++                "volta a 12/13. LICAO: efeito colateral pode ser o mecanismo. E o portao estava "
++                "cego — drawRate e blowoutRate nao estao entre as 14; dai nasceu "
++                "tools/regressao_design.py, hoje dentro do aceitar.sh."),
+       depende=[], risco="medio: remover chance() desalinha o RNG; compare distribuicoes, nao partidas"),
+ 
+  dict(id="D12", sev="estrutural", fase="F2", estado="aberto",
+diff --git a/tools/dossie/diffs.py b/tools/dossie/diffs.py
+new file mode 100644
+index 0000000..537a1d0
+--- /dev/null
++++ b/tools/dossie/diffs.py
+@@ -0,0 +1,139 @@
++#!/usr/bin/env python3
++"""Um patch por defeito executado — o que JA FOI FEITO, linha por linha.
++
++Por que este arquivo existe
++---------------------------
++O dossie inteiro descreve o que **precisa** ser feito. Nao havia um lugar que
++mostrasse como e uma mudanca **aceita** neste projeto: o tamanho tipico, o tom
++do comentario, a forma do commit, o que foi medido antes e depois.
++
++Quem chega agora tem o catalogo (o que fazer) e o guia (como trabalhar) e nao
++tem o exemplo. Isto e o exemplo, tirado do git, nao escrito a mao — entao nao
++envelhece em relacao ao codigo.
++
++Uso:
++  python3 tools/dossie/diffs.py [destino]
++"""
++from __future__ import annotations
++
++import json
++import re
++import subprocess
++import sys
++from pathlib import Path
++
++RAIZ = Path(__file__).resolve().parents[2]
++DEST = Path(sys.argv[1]) if len(sys.argv) > 1 else RAIZ / "reports" / "diffs"
++
++# Um defeito por commit. A chave e o ID; o valor e como achar o commit.
++# Procuro pelo ID no assunto do commit — e por isso que a convencao de escrever
++# "fix(D03):" no assunto vale a pena.
++IDS = [f"D{n:02d}" for n in range(1, 35)]
++
++# O patch mostra o CODIGO da mudanca. `dist/` e gerado, `reports/` e papel:
++# nenhum dos dois diz nada sobre o tamanho do conserto.
++ESCOPO = ["src/", "tools/", "calibration/", "manifests/", "tests/"]
++
++
++def git(*args: str) -> str:
++    return subprocess.run(["git", *args], cwd=RAIZ, capture_output=True,
++                          text=True, check=False).stdout
++
++
++def commits_por_defeito() -> dict[str, list[dict]]:
++    bruto = git("log", "--format=%H\x1f%ad\x1f%s\x1f%b\x1e", "--date=short")
++    achados: dict[str, list[dict]] = {}
++    for reg in bruto.split("\x1e"):
++        reg = reg.strip("\n")
++        if not reg:
++            continue
++        partes = reg.split("\x1f")
++        if len(partes) < 3:
++            continue
++        sha, data, assunto = partes[0], partes[1], partes[2]
++        corpo = partes[3] if len(partes) > 3 else ""
++        for ident in IDS:
++            # so o assunto conta como autoria; o corpo cita defeitos vizinhos
++            if re.search(rf"\b{ident}\b", assunto):
++                achados.setdefault(ident, []).append(
++                    dict(sha=sha, curto=sha[:8], data=data, assunto=assunto,
++                         corpo=corpo.strip()))
++    return achados
++
++
++def main() -> int:
++    DEST.mkdir(parents=True, exist_ok=True)
++    achados = commits_por_defeito()
++    if not achados:
++        print("nenhum commit com ID de defeito no assunto — nada a exportar")
++        return 1
++
++    indice = []
++    for ident in sorted(achados):
++        for i, c in enumerate(achados[ident]):
++            sufixo = "" if len(achados[ident]) == 1 else f"-{i + 1}"
++            nome = f"{ident}{sufixo}-{c['curto']}.patch"
++            # --stat junto para se ler o tamanho da mudanca sem abrir o patch
++            # SO o codigo. Sem este filtro o patch do D11 saiu com +5314 linhas
++            # porque o commit levou junto as fichas e o PDF regravados — e ai o
++            # arquivo mente sobre o tamanho de uma mudanca aceita, que e
++            # justamente o que ele existe para mostrar.
++            patch = git("show", "--stat", "--patch", "--format=fuller", c["sha"],
++                        "--", *ESCOPO)
++            (DEST / nome).write_text(patch, encoding="utf8")
++            linhas = git("show", "--numstat", "--format=", c["sha"],
++                         "--", *ESCOPO).strip().splitlines()
++            mais = menos = 0
++            arquivos = []
++            for ln in linhas:
++                p = ln.split("\t")
++                if len(p) == 3 and p[0].isdigit() and p[1].isdigit():
++                    mais += int(p[0]); menos += int(p[1]); arquivos.append(p[2])
++            indice.append(dict(defeito=ident, arquivo=nome, sha=c["curto"],
++                               data=c["data"], assunto=c["assunto"],
++                               linhas_add=mais, linhas_del=menos,
++                               arquivos=arquivos))
++            print(f"  {nome:<34} +{mais:<5} -{menos:<5} {c['assunto'][:52]}")
++
++    (DEST / "indice.json").write_text(json.dumps(indice, indent=1, ensure_ascii=False),
++                                      encoding="utf8")
++
++    md = ["# O que já foi feito — um patch por defeito",
++          "",
++          "Gerado por `python3 tools/dossie/diffs.py` direto do git, não escrito à",
++          "mão. Serve para uma coisa que nenhum outro arquivo do dossiê faz:",
++          "**mostrar o tamanho e o formato de uma mudança que foi aceita aqui.**",
++          "",
++          "Repare no padrão, porque ele é o contrato:",
++          "",
++          "- a mudança é pequena e tem um alvo só;",
++          "- o comentário no código diz **o que foi medido**, não o que se espera;",
++          "- o assunto do commit carrega o ID do defeito (é o que torna este",
++          "  arquivo possível);",
++          "- quando a medição contrariou a hipótese, o commit **diz isso** em vez de",
++          "  ajustar a hipótese.",
++          "",
++          "| defeito | commit | data | linhas | assunto |",
++          "|---|---|---|---|---|"]
++    for r in indice:
++        md.append(f"| **{r['defeito']}** | `{r['sha']}` | {r['data']} | "
++                  f"+{r['linhas_add']} −{r['linhas_del']} | {r['assunto']} |")
++    md += ["",
++           "## Como ler um patch daqui",
++           "",
++           "```bash",
++           "git show <sha>                    # o commit inteiro, com contexto",
++           "git apply --check <arquivo>.patch # o patch ainda aplica?",
++           "```",
++           "",
++           "Os arquivos `.patch` são saída de `git show --stat --patch`, então",
++           "trazem o `--stat` no topo: dá para ver o tamanho da mudança sem rolar",
++           "o diff inteiro."]
++    (DEST / "LEIA-ME.md").write_text("\n".join(md) + "\n", encoding="utf8")
++
++    print(f"\n{len(indice)} patches em {DEST}")
++    return 0
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
+diff --git a/tools/dossie/tabelas.py b/tools/dossie/tabelas.py
+new file mode 100644
+index 0000000..e1b0604
+--- /dev/null
++++ b/tools/dossie/tabelas.py
+@@ -0,0 +1,109 @@
++#!/usr/bin/env python3
++"""As 300 partidas em CSV — uma linha por partida, para você conferir sozinho.
++
++NÃO renomeie este arquivo de volta para `csv.py`: `import csv` passaria a
++importar ele mesmo e quebra com "module 'csv' has no attribute 'writer'".
++
++Por que este arquivo existe
++---------------------------
++O dossiê publica agregados: média, desvio, erro-padrão. Quem quiser refazer a
++conta, plotar outra coisa ou testar outra hipótese precisava escrever um parser
++de `reports/*.json` antes de olhar o primeiro número.
++
++Um CSV por medição resolve isso. Abre no Excel, no pandas, no que for. E serve
++a um propósito específico deste projeto: **conferir se eu errei.** Sete
++premissas deste catálogo caíram na medição; a próxima pode ser uma das que eu
++dei por boa.
++
++Uso:
++  python3 tools/dossie/tabelas.py [destino] [medicao.json ...]
++"""
++from __future__ import annotations
++
++import csv
++import json
++import sys
++from pathlib import Path
++
++RAIZ = Path(__file__).resolve().parents[2]
++
++COLUNAS = ["partida", "semente", "golsCasa", "golsFora", "empate", "goleada",
++           "zeroAZero", "staminaFinal"]
++
++
++def uma(fonte: Path, dest: Path) -> tuple[int, str]:
++    d = json.loads(fonte.read_text(encoding="utf8"))
++    por = d.get("porPartida") or []
++    if not por:
++        return 0, "sem porPartida"
++
++    # As chaves por partida variam entre baterias antigas e novas; descobre as
++    # metricas escalares presentes em vez de assumir uma lista fixa.
++    extras = sorted({k for p in por for k, v in p.items()
++                     if isinstance(v, (int, float)) and k not in COLUNAS})
++
++    # A bateria nao grava a semente por partida (ela e derivada de
++    # 4200000 + i*7919). Melhor nao publicar uma coluna vazia: reconstruo.
++    base, passo = 4200000, 7919
++    tem_semente = any(p.get("semente") is not None for p in por)
++
++    with dest.open("w", newline="", encoding="utf8") as fh:
++        w = csv.writer(fh)
++        w.writerow(COLUNAS + extras)
++        for i, p in enumerate(por, 1):
++            s = p.get("placar") or [None, None]
++            casa, fora = (s + [None, None])[:2]
++            empate = goleada = zero = ""
++            if casa is not None and fora is not None:
++                empate = int(casa == fora)
++                goleada = int(abs(casa - fora) >= 3)
++                zero = int(casa == 0 and fora == 0)
++            sem = p.get("semente") if tem_semente else base + (i - 1) * passo
++            w.writerow([i, sem, casa, fora, empate, goleada, zero,
++                        p.get("staminaFinal", "")]
++                       + [p.get(k, "") for k in extras])
++    return len(por), ", ".join(extras[:6]) + ("…" if len(extras) > 6 else "")
++
++
++def main() -> int:
++    dest = Path(sys.argv[1]) if len(sys.argv) > 1 else RAIZ / "reports" / "csv"
++    fontes = [Path(a) for a in sys.argv[2:]] or [
++        p for p in [RAIZ / "reports" / "REFERENCIA.json",
++                    RAIZ / "reports" / "_aceitar-depois.json",
++                    RAIZ / "reports" / "fisica-os200.json"] if p.exists()]
++    dest.mkdir(parents=True, exist_ok=True)
++
++    for f in fontes:
++        saida = dest / (f.stem.lstrip("_") + ".csv")
++        n, cols = uma(f, saida)
++        print(f"  {saida.name:<28} {n:>4} partidas   colunas extras: {cols or '(nenhuma)'}")
++
++    (dest / "LEIA-ME.txt").write_text(
++        "As partidas cruas, uma por linha.\n"
++        "\n"
++        "Gerado por: python3 tools/dossie/tabelas.py\n"
++        "\n"
++        "REFERENCIA.csv      o estado aceito atual — e contra ele que o portao compara\n"
++        "aceitar-depois.csv  a ultima medicao feita (pode ser de uma mudanca REPROVADA)\n"
++        "\n"
++        "empate, goleada e zeroAZero sao derivadas aqui, do placar, para voce nao\n"
++        "precisar recalcular. goleada = diferenca de 3 ou mais.\n"
++        "\n"
++        "semente: a bateria nao grava por partida — a coluna e RECONSTRUIDA por\n"
++        "4200000 + (i-1) * 7919, que e a regra de pareamento da propria bateria.\n"
++        "Se voce mudar essa regra la, mude aqui tambem ou a coluna vira ficcao.\n"
++        "\n"
++        "Estas tres colunas importam mais do que parecem: drawRate, blowoutRate e\n"
++        "zeroZeroRate NAO estao entre as 14 metricas do portao de 2 SE. Foi por ai\n"
++        "que uma regressao passou batida uma vez.\n"
++        "\n"
++        "Erro-padrao de uma proporcao (empate, goleada, zeroAZero):\n"
++        "    SE = raiz( p * (1-p) / n )\n"
++        "Com n = 300 e p perto de 0,2, SE fica em ~0,023. Uma diferenca menor que\n"
++        "0,046 entre duas medicoes NAO e sinal.\n",
++        encoding="utf8")
++    return 0
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
+diff --git a/tools/dossie/video.js b/tools/dossie/video.js
+new file mode 100644
+index 0000000..233e3ea
+--- /dev/null
++++ b/tools/dossie/video.js
+@@ -0,0 +1,162 @@
++#!/usr/bin/env node
++'use strict';
++/* VIDEO — a partida em movimento, que a foto nao consegue mostrar.
++   ---------------------------------------------------------------
++   O dossie tinha seis fotos e nenhum segundo de jogo rodando. Dois defeitos
++   do catalogo sao sobre COMO O JOGO EVOLUI e por isso nao cabem num quadro:
++
++     D19  a partida murcha — 21,4% dos gols ate 15', 12,7% depois dos 76'.
++          Um quadro nao mostra decaimento; so a sequencia mostra.
++     D20  o bloco nao compacta ao perder a bola (encurta 0,4 m; no futebol
++          real, 8 a 10 m). O erro esta na TRANSICAO, nao na forma parada.
++
++   Playwright grava webm nativamente por contexto. Nao ha montagem e nao ha
++   dependencia externa: e a tela do jogo, do jeito que o jogador ve.
++
++   CUIDADO, e custou uma rodada: `__quickMatch(iA,iB)` recebe INDICES DE
++   ELENCO, nao (segundo, velocidade). As fotos do dossie foram capturadas
++   passando segundos ali — o que so nao quebrou porque 25 e 55 tambem sao
++   indices validos. Toda captura sai ~2 s apos o apito, nao no minuto que a
++   legenda dizia. Aqui o minuto e LIDO do sim e escrito no indice.
++
++   Uso: node tools/dossie/video.js [destino] [build.html] */
++const path = require('path');
++const fs = require('fs');
++const { pathToFileURL } = require('url');
++const { chromium } = require('/opt/node22/lib/node_modules/playwright');
++
++const DEST = path.resolve(process.argv[2] || 'reports/video');
++const ALVO = path.resolve(process.argv[3] || 'dist/index.html');
++
++const CLIPES = [
++  { arq: 'jogo-rodando-turbo.webm', vp: [960, 540], vel: 'TURBO', teto: 210,
++    ateOFim: true,
++    titulo: 'O jogo rodando, do apito inicial, na velocidade TURBO',
++    olhe: 'Em quadro o tempo inteiro: a tarja preta acima e abaixo do gramado (D24), '
++        + 'aqui em 960x540. NAO afirmo que este clipe cobre os 90 minutos — ver o campo '
++        + '`terminou` no indice.json: em 210 s de relogio de parede a partida NAO '
++        + 'terminou e isOver() continuou falso. Isso e uma anomalia, nao uma legenda: '
++        + 'esta anotada no proprio indice.' },
++  { arq: 'transicao-perda-de-bola.webm', vp: [960, 540], vel: '1X', teto: 40,
++    ateOFim: false,
++    titulo: 'Os primeiros minutos, em velocidade 1X',
++    olhe: 'D20 · acompanhe a forma do time no instante em que ele perde a bola. No '
++        + 'futebol real o bloco encurta 8 a 10 m ao virar defensor. Aqui encurta 0,4 m '
++        + '— medido por forma.js. O time troca de fase e nao troca de forma. Repare '
++        + 'tambem na concentracao de jogadores em volta da bola.' },
++];
++
++const dorme = ms => new Promise(r => setTimeout(r, ms));
++
++(async () => {
++  fs.mkdirSync(DEST, { recursive: true });
++  const nav = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
++  const indice = [];
++
++  for (const c of CLIPES) {
++    const ctx = await nav.newContext({
++      viewport: { width: c.vp[0], height: c.vp[1] },
++      recordVideo: { dir: DEST, size: { width: c.vp[0], height: c.vp[1] } },
++    });
++    const pg = await ctx.newPage();
++    const gravacao = pg.video();          /* pegue o handle ANTES de fechar a pagina */
++    const erros = [];
++    pg.on('pageerror', e => erros.push(String(e).slice(0, 160)));
++    await pg.goto(pathToFileURL(ALVO).href, { waitUntil: 'load', timeout: 120000 });
++    await pg.waitForTimeout(2500);   /* menos que isto e strictAutoLineup nao achou os dados */
++
++    const times = await pg.evaluate(() => typeof window.__quickMatch === 'function'
++      ? window.__quickMatch() : null);
++    await pg.waitForTimeout(1200);
++
++    /* o rotulo do botao E o multiplicador (OS-202) */
++    const trocou = await pg.evaluate(v => {
++      const b = [...document.querySelectorAll('.spd')]
++        .find(x => x.textContent.trim().toUpperCase() === v);
++      if (!b) return false;
++      b.click();
++      return true;
++    }, c.vel);
++
++    /* legenda fixa, para o clipe nao virar enfeite */
++    await pg.evaluate(({ titulo, olhe }) => {
++      const d = document.createElement('div');
++      d.setAttribute('style', [
++        'position:fixed', 'left:0', 'right:0', 'bottom:0', 'z-index:99999',
++        'background:linear-gradient(transparent,rgba(8,12,10,.96) 26%)',
++        'padding:30px 20px 14px', 'font-family:Georgia,serif', 'color:#e8ece9',
++        'pointer-events:none',
++      ].join(';'));
++      d.innerHTML =
++        `<div style="font-size:15px;font-weight:700;margin-bottom:4px">${titulo}</div>` +
++        `<div style="font-size:12px;line-height:1.4;color:#b8c2be;max-width:100ch">${olhe}</div>`;
++      document.body.appendChild(d);
++    }, { titulo: c.titulo, olhe: c.olhe });
++
++    /* roda ate o fim da partida ou ate o teto de tempo de parede */
++    const t0 = Date.now();
++    let estado = null;
++    while ((Date.now() - t0) / 1000 < c.teto) {
++      await dorme(2000);
++      estado = await pg.evaluate(() => {
++        const s = window.GAME && window.GAME._sim && window.GAME._sim();
++        if (!s) return null;
++        /* s.t e SEGUNDO DE SIMULACAO. O minuto de jogo sai multiplicando pelo
++           clockRate (0,085) — nao dividindo por 60, que foi o meu erro. */
++        const cal = window.ENGINE_CALIBRATION;
++        const taxa = (cal && cal.timing && cal.timing.clockRate) || 0.085;
++        return { t: s.t, minuto: s.t * taxa,
++                 over: typeof s.isOver === 'function' ? s.isOver() : null,
++                 placar: s.teams ? s.teams.map(x => x.goals) : null };
++      });
++      if (c.ateOFim && estado && estado.over) break;
++    }
++
++    await pg.close();
++    await ctx.close();                    /* so aqui o webm e finalizado */
++
++    /* pelo handle, nao por varredura do diretorio: a varredura pegou um
++       arquivo ainda nao liberado e gravou um clipe de 0 byte */
++    const bruto = await gravacao.path();
++    fs.renameSync(bruto, path.join(DEST, c.arq));
++    const tam = fs.statSync(path.join(DEST, c.arq)).size;
++
++    indice.push({
++      arquivo: c.arq, titulo: c.titulo, olhe: c.olhe,
++      viewport: c.vp.join('x'), velocidade: c.vel, trocouDeVelocidade: trocou,
++      segundosDeParede: Math.round((Date.now() - t0) / 10) / 100,
++      partida: times, minutoDeJogoAoFim: estado && estado.minuto != null
++        ? Math.round(estado.minuto * 10) / 10 : null,
++      segundoDeSimulacao: estado && estado.t != null ? Math.round(estado.t) : null,
++      terminou: !!(estado && estado.over), placar: estado && estado.placar,
++      bytes: tam, errosDePagina: erros.length,
++    });
++    console.log(`  ${c.arq}  ${(tam / 1048576).toFixed(1)} MB  ${times || 'SEM __quickMatch'}`
++      + `  ${estado && estado.over ? 'partida terminou' : 'teto de tempo'}`);
++  }
++
++  await nav.close();
++  fs.writeFileSync(path.join(DEST, 'indice.json'), JSON.stringify({
++    /* ACHADO DE 2026-08-12, encontrado ao gravar estes clipes — nao procurado.
++       Em Chromium headless, sondado a cada 15 s ate 210 s de relogio de parede:
++         - o sim avancou ~6,2 segundos de simulacao por segundo de parede, e a
++           taxa NAO mudou entre os botoes 3X e TURBO;
++         - isOver() continuou FALSO ate t = 1207 s de simulacao, que a
++           clockRate = 0,085 equivale a ~102 minutos de jogo;
++         - o relogio na tela parou de avancar cedo na captura.
++       A taxa igual entre 3X e TURBO tem explicacao benigna plausivel (o laco e
++       preso ao requestAnimationFrame, que o headless limita). O isOver() falso
++       aos ~102 minutos NAO tem. Isto NAO esta no catalogo dos 34 defeitos e
++       NAO foi confirmado em navegador com janela — e observacao de uma corrida
++       so, e esta escrita aqui para nao se perder, nao para virar diagnostico. */
++    achado_nao_procurado: {
++      quando: '2026-08-12', onde: 'Chromium headless, dist/index.html',
++      taxa_sim_por_parede: 6.2, mesma_taxa_em_3X_e_TURBO: true,
++      isOver_ainda_falso_em_segundos_de_simulacao: 1207,
++      minuto_de_jogo_equivalente: 102.6,
++      confianca: 'UMA corrida, headless, sem replica. NAO tratar como medido.',
++    },
++    clipes: indice,
++  }, null, 1));
++  console.log(`\n${indice.length} clipes em ${DEST}`);
++})();
+diff --git a/tools/fisica/ramo-d19.js b/tools/fisica/ramo-d19.js
+new file mode 100644
+index 0000000..da34a91
+--- /dev/null
++++ b/tools/fisica/ramo-d19.js
+@@ -0,0 +1,173 @@
++#!/usr/bin/env node
++/* D19 · a partida murcha — mas murcha POR QUE?
++   -------------------------------------------------------------------------
++   O que ja esta medido (OS-204, e reconfirmado na bateria de hoje):
++
++       0-15   21,4%   ####################
++      16-30   15,3%
++      31-45   14,7%
++      46-60   19,7%
++      61-75   16,2%
++        76+   12,7%   #############
++
++   No futebol de elite a distribuicao e o INVERSO: cresce para o fim.
++
++   O documento atribui isso a fadiga "uniforme demais", citando r = 0,814
++   entre stamina e taxa de chutes. **Correlacao nao e mecanismo.** Stamina cai
++   monotonicamente durante a partida; qualquer coisa que caia junto vai
++   correlacionar alto com ela sem ser a causa. Aquele 0,814 e compativel com
++   pelo menos quatro historias diferentes, e elas pedem consertos opostos:
++
++     H1  menos chances    o time cria menos ataques no fim
++     H2  pior pontaria    cria igual, finaliza pior
++     H3  menos posse util a bola passa mais tempo parada (faltas, laterais)
++     H4  relogio          o tempo simulado por faixa nao e uniforme
++
++   H4 o proprio projeto ja mediu e descartou. As outras tres nunca foram
++   separadas — e e a separacao que decide ONDE mexer.
++
++   Esta sonda separa. Por faixa de 15 minutos de jogo, conta:
++     - segundos de simulacao (a checagem do relogio, refeita aqui)
++     - chutes, chutes no alvo, gols
++     - passes tentados e completados
++     - stamina media dos 22 em campo
++     - segundos com a bola em jogo vs. parada
++     - duelos e faltas
++
++   E imprime as TAXAS POR MINUTO DE JOGO, nao os totais: e a unica forma de
++   ver se o jogo esta criando menos ou so acertando menos.
++
++   NAO EDITE NADA antes de ler a saida. Sete premissas deste catalogo cairam
++   por pular esta etapa.
++
++   Uso: node tools/fisica/ramo-d19.js <build.html> [partidas] */
++const fs = require('fs'), vm = require('vm'), crypto = require('crypto');
++function noop() {}
++function def(n, v) { try { Object.defineProperty(global, n, { value: v, writable: true, configurable: true }); } catch (_) { global[n] = v; } }
++def('window', global); def('self', global); def('navigator', { userAgent: 'x', language: 'pt-BR' });
++def('location', { href: '', search: '', hash: '' }); def('performance', { now: () => 0 }); def('crypto', crypto.webcrypto);
++def('requestAnimationFrame', () => 0); def('cancelAnimationFrame', noop); def('addEventListener', noop); def('removeEventListener', noop);
++def('matchMedia', () => ({ matches: false, addEventListener: noop, removeEventListener: noop })); def('alert', noop);
++def('localStorage', { getItem: () => null, setItem: noop, removeItem: noop, clear: noop }); def('sessionStorage', global.localStorage);
++def('CanvasRenderingContext2D', undefined); def('HTMLElement', function () {}); def('HTMLCanvasElement', function () {});
++def('Image', function () {}); def('Audio', function () { return { play: () => Promise.resolve(), pause: noop }; });
++def('__showBootError', noop); def('__cdsDebugWarn', noop); def('CDS_DEBUG', false);
++const SKIP = new Set(['cds-2_5d-gate-a-contracts-v02', 'cds-pre25d-runtime-auditor-v04', 'cds-r109-async-cup', 'cds-mobile-boot-bridge', 'cds-ux-boot']);
++const html = fs.readFileSync(process.argv[2] || 'dist/index.html', 'utf8');
++const re = /<script([^>]*)>([\s\S]*?)<\/script>/gi; let m, i = 0;
++while ((m = re.exec(html))) { const id = (m[1].match(/id="([^"]+)"/) || [])[1] || ('s' + i); i++; if (SKIP.has(id)) continue; try { vm.runInThisContext(m[2], { filename: id }); } catch (_) {} }
++
++const db = buildDB(DATA), FORMS = Object.keys(FORMATIONS);
++const STYLES = (typeof STYLE_KEYS !== 'undefined' && Array.isArray(STYLE_KEYS)) ? STYLE_KEYS : ['balanced', 'tiki', 'direct', 'press', 'counter', 'wings', 'park'];
++const sq = db.squads.find(s => s.c === 'Brasil' && Number(s.y) === 1970) || db.squads[0];
++const mk = (f, st, h) => { const p = autoLineup(sq, f, 0); return { squad: sq, name: sq.c, flag: sq.f, color: h ? '#1' : '#2', lineup: p.lineup, bench: p.bench, formKey: f, style: st }; };
++const N = Number(process.argv[3] || 24);
++
++const ROTULOS = ['0-15', '16-30', '31-45', '46-60', '61-75', '76+'];
++/* O RELOGIO E `sim.minute`, NAO `sim.t * clockRate`.
++   `minute` so avanca quando `this.dead <= 0` — bola parada nao conta como
++   minuto de jogo. Convertendo `t` eu media 115 "minutos" por partida e a sonda
++   acusou "relogio nao uniforme" que era erro meu, nao do jogo. A bateria usa
++   `sim.minute`; usar outra coisa aqui produziria um numero incomparavel. */
++const faixaDe = min => Math.max(0, Math.min(5, Math.floor((+min || 0) / 15)));
++
++const zero = () => ROTULOS.map(() => 0);
++const seg = zero(), emJogo = zero(), minutos = zero(),
++      chutes = zero(), alvo = zero(), gols = zero(),
++      passes = zero(), passesOk = zero(), faltas = zero(),
++      staminaSoma = zero(), staminaN = zero();
++const DT = 1 / 30;
++
++for (let k = 0; k < N; k++) {
++  srand(4200000 + k * 7919);
++  const A = mk(FORMS[k % FORMS.length], STYLES[k % STYLES.length], true);
++  const B = mk(FORMS[(k * 3 + 1) % FORMS.length], STYLES[(k * 5 + 2) % STYLES.length], false);
++  const sim = new MatchSim(A, B, { neutral: true, labMode: true });
++
++  /* delta dos contadores do proprio motor — mesmo canal da bateria, entao os
++     totais TEM de bater com ela */
++  const soma = k2 => (+sim.stats[0][k2] || 0) + (+sim.stats[1][k2] || 0);
++  let cS = 0, cA = 0, cG = 0, cP = 0, cPo = 0, cF = 0, amostra = 0, guarda = 0;
++
++  while (!sim.isOver() && guarda++ < 500000) {
++    const f = faixaDe(sim.minute);
++    const emJogoAgora = !(Number(sim.dead) > 0);
++    const minAntes = Number(sim.minute) || 0;
++    sim.step(DT);
++    seg[f] += DT;
++    if (emJogoAgora) emJogo[f] += DT;
++    /* minuto de JOGO consumido neste quadro — e o denominador honesto das
++       taxas. Nao assumo 15 por faixa: a ultima e aberta e a partida pode
++       acabar no meio de uma. */
++    const dm = (Number(sim.minute) || 0) - minAntes;
++    if (dm > 0 && dm < 0.5) minutos[f] += dm;
++
++    const nS = soma('shots'), nA = soma('onTarget'), nG = soma('goals'),
++          nP = soma('passes'), nPo = soma('passOk'), nF = soma('fouls');
++    chutes[f] += nS - cS; cS = nS;
++    alvo[f] += nA - cA; cA = nA;
++    gols[f] += nG - cG; cG = nG;
++    passes[f] += nP - cP; cP = nP;
++    passesOk[f] += nPo - cPo; cPo = nPo;
++    faltas[f] += nF - cF; cF = nF;
++
++    if (++amostra % 120 === 0) {           /* stamina custa um laco de 22 */
++      let s2 = 0, n2 = 0;
++      for (const tm of sim.teams) for (const p of tm.players)
++        if (p && !p.red) { s2 += (+p.stamina || 0); n2++; }
++      if (n2) { staminaSoma[f] += s2 / n2; staminaN[f]++; }
++    }
++  }
++}
++
++/* ---------------------------------------------------------------- saida */
++const totalMin = minutos.reduce((a, b) => a + b, 0);
++const totalGols = gols.reduce((a, b) => a + b, 0);
++const pct = v => (100 * v / (totalGols || 1)).toFixed(1).padStart(5) + '%';
++const por = (v, f) => minutos[f] > 0 ? v / minutos[f] : 0;
++const col = (x, n = 7, d = 2) => Number(x).toFixed(d).padStart(n);
++
++console.log(`\nD19 · onde a partida murcha — ${N} partidas\n`);
++console.log('faixa   min-jogo  %tempo | gols   %gols | chutes/min  alvo/min  gols/min'
++  + ' | passes/min  %certo | stamina | %bola em jogo');
++console.log('-'.repeat(132));
++for (let f = 0; f < 6; f++) {
++  const p = passes[f], pk = passesOk[f];
++  console.log(
++    `${ROTULOS[f].padEnd(7)} ${col(minutos[f], 8, 1)} ${col(100 * minutos[f] / (totalMin || 1), 6, 1)}% |`
++    + `${col(gols[f], 5, 0)} ${pct(gols[f])} |`
++    + `${col(por(chutes[f], f), 10)} ${col(por(alvo[f], f), 9)} ${col(por(gols[f], f), 9, 3)} |`
++    + `${col(por(p, f), 10, 1)} ${col(100 * pk / (p || 1), 6, 1)}% |`
++    + `${col(staminaN[f] ? staminaSoma[f] / staminaN[f] : 0, 7, 1)} |`
++    + `${col(100 * emJogo[f] / (seg[f] || 1), 12, 1)}%`);
++}
++
++/* ------------------------------------------------- o veredito, explicito */
++const q = (arr, f) => por(arr[f], f);
++const dChutes = q(chutes, 5) / (q(chutes, 0) || 1);
++const dAlvo = (alvo[5] / (chutes[5] || 1)) / ((alvo[0] / (chutes[0] || 1)) || 1);
++const dJogo = (emJogo[5] / (seg[5] || 1)) / ((emJogo[0] / (seg[0] || 1)) || 1);
++/* H4 nao e "a faixa tem menos minutos" — a ultima e aberta, teria mesmo.
++   E "cada minuto de jogo do fim recebe menos SIMULACAO que o do comeco?" */
++const dTempo = (seg[5] / (minutos[5] || 1)) / ((seg[0] / (minutos[0] || 1)) || 1);
++
++console.log('\nrazao 76+ / 0-15   (1,00 = nao muda ao longo da partida)');
++console.log(`  H1  chutes por minuto ........ ${dChutes.toFixed(3)}   ${dChutes < 0.9 ? '<== CRIA MENOS' : 'estavel'}`);
++console.log(`  H2  acerto ao alvo por chute .. ${dAlvo.toFixed(3)}   ${dAlvo < 0.9 ? '<== FINALIZA PIOR' : 'estavel'}`);
++console.log(`  H3  fracao de bola em jogo .... ${dJogo.toFixed(3)}   ${dJogo < 0.9 ? '<== BOLA PARA MAIS' : 'estavel'}`);
++console.log(`  H4  segundos de simulacao/min . ${dTempo.toFixed(3)}   ${(dTempo < 0.9 || dTempo > 1.1) ? '<== O FIM RECEBE OUTRA DOSE DE SIMULACAO' : 'uniforme (como o projeto ja media)'}`);
++console.log('\nA hipotese que ficar abaixo de 0,90 e onde o conserto tem de ser feito.');
++console.log('Se mais de uma ficar, conserte UMA e meça de novo — elas se contaminam.\n');
++
++console.log(JSON.stringify({
++  partidas: N, rotulos: ROTULOS,
++  minutosPorFaixa: minutos.map(x => +x.toFixed(2)),
++  golsPorFaixa: gols, distribuicaoGols: gols.map(g => +(100 * g / (totalGols || 1)).toFixed(1)),
++  chutesPorMinuto: ROTULOS.map((_, f) => +por(chutes[f], f).toFixed(3)),
++  alvoPorChute: ROTULOS.map((_, f) => +(alvo[f] / (chutes[f] || 1)).toFixed(3)),
++  passesPorMinuto: ROTULOS.map((_, f) => +por(passes[f], f).toFixed(2)),
++  staminaMedia: ROTULOS.map((_, f) => +(staminaN[f] ? staminaSoma[f] / staminaN[f] : 0).toFixed(1)),
++  fracaoBolaEmJogo: ROTULOS.map((_, f) => +(emJogo[f] / (seg[f] || 1)).toFixed(3)),
++  razao76sobre015: { chutesPorMinuto: +dChutes.toFixed(3), alvoPorChute: +dAlvo.toFixed(3),
++                     bolaEmJogo: +dJogo.toFixed(3), minutosDeJogo: +dTempo.toFixed(3) },
++}, null, 1));
+diff --git a/tools/regressao_design.py b/tools/regressao_design.py
+new file mode 100644
+index 0000000..8b0999f
+--- /dev/null
++++ b/tools/regressao_design.py
+@@ -0,0 +1,118 @@
++#!/usr/bin/env python3
++"""O portao que faltava: uma metrica de design NAO pode sair da faixa.
++
++Por que este arquivo existe
++---------------------------
++`tools/comparar.py` compara as 14 metricas agregadas da bateria com o criterio
++de 2 SE. Ele e bom e nao basta: `drawRate`, `zeroZeroRate`, `blowoutRate` e
++`averageEndingStamina` **nao estao entre as 14**. Sao derivadas da distribuicao
++de placares, nao de uma media por partida.
++
++No D11 isso apareceu na pratica. O `aceitar.sh` imprimiu
++
++    APROVADO: nenhuma metrica se moveu 2 SE
++
++para uma mudanca que levou o placar de design de 12/13 para 10/13:
++
++    drawRate      0,270 -> 0,190   (3,53 SE)  SAIU da faixa 0,20-0,33
++    blowoutRate   0,153 -> 0,197   (1,92 SE)  SAIU da faixa 0,09-0,19
++
++O portao estava cego justamente para as metricas que dizem se os JOGOS sao
++diferentes uns dos outros — e um jogo em que ninguem empata e todo mundo goleia
++esta quebrado de um jeito que nenhuma media por partida denuncia.
++
++O criterio
++----------
++REPROVA quando uma metrica que estava DENTRO da faixa sai dela. Nao exige
++melhora, nao reprova por ruido dentro da faixa, e nao reprova metrica que ja
++estava fora e continua fora (essa e a que voce provavelmente esta consertando).
++
++Uso:
++  python3 tools/regressao_design.py <base.json> <depois.json>
++
++Saida: 0 aprovado, 1 reprovado.
++"""
++from __future__ import annotations
++
++import json
++import math
++import sys
++from pathlib import Path
++
++RAIZ = Path(__file__).resolve().parents[1]
++sys.path.insert(0, str(RAIZ / "tools" / "fisica"))
++
++from placar import metricas  # noqa: E402
++
++ALVOS = json.loads((RAIZ / "calibration" / "targets.json").read_text(encoding="utf8"))
++
++VERM, AMAR, VERD, FIM = "\033[31m", "\033[33m", "\033[32m", "\033[0m"
++
++# Metricas que sao proporcao por partida — o erro-padrao e binomial, nao o
++# desvio da media que a bateria publica.
++PROPORCAO = {"drawRate", "zeroZeroRate", "blowoutRate", "onTargetRate", "passCompletion"}
++
++
++def faixa(nome: str):
++    a = ALVOS["metrics"].get(nome)
++    if isinstance(a, dict) and "min" in a:
++        return a["min"], a["max"]
++    return None
++
++
++def dentro(v, lo, hi) -> bool:
++    return v is not None and lo <= v <= hi
++
++
++def main() -> int:
++    if len(sys.argv) < 3:
++        print(__doc__)
++        return 2
++    base = json.loads(Path(sys.argv[1]).read_text(encoding="utf8"))
++    dep = json.loads(Path(sys.argv[2]).read_text(encoding="utf8"))
++    n = max(1, len(dep.get("porPartida") or []))
++
++    ma, md = metricas(base), metricas(dep)
++    saidas, entradas = [], []
++
++    for nome, vd in md.items():
++        f = faixa(nome)
++        if not f:
++            continue
++        lo, hi = f
++        va = ma.get(nome)
++        antes_ok, depois_ok = dentro(va, lo, hi), dentro(vd, lo, hi)
++        if antes_ok and not depois_ok:
++            se = (math.sqrt(vd * (1 - vd) / n) if nome in PROPORCAO and 0 < vd < 1
++                  else None)
++            saidas.append((nome, va, vd, lo, hi, se))
++        elif depois_ok and not antes_ok:
++            entradas.append((nome, va, vd, lo, hi))
++
++    for nome, va, vd, lo, hi in entradas:
++        print(f"  {VERD}ENTROU{FIM}  {nome:<24} {va:.3f} -> {vd:.3f}   faixa {lo:g}-{hi:g}")
++    for nome, va, vd, lo, hi, se in saidas:
++        quanto = f"   = {abs(vd - va) / se:.2f} SE" if se else ""
++        print(f"  {VERM}SAIU{FIM}    {nome:<24} {va:.3f} -> {vd:.3f}   "
++              f"faixa {lo:g}-{hi:g}{quanto}")
++
++    if saidas:
++        print()
++        print(f"{VERM}REPROVADO pelo placar de design: {len(saidas)} metrica(s) "
++              f"saiu(ram) da faixa.{FIM}")
++        print(f"{AMAR}As 14 metricas agregadas podem ter passado — elas nao contem "
++              f"estas.{FIM}")
++        print(f"{AMAR}Se a saida era o objetivo declarado da mudanca, diga isso no "
++              f"commit. Se nao era, e regressao.{FIM}")
++        return 1
++
++    if entradas:
++        print(f"{VERD}nenhuma metrica de design saiu da faixa; "
++              f"{len(entradas)} entrou.{FIM}")
++    else:
++        print(f"{VERD}nenhuma metrica de design saiu da faixa.{FIM}")
++    return 0
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
