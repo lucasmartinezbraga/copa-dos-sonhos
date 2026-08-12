@@ -13,6 +13,10 @@
    Playwright grava webm nativamente por contexto. Nao ha montagem e nao ha
    dependencia externa: e a tela do jogo, do jeito que o jogador ve.
 
+   640x360 e escolha, nao descuido: este ambiente nao tem ffmpeg, entao a unica
+   alavanca de tamanho e a resolucao de captura. A 960x540 a partida inteira
+   dava 33 MB e estourava o limite de envio do pacote.
+
    CUIDADO, e custou uma rodada: `__quickMatch(iA,iB)` recebe INDICES DE
    ELENCO, nao (segundo, velocidade). As fotos do dossie foram capturadas
    passando segundos ali — o que so nao quebrou porque 25 e 55 tambem sao
@@ -29,7 +33,7 @@ const DEST = path.resolve(process.argv[2] || 'reports/video');
 const ALVO = path.resolve(process.argv[3] || 'dist/index.html');
 
 const CLIPES = [
-  { arq: 'jogo-rodando-turbo.webm', vp: [960, 540], vel: 'TURBO', teto: 460,
+  { arq: 'jogo-rodando-turbo.webm', vp: [640, 360], vel: 'TURBO', teto: 460,
     ateOFim: true,
     titulo: 'O jogo rodando, do apito inicial, na velocidade TURBO',
     olhe: 'D19 · o ritmo ao longo dos 90 minutos. O jogo NAO cresce para o fim: '
@@ -37,7 +41,7 @@ const CLIPES = [
         + 'elite e o inverso. E em quadro o tempo inteiro: a tarja preta acima e abaixo do '
         + 'gramado (D24). Confira `terminou` e `minutoDeJogoAoFim` no indice.json antes de '
         + 'citar este clipe como partida completa.' },
-  { arq: 'transicao-perda-de-bola.webm', vp: [960, 540], vel: '1X', teto: 40,
+  { arq: 'transicao-perda-de-bola.webm', vp: [640, 360], vel: '1X', teto: 40,
     ateOFim: false,
     titulo: 'Os primeiros minutos, em velocidade 1X',
     olhe: 'D20 · acompanhe a forma do time no instante em que ele perde a bola. No '
