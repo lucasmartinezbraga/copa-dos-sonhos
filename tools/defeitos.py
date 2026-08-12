@@ -358,8 +358,8 @@ DEFEITOS = [
       criterio=["goleadas <=6% apos qualquer mudanca de D19 ou D20"],
       depende=[], risco="deadBallRecovery +0,02 ja derrubou empates de 29,2% para 17,5%"),
 
- dict(id="D24", sev="tela", fase="F6", estado="aberto",
-      titulo="Tarja preta ocupa 24% a 43% da caixa do campo",
+ dict(id="D24", sev="tela", fase="F6", estado="parcial",
+      titulo="Tarja preta — RESOLVIDA no layout (31,8% -> 0,5%); falta so o campo CRESCER",
       locais=[dict(arquivo=RUNTIME, linha=1300, ancora="const cv=$('#fieldcv'), r=cv.getBoundingClientRect();")],
       evidencia="caixa.js em 4 resolucoes: 19% a 43%",
       dono="runtime de desenho (cobertura de leitura: 10%)",
@@ -386,7 +386,16 @@ DEFEITOS = [
               "lateral). E media dentro do ELEMENTO canvas, nao do quadro que o jogador "
               "ve. Agora mede AREA e publica os dois. Sem isso eu teria reportado vitoria "
               "sobre um jogo quebrado.\n"
-              "CAMINHOS, em ordem de custo: (1) devolver ao layout a altura que o "
+              "ENTREGUE (caminho 1): o quadro passou a ter altura de conteudo e a se centralizar, "
+              "em vez de esticar na linha 1fr do grid do cockpit. Vazio no quadro 31,8/22,3/28,2/"
+              "46,0% -> 0,5/0,3/0,5/0,8%. aceitar.sh --identico: 14/14 identicas ao digito. "
+              "Capturas conferidas nas 4 resolucoes.\n"
+              "CORRECAO DE UMA CONCLUSAO MINHA: a forma do campo na tela NAO depende de CH — "
+              "`vn=(fy-M)/fH` normaliza antes de projetar. O que quebrou a tentativa 2 foi "
+              "`bottomY = CH-3`, nao CH. Experimento com a faixa FIXA em 451 px e CH=619: "
+              "perspectiva intacta (reports/fotos-d24c/). Falta so re-enquadrar a camera, que "
+              "tambem depende de CH.\n"
+              "CAMINHOS, em ordem de custo: (1) FEITO — devolver ao layout a altura que o "
               "field-wrap reserva e o canvas nao usa — barato, nao mexe no render; "
               "(2) proporcao responsiva com o palco 2.5D re-derivado — a unica que atinge "
               "<=4%; (3) corrigir a geometria do campo junto, porque 2,11 contra 1,544 e "

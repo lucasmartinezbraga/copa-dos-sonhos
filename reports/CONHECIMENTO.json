@@ -2,7 +2,7 @@
  "_leia_primeiro": "Este arquivo e a base de conhecimento do projeto num lugar so. Se voce e uma IA: carregue ISTO, nao o relatorio de 5.000 linhas. Depois use `python3 tools/defeito.py <ID>` para o defeito em que vai trabalhar.",
  "projeto": "Copa dos Sonhos — simulador de futebol web",
  "gerado_em": "2026-08-12",
- "commit": "d1167708aa5f8d51a778914406df23fe6cc73b89",
+ "commit": "e4f1cb37e081e562e6ecf6f90c6a267d96a86467",
  "branch": "claude/game-ball-physics-issues-50m9e6",
  "placar": {
   "design": "12/13",
@@ -1003,8 +1003,8 @@
    "id": "D24",
    "sev": "tela",
    "fase": "F6",
-   "estado": "aberto",
-   "titulo": "Tarja preta ocupa 24% a 43% da caixa do campo",
+   "estado": "parcial",
+   "titulo": "Tarja preta — RESOLVIDA no layout (31,8% -> 0,5%); falta so o campo CRESCER",
    "locais": [
     {
      "arquivo": "src/scripts/70-game-runtime-and-rendering.js",
@@ -1021,7 +1021,7 @@
     "vazio no quadro <=14% com layout (caminho 1)",
     "<=4% so com proporcao responsiva (caminho 2)"
    ],
-   "medido": "TENTATIVA REVERTIDA — a metrica melhorou 4x e o jogo quebrou na tela.\n1) O CRITERIO ANTIGO E ARITMETICAMENTE IMPOSSIVEL. Com proporcao FIXA, vazio = 1 - min(A,Acaixa)/max(A,Acaixa). As caixas medidas vao de 1,174 (1024x768) a 1,655 (1920x1080) — razao 0,709. Nenhum A fixo da <=4% nas quatro; o melhor possivel (media geometrica, 1,394) deixa 15,8% nas pontas. So proporcao RESPONSIVA atinge o alvo, e isso e mudanca de layout.\n2) A PROPORCAO 2,048 NAO E CSS, E CALIBRACAO DO PALCO 2.5D. O campo real e 105x68 (1,544) e o mundo logico e 1024x500 (2,048): o gramado sai 37% mais largo do que e. Corrigi para CH=673 (gramado 996x645 = 105:68 exato) e o vazio no quadro caiu de 31,8/22,3/28,2/46,0% para 8,2/11,5/7,6/27,3%. Build, verify e smoke passaram. E a tela mostrou o gramado virado num trapezio torto, com um gol so em quadro. A camada 21 projeta com topY=M+34, bottomY=CH-3 e R0=0,72 calibrados para a faixa de 451 px que CH=500 produz; com 624 px a perspectiva se desmonta. Junto vao a escala de altura da bola (22 px/m), o plano de chao e o raio do atleta.\n3) O INSTRUMENTO ESTAVA CEGO DUAS VEZES. caixa.js media so a tarja VERTICAL — esticar o canvas na altura 'consertaria' criando tarja lateral invisivel para ela (depois do conserto, 1920x1080 ficou 0% vertical e 8% lateral). E media dentro do ELEMENTO canvas, nao do quadro que o jogador ve. Agora mede AREA e publica os dois. Sem isso eu teria reportado vitoria sobre um jogo quebrado.\nCAMINHOS, em ordem de custo: (1) devolver ao layout a altura que o field-wrap reserva e o canvas nao usa — barato, nao mexe no render; (2) proporcao responsiva com o palco 2.5D re-derivado — a unica que atinge <=4%; (3) corrigir a geometria do campo junto, porque 2,11 contra 1,544 e defeito proprio. Laudo em reports/D24-a-tarja-preta.md.",
+   "medido": "TENTATIVA REVERTIDA — a metrica melhorou 4x e o jogo quebrou na tela.\n1) O CRITERIO ANTIGO E ARITMETICAMENTE IMPOSSIVEL. Com proporcao FIXA, vazio = 1 - min(A,Acaixa)/max(A,Acaixa). As caixas medidas vao de 1,174 (1024x768) a 1,655 (1920x1080) — razao 0,709. Nenhum A fixo da <=4% nas quatro; o melhor possivel (media geometrica, 1,394) deixa 15,8% nas pontas. So proporcao RESPONSIVA atinge o alvo, e isso e mudanca de layout.\n2) A PROPORCAO 2,048 NAO E CSS, E CALIBRACAO DO PALCO 2.5D. O campo real e 105x68 (1,544) e o mundo logico e 1024x500 (2,048): o gramado sai 37% mais largo do que e. Corrigi para CH=673 (gramado 996x645 = 105:68 exato) e o vazio no quadro caiu de 31,8/22,3/28,2/46,0% para 8,2/11,5/7,6/27,3%. Build, verify e smoke passaram. E a tela mostrou o gramado virado num trapezio torto, com um gol so em quadro. A camada 21 projeta com topY=M+34, bottomY=CH-3 e R0=0,72 calibrados para a faixa de 451 px que CH=500 produz; com 624 px a perspectiva se desmonta. Junto vao a escala de altura da bola (22 px/m), o plano de chao e o raio do atleta.\n3) O INSTRUMENTO ESTAVA CEGO DUAS VEZES. caixa.js media so a tarja VERTICAL — esticar o canvas na altura 'consertaria' criando tarja lateral invisivel para ela (depois do conserto, 1920x1080 ficou 0% vertical e 8% lateral). E media dentro do ELEMENTO canvas, nao do quadro que o jogador ve. Agora mede AREA e publica os dois. Sem isso eu teria reportado vitoria sobre um jogo quebrado.\nENTREGUE (caminho 1): o quadro passou a ter altura de conteudo e a se centralizar, em vez de esticar na linha 1fr do grid do cockpit. Vazio no quadro 31,8/22,3/28,2/46,0% -> 0,5/0,3/0,5/0,8%. aceitar.sh --identico: 14/14 identicas ao digito. Capturas conferidas nas 4 resolucoes.\nCORRECAO DE UMA CONCLUSAO MINHA: a forma do campo na tela NAO depende de CH — `vn=(fy-M)/fH` normaliza antes de projetar. O que quebrou a tentativa 2 foi `bottomY = CH-3`, nao CH. Experimento com a faixa FIXA em 451 px e CH=619: perspectiva intacta (reports/fotos-d24c/). Falta so re-enquadrar a camera, que tambem depende de CH.\nCAMINHOS, em ordem de custo: (1) FEITO — devolver ao layout a altura que o field-wrap reserva e o canvas nao usa — barato, nao mexe no render; (2) proporcao responsiva com o palco 2.5D re-derivado — a unica que atinge <=4%; (3) corrigir a geometria do campo junto, porque 2,11 contra 1,544 e defeito proprio. Laudo em reports/D24-a-tarja-preta.md.",
    "depende": [],
    "risco": "a recomendacao MENOS fundamentada do documento",
    "secao": {
@@ -1355,8 +1355,8 @@
  "defeitos_por_estado": {
   "feito": 10,
   "refutado": 2,
-  "aberto": 16,
-  "parcial": 1,
+  "aberto": 15,
+  "parcial": 2,
   "decidir": 2,
   "guarda-corpo": 2,
   "adiado": 1

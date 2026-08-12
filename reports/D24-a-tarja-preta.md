@@ -1,8 +1,9 @@
-# D24 · a tarja preta — o critério é impossível e a causa não é CSS
+# D24 · a tarja preta — resolvida no layout, com o caminho da solução completa provado
 
-**Data:** 2026-08-12 · **Resultado: mudança revertida.** A métrica melhorou
-quase 4× e o jogo quebrou na tela. Duas conclusões ficam, e as duas mudam o
-defeito.
+**Data:** 2026-08-12 · **Resultado: ENTREGUE** — o vazio dentro do quadro caiu de
+**31,8% / 22,3% / 28,2% / 46,0%** para **0,5% / 0,3% / 0,5% / 0,8%**, com as 14
+métricas **idênticas ao dígito**. Duas tentativas anteriores foram revertidas, e
+o caminho para o passo seguinte está provado por experimento.
 
 ---
 
@@ -122,3 +123,98 @@ do plano de chão.
 
 **A ficha do D24 foi atualizada:** o critério antigo era impossível e agora está
 escrito o que é atingível, com o número medido de cada caminho.
+
+
+---
+
+# ADENDO 1 — a correção que entrou
+
+Nenhuma das duas hipóteses de render era necessária. O quadro (`.field-wrap`)
+tinha `align-self: stretch` + `height: 100%` e tomava a linha `1fr` inteira do
+grid do cockpit. O canvas, de proporção fixa, só conseguia preencher parte dela
+— **o resto virava preto dentro da moldura do campo.**
+
+```css
+/* camada 19 · antes */
+align-self: stretch; height: 100%; max-height: none;
+#fieldcv { position:absolute; bottom:var(--cds-narr-h);
+           height:calc(100% - var(--cds-narr-h)); object-fit:contain; }
+
+/* depois */
+align-self: center;  height: auto;  max-height: 100%;
+#fieldcv { position:relative; width:100%; height:auto;
+           aspect-ratio:1024/500; margin-bottom:var(--cds-narr-h); }
+```
+
+O quadro passa a ter altura de conteúdo e se centraliza. A sobra sai de dentro
+da moldura e vira fundo de página.
+
+| viewport | antes | depois |
+|---|---|---|
+| 1400×900 | 31,8% | **0,5%** |
+| 1920×1080 | 22,3% | **0,3%** |
+| 1280×800 | 28,2% | **0,5%** |
+| 1024×768 | 46,0% | **0,8%** |
+
+`aceitar.sh --depois --identico`: **14/14 idênticas ao dígito.** Smoke em
+Chromium: passou. Capturas conferidas nas quatro resoluções — perspectiva
+intacta, os dois gols em quadro.
+
+**O que isto não faz:** o campo não fica maior. A moldura encolhe até ele. Em
+1024×768 sobra bastante fundo abaixo do quadro, porque o campo é limitado pela
+**largura** da coluna do cockpit.
+
+# ADENDO 2 — a correção da minha própria conclusão
+
+Eu escrevi acima que *"o gramado é desenhado 37% mais largo do que é"*. **Isso
+está errado**, e a matéria-prima para ver o erro estava na projeção o tempo
+todo:
+
+```js
+const vn = (fy - G.M) / fH;                    // normaliza a altura logica
+y: G.bottomY - Yn * (G.bottomY - G.topY)
+```
+
+`vn` normaliza antes de projetar. **A forma do campo na tela não depende de
+`CH`** — depende de `fW`, `topY`, `bottomY` e `R0`. Os 2,11 do espaço lógico
+são intermediários; a perspectiva os normaliza.
+
+E, por consequência, **não foi mudar `CH` que quebrou a tela na tentativa 2 —
+foi `bottomY = CH − 3`.** Com `CH` maior a faixa da projeção saltou de 451 px
+para 624 e espalhou a perspectiva por 38% mais altura.
+
+# ADENDO 3 — o caminho para "o campo perfeito", provado por experimento
+
+Se o acoplamento é só esse, então **fixar a faixa** deve preservar a
+perspectiva com qualquer `CH`. Testei:
+
+```js
+G.bottomY = G.CH - 3;  G.topY = G.bottomY - 451;   // faixa fixa, ancorada embaixo
+const CW=1024, CH=619, M=14;                       // canvas mais alto
+```
+
+**A perspectiva sobreviveu intacta** — trapézio correto, áreas certas, nada do
+desenho torto da tentativa 2. A captura está em `reports/fotos-d24c/`.
+
+O que ainda falta, e é a razão de o experimento não ter entrado: **a câmera
+também depende de `CH`.**
+
+```js
+const cpy = Math.max(vh / 2, Math.min(CH - vh / 2, camY));
+ctx.translate(CW / 2, CH / 2);
+```
+
+Com `CH` maior o enquadramento muda — no experimento o campo ficou mais
+ampliado e cortado embaixo. Para fechar:
+
+1. `CH` responsivo ao contêiner (`CH = CW / proporçãoDaCaixa`, travado numa
+   faixa sã);
+2. faixa da projeção fixa em 451 px, ancorada em `bottomY`;
+3. **câmera re-enquadrada**: o alvo e os limites de `cpy` passam a ser
+   relativos à faixa do gramado, não a `CH`;
+4. o céu/arquibancada preenche o que sobrar acima — preto vira estádio.
+
+Com isso o vazio é **zero em qualquer formato de janela**, sem distorcer o
+campo e sem cortar nada. É trabalho de render com verificação por captura em
+pelo menos quatro resoluções — não é ajuste de constante, mas o caminho deixou
+de ser hipótese: os itens 1 e 2 estão medidos e o item 3 é o que resta.
