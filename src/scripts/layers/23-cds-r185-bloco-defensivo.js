@@ -45,6 +45,12 @@
         py=clamp(p._markRef.y,2,FW-2);
       }
     }
+    /* D20 · NAO ponha teto de profundidade para o FWD aqui. Eu pus, e ele e
+       morto: a camada 60 (R18.43) roda DEPOIS e aplica um PISO de 32 m ao
+       atacante defendendo, entao qualquer teto daqui e reescrito para cima.
+       Medido pela sonda tools/fisica/ramo-d20.js: com o teto em linha+18,
+       22,9% dos alvos de FWD ainda voltavam acima de linha+30.
+       O dono do comprimento do bloco e a camada 60. */
     return[fromProg(tm,clamp(px,1,FL-1)),clamp(py,1,FW-1)];
   };
   const oldIntegrate=P._integrate;

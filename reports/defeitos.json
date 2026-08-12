@@ -622,7 +622,7 @@
      "arquivo": "src/scripts/layers/23-cds-r185-bloco-defensivo.js",
      "linha": 51,
      "ancora": "P._integrate=function(p,tx,ty,dt,freeze){",
-     "linha_atual": 51
+     "linha_atual": 57
     }
    ],
    "evidencia": "_breaking e lido em _cross para montar lowPool — a elegibilidade para receber cruzamento depende de um campo que outras camadas mentem",
@@ -752,6 +752,7 @@
     "stamina final 55-68",
     "passes +-5,53"
    ],
+   "feito_em": "TRES TENTATIVAS REPROVADAS, todas medidas em 300 partidas. Laudo completo em reports/D19-D20-a-mesma-alavanca.md. Resumo: (1) achatar a fadiga na velocidade passou nos dois portoes e levou os gols de 76+ de 14,7% para 16,1%, mas nao atingiu os criterios declarados e PIOROU o D20 (encurtamento do bloco 2,8 -> 0,8 m); (2) compactar o bloco reprovou feio (chutes -2,18, gols -0,374); (3) o piso que envelhece com a stamina quase recuperou os gols (-0,07) e NAO moveu a distribuicao. CONCLUSAO: forma e volume de chances sao a MESMA alavanca em sentidos opostos. Falta ao motor uma FASE DE TRANSICAO (o time que perde a bola recompoe, nao so troca de alvo). E trabalho de modelo, nao de constante.",
    "medido": "CAUSA ISOLADA — tools/fisica/ramo-d19.js, 48 partidas. O r=0,814 do documento e correlacao, nao mecanismo: stamina cai monotonicamente e qualquer coisa que caia junto correlaciona alto com ela. A sonda separou as quatro historias possiveis pela razao 76+ / 0-15, tudo POR MINUTO DE JOGO (`sim.minute`, nao `sim.t`):\n  H1 chutes por minuto ....... 0,685  <== E ESTA\n  H2 acerto ao alvo por chute  0,996  estavel — DESCARTADA\n  H3 fracao de bola em jogo .. 1,078  estavel — DESCARTADA\n  H4 simulacao por minuto .... 0,928  uniforme — DESCARTADA\nO jogo NAO erra mais no fim: ele CRIA 31% menos chutes e converte igual. O conserto e no que gera a chance, nao na finalizacao nem no relogio.\nAVISO: a MESMA sonda com 8 partidas deu H2 = 0,504, que parecia um segundo mecanismo e era ruido (131 gols em 48 partidas dao SE ~3,1 pp por faixa; com 8 partidas nao da para concluir nada). E a armadilha B7 acontecendo ao vivo.",
    "depende": [
     "D17"
@@ -846,7 +847,7 @@
      "arquivo": "src/scripts/20-core.js",
      "linha": 611,
      "ancora": "conversionScale: 2.25",
-     "linha_atual": 615
+     "linha_atual": 680
     }
    ],
    "evidencia": "0,326 medido; dentro da faixa real 0,30-0,40, fora da faixa de design",
@@ -1011,7 +1012,7 @@
      "arquivo": "src/scripts/20-core.js",
      "linha": 598,
      "ancora": "foulBase: 0.29",
-     "linha_atual": 598
+     "linha_atual": 607
     }
    ],
    "evidencia": "faltas 22,25 hoje (faixa real 19-26), trazidas pela OS-206 e nao pelo parametro",
@@ -1070,7 +1071,7 @@
      "arquivo": "src/scripts/20-core.js",
      "linha": 634,
      "ancora": "lowCrossSaveCorner: 0.55",
-     "linha_atual": 643
+     "linha_atual": 708
     }
    ],
    "evidencia": "o comentario diz 5,0-11,5; targets.corners diz [3, 9]; medido 11,18",
@@ -1133,7 +1134,7 @@
      "arquivo": "src/scripts/40-match-engine-and-manager-ai.js",
      "linha": null,
      "ancora": "function chooseOut(tm,mode)",
-     "linha_atual": 4241
+     "linha_atual": 4273
     }
    ],
    "evidencia": "usa estado privado da IIFE; e a maior fatia nao lida deste documento",

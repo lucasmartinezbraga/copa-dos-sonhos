@@ -20,33 +20,33 @@ D29  Duas faixas de design conflitantes para escanteios no mesmo arquivo
 CODIGO ATUAL (localizado por ancora, nao por numero de linha)
 ──────────────────────────────────────────────────────────────────────────────
 
-  src/scripts/20-core.js:643   (o documento dizia linha 634 — o codigo andou)
+  src/scripts/20-core.js:708   (o documento dizia linha 634 — o codigo andou)
 
-      631 │     maxGoalChance: 0.58,
-      632 │     savedShare: 0.20,
-      633 │     keeperSaveInfluence: 0.21,
-      634 │     blockedShare: 0.18,
-      635 │     postShare: 0.055,
-      636 │   }),
-      637 │   restarts: Object.freeze({
-      638 │     /* CALIBRAÇÃO (auditoria v5.2.2): escanteios mediam 4.08/partida com a
-      639 │        faixa de design em 5.0–11.5. Shares elevados ~25% de forma distribuída
-      640 │        — desvios, bloqueios e bolas na trave passam a morrer mais na linha de
-      641 │        fundo, como no futebol real (~10/jogo). Validado por bateria de 100
-      642 │        partidas antes do commit. */
-  >   643 │     lowCrossSaveCorner: 0.55,
-      644 │     failedCrossCorner: 0.76,
-      645 │     aerialSaveCorner: 0.58,
-      646 │     aerialBlockCorner: 0.70,
-      647 │     shotSaveCorner: 0.68,
-      648 │     shotBlockCorner: 0.66,
-      649 │     postCorner: 0.64,
-      650 │     freeKickSaveCorner: 0.68,
-      651 │   }),
-      652 │   targets: Object.freeze({
-      653 │     goals: Object.freeze([1.8, 2.8]),
-      654 │     shots: Object.freeze([13, 21]),
-      655 │     passCompletion: Object.freeze([0.76, 0.88]),
+      696 │     maxGoalChance: 0.58,
+      697 │     savedShare: 0.20,
+      698 │     keeperSaveInfluence: 0.21,
+      699 │     blockedShare: 0.18,
+      700 │     postShare: 0.055,
+      701 │   }),
+      702 │   restarts: Object.freeze({
+      703 │     /* CALIBRAÇÃO (auditoria v5.2.2): escanteios mediam 4.08/partida com a
+      704 │        faixa de design em 5.0–11.5. Shares elevados ~25% de forma distribuída
+      705 │        — desvios, bloqueios e bolas na trave passam a morrer mais na linha de
+      706 │        fundo, como no futebol real (~10/jogo). Validado por bateria de 100
+      707 │        partidas antes do commit. */
+  >   708 │     lowCrossSaveCorner: 0.55,
+      709 │     failedCrossCorner: 0.76,
+      710 │     aerialSaveCorner: 0.58,
+      711 │     aerialBlockCorner: 0.70,
+      712 │     shotSaveCorner: 0.68,
+      713 │     shotBlockCorner: 0.66,
+      714 │     postCorner: 0.64,
+      715 │     freeKickSaveCorner: 0.68,
+      716 │   }),
+      717 │   targets: Object.freeze({
+      718 │     goals: Object.freeze([1.8, 2.8]),
+      719 │     shots: Object.freeze([13, 21]),
+      720 │     passCompletion: Object.freeze([0.76, 0.88]),
 
 ──────────────────────────────────────────────────────────────────────────────
 DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:3098-3136

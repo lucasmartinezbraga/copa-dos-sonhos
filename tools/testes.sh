@@ -49,14 +49,15 @@ roda "motor sem DOM — integridade V3, goleiros, estado"      node tests/phase2
 roda "grafo de inclusoes da versao de dev"                   python3 tests/dev_graph_check.py
 roda "portao de design — reprova o que deve"                 python3 tests/regressao_design_test.py
 roda "catalogo — ancoras e secoes ainda casam"               python3 tools/defeitos.py --check
+roda "auditor — aponta o positivo conhecido e cala depois"    python3 tests/auditor_test.py
 
 echo
 if [ "$falhas" -eq 0 ]; then
-  verde "7/7 passaram."
+  verde "8/8 passaram."
   echo "Isto diz que esta tudo de pe. NAO diz que o jogo ficou melhor —"
   echo "para isso: bash tools/aceitar.sh --antes / --depois"
   exit 0
 fi
-vermelho "$falhas de 7 falharam:"
+vermelho "$falhas de 8 falharam:"
 for n in "${nomes[@]}"; do vermelho "  - $n"; done
 exit 1

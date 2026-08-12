@@ -1,6 +1,6 @@
 # As armadilhas deste código
 
-**Vinte e três.** Cada uma custou pelo menos uma rodada de medição de 25
+**Vinte e seis.** Cada uma custou pelo menos uma rodada de medição de 25
 minutos; várias custaram mais. Estavam espalhadas por `CLAUDE.md`, pelo Volume
 VIII‑A do relatório, pelos laudos e pelos comentários do código.
 
@@ -10,9 +10,9 @@ Elas estão em quatro grupos, porque erram por motivos diferentes:
 
 | grupo | o que engana | quantas |
 |---|---|---|
-| **A · a pilha de camadas** | o código que você lê não é o que executa | 5 |
-| **B · a medição** | o número existe e mede outra coisa | 7 |
-| **C · as ferramentas** | a ferramenta funciona e mente | 6 |
+| **A · a pilha de camadas** | o código que você lê não é o que executa | 6 |
+| **B · a medição** | o número existe e mede outra coisa | 8 |
+| **C · as ferramentas** | a ferramenta funciona e mente | 7 |
 | **D · o processo** | você mesmo, com pressa | 5 |
 
 ---
@@ -75,6 +75,27 @@ coisa. Parecia abuso de variável, e era. Mas o carimbo **suprimia a roleta por
 Removi o abuso, mantive o predicado, perdi a janela — e o `drawRate` andou
 **3,53 SE**. Ao limpar um efeito colateral, pergunte primeiro **quem está de pé
 em cima dele**.
+
+## A6 · A camada reimplementa o método inteiro e repete a constante
+
+`_integrate` existe no motor **e** na camada 16, cada um com a sua cópia de
+`staminaF = 0.7 + stamina/100 * 0.3`. Editei a do motor, reconstruí, rodei o
+funil de 32 partidas: **idêntico ao dígito.** 0,913 de velocidade, 0,613 em
+alcance — os mesmos três dígitos de antes.
+
+A `pilha.js` responde **VIVA** para `_integrate` e está certa: o método roda. A
+linha não. **Sétima vez neste projeto.**
+
+Existe detector agora:
+
+```bash
+python3 tools/auditor.py --forma 1
+```
+
+Ele aponta a constante duplicada e o método em que ela mora. Rodando hoje,
+achou um segundo caso que ninguém conhecia: a velocidade de chute
+`34 + shot/100*16` mora no core **e** na camada 14, e as duas precisam
+concordar para o cálculo de interceptação bater com o chute real.
 
 ---
 
@@ -146,6 +167,29 @@ percentuais só de ruído. Sonda exploratória pode usar 8–12; **conclusão, n
 Erro-padrão de uma proporção: `SE = raiz(p(1−p)/n)`. Com n = 300 e p ≈ 0,2 dá
 **0,023** — diferença menor que 0,046 **não é sinal**.
 
+## B8 · Detector sem teste contra positivo conhecido é detector calado
+
+Escrevi o `auditor.py` para achar a A6 automaticamente. Ele respondeu
+**"nada"** — com o caso na frente dele. Três causas, todas minhas, todas no
+mesmo dia:
+
+1. o regex não aceitava vírgula, e a camada escreve `finite(p.stamina,75)`;
+2. a forma 3 procurava `ritmoPorFaixa` na raiz do JSON, e ela mora sob `fisica`
+   — devolvia lista vazia, indistinguível de "está tudo bem";
+3. a forma 3 comparava **totais** por faixa, e a faixa 46‑60 recebe mais
+   simulação: a série do D19 deixava de parecer monótona (a armadilha B3, de
+   novo, contra mim).
+
+O mesmo modo de falha do portão do D11: **uma verificação que nunca reprovou
+nada não está testada, está calada.**
+
+Por isso `tests/auditor_test.py` e `tests/regressao_design_test.py` existem, e
+por isso os dois exigem as duas metades:
+
+> aponta o caso conhecido **e** cala depois do conserto.
+
+Detector que aponta sempre vira ruído, e ruído ninguém lê.
+
 ---
 
 # C · As ferramentas
@@ -189,6 +233,18 @@ metade de 90 em metade do tempo. Não há anomalia; o teto de gravação é que 
 curto. A retratação está em `reports/video/indice.json`.*
 
 **Duas armadilhas na mesma corrida, e a segunda foi eu acreditando na primeira.**
+
+## C4b · Esperar por processo corre contra a largada
+
+`until ! pgrep -f 'bateria.js'; do sleep; done` saiu **imediatamente** — o
+`aceitar.sh` ainda estava na fase de build e a bateria nem tinha subido. Eu li
+o log vazio e quase reportei "a medição não produziu nada".
+
+Espere pelo **resultado**, não pelo processo:
+
+```bash
+until grep -qE "APROVADO|REPROVADO" "$LOG"; do sleep 25; done
+```
 
 ## C5 · Não dê a um arquivo Python o nome de um módulo da biblioteca
 

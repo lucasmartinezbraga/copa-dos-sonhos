@@ -2760,6 +2760,15 @@ const ENGINE_CALIBRATION = Object.freeze({
     transitionProtection: 0.42,
   }),
   passing: Object.freeze({
+    /* POTENCIA E VELOCIDADE DO PASSE — mesma historia da velocidade de chute:
+       `0.92 + pass/100*0.16` estava em `_startTravel`, na mira, e na copia da
+       camada 14 que estima interceptacao. As velocidades por tipo idem.
+       Valores inalterados. */
+    powerBase: 0.92,
+    powerRange: 0.16,
+    speedLaunch: 22.5,
+    speedThrough: 19.5,
+    speedShort: 16.2,
     baseError: 0.018,
     pressureError: 0.075,
     longPassError: 0.090,
@@ -2787,8 +2796,64 @@ const ENGINE_CALIBRATION = Object.freeze({
     yellowFirst: 0.125,
     yellowSecond: 0.05,
     straightRed: 0.0008,
+
+    /* D20 · O COMPRIMENTO DO BLOCO NAO MORA AQUI — E ISSO ESTA MEDIDO.
+       -----------------------------------------------------------------
+       Fica escrito porque a proxima pessoa vai querer por o parametro aqui,
+       como eu quis, e vai gastar quatro baterias de 300 partidas.
+
+       O dono e a camada 60 (R18.43), com dois pisos de profundidade do
+       atacante: 32 m a frente da propria zaga DEFENDENDO e 33 m ATACANDO. Um
+       metro de diferenca — e o encurtamento do bloco ao perder a bola E essa
+       diferenca. Medido com forma.js: 41,0 m com a bola, 38,2 m sem, 2,8 m de
+       encurtamento contra 8 a 10 do futebol de elite.
+
+       O que NAO funcionou, tudo medido em 300 partidas:
+
+         piso defensivo 32 -> 24 (fixo)
+             forma: 41,0 -> 36,7 com bola e 38,2 -> 33,3 sem — os DOIS dentro
+             da faixa real pela primeira vez.
+             portao: REPROVADO. chutes -2,18, gols -0,374, escanteios -1,29,
+             zeroZeroRate 0,080 -> 0,127 (fora). Bloco compacto o tempo todo
+             mata o ataque: o atacante recuado tem chao demais na transicao.
+
+         piso que envelhece com a stamina do time (24 inteiro -> 33 exausto)
+             portao: REPROVADO. chutes -1,28 (2 SE = 1,18) e cartoes vermelhos
+             0,250 -> 0,310, fora da faixa por 0,01. Os gols quase voltaram
+             (-0,07), mas a distribuicao por faixa NAO melhorou: 76+ ficou em
+             14,7%, o mesmo de antes.
+
+         achatar a fadiga na velocidade (o D19, staminaF .7+.3 -> .75+.25)
+             portao: APROVADO nos dois criterios, gols 76+ de 14,7% para 16,1%.
+             forma: o encurtamento do bloco CAIU de 2,8 para 0,8 m.
+
+       A conclusao vale mais que qualquer um dos tres: forma e volume de
+       chances sao a MESMA alavanca puxada em sentidos opostos, e nenhum
+       parametro isolado paga as duas pontas. O caminho que sobra nao e
+       calibrar — e dar ao motor uma fase de transicao de verdade, em que o
+       time que perde a bola recompoe em vez de so mudar de alvo.
+
+       Laudo completo em reports/D19-D20-a-mesma-alavanca.md. */
   }),
   shooting: Object.freeze({
+    /* VELOCIDADE DO CHUTE, em m/s: base + faceta 'shot' de 0 a 100, com teto.
+       -------------------------------------------------------------------
+       Estava escrita QUATRO VEZES com os mesmos numeros: em `_startTravel`,
+       na falta, no penalti e — a pior — dentro da camada 14, que usa a copia
+       dela para ESTIMAR a interceptacao do chute. Achado por
+       `python3 tools/auditor.py --forma 1`, que procura exatamente isto.
+
+       Quatro copias de um numero nao sao quatro numeros: sao um numero e tres
+       chances de ele divergir. Se alguem mudasse a do motor, a camada 14
+       passaria a calcular a interceptacao de um chute que nao existe — o
+       defensor iria para o lugar errado e ninguem teria como ver, porque a
+       trajetoria continuaria plausivel.
+
+       Os valores nao mudaram: 34 + shot/100*16, preso entre 32 e 54. */
+    speedBase: 34,
+    speedRange: 16,
+    speedMin: 32,
+    speedMax: 54,
     distanceXg: Object.freeze([
       [6, 0.48], [11, 0.27], [16, 0.135], [22, 0.064], [30, 0.032], [Infinity, 0.015],
     ]),
@@ -6093,8 +6158,8 @@ class MatchSim {
       : best.dist > 32 ? 'launch' : 'short';
     // R7: a previsão de interceptação usa a MESMA velocidade da execução.
     // O passe curto anterior chegava perto de 30 m/s e criava alvos irreais.
-    const passPowPhysical = 0.92 + facet(o,'pass')/100 * 0.16;
-    const passSpeedPhysical = kind === 'launch' ? 22.5 : kind === 'through' ? 19.5 * passPowPhysical : 16.2 * passPowPhysical;
+    const passPowPhysical = CAL.passing.powerBase + facet(o,'pass')/100 * CAL.passing.powerRange;
+    const passSpeedPhysical = kind === 'launch' ? CAL.passing.speedLaunch : kind === 'through' ? CAL.passing.speedThrough * passPowPhysical : CAL.passing.speedShort * passPowPhysical;
     const _os82BlockRadius=kind==='through'?1.58:1.45,_os82ControlRadius=1.00;
     const _os82Block=inter?this._actorInterceptTarget(inter.d,this.ball.x,this.ball.y,{x:m.x,y:m.y},passSpeedPhysical,_os82BlockRadius,'pass',kind):null;
     const _os82Control=inter?this._actorInterceptTarget(inter.d,this.ball.x,this.ball.y,{x:m.x,y:m.y},passSpeedPhysical,_os82ControlRadius,'pass',kind):null;
@@ -6181,8 +6246,8 @@ class MatchSim {
       // projetava o receptor até 10 m à frente e fazia passes bons parecerem
       // lançamentos sem sentido. Passe curto agora prioriza o pé; somente a
       // bola em profundidade ataca espaço de forma agressiva.
-      const passPowAim = 0.92 + facet(o,'pass')/100 * 0.16;
-      const spdK = kind === 'launch' ? 22.5 : kind === 'through' ? 19.5 * passPowAim : 16.2 * passPowAim;
+      const passPowAim = CAL.passing.powerBase + facet(o,'pass')/100 * CAL.passing.powerRange;
+      const spdK = kind === 'launch' ? CAL.passing.speedLaunch : kind === 'through' ? CAL.passing.speedThrough * passPowAim : CAL.passing.speedShort * passPowAim;
       const tv = best.dist / Math.max(12, spdK);
       const mv = Math.hypot(m.vx, m.vy);
       const rawLead = mv > 0.75 ? mv * tv : 0;
@@ -6570,8 +6635,8 @@ class MatchSim {
     // Passe forte de bom passador viaja mais rápido; cruzamento/lançamento é aéreo.
     // R7 · força calibrada: qualidade altera precisão e um pouco da força,
     // sem transformar todo passe curto em uma pancada de quase 30 m/s.
-    const passPow = 0.92 + facet(o,'pass')/100 * 0.16;   // 0.92..1.08
-    const spd = kind === 'shot' ? clamp(34 + facet(o,'shot')/100*16, 32, 54)
+    const passPow = CAL.passing.powerBase + facet(o,'pass')/100 * CAL.passing.powerRange;   // 0.92..1.08
+    const spd = kind === 'shot' ? clamp(CAL.shooting.speedBase + facet(o,'shot')/100*CAL.shooting.speedRange, CAL.shooting.speedMin, CAL.shooting.speedMax)
               : passKind === 'launch' ? 24.3
               : passKind === 'through' ? 21.1 * passPow
               : 17.5 * passPow;
@@ -7034,7 +7099,7 @@ class MatchSim {
     const goalY=clamp(tmA.oppGoal.y+((visual&&visual.actualX!=null)?(visual.actualX-.5)*6:R(-3,3)),tmA.oppGoal.y-3.3,tmA.oppGoal.y+3.3);
     const fkHeight=clamp((1-((visual&&Number.isFinite(visual.actualY))?visual.actualY:.52))*2.35,.16,2.32);
     const fkGoalAim={x:tmA.oppGoal.x+tmA.attackDir*.9,y:goalY,z:fkHeight};
-    const fkSpeed=clamp(34+facet(taker,'shot')/100*16,32,54);
+    const fkSpeed=clamp(CAL.shooting.speedBase+facet(taker,'shot')/100*CAL.shooting.speedRange,CAL.shooting.speedMin,CAL.shooting.speedMax);
     const saveTarget=this._gkInterceptTarget(gk,taker.x,taker.y,fkGoalAim,fkSpeed,1.95);
     if(result==='save'&&!saveTarget)result='miss';
     this.stats[team].xg += pGoal;
@@ -7112,7 +7177,7 @@ class MatchSim {
     const aimLat = clamp(pg.y + (actualX - .5) * 6.6, pg.y - 3.3, pg.y + 3.3);
     const penaltyHeight=clamp((1-actualY)*2.35,.12,2.28);
     const penaltyGoalAim={x:pg.x+tmA.attackDir*.9,y:aimLat,z:penaltyHeight};
-    const penaltySpeed=clamp(34+facet(taker,'shot')/100*16,32,54);
+    const penaltySpeed=clamp(CAL.shooting.speedBase+facet(taker,'shot')/100*CAL.shooting.speedRange,CAL.shooting.speedMin,CAL.shooting.speedMax);
     const penaltySaveTarget=this._gkInterceptTarget(gk,taker.x,taker.y,penaltyGoalAim,penaltySpeed,1.95);
     if(result==='save'&&!penaltySaveTarget)result='goal';
     this._emit('penalty', { by: taker, manual, visual, result });
@@ -7910,6 +7975,38 @@ class MatchSim {
     const dx = tx - p.x, dy = ty - p.y;
     const dist = Math.hypot(dx, dy) || 1e-6;
     // velocidade desejada (desaceleração suave perto do alvo)
+    /* D19 · a fadiga entra na velocidade AQUI, e era a unica coisa que ela
+       fazia com o ritmo da partida. Medido (tools/fisica/ramo-d19b.js, funil
+       de 32 partidas, razao 76+/0-15 por minuto de jogo):
+
+           posses ................ 0,940  estavel
+           decisoes .............. 0,940  estavel
+           avanco medio ........... 0,981  estavel
+           velocidade media ....... 0,913  <-- esta linha
+           EM ALCANCE (10-27 m) ... 0,613  <-- e o que desaba
+           chutes ................. 0,611
+
+       O time faz as mesmas posses, toma as mesmas decisoes e fica na mesma
+       distancia MEDIA do gol. O que ele deixa de fazer e ENTRAR na faixa de
+       chute: -39%. Uma perda de 8,7% de velocidade virou 39% de penetracao —
+       porque a jogada tem um orcamento de tempo antes de acabar, e jogador
+       mais lento cobre menos chao dentro dele.
+
+       O valor 0,7 vinha de quando `stamina` so servia para dar cansaco visivel.
+       Com o funil medido ele passou a decidir quantos gols saem no fim de
+       jogo. Aqui a curva e achatada: a fadiga continua custando velocidade,
+       custando menos no fundo da escala.
+
+       ⚠ MAS NAO EDITE ESTA LINHA: ELA NAO RODA.
+       A camada 16 (`16-cds-r12-transactional-core-r123.js`) reimplementa
+       `_integrate` INTEIRO, com o seu proprio `staminaF=.7+stamina/100*.3`, e
+       o resultado dela e o que vale. Eu editei aqui primeiro: o funil de 32
+       partidas voltou IDENTICO AO DIGITO — 0,913 de velocidade, 0,613 em
+       alcance. A `pilha.js` responde VIVA para `_integrate` e esta certa: o
+       METODO roda. Esta LINHA nao. E a armadilha A2 do reports/ARMADILHAS.md,
+       pela setima vez neste projeto.
+
+       O conserto do D19 esta na camada 16. */
     const staminaF = 0.7 + p.stamina/100 * 0.3;
     // RITMO INDIVIDUAL (§movimento): nem todo jogador corre a 100% o tempo todo —
     // isso é o que causava a "mesma velocidade" (deslizar em bloco). Cada um tem uma
@@ -16800,7 +16897,7 @@ P._startTravel=function(o,target,kind,onArrive,receiver,passKind,meta){const b=t
  if(target&&kind==='pass'&&receiver&&!m.actor){const ox=origin.x,oy=origin.y,rx=finite(receiver.x),ry=finite(receiver.y),baseAng=Math.atan2(ry-oy,rx-ox),tx=finite(target.x,rx),ty=finite(target.y,ry),off=dist(tx,ty,rx,ry),maxOff=pk==='through'?9.5:pk==='launch'?6.5:3.0;if(off>maxOff){const q=maxOff/Math.max(EPS,off);target.x=rx+(tx-rx)*q;target.y=ry+(ty-ry)*q;diag(this).passTargetsClamped++;}
    const vx=finite(target.x)-ox,vy=finite(target.y)-oy,len=Math.max(EPS,Math.hypot(vx,vy)),ang=Math.atan2(vy,vx),norm=a=>{while(a>Math.PI)a-=Math.PI*2;while(a<-Math.PI)a+=Math.PI*2;return a;},lim=(pk==='through'?25:pk==='launch'?35:18)*Math.PI/180,delta=norm(ang-baseAng);if(Math.abs(delta)>lim){const ca=baseAng+Math.sign(delta)*lim;target.x=clamp(ox+Math.cos(ca)*len,.5,FL-.5);target.y=clamp(oy+Math.sin(ca)*len,.5,FW-.5);diag(this).passAnglesClamped++;}
  }
- if(target&&m.actor&&typeof this._actorInterceptTarget==='function'){const fq=(a,k,f)=>{try{return typeof root.facet==='function'?finite(root.facet(a,k),f):f;}catch(_){return f;}},passQ=fq(o,'pass',70),shotQ=fq(o,'shot',70),passPow=.92+passQ/100*.16,estimate=kind==='shot'?clamp(34+shotQ/100*16,32,54):(pk==='launch'?22.5:pk==='through'?19.5*passPow:16.2*passPow),rad=Number.isFinite(m.contactRadius)?m.contactRadius:(m.actor.isGK?1.9:1.35);let hit=null;try{hit=m.actor.isGK&&kind==='shot'&&typeof this._gkInterceptTarget==='function'?this._gkInterceptTarget(m.actor,origin.x,origin.y,target,estimate,rad):this._actorInterceptTarget(m.actor,origin.x,origin.y,target,estimate,rad,kind,pk);}catch(_){}if(hit){target.x=hit.x;target.y=hit.y;target.z=hit.z;m.interceptT=hit.t;m.targetZ=hit.z;diag(this).plannedContactsRebased++;}}
+ if(target&&m.actor&&typeof this._actorInterceptTarget==='function'){const fq=(a,k,f)=>{try{return typeof root.facet==='function'?finite(root.facet(a,k),f):f;}catch(_){return f;}},passQ=fq(o,'pass',70),shotQ=fq(o,'shot',70),_c14=root.ENGINE_CALIBRATION||{},_sh=_c14.shooting||{},_pa=_c14.passing||{},passPow=(typeof _pa.powerBase==='number'?_pa.powerBase:.92)+passQ/100*(typeof _pa.powerRange==='number'?_pa.powerRange:.16),estimate=kind==='shot'?clamp((typeof _sh.speedBase==='number'?_sh.speedBase:34)+shotQ/100*(typeof _sh.speedRange==='number'?_sh.speedRange:16),(typeof _sh.speedMin==='number'?_sh.speedMin:32),(typeof _sh.speedMax==='number'?_sh.speedMax:54)):(pk==='launch'?(typeof _pa.speedLaunch==='number'?_pa.speedLaunch:22.5):pk==='through'?(typeof _pa.speedThrough==='number'?_pa.speedThrough:19.5)*passPow:(typeof _pa.speedShort==='number'?_pa.speedShort:16.2)*passPow),rad=Number.isFinite(m.contactRadius)?m.contactRadius:(m.actor.isGK?1.9:1.35);let hit=null;try{hit=m.actor.isGK&&kind==='shot'&&typeof this._gkInterceptTarget==='function'?this._gkInterceptTarget(m.actor,origin.x,origin.y,target,estimate,rad):this._actorInterceptTarget(m.actor,origin.x,origin.y,target,estimate,rad,kind,pk);}catch(_){}if(hit){target.x=hit.x;target.y=hit.y;target.z=hit.z;m.interceptT=hit.t;m.targetZ=hit.z;diag(this).plannedContactsRebased++;}}
  const r=oldStart.call(this,o,target,kind,onArrive,receiver,passKind,m);if(kind==='pass'&&this.ball){const now=finite(this.t),eta=Math.max(.1,finite(this.ball._timeout,1));this.ball.__r10Pass={start:now,expectedArrival:now+eta,hardDeadline:now+eta+8.0,receiver:receiver||null,kind:pk,bestDistance:Infinity,lastProgress:now};}return r;};
 
 /* Pequena tolerância numérica para um agente que concluiu 100% do plano de
@@ -21129,6 +21226,12 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
         py=clamp(p._markRef.y,2,FW-2);
       }
     }
+    /* D20 · NAO ponha teto de profundidade para o FWD aqui. Eu pus, e ele e
+       morto: a camada 60 (R18.43) roda DEPOIS e aplica um PISO de 32 m ao
+       atacante defendendo, entao qualquer teto daqui e reescrito para cima.
+       Medido pela sonda tools/fisica/ramo-d20.js: com o teto em linha+18,
+       22,9% dos alvos de FWD ainda voltavam acima de linha+30.
+       O dono do comprimento do bloco e a camada 60. */
     return[fromProg(tm,clamp(px,1,FL-1)),clamp(py,1,FW-1)];
   };
   const oldIntegrate=P._integrate;

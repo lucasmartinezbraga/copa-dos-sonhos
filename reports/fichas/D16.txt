@@ -53,33 +53,33 @@ CODIGO ATUAL (localizado por ancora, nao por numero de linha)
        32 │           ty=p.y+(_y-p.y)*FATOR;
        33 │           return oldInt.call(this,p,tx,ty,dt,freeze);
 
-  src/scripts/layers/23-cds-r185-bloco-defensivo.js:51
+  src/scripts/layers/23-cds-r185-bloco-defensivo.js:57   (o documento dizia linha 51 — o codigo andou)
 
-       39 │       const minDepth=line-1.8;
-       40 │       px=clamp(px,minDepth,maxAhead);
-       41 │       if(p._markRef&&!p._markRef.red){
-       42 │         const ap=ownProg(tm,p._markRef.x);
-       43 │         px=Math.min(px,ap-1.05);
-       44 │         /* Fecha lateralmente a referência sem atravessar o corredor inteiro. */
        45 │         py=clamp(p._markRef.y,2,FW-2);
        46 │       }
        47 │     }
-       48 │     return[fromProg(tm,clamp(px,1,FL-1)),clamp(py,1,FW-1)];
-       49 │   };
-       50 │   const oldIntegrate=P._integrate;
-  >    51 │   P._integrate=function(p,tx,ty,dt,freeze){
-       52 │     const marked=p&&p._markRef&&!p._markRef.red;
-       53 │     const saved=p&&p._breaking;
-       54 │     /* Recuperação de cobertura entra em sprint um pouco antes. O teto físico
-       55 │        continua sendo maxSpd/acc do próprio atleta. */
-       56 │     if(marked&&dist(p,p._markRef)>2.55)p._breaking=saved||{r185Coverage:true};
-       57 │     try{return oldIntegrate.apply(this,arguments);}finally{if(marked)p._breaking=saved;}
-       58 │   };
-       59 │   const oldFull=P.getFullFootballAudit;
-       60 │   P.getFullFootballAudit=function(){const r=oldFull?oldFull.apply(this,arguments):{};r.version=VERSION;return r;};
-       61 │   try{root.CDS_BUILD_ID='R18.5';root.CDS_VERSION=VERSION;document.title='Copa dos Sonhos — R18.5';}catch(_){ }
-       62 │   root.CDS_R185=Object.freeze({version:VERSION,connectedBlock:true,goalSideRecovery:true});
-       63 │ })(typeof window!=='undefined'?window:globalThis);
+       48 │     /* D20 · NAO ponha teto de profundidade para o FWD aqui. Eu pus, e ele e
+       49 │        morto: a camada 60 (R18.43) roda DEPOIS e aplica um PISO de 32 m ao
+       50 │        atacante defendendo, entao qualquer teto daqui e reescrito para cima.
+       51 │        Medido pela sonda tools/fisica/ramo-d20.js: com o teto em linha+18,
+       52 │        22,9% dos alvos de FWD ainda voltavam acima de linha+30.
+       53 │        O dono do comprimento do bloco e a camada 60. */
+       54 │     return[fromProg(tm,clamp(px,1,FL-1)),clamp(py,1,FW-1)];
+       55 │   };
+       56 │   const oldIntegrate=P._integrate;
+  >    57 │   P._integrate=function(p,tx,ty,dt,freeze){
+       58 │     const marked=p&&p._markRef&&!p._markRef.red;
+       59 │     const saved=p&&p._breaking;
+       60 │     /* Recuperação de cobertura entra em sprint um pouco antes. O teto físico
+       61 │        continua sendo maxSpd/acc do próprio atleta. */
+       62 │     if(marked&&dist(p,p._markRef)>2.55)p._breaking=saved||{r185Coverage:true};
+       63 │     try{return oldIntegrate.apply(this,arguments);}finally{if(marked)p._breaking=saved;}
+       64 │   };
+       65 │   const oldFull=P.getFullFootballAudit;
+       66 │   P.getFullFootballAudit=function(){const r=oldFull?oldFull.apply(this,arguments):{};r.version=VERSION;return r;};
+       67 │   try{root.CDS_BUILD_ID='R18.5';root.CDS_VERSION=VERSION;document.title='Copa dos Sonhos — R18.5';}catch(_){ }
+       68 │   root.CDS_R185=Object.freeze({version:VERSION,connectedBlock:true,goalSideRecovery:true});
+       69 │ })(typeof window!=='undefined'?window:globalThis);
 
 ──────────────────────────────────────────────────────────────────────────────
 DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2233-2331

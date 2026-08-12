@@ -23,33 +23,33 @@ D22  Acerto ao alvo 0,326 abaixo do minimo de design 0,34 (unica metrica que fal
 CODIGO ATUAL (localizado por ancora, nao por numero de linha)
 ──────────────────────────────────────────────────────────────────────────────
 
-  src/scripts/20-core.js:615   (o documento dizia linha 611 — o codigo andou)
+  src/scripts/20-core.js:680   (o documento dizia linha 611 — o codigo andou)
 
-      603 │        A distorcao ficou invisivel enquanto o jogo tinha 15,5 faltas por
-      604 │        partida: o numero de cartoes saia certo por compensacao de dois erros.
-      605 │        Quando a OS-206 levou as faltas para 22 (dentro da faixa real de 19-26),
-      606 │        os cartoes estouraram e mostraram a taxa verdadeira. */
-      607 │     yellowFirst: 0.125,
-      608 │     yellowSecond: 0.05,
-      609 │     straightRed: 0.0008,
-      610 │   }),
-      611 │   shooting: Object.freeze({
-      612 │     distanceXg: Object.freeze([
-      613 │       [6, 0.48], [11, 0.27], [16, 0.135], [22, 0.064], [30, 0.032], [Infinity, 0.015],
-      614 │     ]),
-  >   615 │     conversionScale: 2.25,
-      616 │     /* BALANCEAMENTO · finalizador e goleiro com voz de verdade:
-      617 │        · skillInfluence 0.90 → 1.05: o termo (FIN−GK)/100 modula a conversão
-      618 │          em ±~26% na faixa típica (antes ±22%). A POSIÇÃO do chute continua
-      619 │          soberana (xG a 6 m é 7,5× o de 22 m) — talento não substitui estar
-      620 │          bem colocado, apenas aproveita melhor.
-      621 │        · goleiro: a fatia de DEFESA nos não-gols era 0.15 + qual×0.08 — um
-      622 │          paredão de 90 defendia quase igual a um goleiro de 60 (Δ≈2,4 pts
-      623 │          percentuais). Agora 0.05 + qual×0.21: média preservada (~20,8% com
-      624 │          goleiro 75), mas o intervalo abre para 16,6%↔23,9% — cada +10 de
-      625 │          goleiro ≈ +2 defesas a mais a cada 100 finalizações, além do efeito
-      626 │          que ele já exerce dentro do pGoal. A sorte segue existindo (o roll
-      627 │          r2 é uma moeda), só que a moeda agora é visivelmente viciada pela
+      668 │        passaria a calcular a interceptacao de um chute que nao existe — o
+      669 │        defensor iria para o lugar errado e ninguem teria como ver, porque a
+      670 │        trajetoria continuaria plausivel.
+      671 │ 
+      672 │        Os valores nao mudaram: 34 + shot/100*16, preso entre 32 e 54. */
+      673 │     speedBase: 34,
+      674 │     speedRange: 16,
+      675 │     speedMin: 32,
+      676 │     speedMax: 54,
+      677 │     distanceXg: Object.freeze([
+      678 │       [6, 0.48], [11, 0.27], [16, 0.135], [22, 0.064], [30, 0.032], [Infinity, 0.015],
+      679 │     ]),
+  >   680 │     conversionScale: 2.25,
+      681 │     /* BALANCEAMENTO · finalizador e goleiro com voz de verdade:
+      682 │        · skillInfluence 0.90 → 1.05: o termo (FIN−GK)/100 modula a conversão
+      683 │          em ±~26% na faixa típica (antes ±22%). A POSIÇÃO do chute continua
+      684 │          soberana (xG a 6 m é 7,5× o de 22 m) — talento não substitui estar
+      685 │          bem colocado, apenas aproveita melhor.
+      686 │        · goleiro: a fatia de DEFESA nos não-gols era 0.15 + qual×0.08 — um
+      687 │          paredão de 90 defendia quase igual a um goleiro de 60 (Δ≈2,4 pts
+      688 │          percentuais). Agora 0.05 + qual×0.21: média preservada (~20,8% com
+      689 │          goleiro 75), mas o intervalo abre para 16,6%↔23,9% — cada +10 de
+      690 │          goleiro ≈ +2 defesas a mais a cada 100 finalizações, além do efeito
+      691 │          que ele já exerce dentro do pGoal. A sorte segue existindo (o roll
+      692 │          r2 é uma moeda), só que a moeda agora é visivelmente viciada pela
 
 ──────────────────────────────────────────────────────────────────────────────
 DOCUMENTO — reports/INVESTIGACAO-COMPLETA-2026-08.md:2681-2717

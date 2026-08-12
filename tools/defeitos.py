@@ -272,6 +272,15 @@ DEFEITOS = [
       dono="dreno no core, normalizado por ADV4.context.clockRateRef",
       intercepta=[],
       criterio=["gols 76-90' >=20%","gols 0-15' <=15%","goals +-0,20","stamina final 55-68","passes +-5,53"],
+      feito_em=("TRES TENTATIVAS REPROVADAS, todas medidas em 300 partidas. Laudo completo em "
+                "reports/D19-D20-a-mesma-alavanca.md. Resumo: (1) achatar a fadiga na velocidade "
+                "passou nos dois portoes e levou os gols de 76+ de 14,7% para 16,1%, mas nao atingiu "
+                "os criterios declarados e PIOROU o D20 (encurtamento do bloco 2,8 -> 0,8 m); "
+                "(2) compactar o bloco reprovou feio (chutes -2,18, gols -0,374); (3) o piso que "
+                "envelhece com a stamina quase recuperou os gols (-0,07) e NAO moveu a distribuicao. "
+                "CONCLUSAO: forma e volume de chances sao a MESMA alavanca em sentidos opostos. Falta "
+                "ao motor uma FASE DE TRANSICAO (o time que perde a bola recompoe, nao so troca de "
+                "alvo). E trabalho de modelo, nao de constante."),
       medido=("CAUSA ISOLADA — tools/fisica/ramo-d19.js, 48 partidas. O r=0,814 do documento "
               "e correlacao, nao mecanismo: stamina cai monotonicamente e qualquer coisa que "
               "caia junto correlaciona alto com ela. A sonda separou as quatro historias "

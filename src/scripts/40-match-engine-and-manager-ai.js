@@ -1667,8 +1667,8 @@ class MatchSim {
       : best.dist > 32 ? 'launch' : 'short';
     // R7: a previsão de interceptação usa a MESMA velocidade da execução.
     // O passe curto anterior chegava perto de 30 m/s e criava alvos irreais.
-    const passPowPhysical = 0.92 + facet(o,'pass')/100 * 0.16;
-    const passSpeedPhysical = kind === 'launch' ? 22.5 : kind === 'through' ? 19.5 * passPowPhysical : 16.2 * passPowPhysical;
+    const passPowPhysical = CAL.passing.powerBase + facet(o,'pass')/100 * CAL.passing.powerRange;
+    const passSpeedPhysical = kind === 'launch' ? CAL.passing.speedLaunch : kind === 'through' ? CAL.passing.speedThrough * passPowPhysical : CAL.passing.speedShort * passPowPhysical;
     const _os82BlockRadius=kind==='through'?1.58:1.45,_os82ControlRadius=1.00;
     const _os82Block=inter?this._actorInterceptTarget(inter.d,this.ball.x,this.ball.y,{x:m.x,y:m.y},passSpeedPhysical,_os82BlockRadius,'pass',kind):null;
     const _os82Control=inter?this._actorInterceptTarget(inter.d,this.ball.x,this.ball.y,{x:m.x,y:m.y},passSpeedPhysical,_os82ControlRadius,'pass',kind):null;
@@ -1755,8 +1755,8 @@ class MatchSim {
       // projetava o receptor até 10 m à frente e fazia passes bons parecerem
       // lançamentos sem sentido. Passe curto agora prioriza o pé; somente a
       // bola em profundidade ataca espaço de forma agressiva.
-      const passPowAim = 0.92 + facet(o,'pass')/100 * 0.16;
-      const spdK = kind === 'launch' ? 22.5 : kind === 'through' ? 19.5 * passPowAim : 16.2 * passPowAim;
+      const passPowAim = CAL.passing.powerBase + facet(o,'pass')/100 * CAL.passing.powerRange;
+      const spdK = kind === 'launch' ? CAL.passing.speedLaunch : kind === 'through' ? CAL.passing.speedThrough * passPowAim : CAL.passing.speedShort * passPowAim;
       const tv = best.dist / Math.max(12, spdK);
       const mv = Math.hypot(m.vx, m.vy);
       const rawLead = mv > 0.75 ? mv * tv : 0;
@@ -2144,8 +2144,8 @@ class MatchSim {
     // Passe forte de bom passador viaja mais rápido; cruzamento/lançamento é aéreo.
     // R7 · força calibrada: qualidade altera precisão e um pouco da força,
     // sem transformar todo passe curto em uma pancada de quase 30 m/s.
-    const passPow = 0.92 + facet(o,'pass')/100 * 0.16;   // 0.92..1.08
-    const spd = kind === 'shot' ? clamp(34 + facet(o,'shot')/100*16, 32, 54)
+    const passPow = CAL.passing.powerBase + facet(o,'pass')/100 * CAL.passing.powerRange;   // 0.92..1.08
+    const spd = kind === 'shot' ? clamp(CAL.shooting.speedBase + facet(o,'shot')/100*CAL.shooting.speedRange, CAL.shooting.speedMin, CAL.shooting.speedMax)
               : passKind === 'launch' ? 24.3
               : passKind === 'through' ? 21.1 * passPow
               : 17.5 * passPow;
@@ -2608,7 +2608,7 @@ class MatchSim {
     const goalY=clamp(tmA.oppGoal.y+((visual&&visual.actualX!=null)?(visual.actualX-.5)*6:R(-3,3)),tmA.oppGoal.y-3.3,tmA.oppGoal.y+3.3);
     const fkHeight=clamp((1-((visual&&Number.isFinite(visual.actualY))?visual.actualY:.52))*2.35,.16,2.32);
     const fkGoalAim={x:tmA.oppGoal.x+tmA.attackDir*.9,y:goalY,z:fkHeight};
-    const fkSpeed=clamp(34+facet(taker,'shot')/100*16,32,54);
+    const fkSpeed=clamp(CAL.shooting.speedBase+facet(taker,'shot')/100*CAL.shooting.speedRange,CAL.shooting.speedMin,CAL.shooting.speedMax);
     const saveTarget=this._gkInterceptTarget(gk,taker.x,taker.y,fkGoalAim,fkSpeed,1.95);
     if(result==='save'&&!saveTarget)result='miss';
     this.stats[team].xg += pGoal;
@@ -2686,7 +2686,7 @@ class MatchSim {
     const aimLat = clamp(pg.y + (actualX - .5) * 6.6, pg.y - 3.3, pg.y + 3.3);
     const penaltyHeight=clamp((1-actualY)*2.35,.12,2.28);
     const penaltyGoalAim={x:pg.x+tmA.attackDir*.9,y:aimLat,z:penaltyHeight};
-    const penaltySpeed=clamp(34+facet(taker,'shot')/100*16,32,54);
+    const penaltySpeed=clamp(CAL.shooting.speedBase+facet(taker,'shot')/100*CAL.shooting.speedRange,CAL.shooting.speedMin,CAL.shooting.speedMax);
     const penaltySaveTarget=this._gkInterceptTarget(gk,taker.x,taker.y,penaltyGoalAim,penaltySpeed,1.95);
     if(result==='save'&&!penaltySaveTarget)result='goal';
     this._emit('penalty', { by: taker, manual, visual, result });
@@ -3484,6 +3484,38 @@ class MatchSim {
     const dx = tx - p.x, dy = ty - p.y;
     const dist = Math.hypot(dx, dy) || 1e-6;
     // velocidade desejada (desaceleração suave perto do alvo)
+    /* D19 · a fadiga entra na velocidade AQUI, e era a unica coisa que ela
+       fazia com o ritmo da partida. Medido (tools/fisica/ramo-d19b.js, funil
+       de 32 partidas, razao 76+/0-15 por minuto de jogo):
+
+           posses ................ 0,940  estavel
+           decisoes .............. 0,940  estavel
+           avanco medio ........... 0,981  estavel
+           velocidade media ....... 0,913  <-- esta linha
+           EM ALCANCE (10-27 m) ... 0,613  <-- e o que desaba
+           chutes ................. 0,611
+
+       O time faz as mesmas posses, toma as mesmas decisoes e fica na mesma
+       distancia MEDIA do gol. O que ele deixa de fazer e ENTRAR na faixa de
+       chute: -39%. Uma perda de 8,7% de velocidade virou 39% de penetracao —
+       porque a jogada tem um orcamento de tempo antes de acabar, e jogador
+       mais lento cobre menos chao dentro dele.
+
+       O valor 0,7 vinha de quando `stamina` so servia para dar cansaco visivel.
+       Com o funil medido ele passou a decidir quantos gols saem no fim de
+       jogo. Aqui a curva e achatada: a fadiga continua custando velocidade,
+       custando menos no fundo da escala.
+
+       ⚠ MAS NAO EDITE ESTA LINHA: ELA NAO RODA.
+       A camada 16 (`16-cds-r12-transactional-core-r123.js`) reimplementa
+       `_integrate` INTEIRO, com o seu proprio `staminaF=.7+stamina/100*.3`, e
+       o resultado dela e o que vale. Eu editei aqui primeiro: o funil de 32
+       partidas voltou IDENTICO AO DIGITO — 0,913 de velocidade, 0,613 em
+       alcance. A `pilha.js` responde VIVA para `_integrate` e esta certa: o
+       METODO roda. Esta LINHA nao. E a armadilha A2 do reports/ARMADILHAS.md,
+       pela setima vez neste projeto.
+
+       O conserto do D19 esta na camada 16. */
     const staminaF = 0.7 + p.stamina/100 * 0.3;
     // RITMO INDIVIDUAL (§movimento): nem todo jogador corre a 100% o tempo todo —
     // isso é o que causava a "mesma velocidade" (deslizar em bloco). Cada um tem uma
