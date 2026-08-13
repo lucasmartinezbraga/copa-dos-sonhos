@@ -258,7 +258,11 @@ DEFEITOS = [
                  "lista de morto nem de terminal. Morto ali e o RAMO `if (p === presser)` — armadilha A2. "
                  "CORRECAO v2 (mantida): _planPhysicalSegment, _trajectoryPoint e _physicalTargetZ NUNCA "
                  "existiram no core — nascem na camada 07 e sao substituidos pela 88. O codigo morto ali e "
-                 "da camada 07, nao do motor, e e o que SOBRA do D17."),
+                 "da camada 07, nao do motor, e e o que SOBRA do D17. NAO APAGADO: com n>=12 a lista estavel "
+                 "e _physicalArc, _physicalTargetZ, _planPhysicalSegment, _trajectoryPoint e "
+                 "getPhysicalTimeline, mas estabilizar em 24 partidas nao e provar em 300 — "
+                 "`_continueTravel` mostrou que caminhos raros existem nesta camada. Barra: a "
+                 "rodada de 300 partidas que o D34 exige."),
       dono="camada 16 era a dona de _integrate (FEITO); camada 07 tem os tres de fisica (aberto)",
       intercepta=["07","08","16","17","88"],
       criterio=["metricas identicas ao digito","_integrate FEITO; sobra o codigo morto da camada 07"],
@@ -548,7 +552,12 @@ DEFEITOS = [
  dict(id="D34", sev="estrutural", fase="F4", estado="aberto",
       titulo="Ate 81 sobrescritas nunca alcancadas — TETO SUPERIOR, nao contagem",
       locais=[],
-      evidencia="14 partidas nao exercitam penalti decisivo, expulsao dupla, prorrogacao nem metade da bola parada",
+      evidencia=("14 partidas nao exercitam penalti decisivo, expulsao dupla, prorrogacao nem "
+                 "metade da bola parada. MEDIDO em 2026-08-13, na camada 07: sobrescritas mortas "
+                 "caem de 12 (n=4) para 11 (n=12 e n=24), e o metodo que REVIVE tem nome — `_continueTravel`. "
+                 "Quem apagasse com a evidencia de 4 partidas removeria um metodo VIVO do caminho "
+                 "da bola em voo. 'Morto' e afirmacao sobre a AMOSTRA, nao sobre o codigo. "
+                 "Laudo: reports/D17-D34-quantas-partidas-antes-de-apagar.md"),
       dono="—", intercepta=[],
       criterio=["rodar pilha.js com 300 partidas ANTES de apagar qualquer coisa","<=15 em zero ao final"],
       depende=[],

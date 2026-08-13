@@ -1,6 +1,6 @@
 # As armadilhas deste código
 
-**Trinta e sete.** Cada uma custou pelo menos uma rodada de medição de 25
+**Trinta e oito.** Cada uma custou pelo menos uma rodada de medição de 25
 minutos; várias custaram mais. Estavam espalhadas por `CLAUDE.md`, pelo Volume
 VIII‑A do relatório, pelos laudos e pelos comentários do código.
 
@@ -11,7 +11,7 @@ Elas estão em quatro grupos, porque erram por motivos diferentes:
 | grupo | o que engana | quantas |
 |---|---|---|
 | **A · a pilha de camadas** | o código que você lê não é o que executa | 7 |
-| **B · a medição** | o número existe e mede outra coisa | 14 |
+| **B · a medição** | o número existe e mede outra coisa | 15 |
 | **C · as ferramentas** | a ferramenta funciona e mente | 8 |
 | **D · o processo** | você mesmo, com pressa | 6 |
 
@@ -346,6 +346,28 @@ O que fazer quando isto acontecer:
 > ofensivo inteiro — e a **A2 do goleiro** invertida: lá aumentar um recurso
 > piorou o jogo, aqui **remover um defeito** piorou. As três dizem a mesma
 > coisa: o modelo está usando o recurso pelo motivo errado.
+
+## B15 · "Morto" é uma afirmação sobre a amostra, não sobre o código
+
+`pilha.js` conta chamadas. Zero chamadas em 4 partidas é zero chamadas **em 4
+partidas** — não é código morto.
+
+Medido na camada 07 (`physics-timeline-581`), em 2026-08-13:
+
+| partidas | sobrescritas mortas |
+|---|---|
+| **4** | **12** |
+| 12 | 11 |
+| 24 | 11 |
+
+O método que muda de lado tem nome: **`_continueTravel`** — morto com n=4, vivo
+com n=24. Quem apagasse com a evidência de uma rodada curta removeria um método
+vivo do caminho da bola em voo.
+
+A regra do D34 (**300 partidas antes de apagar qualquer coisa**) não é excesso de
+zelo: estabilizar em 24 não prova nada sobre o caminho que aparece uma vez a cada
+20 partidas. É a **B7** aplicada à liveness — o erro-padrão não some porque o
+número que você está olhando é um contador.
 
 ## B14 · A conversão está encostada no teto — e isso restringe tudo
 
