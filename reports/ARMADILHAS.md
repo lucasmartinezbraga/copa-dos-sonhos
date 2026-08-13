@@ -1,6 +1,6 @@
 # As armadilhas deste código
 
-**Trinta e uma.** Cada uma custou pelo menos uma rodada de medição de 25
+**Trinta e três.** Cada uma custou pelo menos uma rodada de medição de 25
 minutos; várias custaram mais. Estavam espalhadas por `CLAUDE.md`, pelo Volume
 VIII‑A do relatório, pelos laudos e pelos comentários do código.
 
@@ -363,6 +363,17 @@ Espere pelo **resultado**, não pelo processo:
 until grep -qE "APROVADO|REPROVADO" "$LOG"; do sleep 25; done
 ```
 
+**E o remendo tem a sua própria armadilha, que eu pisei em 2026-08-13.** Tentei
+`grep -qiE "guardada|FALHOU|erro"` e ele casou na linha **de sucesso** do smoke:
+
+```
+  ok    pagina carrega sem erro de script  ->  nenhum
+```
+
+O laço saiu com a bateria nos primeiros 30 segundos. Ancore o padrão: `-x` para
+linha inteira, `^` para início, ou uma palavra que só exista no veredito. Um
+`grep` de espera que casa cedo demais é indistinguível de um que funcionou.
+
 ## C5 · Não dê a um arquivo Python o nome de um módulo da biblioteca
 
 `tools/dossie/csv.py` fez `import csv` importar a si mesmo:
@@ -372,6 +383,23 @@ until grep -qE "APROVADO|REPROVADO" "$LOG"; do sleep 25; done
 
 Varrer o diretório atrás do `.webm` pega um arquivo ainda não liberado e grava
 um clipe de **0 byte**. Use `page.video().path()`, e só depois de `ctx.close()`.
+
+## C7 · `JSON.stringify` transforma `NaN` em `null`
+
+A sonda do D08 imprimiu alvos assim:
+
+```
+ALVO ESTRANHO: [19.945751640673578,null]
+```
+
+e eu passei dez minutos procurando quem escrevia `null` num alvo. **Ninguém
+escrevia.** `JSON.stringify(NaN)` produz `null` — e `Infinity` também. O valor
+era NaN, vindo de `undefined * 9`.
+
+Numa sonda, teste com `Number.isFinite` **antes** de serializar, e imprima o
+diagnóstico com `String(v)`, não com `JSON.stringify`. A diferença entre `null`
+e `NaN` é a diferença entre "alguém atribuiu" e "uma conta deu errado" — são
+buscas opostas. Custou o diagnóstico do **D35**.
 
 ---
 

@@ -535,6 +535,33 @@ DEFEITOS = [
       criterio=["rodar pilha.js com 300 partidas ANTES de apagar qualquer coisa","<=15 em zero ao final"],
       depende=[],
       risco="ALTO se alguem apagar as 81 direto. O primeiro plano escreveu este numero como se fosse fato — era teto."),
+
+ dict(id="D35", sev="futebol", fase="F2", estado="feito",
+      titulo="A marca de arrancada que nunca sai — quem cobra um lateral fica marcado ate o apito",
+      locais=[dict(arquivo=L+"17-cds-r13-football-observer-cadence.js", linha=295,
+                   ancora="taker._breaking=taker._breaking||{t:1.4,dir:0,throwInDuty:true,until:finite13(this.t)+1.4};"),
+              dict(arquivo=L+"17-cds-r13-football-observer-cadence.js", linha=846,
+                   ancora="function varreArrancadaInvalida13(sim){"),
+              dict(arquivo=MOTOR, linha=3208,
+                   ancora="if (p._breaking) { p._breaking.t -= this._stepDt || 1 / 60; if (p._breaking.t <= 0) p._breaking = null; }")],
+      evidencia=("a camada 17 armava o cobrador com {throwInDuty:true}, sem `t` e sem `dir`. "
+                 "`undefined - dt` e NaN e `NaN <= 0` e FALSO, entao a marca nunca era apagada. "
+                 "Medido em 16 partidas: 6,19 dos 20 jogadores de linha terminavam a partida "
+                 "envenenados, contagio medio aos 36,6 min, 20,4% dos quadros de jogador. As "
+                 "arrancadas legitimas eram 3.402 contra 174.719 quadros envenenados (51x). "
+                 "`ty = clamp(ty + undefined*9, ...)` deixava 18,6% das chamadas de "
+                 "_attackTarget com alvo LATERAL NaN e 902.014 chegavam assim ao _integrate. "
+                 "O envenenado ficava ainda 16 m a frente da bola, ISENTO DO TETO DE "
+                 "IMPEDIMENTO, fora da suavizacao de reacao, com +2,4 no _bestPass e impedido "
+                 "de iniciar uma arrancada de verdade."),
+      dono="camada 17 (R13) arma; motor le em 8 pontos",
+      intercepta=["17"],
+      criterio=["nenhum ty NaN chegando ao _integrate","14 metricas dentro de 2 SE",
+                "placar de design nao piora"],
+      depende=[],
+      risco=("MEDIO. Mexe em 8 leituras de _breaking de uma vez. O `dir:0` e deliberado: "
+             "chance() consumiria RNG e faria toda semente divergir por outro motivo."),
+      feito_em="reports/D35-a-marca-que-nunca-sai.md"),
 ]
 
 DOCUMENTO = "reports/INVESTIGACAO-COMPLETA-2026-08.md"

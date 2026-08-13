@@ -3441,6 +3441,42 @@ a sonda estava lendo o jogador errado. Lendo `p.red` direto do estado do motor:
 > `[HIPÓTESE]` de `[MEDIDO]` em toda afirmação.
 
 ---
+
+## D35 🔴 ✅ A marca de arrancada que nunca sai
+
+**Endereços:** `17-cds-r13-football-observer-cadence.js:295` (arma),
+`:846` (a varredura do conserto), `40-…:3208` (o decaimento que nunca dispara).
+
+**Achado durante a recontagem obrigatória do D08**, não procurado.
+
+**O defeito.** `p._breaking` tem contrato de duas chaves — `{t, dir}`. A camada
+17 armava o cobrador do lateral com `{throwInDuty:true}`, sem nenhuma das duas.
+O motor apaga a marca por `p._breaking.t -= dt; if (t <= 0) …`, e
+`undefined - dt` é **NaN**: **`NaN <= 0` é falso**, então a marca nunca saía.
+Quem cobrasse um lateral ficava marcado como se estivesse em arrancada até o
+apito final.
+
+**[MEDIDO] · 16 partidas.** 6,19 dos 20 jogadores de linha terminavam a partida
+envenenados; contágio médio aos 36,6 minutos; **20,4%** dos quadros de jogador.
+As arrancadas legítimas eram 3.402 contra **174.719** quadros envenenados —
+51× mais raras que o bug. `ty = clamp(ty + undefined*9, …)` deixava **18,6%**
+das chamadas de `_attackTarget` com alvo lateral NaN, e **902.014** chegavam
+assim ao `_integrate`.
+
+**Oito leituras de `_breaking` passavam a valer para sempre**: alvo lateral NaN,
+16 m à frente da bola, **isenção do teto de impedimento**, pulo da suavização de
+reação, +2,4 no `_bestPass`, +0,25 na ameaça em profundidade, impossibilidade de
+iniciar uma arrancada real e exclusão do papel de `_thirdMan`.
+
+**O conserto.** O objeto passa a cumprir o contrato (`{t:1.4, dir:0, until}` —
+`dir:0` para não empurrar de lado nem consumir RNG) e uma varredura por quadro
+remove qualquer marca malformada ou vencida. Laudo em
+`reports/D35-a-marca-que-nunca-sai.md`.
+
+**A armadilha de bônus (C5).** `JSON.stringify([19.9, NaN])` imprime
+`[19.9,null]`. O diagnóstico perdeu dez minutos procurando quem escrevia `null`.
+
+---
 ---
 # VOLUME IV — GRÁFICOS E MEDIÇÕES
 
