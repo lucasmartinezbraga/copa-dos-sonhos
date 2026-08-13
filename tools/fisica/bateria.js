@@ -365,6 +365,7 @@ if (process.env.CDS_FATIA) {
        momento em que e instalada */
     if (msg.tune) define('CDS_OS200_TUNE', msg.tune);
     if (msg.tune206) define('CDS_OS206_TUNE', msg.tune206);
+    if (msg.tuneD35) define('CDS_D35_TUNE', msg.tuneD35);
     carregar(msg.build);
     aplicarClock(msg.clockRate);
     const r = rodarFatia(msg.indices);
@@ -378,12 +379,14 @@ if (process.env.CDS_FATIA) {
   const indices = Array.from({ length: N }, (_, i) => i);
   const TUNE = argv.tune ? JSON.parse(String(argv.tune)) : null;
   const TUNE206 = argv.tune206 ? JSON.parse(String(argv.tune206)) : null;
+  const TUNED35 = argv.tuneD35 ? JSON.parse(String(argv.tuneD35)) : null;
   const CLOCK = argv.clockRate ? Number(argv.clockRate) : null;
 
   if (W === 1) {
     instalarAmbiente();
     if (TUNE) define('CDS_OS200_TUNE', TUNE);
     if (TUNE206) define('CDS_OS206_TUNE', TUNE206);
+    if (TUNED35) define('CDS_D35_TUNE', TUNED35);
     const realConsole = console;
     global.console = { log: noop, warn: noop, error: realConsole.error };
     const carga = carregar(build);
@@ -429,7 +432,7 @@ if (process.env.CDS_FATIA) {
           if (argv.out) fs.writeFileSync(argv.out, JSON.stringify(out, null, 2));
         }
       });
-      filho.send({ build: path.resolve(build), indices: fatia, tune: TUNE, tune206: TUNE206, clockRate: CLOCK });
+      filho.send({ build: path.resolve(build), indices: fatia, tune: TUNE, tune206: TUNE206, tuneD35: TUNED35, clockRate: CLOCK });
     }
   }
 }
