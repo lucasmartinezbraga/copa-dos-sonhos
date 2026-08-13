@@ -1,6 +1,6 @@
 # As armadilhas deste código
 
-**Vinte e nove.** Cada uma custou pelo menos uma rodada de medição de 25
+**Trinta.** Cada uma custou pelo menos uma rodada de medição de 25
 minutos; várias custaram mais. Estavam espalhadas por `CLAUDE.md`, pelo Volume
 VIII‑A do relatório, pelos laudos e pelos comentários do código.
 
@@ -10,7 +10,7 @@ Elas estão em quatro grupos, porque erram por motivos diferentes:
 
 | grupo | o que engana | quantas |
 |---|---|---|
-| **A · a pilha de camadas** | o código que você lê não é o que executa | 6 |
+| **A · a pilha de camadas** | o código que você lê não é o que executa | 7 |
 | **B · a medição** | o número existe e mede outra coisa | 11 |
 | **C · as ferramentas** | a ferramenta funciona e mente | 7 |
 | **D · o processo** | você mesmo, com pressa | 5 |
@@ -96,6 +96,26 @@ Ele aponta a constante duplicada e o método em que ela mora. Rodando hoje,
 achou um segundo caso que ninguém conhecia: a velocidade de chute
 `34 + shot/100*16` mora no core **e** na camada 14, e as duas precisam
 concordar para o cálculo de interceptação bater com o chute real.
+
+## A7 · Dezesseis arquivos de `src/` não entram no build
+
+`src/styles/85-match-mobile-field-first.css` tem nome de código-fonte, mora ao
+lado do código-fonte e **não está no manifesto**. Editei ele para consertar a
+tela de celular, reconstruí, medi: **nada mudou.** A regra viva era uma cópia
+dentro de `src/styles/layers/02-inline.css`.
+
+São **dezesseis**: os quinze `src/styles/*.css` fora de `layers/`, mais
+`src/scripts/00-head-bootstrap.js` — que o `CLAUDE.md` lista como **módulo nº 1
+do motor**.
+
+O `CLAUDE.md` diz *"editar `src/styles/` para CSS"*. Isso é verdade para
+`src/styles/layers/` e mentira para os outros quinze.
+
+`tools/verify.py` agora lista todos, a cada build. Não reprova — são
+pré-existentes e removê-los é outra decisão — mas passou a ser impossível não
+ver.
+
+> É a A1 em CSS: a cópia que executa não é a que você abriu.
 
 ---
 

@@ -293,3 +293,58 @@ Em **1024×768** restam 11,5%. A janela é quase quadrada (caixa 1,174) e a
 coluna do campo é estreita: o campo é limitado pela **largura**, não pela
 altura. Fechar isso exigiria o cockpit empilhar em vez de dividir em colunas
 nessa largura — mudança de arranjo, não de render.
+
+
+---
+
+# ADENDO 5 — o celular, que era mancha cega e estava pior que a tarja
+
+`caixa.js` só media resoluções de desktop. A tela de celular era o que o
+relatório chama de **"mancha cega declarada" (seção 8.4)** — a única superfície
+do jogo sem sonda nenhuma. Acrescentei três viewports de retrato e o número
+apareceu:
+
+```
+=== viewport 412x892 ===
+ backing 1229x600 (ar 2.048)   caixa 1241x606
+ VAZIO NO QUADRO: -200.6%      quadro 412x607
+```
+
+**O canvas tinha 1241 px de largura dentro de um quadro de 412.** Três vezes
+maior; o `overflow:hidden` cortava 67% do campo. O jogador via uma fatia
+vertical com quatro jogadores, e abaixo dela um vazio preto de ~400 px.
+
+A regra:
+
+```css
+/* @media (max-width:899px) and (orientation:portrait) */
+#app:has(.mh) > .field-wrap        { height: calc(100dvh - 54px); min-height: 560px; }
+#app:has(.mh) > .field-wrap canvas { width: auto !important; height: 100% !important; }
+```
+
+A intenção — *"o gramado preenche toda a primeira tela"* — era boa; o meio era
+ruim. `width:auto` + `height:100%` dimensiona pela **altura** e transborda na
+largura. Agora o quadro tem a proporção do mundo e o canvas cabe pela largura:
+
+| viewport | antes | depois |
+|---|---|---|
+| 412×892 | **−200,6%** (transborda 3×) | **0,7%** |
+| 390×844 | −192,7% | **0,6%** |
+| 360×780 | −217,1% | **0,9%** |
+
+Na captura: **os 22 jogadores em quadro**, campo inteiro, e o vazio preto virou
+o conteúdo que já existia embaixo — abas, resumo, estatísticas. Que era
+exatamente o que o gesto de arrastar ia buscar.
+
+## E o achado que possibilitou isso
+
+Meu primeiro conserto foi em `src/styles/85-match-mobile-field-first.css`.
+Reconstruí, medi: **nada mudou.** O arquivo **não está no manifesto** — parece
+código-fonte e não entra no build. A regra viva era uma cópia dentro de
+`src/styles/layers/02-inline.css`.
+
+São **dezesseis** arquivos nessa situação: os quinze `src/styles/*.css` fora de
+`layers/`, mais `src/scripts/00-head-bootstrap.js` — que o `CLAUDE.md` lista
+como **módulo nº 1 do motor**.
+
+`tools/verify.py` agora lista todos a cada build. Virou a armadilha **A7**.

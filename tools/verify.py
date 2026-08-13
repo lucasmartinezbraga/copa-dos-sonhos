@@ -72,6 +72,43 @@ def lint_escopo_das_camadas() -> None:
           f"camadas referencia CAL fora do escopo")
 
 
+def fonte_fora_do_manifesto(manifest: dict) -> None:
+    """Avisa sobre arquivos em src/ que o build NAO usa.
+
+    Por que isto existe
+    -------------------
+    `src/styles/85-match-mobile-field-first.css` parece codigo-fonte, tem nome
+    de codigo-fonte, mora ao lado do codigo-fonte — e nao esta no manifesto.
+    Editei ele para consertar a tela de celular, reconstrui, medi: nada mudou.
+    A regra viva era uma copia dentro de `src/styles/layers/02-inline.css`.
+
+    Sao QUINZE arquivos nessa situacao, todos os `src/styles/*.css` que nao
+    estao em `layers/`. O CLAUDE.md diz "editar `src/styles/` para CSS", o que
+    e verdade para os de `layers/` e mentira para os outros quinze.
+
+    Isto NAO reprova o build: os arquivos sao pre-existentes e remove-los e
+    outra decisao. Mas passa a ser impossivel nao ver.
+    """
+    usados = {e["file"] for e in manifest["core_modules"]}
+    usados |= {b["file"] for b in manifest["blocks"] if b.get("file")}
+    orfaos = []
+    for caminho in sorted((ROOT / "src").rglob("*")):
+        if caminho.suffix not in (".css", ".js"):
+            continue
+        rel = caminho.relative_to(ROOT).as_posix()
+        if rel not in usados:
+            orfaos.append(rel)
+    if not orfaos:
+        print("OK: nenhum arquivo de src/ fora do manifesto")
+        return
+    print(f"\n\033[33mAVISO: {len(orfaos)} arquivo(s) em src/ NAO entram no build.\033[0m")
+    print("  Editar qualquer um deles nao muda o jogo. A regra viva costuma ser")
+    print("  uma copia dentro de src/styles/layers/ ou src/scripts/layers/.")
+    for rel in orfaos:
+        print(f"    {rel}")
+    print()
+
+
 def main() -> None:
     manifest = json.loads((ROOT / "manifests/build-manifest.json").read_text(encoding="utf-8"))
 
@@ -82,6 +119,7 @@ def main() -> None:
         if not (ROOT / rel).exists():
             falhar(f"modulo ausente: {rel}")
     print(f"OK: {len(arquivos)} modulos presentes")
+    fonte_fora_do_manifesto(manifest)
 
     # 2. sintaxe de cada modulo JS
     js = [r for r in arquivos if r.endswith(".js")]

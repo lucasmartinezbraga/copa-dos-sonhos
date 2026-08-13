@@ -1,7 +1,11 @@
 const path=require('path');const {pathToFileURL}=require('url');
 const {chromium}=require('/opt/node22/lib/node_modules/playwright');
 const alvo=path.resolve(process.argv[2]||'dist/index.html');
-const larguras=[[1400,900],[1920,1080],[1280,800],[1024,768]];
+const larguras=[[1400,900],[1920,1080],[1280,800],[1024,768],
+                /* RETRATO. Faltava, e por isso a tela de celular era "mancha
+                   cega declarada" (secao 8.4 do relatorio) — a unica
+                   superficie do jogo sem sonda nenhuma. */
+                [412,892],[390,844],[360,780]];
 /* O criterio de aceite do D24 e "vazio <= 4% nas 4 resolucoes". Ele e medido
    em AREA desde 2026-08-12 — ver o comentario no calculo abaixo. */
 (async()=>{

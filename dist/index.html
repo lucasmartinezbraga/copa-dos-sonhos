@@ -1682,23 +1682,37 @@ body {
   /* A partida abre focada no gramado. O conteúdo tático fica fisicamente
      abaixo e aparece com o gesto natural de rolar a página sobre o campo. */
   #app:has(.mh) > .field-wrap {
-    /* O placar ocupa o topo e o gramado preenche todo o restante da primeira
-       tela. As abas e os painéis continuam logo abaixo, acessíveis ao arrastar
-       para cima sobre o próprio campo. */
-    height:calc(100dvh - 54px);
-    min-height:560px;
-    max-height:none;
+    /* D24 · O CAMPO INTEIRO, EM VEZ DE UM TERCO DELE AMPLIADO.
+       ---------------------------------------------------------
+       A intencao — "o gramado preenche toda a primeira tela" — era boa e o
+       meio era ruim. `height:calc(100dvh - 54px)` com o canvas em
+       `width:auto; height:100%` fazia o canvas se dimensionar pela ALTURA e
+       transbordar na largura. Medido por tools/fisica/tela/caixa.js em
+       412x892: canvas de 1241 px DENTRO de um quadro de 412. O
+       `overflow:hidden` cortava 67% do campo e o jogador via uma fatia
+       vertical com quatro jogadores.
+
+       Agora o quadro tem a proporcao do mundo e o campo cabe inteiro. O que
+       sobra da primeira tela vai para o conteudo que ja existe logo abaixo —
+       abas, painel e narracao, que era justamente o que o gesto de arrastar
+       ia buscar. */
+    height:auto;
+    aspect-ratio:1024/500;
+    min-height:0;
+    max-height:calc(100dvh - 54px);
     overflow:hidden;
     background:#0d5428;
     scroll-margin-top:0;
   }
   #app:has(.mh) > .field-wrap canvas#fieldcv {
+    /* D24 · cabe pela LARGURA. Era `width:auto; height:100%`, que dimensionava
+       pela altura e transbordava 3x na horizontal. */
     position:absolute;
-    left:50%; top:50%; right:auto; bottom:auto;
-    width:auto !important;
+    left:0; top:0; right:0; bottom:0;
+    width:100% !important;
     height:100% !important;
-    max-width:none !important;
-    transform:translate(-50%,-50%);
+    max-width:100% !important;
+    transform:none;
     object-fit:fill;
     touch-action:pan-y !important;
   }
