@@ -22,11 +22,20 @@ titulo() { printf '\n\033[1m── %s\033[0m\n' "$*"; }
 falhas=0
 nomes=()
 
+# Alguns testes passam por OMISSAO: `defeitos.py --check` num arquivo vazio sai
+# com 0 e nao imprime nada, e a suite dizia 8/8 com o catalogo em ZERO BYTES.
+# Aconteceu em 2026-08-13: um `open(p,"w")` truncou o arquivo e o `write()`
+# seguinte falhou. Exit code nao basta — para esses, exija a linha de sucesso.
+exige=""
 roda() {
   local nome="$1"; shift
   titulo "$nome"
-  if "$@" >/tmp/cds-teste.log 2>&1; then
+  if "$@" >/tmp/cds-teste.log 2>&1 && { [ -z "$exige" ] || grep -q "$exige" /tmp/cds-teste.log; }; then
     verde "  ok"
+  elif [ -n "$exige" ] && ! grep -q "$exige" /tmp/cds-teste.log; then
+    vermelho "  FALHOU: saiu com 0 mas nao imprimiu [$exige] — passou por omissao"
+    tail -12 /tmp/cds-teste.log | sed 's/^/    /'
+    falhas=$((falhas + 1)); nomes+=("$nome")
   else
     vermelho "  FALHOU (exit $?)"
     tail -12 /tmp/cds-teste.log | sed 's/^/    /'
@@ -48,7 +57,9 @@ roda "browser smoke — Chromium de verdade"                   node tests/browse
 roda "motor sem DOM — integridade V3, goleiros, estado"      node tests/phase2_engine_smoke.js
 roda "grafo de inclusoes da versao de dev"                   python3 tests/dev_graph_check.py
 roda "portao de design — reprova o que deve"                 python3 tests/regressao_design_test.py
+exige="defeitos, ancoras unicas"
 roda "catalogo — ancoras e secoes ainda casam"               python3 tools/defeitos.py --check
+exige=""
 roda "auditor — aponta o positivo conhecido e cala depois"    python3 tests/auditor_test.py
 
 echo

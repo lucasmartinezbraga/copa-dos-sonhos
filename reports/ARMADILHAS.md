@@ -1,6 +1,6 @@
 # As armadilhas deste código
 
-**Trinta e seis.** Cada uma custou pelo menos uma rodada de medição de 25
+**Trinta e sete.** Cada uma custou pelo menos uma rodada de medição de 25
 minutos; várias custaram mais. Estavam espalhadas por `CLAUDE.md`, pelo Volume
 VIII‑A do relatório, pelos laudos e pelos comentários do código.
 
@@ -13,7 +13,7 @@ Elas estão em quatro grupos, porque erram por motivos diferentes:
 | **A · a pilha de camadas** | o código que você lê não é o que executa | 7 |
 | **B · a medição** | o número existe e mede outra coisa | 14 |
 | **C · as ferramentas** | a ferramenta funciona e mente | 8 |
-| **D · o processo** | você mesmo, com pressa | 5 |
+| **D · o processo** | você mesmo, com pressa | 6 |
 
 ---
 
@@ -513,6 +513,30 @@ blocos de código — só apareceram **abrindo o arquivo**.
 E eu escrevi que a tarja preta do D24 era nas laterais. **É em cima e embaixo.**
 A porcentagem estava certa, o eixo errado. Descobri olhando a foto que eu mesmo
 gerei. O validador confere cor, não geometria.
+
+## D6 · Um teste que sai com 0 sem imprimir nada passou por omissão
+
+Em 2026-08-13 eu truquei `tools/defeitos.py` **a zero bytes** sem perceber:
+um `open(p, "w")` esvazia o arquivo *antes* do `write()`, e o `write()` seguinte
+falhou por um erro de tipo. O arquivo ficou vazio.
+
+Em seguida a suíte respondeu **`8/8 passaram`** — porque
+`python3 tools/defeitos.py --check` num arquivo vazio **sai com código 0 e não
+imprime nada**. O portão que existe exatamente para o catálogo não virar ficção
+aprovou um catálogo inexistente.
+
+Duas lições, e a segunda vale para qualquer teste deste repositório:
+
+1. **Nunca truncar antes de ter o conteúdo.** Escreva em temporário e
+   `os.replace()`. Um `write()` que falha depois de um `open(...,"w")` destrói
+   o original.
+2. **Exit code não é resultado.** Um teste cujo sucesso é *imprimir* alguma
+   coisa precisa que a suíte exija aquela linha. `tools/testes.sh` agora tem a
+   variável `exige`, e o caso do catálogo está coberto — verificado contra o
+   positivo conhecido (esvaziei o arquivo de novo, de propósito, e ele reprova).
+
+> É a **B8** aplicada à própria suíte: detector sem teste contra positivo
+> conhecido é detector calado — inclusive quando o detector é o `testes.sh`.
 
 ## D5 · Um patch que inclui arquivo gerado mente sobre o tamanho da mudança
 

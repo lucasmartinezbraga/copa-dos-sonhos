@@ -7981,79 +7981,27 @@ class MatchSim {
     }
   }
 
-  _integrate(p, tx, ty, dt, freeze) {
-    // timers de corrida com propósito (tabela/ultrapassagem)
-    if (p._burst) { p._burst.t -= dt; if (p._burst.t <= 0) p._burst = null; else p.stamina = Math.max(35, p.stamina - dt * 1.1); }
-    if (p._burstCd) { p._burstCd -= dt; if (p._burstCd <= 0) p._burstCd = 0; }
-    if (p._overlapT && p._overlapT > 0) { p._overlapT -= dt; if (p._overlapT <= 0) { p._overlapT = 0; p._overlapping = false; } }
-    const dx = tx - p.x, dy = ty - p.y;
-    const dist = Math.hypot(dx, dy) || 1e-6;
-    // velocidade desejada (desaceleração suave perto do alvo)
-    /* D19 · a fadiga entra na velocidade AQUI, e era a unica coisa que ela
-       fazia com o ritmo da partida. Medido (tools/fisica/ramo-d19b.js, funil
-       de 32 partidas, razao 76+/0-15 por minuto de jogo):
+  /* D17 · `_integrate` MORAVA AQUI e estava MORTO. Removido: 73 linhas.
+     ---------------------------------------------------------------------
+     A camada 16 (`16-cds-r12-transactional-core-r123.js`) substitui
+     `P._integrate` SEM capturar o anterior — ela e TERMINAL. Este corpo nunca
+     era alcancado num bundle de tools/build.py.
 
-           posses ................ 0,940  estavel
-           decisoes .............. 0,940  estavel
-           avanco medio ........... 0,981  estavel
-           velocidade media ....... 0,913  <-- esta linha
-           EM ALCANCE (10-27 m) ... 0,613  <-- e o que desaba
-           chutes ................. 0,611
+     Nao era codigo morto inofensivo: ele trazia a sua propria copia de
 
-       O time faz as mesmas posses, toma as mesmas decisoes e fica na mesma
-       distancia MEDIA do gol. O que ele deixa de fazer e ENTRAR na faixa de
-       chute: -39%. Uma perda de 8,7% de velocidade virou 39% de penetracao —
-       porque a jogada tem um orcamento de tempo antes de acabar, e jogador
-       mais lento cobre menos chao dentro dele.
+         const staminaF = 0.7 + p.stamina/100 * 0.3;
 
-       O valor 0,7 vinha de quando `stamina` so servia para dar cansaco visivel.
-       Com o funil medido ele passou a decidir quantos gols saem no fim de
-       jogo. Aqui a curva e achatada: a fadiga continua custando velocidade,
-       custando menos no fundo da escala.
+     identica a da camada 16. Editar esta aqui e nao acontecer nada custou uma
+     rodada inteira de medicao ao D19, e virou a armadilha A6. `pilha.js`
+     respondia VIVA para `_integrate` e estava certa — o METODO roda; a LINHA
+     nao era esta.
 
-       ⚠ MAS NAO EDITE ESTA LINHA: ELA NAO RODA.
-       A camada 16 (`16-cds-r12-transactional-core-r123.js`) reimplementa
-       `_integrate` INTEIRO, com o seu proprio `staminaF=.7+stamina/100*.3`, e
-       o resultado dela e o que vale. Eu editei aqui primeiro: o funil de 32
-       partidas voltou IDENTICO AO DIGITO — 0,913 de velocidade, 0,613 em
-       alcance. A `pilha.js` responde VIVA para `_integrate` e esta certa: o
-       METODO roda. Esta LINHA nao. E a armadilha A2 do reports/ARMADILHAS.md,
-       pela setima vez neste projeto.
+     Quem executa hoje: camada 16 (dona), depois 17, 23, 24 e 71, que a
+     encadeiam. Se precisar mexer na velocidade, e la.
 
-       O conserto do D19 esta na camada 16. */
-    const staminaF = 0.7 + p.stamina/100 * 0.3;
-    // RITMO INDIVIDUAL (§movimento): nem todo jogador corre a 100% o tempo todo —
-    // isso é o que causava a "mesma velocidade" (deslizar em bloco). Cada um tem uma
-    // marcha própria que respira: longe da ação, muitos TROTAM (60-75%); só quem tem
-    // urgência real (perto do alvo, ou com dever de bola) esprinta. A fase pessoal
-    // dessincroniza quem acelera e quando.
-    if (p._gaitPh === undefined) p._gaitPh = R() * 6.28;
-    const hasBallDuty = p._breaking || p._burst || p === this.ball.owner ||
-                        (this.ball.traveling && this.ball.receiver === p);
-    let effort;
-    if (hasBallDuty || dist > 16) effort = 1;           // dever real ou muito longe: esprinta
-    else {
-      // marcha que respira, escalada pela distância: perto trota, longe apressa.
-      // cada jogador num ponto diferente do ciclo → ninguém na mesma velocidade.
-      const distF = clamp((dist - 3) / 13, 0, 1);        // 3m→16m mapeia 0→1
-      const breathe = 0.5 + 0.5 * Math.sin(this.t * 0.85 + p._gaitPh);
-      effort = clamp(0.55 + distF * 0.35 + breathe * 0.14, 0.5, 1);
-    }
-    const vmax = p.maxSpd * staminaF * effort * (freeze ? 0.5 : 1);
-    const desired = Math.min(vmax, dist * 3.2);         // freia perto do alvo
-    const dvx = dx/dist * desired - p.vx;
-    const dvy = dy/dist * desired - p.vy;
-    // inércia: aproxima com aceleração limitada
-    const currentDir = Math.atan2(p.vy,p.vx), wantedDir = Math.atan2(dy,dx);
-    const turnDelta = Math.abs(Math.atan2(Math.sin(wantedDir-currentDir),Math.cos(wantedDir-currentDir)));
-    const turnPenalty = lerp(1, p.turn || 1, clamp(turnDelta/Math.PI,0,1));
-    const amax = p.acc * turnPenalty * dt;
-    const dv = Math.hypot(dvx, dvy);
-    if (dv > amax) { p.vx += dvx/dv*amax; p.vy += dvy/dv*amax; }
-    else { p.vx += dvx; p.vy += dvy; }
-    p.x += p.vx * dt; p.y += p.vy * dt;
-    p.x = clamp(p.x, 0, FL); p.y = clamp(p.y, 0, FW);
-  }
+     Verificado com `aceitar.sh --depois --identico`: as 14 metricas identicas
+     ao digito. */
+
 
   /* ------------------------------ EVENTOS ----------------------------- */
   _emit(type, data) {

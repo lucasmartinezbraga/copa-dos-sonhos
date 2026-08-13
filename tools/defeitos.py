@@ -249,13 +249,22 @@ DEFEITOS = [
       titulo="Promover para o core os metodos cuja camada e TERMINAL",
       locais=[dict(arquivo=MOTOR, linha=3193, ancora="this._integrate(p, tx, ty, dt, freeze);"),
               dict(arquivo=L+"07-cds-physics-timeline-581.js", linha=None, ancora="P._planPhysicalSegment")],
-      evidencia=("_integrate e _defendTarget EXISTEM no core e estao mortos (camadas 16 e 17 sao TERMINAIS). "
-                 "CORRECAO v2: _planPhysicalSegment, _trajectoryPoint e _physicalTargetZ NUNCA existiram no core — "
-                 "nascem na camada 07 e sao substituidos pela 88. O codigo morto ali e da camada 07, nao do motor."),
-      dono="camada 16 (_integrate), camada 17 (_defendTarget), camada 07 (os tres de fisica)",
+      evidencia=("CORRECAO v3: so o `_integrate` estava morto. A camada 16 substitui P._integrate SEM "
+                 "capturar o anterior — e TERMINAL. FEITO: 73 linhas removidas do motor, verificado com "
+                 "aceitar.sh --depois --identico (14 metricas identicas ao digito). Junto foi a copia de "
+                 "`staminaF = 0.7 + stamina/100*0.3` que gerou a armadilha A6. `_defendTarget` NAO estava "
+                 "morto: a camada 17 captura em `oldDefend13` (:544) e o chama de volta em :606 para o "
+                 "atacante que nao cai em nenhum ramo especial; o pilha.js concorda, ele nao aparece em "
+                 "lista de morto nem de terminal. Morto ali e o RAMO `if (p === presser)` — armadilha A2. "
+                 "CORRECAO v2 (mantida): _planPhysicalSegment, _trajectoryPoint e _physicalTargetZ NUNCA "
+                 "existiram no core — nascem na camada 07 e sao substituidos pela 88. O codigo morto ali e "
+                 "da camada 07, nao do motor, e e o que SOBRA do D17."),
+      dono="camada 16 era a dona de _integrate (FEITO); camada 07 tem os tres de fisica (aberto)",
       intercepta=["07","08","16","17","88"],
-      criterio=["metricas identicas ao digito por promocao","pilha.js mostra uma sobrescrita a menos"],
-      depende=["D16"], risco="baixo em comportamento, alto em atrito. UM metodo por commit."),
+      criterio=["metricas identicas ao digito","_integrate FEITO; sobra o codigo morto da camada 07"],
+      depende=["D16"],
+      risco=("baixo em comportamento, alto em atrito. UM metodo por commit — e CHEQUE se a camada e "
+             "mesmo terminal antes de apagar: das duas que esta ficha dizia terminais, uma nao era.")),
 
  dict(id="D18", sev="higiene", fase="F5", estado="aberto",
       titulo="_cross tem 255 linhas e nove correcoes embutidas",
