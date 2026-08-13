@@ -545,7 +545,7 @@ DEFEITOS = [
               dict(arquivo=L+"91-d35-ombro-do-ultimo-defensor.js", linha=104,
                    ancora="var alvo = Math.min(linha - margem, _FL - 3.5);"),
               dict(arquivo=MOTOR, linha=1345,
-                   ancora="if (margem > -1.2) penaImped = clamp(0.85 + margem * 0.62, 0, 3.1)"),
+                   ancora="if (margem > -1.2) penaImped = clamp((0.85 + margem * 0.62) * _esc, 0, _teto)"),
               dict(arquivo=MOTOR, linha=3208,
                    ancora="if (p._breaking) { p._breaking.t -= this._stepDt || 1 / 60; if (p._breaking.t <= 0) p._breaking = null; }")],
       evidencia=("a camada 17 armava o cobrador com {throwInDuty:true}, sem `t` e sem `dir`. "
