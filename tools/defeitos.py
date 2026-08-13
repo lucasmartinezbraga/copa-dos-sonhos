@@ -536,10 +536,16 @@ DEFEITOS = [
       depende=[],
       risco="ALTO se alguem apagar as 81 direto. O primeiro plano escreveu este numero como se fosse fato — era teto."),
 
- dict(id="D35", sev="estrutural", fase="F2", estado="aberto",
+ dict(id="D35", sev="estrutural", fase="F2", estado="medindo",
       titulo="A marca de arrancada que nunca sai — e o VOLUME DO JOGO esta apoiado nela",
       locais=[dict(arquivo=L+"17-cds-r13-football-observer-cadence.js", linha=295,
-                   ancora="taker._breaking=taker._breaking||{throwInDuty:true};"),
+                   ancora="taker._breaking=taker._breaking||{t:1.4,dir:0,throwInDuty:true,until:finite13(this.t)+1.4};"),
+              dict(arquivo=L+"17-cds-r13-football-observer-cadence.js", linha=846,
+                   ancora="function varreArrancadaInvalida13(sim){"),
+              dict(arquivo=L+"91-d35-ombro-do-ultimo-defensor.js", linha=104,
+                   ancora="var alvo = Math.min(linha - margem, _FL - 3.5);"),
+              dict(arquivo=MOTOR, linha=1345,
+                   ancora="if (margem > -1.2) penaImped = clamp(0.85 + margem * 0.62, 0, 3.1)"),
               dict(arquivo=MOTOR, linha=3208,
                    ancora="if (p._breaking) { p._breaking.t -= this._stepDt || 1 / 60; if (p._breaking.t <= 0) p._breaking = null; }")],
       evidencia=("a camada 17 armava o cobrador com {throwInDuty:true}, sem `t` e sem `dir`. "
