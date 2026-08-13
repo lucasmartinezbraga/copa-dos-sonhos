@@ -347,7 +347,31 @@ DEFEITOS = [
       evidencia="0,326 medido; dentro da faixa real 0,30-0,40, fora da faixa de design",
       dono="camada 88 (mira)",
       intercepta=["88"],
-      criterio=["design 13/13 por qualquer via","goals +-0,20"],
+      criterio=["design 13/13 por qualquer via","goals +-0,20","futebol real NAO pode cair de 15/21"],
+      medido=("TENTATIVA REVERTIDA. O aviso do codigo ('a resposta e ingreme, exige rodar a "
+              "grade') foi seguido: tools/fisica/calibrar.py, 4 pontos x 48 partidas.\n"
+              "    erroBase   gols   noAlvo\n"
+              "      15,3     2,73   0,306   <- atual\n"
+              "      14,9     2,81   0,332\n"
+              "      14,5     3,25   0,363\n"
+              "      14,1     2,71   0,348\n"
+              "A coluna de gols e ruidosa (nao e monotonica; 2 SE ~ 0,49 com 48 partidas), "
+              "entao escolhi 14,9, o passo modesto. Em 300 partidas: APROVADO nos dois "
+              "portoes e MESMO ASSIM revertido, por dois motivos:\n"
+              "  1. NAO ATINGIU O ALVO. acertoAoAlvo 0,320 -> 0,331, e o minimo de design e "
+              "0,34. Continuou 12/13.\n"
+              "  2. CUSTOU UMA METRICA DO FUTEBOL REAL. golPorChuteNoAlvo 0,379 -> 0,382, "
+              "acima do teto real de 0,38. O placar do futebol real caiu de 15/21 para 14/21 "
+              "— e nenhum dos dois portoes vigia esse placar.\n"
+              "MINHA PREVISAO ESTAVA ERRADA e o erro e instrutivo: eu esperava que "
+              "golPorChuteNoAlvo CAISSE (mais chutes no alvo, mesmos gols). Ele subiu, porque "
+              "os gols subiram junto — o goleiro converte os chutes extras na mesma taxa.\n"
+              "CONCLUSAO: acertoAoAlvo e gol|noAlvo estao amarrados pela mesma alavanca. Para "
+              "chegar a 0,34 sem estourar o teto de 0,38 e preciso mexer em DOIS parametros "
+              "juntos — erroBase E defesaBase — o que pede uma grade 2D, nao uma linha.\n"
+              "E FICA A PERGUNTA DE PRODUTO: 0,320 esta DENTRO da faixa do futebol real "
+              "(0,30-0,40) e FORA da faixa de design (0,34-0,47). O minimo de design e mais "
+              "exigente que o futebol de verdade. Talvez o alvo e que esteja errado."),
       depende=["D13"], risco="baixo: pode se resolver sozinho com D13"),
 
  dict(id="D23", sev="higiene", fase="—", estado="guarda-corpo",

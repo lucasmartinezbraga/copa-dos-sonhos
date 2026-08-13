@@ -1,6 +1,6 @@
 # As armadilhas deste código
 
-**Trinta.** Cada uma custou pelo menos uma rodada de medição de 25
+**Trinta e uma.** Cada uma custou pelo menos uma rodada de medição de 25
 minutos; várias custaram mais. Estavam espalhadas por `CLAUDE.md`, pelo Volume
 VIII‑A do relatório, pelos laudos e pelos comentários do código.
 
@@ -11,7 +11,7 @@ Elas estão em quatro grupos, porque erram por motivos diferentes:
 | grupo | o que engana | quantas |
 |---|---|---|
 | **A · a pilha de camadas** | o código que você lê não é o que executa | 7 |
-| **B · a medição** | o número existe e mede outra coisa | 11 |
+| **B · a medição** | o número existe e mede outra coisa | 12 |
 | **C · as ferramentas** | a ferramenta funciona e mente | 7 |
 | **D · o processo** | você mesmo, com pressa | 5 |
 
@@ -286,6 +286,26 @@ E o instrumento estava cego **duas vezes**:
 > Nenhum portão automático deste projeto teria pegado isso. **Só a captura.**
 > Quando a métrica melhora muito e a mudança é de render, a captura não é
 > confirmação: é o teste.
+
+## B12 · Há um terceiro placar, e ele também não é vigiado
+
+`aceitar.sh` olha as **14 métricas agregadas** e, desde o D11, o **placar de
+design** (13 métricas). Ninguém olha o **placar do futebol real** (21 métricas).
+
+No D22 isso apareceu: a mudança passou nos dois portões e mesmo assim custou
+uma métrica.
+
+| | referência | com a mudança |
+|---|---|---|
+| acertoAoAlvo | 0,320 | 0,331 (alvo era ≥ 0,34) |
+| **golPorChuteNoAlvo** | 0,379 ✅ | **0,382** ❌ (teto real 0,38) |
+| **futebol real** | **15/21** | **14/21** |
+
+O portão de design não reclamou porque `onTargetRate` **já estava fora** — e a
+regra dele é "não deixar sair", não "não piorar".
+
+> Cada portão novo fecha um buraco e revela o próximo. Antes de aceitar,
+> **rode os três placares**, não os dois automáticos.
 
 ---
 
