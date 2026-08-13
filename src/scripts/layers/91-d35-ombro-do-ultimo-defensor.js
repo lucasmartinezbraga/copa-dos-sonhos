@@ -80,21 +80,44 @@
   /* Somente o homem de referencia. Alargar isto para LW/RW/CAM foi tentado e
      nao entra nesta camada sem medicao propria: sao papeis com largura e
      profundidade diferentes, e o teto de impedimento nao e o que os prende. */
-  var PONTA = { ST: 1, CF: 1 };
-
   /* varredura sem reconstruir o bundle — tools/fisica/calibrar.py */
   var T = (root && root.CDS_D35_TUNE) || {};
+  var PONTA = {};
+  String((T && T.papeis) || 'ST,CF').split(',').forEach(function (k) {
+    k = k.trim(); if (k) PONTA[k] = 1;
+  });
   var num = function (v, d) { return Number.isFinite(v) ? v : d; };
 
   var SUAVE = num(T.suave, 0.55);          // fracao do que falta, por quadro
   var MARGEM_RUIM = num(T.margemRuim, 4.2); // m aquem da linha, movimentacao 0
   var MARGEM_BOA = num(T.margemBoa, 1.1);  // m aquem da linha, movimentacao 100
   var PROG_MIN = num(T.progMin, 0.50);     // so a partir do meio-campo
+  /* duracao da arrancada de ruptura. O motor cria `{t: 1.4}` em `:3203`, e 1,4 s
+     a ~7 m/s cobre 10 m. Do ombro isso basta para cruzar a linha; de 12,7 m
+     atras dela nao bastava. 0 mantem o valor do motor. */
+  var T_ARRANCADA = num(T.tArrancada, 0);
 
   function fin(v, d) { return (typeof v === 'number' && isFinite(v)) ? v : d; }
   function cl(v, a, b) { return v < a ? a : (v > b ? b : v); }
 
-  var A = { chamadas: 0, elevados: 0, ganhoSoma: 0, ganhoN: 0, colados: 0 };
+  var A = { chamadas: 0, elevados: 0, ganhoSoma: 0, ganhoN: 0, colados: 0, alongadas: 0 };
+
+  /* `run_break` e emitido no quadro seguinte a `p._breaking = {t:1.4, dir}`.
+     Estender ali nao consome RNG e nao cria arrancada nenhuma — so alonga as
+     que o motor ja decidiu. */
+  if (T_ARRANCADA > 0) {
+    var oldEmit = P._emit;
+    P._emit = function (type, data) {
+      try {
+        if (type === 'run_break' && data && data.by && data.by._breaking) {
+          var br = data.by._breaking;
+          if (Number.isFinite(+br.t) && +br.t < T_ARRANCADA) br.t = T_ARRANCADA;
+          A.alongadas++;
+        }
+      } catch (_) {}
+      return oldEmit.apply(this, arguments);
+    };
+  }
 
   var oldAtk = P._attackTarget;
   P._attackTarget = function (tm, p, b) {
@@ -140,9 +163,9 @@
 
   P.getD35OmbroAudit = function () {
     return { version: VERSION, chamadas: A.chamadas, elevados: A.elevados,
-      coladosNaLinha: A.colados,
+      coladosNaLinha: A.colados, arrancadasAlongadas: A.alongadas,
       ganhoMedio_m: A.ganhoN ? A.ganhoSoma / A.ganhoN : 0,
-      parametros: { suave: SUAVE, margemRuim: MARGEM_RUIM, margemBoa: MARGEM_BOA, progMin: PROG_MIN } };
+      parametros: { suave: SUAVE, margemRuim: MARGEM_RUIM, margemBoa: MARGEM_BOA, progMin: PROG_MIN, tArrancada: T_ARRANCADA } };
   };
 
   try {
