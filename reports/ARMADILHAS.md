@@ -1,6 +1,6 @@
 # As armadilhas deste código
 
-**Trinta e cinco.** Cada uma custou pelo menos uma rodada de medição de 25
+**Trinta e seis.** Cada uma custou pelo menos uma rodada de medição de 25
 minutos; várias custaram mais. Estavam espalhadas por `CLAUDE.md`, pelo Volume
 VIII‑A do relatório, pelos laudos e pelos comentários do código.
 
@@ -11,7 +11,7 @@ Elas estão em quatro grupos, porque erram por motivos diferentes:
 | grupo | o que engana | quantas |
 |---|---|---|
 | **A · a pilha de camadas** | o código que você lê não é o que executa | 7 |
-| **B · a medição** | o número existe e mede outra coisa | 13 |
+| **B · a medição** | o número existe e mede outra coisa | 14 |
 | **C · as ferramentas** | a ferramenta funciona e mente | 8 |
 | **D · o processo** | você mesmo, com pressa | 5 |
 
@@ -346,6 +346,22 @@ O que fazer quando isto acontecer:
 > ofensivo inteiro — e a **A2 do goleiro** invertida: lá aumentar um recurso
 > piorou o jogo, aqui **remover um defeito** piorou. As três dizem a mesma
 > coisa: o modelo está usando o recurso pelo motivo errado.
+
+## B14 · A conversão está encostada no teto — e isso restringe tudo
+
+`golPorChuteNoAlvo` mede **0,379** contra um teto real de **0,38**. Um
+milésimo. Não é acaso: a A2 o trouxe de 0,428 para 0,378 ao consertar o
+goleiro, e ele ficou colado no limite.
+
+**Qualquer mudança que acrescente gols sem acrescentar chutes quebra o placar do
+futebol real.** Foi assim que a fadiga achatada (D19) caiu: chutes parados
+(23,71 → 23,52), xG parado (3,013 → 2,988), gols subindo (2,877 → 3,073). O
+jogador cansado mais rápido não penetra mais — ele converte melhor, e conversão
+é o único lugar sem espaço.
+
+Antes de propor qualquer coisa que "faça o time marcar mais", pergunte de onde
+vem o gol. Se não vier de chute a mais, ele vem de conversão, e a conversão está
+cheia.
 
 ---
 

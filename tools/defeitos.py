@@ -271,7 +271,9 @@ DEFEITOS = [
       evidencia="queda de -1,17 pp por faixa, R2=0,86; r=0,814 entre stamina e taxa de chutes",
       dono="dreno no core, normalizado por ADV4.context.clockRateRef",
       intercepta=[],
-      criterio=["gols 76-90' >=20%","gols 0-15' <=15%","goals +-0,20","stamina final 55-68","passes +-5,53"],
+      criterio=["chutesPorMinuto na faixa 76+ SUBINDO (nao gols: ver B14)",
+                "golPorChuteNoAlvo PARADO (esta em 0,379 contra teto 0,38 — zero folga)",
+                "golsTardios 0,18-0,30", "goals +-0,20", "passes +-5,53"],
       feito_em=("TRES TENTATIVAS REPROVADAS, todas medidas em 300 partidas. Laudo completo em "
                 "reports/D19-D20-a-mesma-alavanca.md. Resumo: (1) achatar a fadiga na velocidade "
                 "passou nos dois portoes e levou os gols de 76+ de 14,7% para 16,1%, mas nao atingiu "
