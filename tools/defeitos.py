@@ -536,12 +536,10 @@ DEFEITOS = [
       depende=[],
       risco="ALTO se alguem apagar as 81 direto. O primeiro plano escreveu este numero como se fosse fato — era teto."),
 
- dict(id="D35", sev="futebol", fase="F2", estado="feito",
-      titulo="A marca de arrancada que nunca sai — quem cobra um lateral fica marcado ate o apito",
+ dict(id="D35", sev="estrutural", fase="F2", estado="aberto",
+      titulo="A marca de arrancada que nunca sai — e o VOLUME DO JOGO esta apoiado nela",
       locais=[dict(arquivo=L+"17-cds-r13-football-observer-cadence.js", linha=295,
-                   ancora="taker._breaking=taker._breaking||{t:1.4,dir:0,throwInDuty:true,until:finite13(this.t)+1.4};"),
-              dict(arquivo=L+"17-cds-r13-football-observer-cadence.js", linha=846,
-                   ancora="function varreArrancadaInvalida13(sim){"),
+                   ancora="taker._breaking=taker._breaking||{throwInDuty:true};"),
               dict(arquivo=MOTOR, linha=3208,
                    ancora="if (p._breaking) { p._breaking.t -= this._stepDt || 1 / 60; if (p._breaking.t <= 0) p._breaking = null; }")],
       evidencia=("a camada 17 armava o cobrador com {throwInDuty:true}, sem `t` e sem `dir`. "
@@ -556,12 +554,23 @@ DEFEITOS = [
                  "de iniciar uma arrancada de verdade."),
       dono="camada 17 (R13) arma; motor le em 8 pontos",
       intercepta=["17"],
-      criterio=["nenhum ty NaN chegando ao _integrate","14 metricas dentro de 2 SE",
-                "placar de design nao piora"],
+      criterio=["nenhum ty NaN chegando ao _integrate",
+                "offsides entre 4 e 8 (o conserto sozinho derruba para 1,04)",
+                "shots >=20", "goals 2,4-3,2", "zeroZeroRate <=0,12"],
       depende=[],
-      risco=("MEDIO. Mexe em 8 leituras de _breaking de uma vez. O `dir:0` e deliberado: "
-             "chance() consumiria RNG e faria toda semente divergir por outro motivo."),
-      feito_em="reports/D35-a-marca-que-nunca-sai.md"),
+      risco=("ALTO. NAO CONSERTE SOZINHO — ja foi tentado e REPROVOU. O conserto e "
+             "trivialmente correto (`{t:1.4,dir:0,until}` + varredura, e as invariantes "
+             "passam: 220.103 alvos NaN -> 0) e mesmo assim derruba o jogo, porque o "
+             "VOLUME esta apoiado no defeito: os ~6 jogadores envenenados por partida "
+             "ficavam ISENTOS DO TETO DE IMPEDIMENTO e 16 m a frente da bola. "
+             "Medido em 300 partidas pareadas: offsides 5,167 -> 1,043; shots 23,71 -> "
+             "19,99; goals 2,877 -> 2,380; xg 3,013 -> 2,483; corners 11,34 -> 9,29; "
+             "zeroZeroRate 0,080 -> 0,167 (4,03 SE). Placar de design 12/13 -> 9/13. "
+             "O par correto e: consertar o defeito E dar aos atacantes um motivo "
+             "LEGITIMO de atacar as costas da linha, na mesma rodada — e a unica "
+             "excecao conhecida a armadilha B5. Medicao em "
+             "reports/d35-tentativa-reprovada.json."),
+      laudo="reports/D35-a-marca-que-nunca-sai.md"),
 ]
 
 DOCUMENTO = "reports/INVESTIGACAO-COMPLETA-2026-08.md"

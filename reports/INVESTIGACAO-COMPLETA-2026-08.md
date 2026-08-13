@@ -3442,7 +3442,7 @@ a sonda estava lendo o jogador errado. Lendo `p.red` direto do estado do motor:
 
 ---
 
-## D35 🔴 ✅ A marca de arrancada que nunca sai
+## D35 🔴 A marca de arrancada que nunca sai — e o volume do jogo apoiado nela
 
 **Endereços:** `17-cds-r13-football-observer-cadence.js:295` (arma),
 `:846` (a varredura do conserto), `40-…:3208` (o decaimento que nunca dispara).
@@ -3468,9 +3468,26 @@ assim ao `_integrate`.
 reação, +2,4 no `_bestPass`, +0,25 na ameaça em profundidade, impossibilidade de
 iniciar uma arrancada real e exclusão do papel de `_thirdMan`.
 
-**O conserto.** O objeto passa a cumprir o contrato (`{t:1.4, dir:0, until}` —
-`dir:0` para não empurrar de lado nem consumir RNG) e uma varredura por quadro
-remove qualquer marca malformada ou vencida. Laudo em
+**O conserto foi escrito, medido e REVERTIDO.** O objeto passa a cumprir o
+contrato (`{t:1.4, dir:0, until}`) e uma varredura por quadro remove marca
+malformada. As invariantes passam — **220.103 alvos NaN → 0** — e o jogo cai:
+
+| | antes | depois |
+|---|---|---|
+| **offsides** | 5,167 | **1,043** |
+| shots | 23,710 | 19,990 |
+| goals | 2,877 | 2,380 |
+| **zeroZeroRate** | 0,080 | **0,167** (4,03 SE) |
+| throwIns | 15,787 | 17,570 |
+
+**Placar de design 12/13 → 9/13.** O motivo é o achado, não o bug: **o volume
+ofensivo do jogo está apoiado na isenção de impedimento** que o defeito
+concedia a ~6 jogadores por partida. Removida, nada mais manda ninguém às
+costas da linha, e os impedimentos caem para 1,04 — o futebol de elite tem 4–8.
+
+D35 volta a **aberto** com um par obrigatório: consertar a marca **e** dar um
+motivo legítimo de atacar as costas da linha, na mesma rodada. É a única
+exceção conhecida à armadilha B5. Laudo em
 `reports/D35-a-marca-que-nunca-sai.md`.
 
 **A armadilha de bônus (C5).** `JSON.stringify([19.9, NaN])` imprime

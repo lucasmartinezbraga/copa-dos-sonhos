@@ -1,6 +1,6 @@
 # As armadilhas deste código
 
-**Trinta e três.** Cada uma custou pelo menos uma rodada de medição de 25
+**Trinta e cinco.** Cada uma custou pelo menos uma rodada de medição de 25
 minutos; várias custaram mais. Estavam espalhadas por `CLAUDE.md`, pelo Volume
 VIII‑A do relatório, pelos laudos e pelos comentários do código.
 
@@ -11,8 +11,8 @@ Elas estão em quatro grupos, porque erram por motivos diferentes:
 | grupo | o que engana | quantas |
 |---|---|---|
 | **A · a pilha de camadas** | o código que você lê não é o que executa | 7 |
-| **B · a medição** | o número existe e mede outra coisa | 12 |
-| **C · as ferramentas** | a ferramenta funciona e mente | 7 |
+| **B · a medição** | o número existe e mede outra coisa | 13 |
+| **C · as ferramentas** | a ferramenta funciona e mente | 8 |
 | **D · o processo** | você mesmo, com pressa | 5 |
 
 ---
@@ -307,6 +307,46 @@ regra dele é "não deixar sair", não "não piorar".
 > Cada portão novo fecha um buraco e revela o próximo. Antes de aceitar,
 > **rode os três placares**, não os dois automáticos.
 
+## B13 · O jogo pode estar apoiado no defeito — e aí consertar REPROVA
+
+O **D35** era um bug indefensável: a camada 17 armava o cobrador de lateral com
+`_breaking = {throwInDuty:true}`, sem `t`, e `undefined - dt = NaN` nunca
+satisfaz `t <= 0`. A marca não saía mais. Seis dos vinte jogadores de linha
+terminavam a partida assim, e **902.014** chamadas de `_integrate` recebiam alvo
+NaN.
+
+O conserto é trivialmente correto e as invariantes provam: **220.103 alvos NaN
+→ 0**. Em 300 partidas pareadas ele **reprovou**:
+
+| | antes | depois |
+|---|---|---|
+| **offsides** | 5,167 | **1,043** |
+| shots | 23,710 | 19,990 |
+| goals | 2,877 | 2,380 |
+| zeroZeroRate | 0,080 | **0,167** (4,03 SE) |
+
+Placar de design **12/13 → 9/13**.
+
+**Por quê:** entre os oito efeitos permanentes do bug estava a **isenção do teto
+de impedimento**. Os envenenados atacavam as costas da linha sem freio e ficavam
+16 m à frente da bola — e era isso que produzia os chutes, os escanteios e os
+gols. Removido o bug, **nada** manda ninguém para frente: os impedimentos caem
+para 1,04 por partida, quando o futebol de elite tem 4–8.
+
+O que fazer quando isto acontecer:
+
+1. **Não force a entrada** e não invente uma variante só para passar no portão.
+2. **Não deixe o bug catalogado como "feito"** — ele volta a `aberto`, com a
+   medição da tentativa anexada, para o próximo não repetir a rodada.
+3. Identifique o que estava **de pé em cima** do defeito e trate os dois como um
+   **par obrigatório**. É a única exceção conhecida à **B5**: separados, o
+   conserto reprova por construção.
+
+> É a **A5** em escala grande — lá era um veto de 1,15 s, aqui é o volume
+> ofensivo inteiro — e a **A2 do goleiro** invertida: lá aumentar um recurso
+> piorou o jogo, aqui **remover um defeito** piorou. As três dizem a mesma
+> coisa: o modelo está usando o recurso pelo motivo errado.
+
 ---
 
 # C · As ferramentas
@@ -373,6 +413,31 @@ until grep -qE "APROVADO|REPROVADO" "$LOG"; do sleep 25; done
 O laço saiu com a bateria nos primeiros 30 segundos. Ancore o padrão: `-x` para
 linha inteira, `^` para início, ou uma palavra que só exista no veredito. Um
 `grep` de espera que casa cedo demais é indistinguível de um que funcionou.
+
+## C4c · `pgrep -f` acha o próprio laço que está esperando
+
+No mesmo dia, o erro oposto e pior:
+
+```bash
+until ! pgrep -f "aceitar.sh --antes" >/dev/null; do sleep 25; done
+```
+
+A linha de comando **deste shell** contém o texto `aceitar.sh --antes`. O
+`pgrep -f` casa com ela, o laço nunca sai, e ele reportou **"RODANDO" por duas
+horas e meia** depois de a bateria ter terminado. Três laços presos ao mesmo
+tempo, todos mentindo a mesma coisa.
+
+Não espere por `pgrep -f` de um padrão que você acabou de digitar. Espere pelo
+**arquivo de saída**:
+
+```bash
+until [ -s reports/_aceitar-antes.json ]; do sleep 25; done
+```
+
+ou, se precisar do processo, exclua a si mesmo: `pgrep -f PADRAO | grep -v $$`.
+
+> C4b e C4c juntas: **um laço de espera que não pode falhar de forma visível
+> não é uma espera, é um travamento com narração otimista.**
 
 ## C5 · Não dê a um arquivo Python o nome de um módulo da biblioteca
 
