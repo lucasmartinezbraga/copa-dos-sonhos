@@ -1707,29 +1707,7 @@ class MatchSim {
       // e uma pequena chance de não-marcado simulam a arbitragem real (linha justa).
       {
         const dir = _tm.attackDir;
-        /* D36 · A DECISAO E O CONTATO NAO SAO SIMULTANEOS.
-           Ate aqui o impedimento era medido em `m.x` — a MESMA foto que o
-           `_bestPass` acabara de usar para escolher o companheiro. Com a mesma
-           posicao dos dois lados, o passador que enxerga a linha (termo da A1)
-           simplesmente nunca erra: medido, 0,91 impedimento por partida contra
-           2,5-6,0 do futebol real, e 32,94 arrancadas por partida rendendo
-           quase nada.
-
-           No futebol o passador decide pela foto que ve, a bola sai algumas
-           decimas depois e o corredor NAO PAROU. O impedimento de verdade e
-           esse desencontro — erro de TEMPO do atacante, nao de leitura do
-           passador. Aqui a posicao do receptor avanca com a velocidade dele
-           durante o intervalo de execucao; quem esta parado nao muda de lado,
-           quem disparou cedo demais atravessa a linha sozinho.
-
-           Detalhe que faz o mecanismo existir: `_bestPass` continua avaliando
-           `penaImped` na posicao ATUAL. A assimetria entre as duas leituras E o
-           erro de sincronia. Igualar as duas mata o impedimento de novo. */
-        const _d36T = (typeof window !== 'undefined' && window.CDS_D36_TUNE) || {};
-        const _d36Atraso = Number.isFinite(_d36T.atraso) ? _d36T.atraso : 0.30;
-        const _d36Vx = Number.isFinite(m.vx) ? m.vx : 0;
-        const _d36X = m.x + _d36Vx * _d36Atraso;
-        const rxRcv = dir > 0 ? _d36X : FL - _d36X;
+        const rxRcv = dir > 0 ? m.x : FL - m.x;
         const rxBall = dir > 0 ? o.x : FL - o.x;
         if (rxRcv > rxBall + 2) {
           const opps = this.teams[1 - o.team].players.filter(p => !p.red);

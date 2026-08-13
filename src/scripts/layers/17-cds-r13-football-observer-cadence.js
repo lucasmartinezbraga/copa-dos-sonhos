@@ -292,7 +292,7 @@ P._ballOut=function(){
     return da+pa-(dc+pc);
   })[0]||null;
   b.traveling=false;b.owner=null;b.onArrive=null;b.target=null;b.vx=b.vy=b.vz=0;b.z=0;b.x=x;b.y=boundary;
-  this.poss=team;this.dead=.72;if(taker){var _dL=Math.hypot(finite13(taker.x)-x,finite13(taker.y)-boundary);taker._breaking=taker._breaking||{t:1.4,dir:0,throwInDuty:true,until:finite13(this.t)+1.4};this.dead=clamp13(.72+_dL/6.5,.72,4.5);}
+  this.poss=team;this.dead=.72;if(taker){var _dL=Math.hypot(finite13(taker.x)-x,finite13(taker.y)-boundary);taker._breaking=taker._breaking||{throwInDuty:true};this.dead=clamp13(.72+_dL/6.5,.72,4.5);}
   ensureR13Stats(this.stats[team]);this.stats[team].throwIns++;
   state13(this).team[team].throwIns++;
   if(taker){
@@ -842,46 +842,9 @@ function sampleFootball13(sim){
   }
 }
 
-/* A MARCA DE ARRANCADA QUE NAO SAI MAIS.
-   ---------------------------------------------------------------------------
-   `p._breaking` tem um contrato: `{t, dir}`. `t` e o que sobra da arrancada e
-   `dir` (+1/-1) e a diagonal. O motor apaga a marca por `t`:
-
-       if (p._breaking) { p._breaking.t -= dt; if (p._breaking.t <= 0) p._breaking = null; }
-
-   Esta camada armava o cobrador de lateral com `{throwInDuty:true}` — sem `t`
-   e sem `dir`. `undefined - dt` e NaN, `NaN <= 0` e FALSO, e a marca nunca era
-   apagada: quem cobrasse UM lateral ficava marcado como se estivesse em
-   arrancada ate o apito final. Medido em 16 partidas: 6,19 dos 20 jogadores de
-   linha terminavam a partida assim, contagio medio aos 36,6 minutos, e as
-   arrancadas legitimas eram 3.402 contra 174.719 quadros envenenados.
-
-   O estrago nao era so a marca. `_attackTarget` faz
-   `ty = clamp(ty + p._breaking.dir * 9, ...)`, e `undefined * 9` e NaN: 18,6%
-   das chamadas voltavam com o alvo LATERAL NaN e 902.014 chegavam assim ao
-   `_integrate`. Alem disso o jogador ficava permanentemente 16 m a frente da
-   bola, isento do teto de impedimento, fora da suavizacao de reacao, preferido
-   pelo `_bestPass` (+2,4) e impedido de iniciar uma arrancada de verdade.
-
-   Dois consertos: o objeto passa a cumprir o contrato (`dir:0` para nao
-   consumir RNG nem empurrar de lado) e esta varredura remove qualquer marca
-   malformada ou vencida, venha de onde vier. */
-function varreArrancadaInvalida13(sim){
-  const agora=finite13(sim.t);
-  for(const tm of sim.teams||[]){
-    for(const p of (tm&&tm.players)||[]){
-      const br=p&&p._breaking;
-      if(!br)continue;
-      if(!Number.isFinite(+br.t)||!Number.isFinite(+br.dir)||
-         (Number.isFinite(+br.until)&&agora>+br.until)) p._breaking=null;
-    }
-  }
-}
-
 const oldStep13=P.step;
 P.step=function(dt){
   const before=this.poss,r=oldStep13.apply(this,arguments);
-  varreArrancadaInvalida13(this);
   if(this.ball&&this.ball.owner&&!this.ball.traveling)this._ballGlue();
   const step=clamp13(finite13(dt,1/30),0,.2);
   updateCadence13(this,step,before);

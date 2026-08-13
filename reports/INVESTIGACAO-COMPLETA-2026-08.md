@@ -3524,9 +3524,48 @@ gol — perde gol. O termo faz o que deve.
 
 **Consequência.** D36 é **pré-requisito do D35**: sem um modelo de corrida
 cronometrada, remover o defeito da camada 17 derruba o impedimento para ~0,9
-faça o que fizer. E D36 é **feature, não conserto** — precisa de uma corrida que
-nasça de uma leitura (espaço nas costas + portador com a cabeça erguida), que
-seja cancelável, e de um passe que tente acertá-la.
+faça o que fizer.
+
+### [MEDIDO] D36 foi construído, funcionou, e reprovou assim mesmo
+
+A causa raiz era mais simples que "falta corrida": **o impedimento era avaliado
+em `m.x`, a mesma foto que o `_bestPass` acabara de usar.** Com posição idêntica
+dos dois lados, o passador que enxerga a linha nunca erra — e quem está além da
+linha nunca recebe o passe. Isso explica as quatro alavancas anteriores de uma
+vez só.
+
+O conserto: a posição do receptor avança com a própria velocidade durante o
+intervalo de execução (0,60 s, **calibrado** — o físico é 0,3–0,5), enquanto o
+`_bestPass` continua decidindo pela posição atual. A assimetria entre as duas
+leituras **é** o erro de sincronia.
+
+**Funcionou: impedimentos 0,910 → 3,000, dentro da faixa 2,5–6,0.** E reprovou:
+`goals` 2,407 → **2,323** (fora de 2,4–3,2) e `zeroZeroRate` 0,123 → **0,143**
+(3,13 SE). Design **11/13 → 10/13** — o conjunto *com* D36 é pior que sem ele.
+
+Intrínseco, não erro de desenho: **impedimento é ataque perdido**, ~0,64 chute
+cada, e o jogo já está no piso de volume.
+
+### A conclusão da linha D35/D36 inteira
+
+**O volume ofensivo está calibrado em cima de um defeito.** A isenção permanente
+do teto de impedimento respondia por **~15% dos chutes e ~19% dos gols**. Seis
+mecanismos testados, nenhum recupera:
+
+| mecanismo | resultado |
+|---|---|
+| ombro do último defensor | +0,97 chute — o melhor, e insuficiente |
+| duração da arrancada | impedimento 0,94→1,71, custa pontaria |
+| quais papéis jogam no ombro | alargar **piora** |
+| custo do impedimento no `_bestPass` | troca gol por impedimento |
+| **impedimento de tempo (D36)** | **resolve o impedimento**, custa gol |
+| os cinco juntos | design 10/13 contra 12/13 do estado aceito |
+
+**O que falta não é mecanismo, é recalibração** da cadeia chute → xG → conversão
+para um jogo com ~4 chutes a menos — como a `XG_ESCALA` foi re-derivada na A2.
+Isso é **D19**, e é projeto. Ordem correta para quem retomar: D19 primeiro,
+D35+D36 depois. Na ordem inversa reprovam — três vezes, medido. Laudo em
+`reports/D36-o-impedimento-de-tempo.md`.
 
 ---
 ---

@@ -540,6 +540,8 @@ DEFEITOS = [
       titulo="Nao existe corrida cronometrada contra a linha — impedimento nao tem sincronia para errar",
       locais=[dict(arquivo=MOTOR, linha=3203,
                    ancora="p._breaking = { t: 1.4, dir: chance(0.5) ? 1 : -1 };"),
+              dict(arquivo=MOTOR, linha=1710,
+                   ancora="const rxRcv = dir > 0 ? m.x : FL - m.x;"),
               dict(arquivo=MOTOR, linha=3347,
                    ancora="const onsideCap = Math.max(ballProg - 0.25, this._offsideLine(tm.side) - 0.25);")],
       evidencia=("`p._breaking` e um TEMPORIZADOR de 1,4 s. Ele nao consulta onde a linha "
@@ -557,13 +559,20 @@ DEFEITOS = [
                  "19,62, abaixo do piso de design. A A1 nao estava mal calibrada."),
       dono="motor: a criacao em :3203 e o teto em :3347",
       intercepta=["17", "36", "43", "60", "91 (revertida)"],
-      criterio=["offsides 2,5-6,0", "shots >=20", "goals 2,4-3,2", "noAlvo >=0,33"],
-      depende=[],
-      risco=("ALTO e e FEATURE, nao conserto: precisa de uma corrida que nasca de uma leitura "
-             "(espaco nas costas + portador com cabeca erguida), que seja cancelavel, e de um "
-             "passe que tente acerta-la. E pre-requisito do D35: sem ela, remover o defeito da "
-             "camada 17 derruba o impedimento para ~0,9 faca o que fizer."),
-      laudo="reports/D35-a-marca-que-nunca-sai.md"),
+      criterio=["offsides 2,5-6,0 (ATINGIDO: 3,000)", "shots >=20 (ATINGIDO: 20,120)",
+                "goals 2,4-3,2 (FALHOU: 2,323)", "zeroZeroRate <=0,12 (FALHOU: 0,143)"],
+      depende=["D19"],
+      risco=("CONSTRUIDO, MEDIDO E REVERTIDO. O mecanismo FUNCIONA: o impedimento era avaliado "
+             "em `m.x`, a MESMA foto que o _bestPass usa, entao o passador nunca errava. Fazendo "
+             "a posicao do receptor avancar com a propria velocidade durante o intervalo de "
+             "execucao (0,60 s calibrado), o impedimento vai de 0,910 para 3,000 — dentro da "
+             "faixa. E REPROVA assim mesmo: impedimento E ataque perdido, ~0,64 chute cada, e "
+             "o jogo ja esta no piso de volume. goals 2,407 -> 2,323 e zeroZeroRate 0,123 -> "
+             "0,143; design 11/13 -> 10/13. NAO REFACA sem antes recalibrar o volume ofensivo "
+             "(D19): removido o defeito do D35, faltam ~15% dos chutes e ~19% dos gols, e "
+             "nenhum dos seis mecanismos testados os recupera. Medicao em "
+             "reports/d36-tentativa-reprovada.json."),
+      laudo="reports/D36-o-impedimento-de-tempo.md"),
 
  dict(id="D35", sev="estrutural", fase="F2", estado="aberto",
       titulo="A marca de arrancada que nunca sai — e o VOLUME DO JOGO esta apoiado nela",
