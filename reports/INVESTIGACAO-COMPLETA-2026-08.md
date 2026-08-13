@@ -3300,7 +3300,7 @@ reintrodução.
 
 ---
 
-## D33 🟡 Doze arquivos que só publicam número de versão
+## D33 🟡 ✅ Treze arquivos que só publicavam número de versão
 
 **Endereços:** `35-r18155-build-identity.js` (10 linhas),
 `37-cds-r18161-build-identity.js` (3), `41-cds-r181732-mobile-start-meta.js` (3),

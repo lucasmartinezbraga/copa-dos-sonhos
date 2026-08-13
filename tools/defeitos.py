@@ -521,10 +521,17 @@ DEFEITOS = [
                 "acaso era igual ao valor calibrado, entao o defeito era invisivel. "
                 "Corrigido para ENGINE_CALIBRATION; o lint impede a reintroducao.")),
 
- dict(id="D33", sev="higiene", fase="F4", estado="aberto",
+ dict(id="D33", sev="higiene", fase="F4", estado="feito",
       titulo="Treze arquivos, 81 linhas, que so publicam numero de versao",
-      locais=[dict(arquivo=L+"59-cds-r1821rc1-build-meta.js", linha=None, ancora="")],
-      evidencia="89 blocos poderiam ser 77; o manifesto encolhe 13%",
+      locais=[dict(arquivo=L+"35-cds-build-identity.js", linha=1,
+                   ancora="Ordem original: 35, 37, 41, 42, 44, 46, 48, 50, 52, 59, 72, 73, 83.")],
+      evidencia=("FEITO: 91 -> 79 blocos e 83 -> 70 camadas (o catalogo dizia 89->77; a "
+                 "contagem tinha envelhecido). Verificado com aceitar.sh --depois --identico: "
+                 "as 14 metricas IDENTICAS ao digito, design 12/13 e futebol real 15/21, todos "
+                 "inalterados. Antes de fundir: nenhum dos onze objetos CDS_R*_BUILD e lido em "
+                 "src/, tools/ ou tests/, e CDS_BUILD_ID so e lido por tela/pinga.js DEPOIS de "
+                 "todas as camadas. Nenhum dos treze declarava const/let/var no topo, entao "
+                 "juntar num bloco so nao cria colisao de binding."),
       dono="—", intercepta=[],
       criterio=["grep por __CDS_* antes de fundir","metricas identicas"],
       depende=[], risco="baixo mas nao zero: algo pode ler por nome"),
@@ -663,11 +670,16 @@ def validar() -> list[str]:
     for d in DEFEITOS:
         for loc in d["locais"]:
             anc = loc.get("ancora") or ""
-            if not anc:
-                continue
             p = RAIZ / loc["arquivo"]
+            # O arquivo e checado SEMPRE, mesmo sem ancora. Antes o `continue`
+            # vinha primeiro: uma entrada com ancora vazia nunca olhava o
+            # caminho, e o catalogo continuava apontando para um arquivo
+            # apagado sem reclamar. Foi o que aconteceu com o D33, cuja unica
+            # entrada apontava para um dos treze arquivos que ele mesmo fundiu.
             if not p.exists():
                 erros.append(f'{d["id"]}: arquivo nao existe: {loc["arquivo"]}')
+                continue
+            if not anc:
                 continue
             texto = p.read_text(encoding="utf8")
             n = texto.count(anc)

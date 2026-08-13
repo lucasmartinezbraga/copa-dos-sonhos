@@ -1,1 +1,0 @@
-window.CDS_R18182_BUILD=Object.freeze({version:'R18.18.2',baseline:'R18.18.1',label:'DISPUTAS E SAIDAS NATURAIS'});
