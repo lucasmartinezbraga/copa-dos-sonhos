@@ -536,16 +536,41 @@ DEFEITOS = [
       depende=[],
       risco="ALTO se alguem apagar as 81 direto. O primeiro plano escreveu este numero como se fosse fato — era teto."),
 
- dict(id="D35", sev="estrutural", fase="F2", estado="medindo",
+ dict(id="D36", sev="futebol", fase="F3", estado="aberto",
+      titulo="Nao existe corrida cronometrada contra a linha — impedimento nao tem sincronia para errar",
+      locais=[dict(arquivo=MOTOR, linha=3203,
+                   ancora="p._breaking = { t: 1.4, dir: chance(0.5) ? 1 : -1 };"),
+              dict(arquivo=MOTOR, linha=3347,
+                   ancora="const onsideCap = Math.max(ballProg - 0.25, this._offsideLine(tm.side) - 0.25);")],
+      evidencia=("`p._breaking` e um TEMPORIZADOR de 1,4 s. Ele nao consulta onde a linha "
+                 "defensiva esta, nao sabe quando o passe vai sair e nao e cancelado se o "
+                 "portador demora. Impedimento e erro de SINCRONIA entre a corrida e o passe, "
+                 "e nao ha sincronia nenhuma para errar. Medido: 32,94 arrancadas por partida "
+                 "produzem 0,91 impedimento. Tres alavancas varridas em 48 partidas pareadas "
+                 "cada, e nenhuma alcanca a faixa 2,5-6,0 do futebol real sem quebrar outra "
+                 "coisa: (1) margem do ombro — cinco configuracoes, todas entre 0,88 e 1,06, "
+                 "porque quem esta no ombro esta ONSIDE por construcao; (2) duracao da "
+                 "arrancada — sobe monotonicamente 0,94/1,17/1,27/1,46/1,71 e chegar a 2,5 "
+                 "exigiria 5 a 6 s, que nao e arrancada, e o jogador morando atras da linha; "
+                 "(3) custo do impedimento no _bestPass (A1) — solta-lo leva o impedimento a "
+                 "2,21 mas TROCA gol por impedimento: gols 2,604 -> 2,167 e chutes 21,42 -> "
+                 "19,62, abaixo do piso de design. A A1 nao estava mal calibrada."),
+      dono="motor: a criacao em :3203 e o teto em :3347",
+      intercepta=["17", "36", "43", "60", "91 (revertida)"],
+      criterio=["offsides 2,5-6,0", "shots >=20", "goals 2,4-3,2", "noAlvo >=0,33"],
+      depende=[],
+      risco=("ALTO e e FEATURE, nao conserto: precisa de uma corrida que nasca de uma leitura "
+             "(espaco nas costas + portador com cabeca erguida), que seja cancelavel, e de um "
+             "passe que tente acerta-la. E pre-requisito do D35: sem ela, remover o defeito da "
+             "camada 17 derruba o impedimento para ~0,9 faca o que fizer."),
+      laudo="reports/D35-a-marca-que-nunca-sai.md"),
+
+ dict(id="D35", sev="estrutural", fase="F2", estado="aberto",
       titulo="A marca de arrancada que nunca sai — e o VOLUME DO JOGO esta apoiado nela",
       locais=[dict(arquivo=L+"17-cds-r13-football-observer-cadence.js", linha=295,
-                   ancora="taker._breaking=taker._breaking||{t:1.4,dir:0,throwInDuty:true,until:finite13(this.t)+1.4};"),
-              dict(arquivo=L+"17-cds-r13-football-observer-cadence.js", linha=846,
-                   ancora="function varreArrancadaInvalida13(sim){"),
-              dict(arquivo=L+"91-d35-ombro-do-ultimo-defensor.js", linha=104,
-                   ancora="var alvo = Math.min(linha - margem, _FL - 3.5);"),
+                   ancora="taker._breaking=taker._breaking||{throwInDuty:true};"),
               dict(arquivo=MOTOR, linha=1345,
-                   ancora="if (margem > -1.2) penaImped = clamp((0.85 + margem * 0.62) * _esc, 0, _teto)"),
+                   ancora="if (margem > -1.2) penaImped = clamp(0.85 + margem * 0.62, 0, 3.1)"),
               dict(arquivo=MOTOR, linha=3208,
                    ancora="if (p._breaking) { p._breaking.t -= this._stepDt || 1 / 60; if (p._breaking.t <= 0) p._breaking = null; }")],
       evidencia=("a camada 17 armava o cobrador com {throwInDuty:true}, sem `t` e sem `dir`. "
@@ -561,9 +586,9 @@ DEFEITOS = [
       dono="camada 17 (R13) arma; motor le em 8 pontos",
       intercepta=["17"],
       criterio=["nenhum ty NaN chegando ao _integrate",
-                "offsides entre 4 e 8 (o conserto sozinho derruba para 1,04)",
+                "offsides 2,5-6,0 (a faixa do proprio projeto, nao os 4-8 que eu escrevi de cabeca)",
                 "shots >=20", "goals 2,4-3,2", "zeroZeroRate <=0,12"],
-      depende=[],
+      depende=["D36"],
       risco=("ALTO. NAO CONSERTE SOZINHO — ja foi tentado e REPROVOU. O conserto e "
              "trivialmente correto (`{t:1.4,dir:0,until}` + varredura, e as invariantes "
              "passam: 220.103 alvos NaN -> 0) e mesmo assim derruba o jogo, porque o "

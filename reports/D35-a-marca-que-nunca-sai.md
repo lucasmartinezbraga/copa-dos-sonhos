@@ -141,6 +141,103 @@ futebol de elite tem 4–8, então o jogo passa de "certo por acidente" para
 > jogo; aqui, **remover um defeito** piorou. As duas dizem a mesma coisa — o
 > modelo está usando o recurso pelo motivo errado.
 
+---
+
+## ⛔ O PAR TAMBÉM FOI TENTADO, MEDIDO E REVERTIDO (2026-08-13)
+
+A recomendação abaixo — *"consertar a marca **e** dar um motivo legítimo de
+atacar as costas da linha"* — foi executada. A metade legítima virou a camada
+**91 · o ombro do último defensor**: com posse no campo de ataque, o homem de
+referência posiciona-se no ombro do penúltimo defensor em vez de 12,7 m atrás.
+
+**Ela recuperou dois terços do estrago e não fechou.**
+
+| | base (com o bug) | só o conserto | **conserto + ombro** |
+|---|---|---|---|
+| shots | 23,710 | 19,990 | **20,957** |
+| goals | 2,877 | 2,380 | **2,407** |
+| xg | 3,013 | 2,483 | **2,656** |
+| corners | 11,337 | 9,287 | **9,660** |
+| zeroZeroRate | 0,080 | 0,167 | **0,123** (faixa ≤0,12) |
+| **placar de design** | 12/13 | 9/13 | **11/13** |
+| offsides | 5,167 | 1,043 | **0,910** |
+
+Faltaram **0,003** no `zeroZeroRate` e o impedimento ficou em 0,91 contra a
+faixa 2,5–6,0 do futebol real.
+
+### Três alavancas varridas, três becos sem saída
+
+Cada linha é uma varredura de 48 partidas **pareadas** contra a mesma população.
+
+**1 · margem do ombro** — cinco configurações, impedimento entre **0,88 e 1,06**.
+Encerra a hipótese de calibração: **quem está no ombro está onside por
+construção**, e mexer em quanto ele cola na linha não muda isso.
+
+**2 · duração da arrancada** — sobe monotônico e não chega:
+
+| `tArrancada` | gols | chutes | noAlvo | **offside** |
+|---|---|---|---|---|
+| 1,4 (motor) | 2,604 | 21,42 | 0,339 | **0,94** |
+| 2,2 | 2,063 | 21,00 | 0,313 | **1,17** |
+| 3,0 | 2,542 | 19,60 | 0,321 | **1,27** |
+| 3,0 + margens | 2,604 | 21,69 | 0,317 | **1,46** |
+| 4,0 + margens | 2,375 | 21,62 | 0,322 | **1,71** |
+
+Chegar a 2,5 exigiria 5–6 s. Uma "quebra explosiva" de seis segundos não é
+arrancada: é o jogador **morando atrás da linha** — o próprio defeito, com outro
+nome.
+
+**3 · quais papéis jogam no ombro** — alargar **piora**:
+
+| papéis | gols | chutes | noAlvo | offside |
+|---|---|---|---|---|
+| ST,CF (padrão) | **2,604** | 21,42 | **0,339** | 0,94 |
+| +LW,RW | 2,542 | 21,10 | 0,340 | 0,94 |
+| +CAM | 2,313 | 20,62 | 0,317 | 0,75 |
+
+**4 · o custo do impedimento no `_bestPass` (A1)** — e aqui eu estava errado.
+
+| | gols | chutes | noAlvo | offside |
+|---|---|---|---|---|
+| padrão | **2,604** | **21,42** | **0,339** | 0,94 |
+| escala 0,45 + teto 1,6 | 2,417 | 20,46 | 0,328 | 1,40 |
+| + arrancada 2,6 | 2,167 | **19,62** | 0,320 | **2,21** |
+
+Eu previ que o termo estivesse taxando demais o passe em profundidade, por ter
+sido ajustado contra um jogo com seis impedidos permanentes. **Soltá-lo não
+recupera gol — perde gol**, e troca gol por impedimento até furar o piso de
+chutes. A A1 faz o que deve.
+
+> E antes disso eu tinha previsto que a A1 sufocava o centroavante no ombro.
+> Também errado, por outro motivo: `penaImped` só existe acima de
+> `margem > -1,2`, e a camada 91 estaciona o atacante **abaixo** do limiar.
+
+### O que isto estabeleceu — e vale mais que o par
+
+**O jogo não tem corrida cronometrada contra a linha.** `p._breaking` é um
+temporizador de 1,4 s que não consulta onde a defesa está nem quando o passe vai
+sair. Impedimento é erro de sincronia, e não há sincronia para errar. Foi por
+isso que a isenção permanente do defeito era a **única** coisa capaz de produzir
+impedimento na taxa do futebol de elite.
+
+Isso virou o **D36**, e ele é **pré-requisito do D35**: sem ele, remover o
+defeito derruba o impedimento para ~0,9 faça o que fizer. E é **feature, não
+conserto**.
+
+### Por que reverti em vez de entregar 11/13
+
+O par melhora sobre o conserto sozinho, mas fica abaixo do estado aceito. O
+código fica mais limpo e o jogo fica **pior no campo**: 0,91 impedimento por
+partida é menos futebol do que 5,17, ainda que os 5,17 saiam de um bug. Essa
+troca é decisão de produto, não minha — e o portão do projeto diz não.
+
+Fica tudo reconstruível: o desenho da camada 91 está neste laudo, os knobs
+`CDS_D35_TUNE` (`suave`, `margemBoa`, `margemRuim`, `progMin`, `tArrancada`,
+`papeis`, `penaEscala`, `penaTeto`) continuam documentados, e
+`tools/fisica/bateria.js --tuneD35` continua no lugar para quem retomar.
+
+---
+
 ### O que fazer, quando alguém voltar a isto
 
 Este é o **par** que o defeito exige, e é a única exceção conhecida à armadilha

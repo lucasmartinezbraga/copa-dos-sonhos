@@ -3494,6 +3494,41 @@ exceção conhecida à armadilha B5. Laudo em
 `[19.9,null]`. O diagnóstico perdeu dez minutos procurando quem escrevia `null`.
 
 ---
+
+## D36 🔴 Não existe corrida cronometrada contra a linha
+
+**Endereços:** `40-…:3203` (a criação da arrancada), `40-…:3347` (o teto de
+impedimento).
+
+**Descoberto tentando fechar o par do D35**, e é o motivo de ele não fechar.
+
+**O defeito.** `p._breaking` é um **temporizador de 1,4 s**. Ele não consulta
+onde está a linha defensiva, não sabe quando o passe vai sair e não é cancelado
+se o portador demora. Impedimento é um **erro de sincronia** entre a corrida e o
+passe — e não há sincronia nenhuma para errar. 32,94 arrancadas por partida
+produzem 0,91 impedimento.
+
+**[MEDIDO] Três alavancas varridas, 48 partidas pareadas cada, nenhuma alcança a
+faixa 2,5–6,0 sem quebrar outra coisa:**
+
+| alavanca | o que fez |
+|---|---|
+| margem do ombro (5 configs) | impedimento entre **0,88 e 1,06** — quem está no ombro está *onside* por construção |
+| duração da arrancada | sobe monotônico **0,94 / 1,17 / 1,27 / 1,46 / 1,71**; chegar a 2,5 exigiria 5–6 s, que não é arrancada |
+| custo do impedimento (A1) | leva a **2,21**, mas **troca gol por impedimento**: gols 2,604 → 2,167, chutes 21,42 → **19,62** (abaixo do piso) |
+
+A terceira merece registro à parte: **a A1 não estava mal calibrada.** Eu previ
+que o termo estivesse taxando demais o passe em profundidade por ter sido
+ajustado contra um jogo com seis impedidos permanentes. Soltá-lo não recupera
+gol — perde gol. O termo faz o que deve.
+
+**Consequência.** D36 é **pré-requisito do D35**: sem um modelo de corrida
+cronometrada, remover o defeito da camada 17 derruba o impedimento para ~0,9
+faça o que fizer. E D36 é **feature, não conserto** — precisa de uma corrida que
+nasça de uma leitura (espaço nas costas + portador com a cabeça erguida), que
+seja cancelável, e de um passe que tente acertá-la.
+
+---
 ---
 # VOLUME IV — GRÁFICOS E MEDIÇÕES
 

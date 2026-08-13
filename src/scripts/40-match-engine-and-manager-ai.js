@@ -1342,15 +1342,7 @@ class MatchSim {
       let penaImped = 0;
       if (progressM > 2) {
         const margem = (dir > 0 ? m.x : FL - m.x) - linhaImped;
-        /* D35 · a escala e o teto viraram knobs para a varredura poder medi-los.
-           O coeficiente foi ajustado na A1 contra um jogo em que SEIS jogadores
-           por partida ficavam permanentemente impedidos (o defeito da camada 17,
-           ver D35). Sem eles, o mesmo termo pode estar taxando demais o passe em
-           profundidade — que e o passe mais valioso do futebol, nao um erro. */
-        const _t35 = (typeof window !== 'undefined' && window.CDS_D35_TUNE) || {};
-        const _esc = Number.isFinite(_t35.penaEscala) ? _t35.penaEscala : 1;
-        const _teto = Number.isFinite(_t35.penaTeto) ? _t35.penaTeto : 3.1;
-        if (margem > -1.2) penaImped = clamp((0.85 + margem * 0.62) * _esc, 0, _teto) * (0.55 + leituraLinha * 0.85);
+        if (margem > -1.2) penaImped = clamp(0.85 + margem * 0.62, 0, 3.1) * (0.55 + leituraLinha * 0.85);
       }
       let mk = 1e9; for (const d of opps){ const dd = D(m.x,m.y,d.x,d.y); if (dd<mk) mk=dd; }
       const space = clamp(mk / 11, 0, 1);
