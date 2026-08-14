@@ -29,6 +29,14 @@ from pathlib import Path
 
 CAB_METODO = re.compile(r"^  (_[A-Za-z0-9_]+|get[A-Za-z0-9_]+)\s+\((\d+) camadas\)")
 LINHA_CAMADA = re.compile(r"^\s+(MORTA|TERMINAL|VIVA)\s+(\S+)\s+(\d+) chamadas")
+# O resumo final tem a CONTAGEM autoritativa por bloco, mas trunca os NOMES na
+# largura do terminal. As secoes detalhadas tem os nomes, mas o pilha.js so
+# imprime secao para parte dos metodos. Por isso os dois sao lidos: contagem do
+# resumo, nomes da uniao — e o relatorio AVISA quando faltam nomes.
+# (Ler so as secoes detalhadas dava 11 onde o pilha.js dizia 17. Eu quase
+#  publiquei o 11.)
+LINHA_RESUMO = re.compile(r"^  (\S+)\s+(\d+)\s+([_a-zA-Z].*)$")
+MARCO_RESUMO = "TODAS AS SOBRESCRITAS MORTAS, POR BLOCO"
 
 
 def ler(caminho: Path) -> dict:
@@ -56,6 +64,34 @@ def mortos_por_bloco(metodos: dict) -> dict[str, set]:
     return fora
 
 
+def resumo(caminho: Path) -> dict[str, tuple[int, set]]:
+    """{bloco: (contagem autoritativa, nomes que couberam na linha)}."""
+    texto = caminho.read_text(encoding="utf8", errors="replace").split("\n")
+    try:
+        i = next(k for k, l in enumerate(texto) if MARCO_RESUMO in l)
+    except StopIteration:
+        return {}
+    out: dict[str, tuple[int, set]] = {}
+    ultimo = None
+    for linha in texto[i + 1:]:
+        if not linha.strip():
+            break
+        m = LINHA_RESUMO.match(linha)
+        if m:
+            nomes = {x.strip() for x in m.group(3).split(",") if x.strip()}
+            ultimo = m.group(1)
+            out[ultimo] = (int(m.group(2)), nomes)
+            continue
+        # linha de CONTINUACAO: o pilha.js quebra a lista longa em varias linhas,
+        # indentadas ate a coluna dos nomes. Sem ler isto o censo reporta
+        # "nome truncado" para uma lista que esta inteira na saida.
+        if ultimo and re.match(r"^\s{20,}[_a-zA-Z][\w, ]*$", linha):
+            extra = {x.strip() for x in linha.split(",") if x.strip()}
+            n, nomes = out[ultimo]
+            out[ultimo] = (n, nomes | extra)
+    return out
+
+
 def main() -> int:
     if len(sys.argv) < 2:
         print(__doc__.strip(), file=sys.stderr)
@@ -66,21 +102,32 @@ def main() -> int:
         return 1
     m_novo = ler(novo)
     censo = mortos_por_bloco(m_novo)
+    res = resumo(novo)
+    # a contagem manda; os nomes sao a uniao do que as duas fontes deram
+    for bloco, (_n, nomes) in res.items():
+        censo.setdefault(bloco, set()).update(nomes)
 
     # get* sao diagnostico que ninguem chama; separar evita inflar o numero
     def so_comportamento(s: set) -> set:
         return {x for x in s if not x.startswith("get")}
 
-    total_comp = sum(len(so_comportamento(v)) for v in censo.values())
     print(f"CENSO DE SOBRESCRITAS MORTAS — {novo.name}")
-    print(f"  {len(m_novo)} metodos com pilha, {len(censo)} blocos com pelo menos uma morta")
-    print(f"  {total_comp} sobrescritas de COMPORTAMENTO mortas "
-          f"(fora {sum(len(v) for v in censo.values()) - total_comp} metodos get*)\n")
-    for bloco in sorted(censo, key=lambda b: -len(so_comportamento(censo[b]))):
+    print(f"  {len(censo)} blocos com pelo menos uma sobrescrita morta\n")
+    print(f"  {'bloco':48s} {'total':>5} {'nomes':>5}  metodos de COMPORTAMENTO conhecidos")
+    faltando = 0
+    for bloco in sorted(censo, key=lambda b: -res.get(b, (0, set()))[0]):
+        total = res.get(bloco, (len(censo[bloco]), set()))[0]
         comp = sorted(so_comportamento(censo[bloco]))
-        if not comp:
-            continue
-        print(f"  {bloco:48s} {len(comp):3d}  {', '.join(comp)}")
+        vistos = len(censo[bloco])
+        if vistos < total:
+            faltando += total - vistos
+        marca = "" if vistos >= total else f"  <- {total - vistos} nome(s) truncado(s) pelo pilha.js"
+        if comp or total:
+            print(f"  {bloco:48s} {total:5d} {vistos:5d}  {', '.join(comp) or '(so get*)'}{marca}")
+    if faltando:
+        print(f"\n  ATENCAO: {faltando} nome(s) nao aparecem em lugar nenhum da saida — o pilha.js")
+        print("  trunca a linha do resumo na largura do terminal e nao imprime secao detalhada")
+        print("  para todo metodo. A CONTAGEM e confiavel; a lista de nomes nao esta completa.")
 
     if len(sys.argv) >= 3:
         velho = Path(sys.argv[2])

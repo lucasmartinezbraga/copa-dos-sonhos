@@ -38,6 +38,57 @@ _continueTravel
 Quem apagasse a camada 07 com a evidência de uma rodada curta removeria um
 método vivo do caminho da bola em voo.
 
+## ✅ A rodada de 300 partidas foi feita — e a barra do D34 está cumprida
+
+| partidas | mortas na camada 07 |
+|---|---|
+| 4 | 12 |
+| 12 | 11 |
+| 24 | 11 |
+| **300** | **11** |
+
+**Nada reviveu entre 24 e 300.** O único método que muda de lado é o
+`_continueTravel`, e ele revive entre n=4 e n=12.
+
+### Duas correções de ferramenta que a rodada exigiu
+
+**1 · `pilha.js` truncava os nomes.** A linha do resumo terminava em
+`ms.join(', ').slice(0,70)`, e o resumo é a *única* fonte da lista completa — o
+relatório detalhado só imprime seção para parte dos métodos. Resultado: a rodada
+de 300 partidas, que custa cerca de uma hora, chegava com **5 nomes faltando** na
+camada 07, e quem fosse apagar teria de rodar tudo de novo. Agora quebra em
+várias linhas em vez de cortar.
+
+**2 · `censo.py` reportava 11 onde o `pilha.js` dizia 17.** Meu parser lia só as
+seções detalhadas. Quase publiquei o 11 como se fosse o censo. Agora ele lê a
+**contagem** do resumo (autoritativa) e os **nomes** da união das duas fontes, e
+avisa em voz alta quando faltam nomes.
+
+> As duas são a mesma armadilha de sempre, agora nas minhas próprias
+> ferramentas: um número confiante que discorda da fonte.
+
+### A lista definitiva da camada 07
+
+Onze sobrescritas mortas, confirmadas em 300 partidas para a contagem e
+nomeadas por inteiro na rodada de 24 com o `pilha.js` corrigido:
+
+| comportamento (6) | diagnóstico / cenário (5) |
+|---|---|
+| `_actorReachable` | `createPhysicalScenario` |
+| `_physicalArc` | `exportPhysicsAudit` |
+| `_physicalBlockPoint` | `getActivePhysicalEvent` |
+| `_physicalTargetZ` | `getPhysicalTimeline` |
+| `_planPhysicalSegment` | `getPhysicalTimelineRef` |
+| `_trajectoryPoint` | |
+
+**`_continueTravel` NÃO está na lista** — ele é vivo, e é justamente o que a
+amostra curta teria mandado apagar.
+
+Quem for remover tem agora tudo o que o D34 pede: a contagem de 300 partidas, os
+nomes completos, e o `--identico` para provar que a remoção não mexeu no jogo.
+
+---
+
 ## A lista estável, para quem for continuar
 
 Com n ≥ 12 a contagem para de se mexer nestes cinco:

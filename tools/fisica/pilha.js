@@ -208,8 +208,25 @@ for (const [b, v] of Object.entries(porBloco)) {
 console.log('\nTODAS AS SOBRESCRITAS MORTAS, POR BLOCO:');
 const mortasPorBloco = {};
 for (const e of REG) if (e.estado === 'MORTA') (mortasPorBloco[e.bloco] = mortasPorBloco[e.bloco] || []).push(e.metodo);
-for (const [b, ms] of Object.entries(mortasPorBloco).sort((a,c)=>c[1].length-a[1].length))
-  console.log(`  ${b.slice(0,46).padEnd(46)} ${String(ms.length).padStart(2)}  ${ms.join(', ').slice(0,70)}`);
+for (const [b, ms] of Object.entries(mortasPorBloco).sort((a,c)=>c[1].length-a[1].length)) {
+  /* Os NOMES nao podem ser truncados aqui. Este resumo e a unica fonte da lista
+     completa — o relatorio detalhado acima so imprime secao para parte dos
+     metodos. Com o `.slice(0,70)` antigo, a rodada de 300 partidas do D34
+     (que custa ~1 h) chegava com 5 nomes faltando na camada 07, e quem fosse
+     apagar teria de rodar tudo de novo. Quebra em varias linhas em vez de
+     cortar. */
+  const cab = `  ${b.slice(0,46).padEnd(46)} ${String(ms.length).padStart(2)}  `;
+  const larg = 70, linhas = [];
+  let atual = '';
+  for (const nome of ms) {
+    const add = atual ? `, ${nome}` : nome;
+    if (atual && (atual + add).length > larg) { linhas.push(atual); atual = nome; }
+    else atual += add;
+  }
+  if (atual) linhas.push(atual);
+  console.log(cab + (linhas[0] || ''));
+  for (const l of linhas.slice(1)) console.log(' '.repeat(cab.length) + l);
+}
 const soAudit = REG.filter(e=>e.estado==='MORTA'&&/^get/.test(e.metodo)).length;
 console.log(`\n  destas, ${soAudit} sao metodos get* (diagnostico que ninguem chama)`);
 console.log(`  sobram ${REG.filter(e=>e.estado==='MORTA'&&!/^get/.test(e.metodo)).length} sobrescritas de COMPORTAMENTO mortas`);
