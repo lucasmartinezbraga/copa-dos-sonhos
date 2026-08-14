@@ -127,7 +127,9 @@ DEFEITOS = [
                  "os demais estao nas camadas. Recontar antes de atacar D08."),
       dono="pontos de chamada no motor, com clamp(...,2,FL-2)",
       intercepta=["45","47","49"],
-      criterio=["throwIns 15,91 -> 30-45","corners >=10,68","passes >=379,7","goals +-0,20","futebol real >=16/21"],
+      criterio=["throwIns 15,91 -> 30-45 (MEDIDO: a largura entrega no maximo +2,92)",
+                "golPorChuteNoAlvo PARADO — e o que barra o D08, ver armadilha B14",
+                "corners >=10,68","passes >=379,7","goals +-0,20","futebol real >=16/21"],
       depende=["D01","D02","D12"],
       risco="ALTO. Tetos: throwIns<=48. Camada nova precisa ficar ABAIXO de 45/47/49 no manifesto."),
 
