@@ -536,6 +536,33 @@ E eu escrevi que a tarja preta do D24 era nas laterais. **É em cima e embaixo.*
 A porcentagem estava certa, o eixo errado. Descobri olhando a foto que eu mesmo
 gerei. O validador confere cor, não geometria.
 
+## D7 · Uma sonda que refaz a conta do alvo mede a si mesma
+
+Em 2026-08-14, ao consertar a cadência da passada (D41), escrevi
+`tools/fisica/tela/passada.js` para conferir o resultado — e dentro dela
+**reimplementei a fórmula da cadência**:
+
+```js
+const cad = mv => Math.sqrt(Math.min(mv, r*1.2) / mult / Math.max(1.2, r*.16)) * .62;
+```
+
+Rodei antes da mudança: excesso de 1,98x. Troquei a fórmula na camada 21,
+reconstruí, rodei de novo: **1,98x.** Idêntico ao segundo decimal, nos dois
+bundles. Quase publiquei "a mudança não teve efeito".
+
+A sonda nunca leu o bundle. Ela aplicava a fórmula VELHA, que morava nela
+mesma, a valores de `mv` novos. O alvo tinha mudado e o instrumento não.
+
+**A regra:** uma sonda só mede se o número sair de onde o defeito mora. Ou lê o
+estado que o código produziu, ou observa o efeito — nunca recalcula a conta que
+está sob teste. A versão que valeu põe um `Proxy` no `ctx` e lê os retângulos de
+perna que o desenho de fato pinta; ela não sabe nenhuma fórmula.
+
+Parente próximo da **B8** (detector sem teste contra positivo conhecido): as
+duas são o instrumento concordando consigo mesmo. E é o segundo caso desta
+investigação em que a suíte respondeu com um número tranquilizador enquanto não
+media nada — o primeiro foi o **D6**.
+
 ## D6 · Um teste que sai com 0 sem imprimir nada passou por omissão
 
 Em 2026-08-13 eu truquei `tools/defeitos.py` **a zero bytes** sem perceber:

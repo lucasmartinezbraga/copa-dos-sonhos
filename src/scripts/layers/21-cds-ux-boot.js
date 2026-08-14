@@ -396,7 +396,7 @@
     // ganham pose PRÓPRIA dirigida pelos eventos do motor (o.pose/o.act/o.wave). Parado
     // e sem ação, descansa. Corrige "boneco deslizando" e "ação sem causa visual".
     let d = dirCache.get(o.key);
-    if (!d) { if (dirCache.size > 48) dirCache.clear(); d = { x, y, lean: 0, gait: 0, spd: 0, face: 1 }; dirCache.set(o.key, d); }
+    if (!d) { if (dirCache.size > 48) dirCache.clear(); d = { x, y, lean: 0, gait: 0, spd: 0, vms: 0, face: 1 }; dirCache.set(o.key, d); }
     const mvx = x - d.x, mvy = y - d.y, mv = Math.hypot(mvx, mvy);
     const lean = clamp(mvx * .55 + d.lean * .72, -2.4, 2.4);
     d.spd = d.spd * .6 + mv * .4;                       // velocidade de tela suavizada
@@ -414,10 +414,58 @@
 
        Agora: cadência sublinear (raiz), fase que relaxa para o neutro quando o
        jogador para, e passo com leitura. Só desenho — não toca no motor. */
-    var _passo = Math.min(mv, r * 1.2);
-    if (_passo > 0.05) {
-      /* sublinear: dobrar a velocidade não dobra a frequência, alonga o passo */
-      d.gait += Math.sqrt(_passo / Math.max(1.2, r * .16)) * .62;
+    /* §D40/§D41 · A PASSADA PASSA A SER BIOMECANICA, EM METROS.
+       ---------------------------------------------------------------------
+       MEDIDO em `tools/fisica/tela/passada.js`, interceptando a chamada real
+       de `CDS_F25D.body` (7.876 pares de quadro por velocidade):
+
+         1X   3,66 m/s   6,13 passos/s desenhados   contra 3,09 do alvo  (1,98x)
+         3X   3,30 m/s   7,80 passos/s desenhados   contra 2,93 do alvo  (2,66x)
+
+       Sao DOIS defeitos somados, nao um:
+
+       [1] A cadencia nunca teve unidade fisica. `sqrt(mv / (r*.16)) * .62` foi
+           ajustada no olho, em pixels, e saiu com o DOBRO da frequencia de um
+           corredor de verdade — passada implicada de 0,60 m, quando um atleta a
+           3,7 m/s da passos de ~1,19 m. O jogador nao corria: miudava.
+
+       [2] A velocidade de EXIBICAO entrava na conta. O runtime faz
+           `acc += dt * G.speed` e roda N passos de simulacao por quadro
+           desenhado, entao em 3X o deslocamento de TELA por quadro triplica —
+           e a perna, calculada a partir dele, triplicava junto. O tremor
+           anti-cardume, que eu suspeitava ser a causa, foi medido e nao e:
+           responde por 2% de `mv`.
+
+       Agora a fase sai de onde tem que sair: `pi` de fase por PASSO, e o passo
+       tem comprimento em metros que cresce com a velocidade (0,60 + 0,16·v,
+       que devolve 1,19 m a 3,7 m/s e 1,88 m a 8 m/s). Assim os pes acompanham
+       o chao em vez de patinar, em qualquer zoom e qualquer canvas.
+
+       O `_mult` sobrevive so para o avanco rapido: em 3X a cadencia HONESTA
+       seria 3x (e o que fast-forward de video e), mas isso e a vibracao de que
+       o jogador reclamou. A raiz deixa 1,73x — corrida rapida, nao borrao — e
+       o teto de 0,30 rad/quadro garante que nem em 6X vire tremor. */
+    var _pxM = 9.5;                       // px logicos por metro, ja com perspectiva
+    try {
+      var _fW = G.CW - 2 * G.M, _FL = +root.FL || 105;
+      /* r = 13*s e a largura util e fW: a razao entre os dois nao depende do
+         viewport porque o canvas do jogo e logico (1024x500). Conferido contra
+         a medicao: formula 7,98 px/m, medido 7,82 px/m. */
+      if (_fW > 0 && _FL > 0 && r > 0) _pxM = (_fW / _FL) * (r / 13);
+    } catch (_) {}
+    var _vel = 1;
+    try {
+      var _g = root.G;
+      if (_g && isFinite(+_g.speed) && +_g.speed > 0) _vel = Math.max(1, +_g.speed);
+    } catch (_) {}
+    var _dm = mv / Math.max(0.5, _pxM);                    // metros andados no quadro
+    /* velocidade FISICA do atleta: nao muda quando o jogador troca o 1X pelo 3X */
+    var _vms = Math.min(_dm * 60 / _vel, 12);
+    d.vms = (d.vms || 0) * .6 + _vms * .4;
+    var _passoM = 0.60 + 0.16 * d.vms;                     // comprimento do passo, em m
+    var _dfase = Math.PI * (_dm / _passoM) / Math.sqrt(_vel);
+    if (_dfase > 0.03) {                  // ~0,05 px de tela: o mesmo limiar de antes
+      d.gait += Math.min(_dfase, 0.30);   // teto: 5,7 passos/s, acima disso e tremor
     } else if (d.gait !== 0) {
       /* parou: fecha as pernas pelo caminho mais curto até o próximo neutro */
       var _alvo = Math.round(d.gait / Math.PI) * Math.PI;
@@ -467,8 +515,15 @@
     const cutting= A && (st === 'inside_cut' || st === 'outside_cut');
     const bursting = A && st === 'burst_touch';
     const blocking = A ? (st === 'block') : false;
+    /* §D41 · A AMPLITUDE TAMBEM DEPENDIA DO BOTAO DE VELOCIDADE.
+       `d.spd` e o deslocamento de TELA suavizado, entao ele triplica em 3X: a
+       mesma corrida saia com perna de 0,31 de amplitude em 1X (o jogador
+       miudava com as pernas quase fechadas) e 0,87 em 3X. Medido:
+       mv = 0,470 px/quadro em 1X contra 1,309 em 3X, o mesmo atleta a ~3,5 m/s.
+       Agora vem de `d.vms`, que e a velocidade FISICA em m/s: 4,2 m/s abre a
+       perna por inteiro, em qualquer velocidade de exibicao. */
     const amp = (o.divePose || kicking || tackling) ? 0
-              : clamp(d.spd / 1.5, 0, 1) * (bursting ? 1.35 : 1);   // 0 parado … 1 correndo
+              : clamp(d.vms / 4.2, 0, 1) * (bursting ? 1.35 : 1);   // 0 parado … 1 correndo
     const sw = Math.sin(d.gait) * amp;                  // -1..1 alterna as pernas
     /* OS-58 · a subida do corpo a cada passada era quase imperceptivel. */
     /* §D38 · 0,09·r nao se lia. O corpo sobe DUAS vezes por ciclo (uma por
@@ -488,7 +543,10 @@
        isto, correr para cima e correr para o lado sao o mesmo desenho. */
     const _oa = (d.ang == null) ? 0 : d.ang;
     const _cos = Math.cos(_oa), _sin = Math.sin(_oa);
-    const _vig = (o.divePose || spinning) ? 0 : Math.max(0, Math.min(1, d.spd / 1.5));
+    /* §D41 · a inclinacao do tronco e o estreitamento de perspectiva saiam da
+       mesma `d.spd` de tela: o jogador se jogava para a frente ao apertar 3X e
+       endireitava ao voltar para 1X, sem mudar de velocidade no campo. */
+    const _vig = (o.divePose || spinning) ? 0 : Math.max(0, Math.min(1, d.vms / 4.2));
     ctx.save();
     ctx.translate(x, y - bob - (spinning ? r * .16 * Math.sin(spinTh / 2) : 0));
     if (!o.divePose && !spinning && _vig > .02) {
