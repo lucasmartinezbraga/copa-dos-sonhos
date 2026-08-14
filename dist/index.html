@@ -20454,6 +20454,52 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
     return 0;
   }
 
+  /* §D42 · TABELA DE POSTURA — uma silhueta por estado, sem 15 ramos de desenho
+     ------------------------------------------------------------------------
+     MEDIDO por `tools/fisica/tela/gestos.js`, que grava a sequencia de
+     operacoes de desenho e a compara com a nuvem da corrida: **cinco estados
+     entravam e pintavam a silhueta da corrida, identica** — `protect`,
+     `shot_recover`, `intercept`, `lose_control` e `heavy_touch`. E outros 32
+     dos 62 declarados nunca chegavam a ser desenhados.
+
+     Sobre o `intercept`: a §D39 deu a ele uma onda e um `bob`, e eu dei o caso
+     por resolvido. A sonda mostra que o gesto inteiro era um deslocamento
+     VERTICAL do corpo de 0,07·r — os membros nao se mexiam. Nao era pose, era
+     empurrao. Um gesto que so translada o boneco nao e um gesto.
+
+     Em vez de mais um `else if` por estado, os parametros abaixo modulam o
+     desenho de corrida que ja existe:
+
+       esc     escala da tesoura das pernas (1 = passada normal)
+       spr     afastamento lateral dos pes, em raios
+       inc     inclinacao extra do tronco (+ para a frente, - para tras)
+       agacha  quanto o corpo baixa, em raios
+       braco   escala do balanco dos bracos
+       estica  perna estendida a frente, em raios (alcance) */
+  const POSE = {
+    /* locomocao de transicao */
+    accelerate: { esc: 0.80, spr: 0.00, inc:  0.40, agacha: 0.10, braco: 1.25, estica: 0.00 },
+    decelerate: { esc: 0.50, spr: 0.22, inc: -0.34, agacha: 0.16, braco: 1.10, estica: 0.20 },
+    turn:       { esc: 0.55, spr: 0.18, inc:  0.00, agacha: 0.10, braco: 0.90, estica: 0.00 },
+    strafe:     { esc: 0.35, spr: 0.32, inc:  0.00, agacha: 0.12, braco: 0.80, estica: 0.00 },
+    backpedal:  { esc: 0.55, spr: 0.12, inc: -0.30, agacha: 0.08, braco: 0.55, estica: 0.00 },
+    /* defesa sem bola */
+    press:      { esc: 1.10, spr: 0.00, inc:  0.26, agacha: 0.00, braco: 1.30, estica: 0.00 },
+    jockey:     { esc: 0.25, spr: 0.36, inc:  0.08, agacha: 0.22, braco: 1.35, estica: 0.00 },
+    recover:    { esc: 0.90, spr: 0.00, inc:  0.30, agacha: 0.04, braco: 1.20, estica: 0.00 },
+    body_duel:  { esc: 0.30, spr: 0.30, inc:  0.16, agacha: 0.16, braco: 1.45, estica: 0.00 },
+    /* os cinco que a sonda pegou desenhando a corrida */
+    protect:    { esc: 0.20, spr: 0.32, inc: -0.12, agacha: 0.14, braco: 1.50, estica: 0.00 },
+    shot_recover:{esc: 0.45, spr: 0.10, inc: -0.20, agacha: 0.06, braco: 0.70, estica: 0.26 },
+    intercept:  { esc: 0.35, spr: 0.10, inc:  0.34, agacha: 0.04, braco: 1.20, estica: 0.62 },
+    lose_control:{esc: 0.40, spr: 0.28, inc: -0.26, agacha: 0.02, braco: 1.60, estica: 0.16 },
+    heavy_touch:{ esc: 0.95, spr: 0.06, inc:  0.30, agacha: 0.00, braco: 1.15, estica: 0.44 },
+    /* recepcao */
+    receive_prepare: { esc: 0.30, spr: 0.24, inc:  0.10, agacha: 0.14, braco: 1.40, estica: 0.30 },
+    receive_contact: { esc: 0.15, spr: 0.20, inc:  0.18, agacha: 0.18, braco: 1.20, estica: 0.50 },
+    receive_control: { esc: 0.40, spr: 0.16, inc:  0.06, agacha: 0.10, braco: 1.10, estica: 0.14 },
+  };
+
   function body(ctx, o) {
     const { x, y, r } = o;
     const jersey = o.isGK ? o.gkC : o.pc;
@@ -20570,10 +20616,10 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
                       : ((pose === 'kick' || act === 'shoot') && w > 0.02);
     const tackling = A ? /tackle$/.test(st) : (pose === 'tackle' && w > 0.02);
     const heading = A ? (st === 'header') : (pose === 'jump' && w > 0.02);
-    /* §D39 · a interceptacao usa a pose de bote, mas SEM o agachamento do
-       carrinho: o corpo estica na direcao da linha de passe e volta. Entra aqui
-       para o desenho reagir, alem da onda que o animWave passou a devolver. */
-    const intercepting = A ? (st === 'intercept') : false;
+    /* §D39/§D42 · a interceptacao TINHA aqui uma bandeira propria que so mexia
+       no `bob` — 0,07·r de deslocamento vertical do boneco inteiro. A sonda de
+       silhueta mostrou que os membros nao se moviam e o gesto lia como corrida.
+       Agora ela sai da tabela POSE, com perna estendida na linha do passe. */
     const dribbling = A ? /^(carry|dribble_|body_feint|inside_cut|outside_cut|burst_touch)/.test(st)
                         : (act === 'dribble' && !kicking && !tackling);
     /* OS-60 · os quatro estados de drible caiam no mesmo desenho. Agora cada um
@@ -20593,11 +20639,15 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
     const amp = (o.divePose || kicking || tackling) ? 0
               : clamp(d.vms / 4.2, 0, 1) * (bursting ? 1.35 : 1);   // 0 parado … 1 correndo
     const sw = Math.sin(d.gait) * amp;                  // -1..1 alterna as pernas
+    /* §D42 · a postura do estado modula a corrida em vez de substitui-la */
+    const P = POSE[st] || null;
+    const swL = P ? sw * P.esc : sw;                    // tesoura das pernas
+    const swB = P ? sw * P.braco : sw;                  // balanco dos bracos
     /* OS-58 · a subida do corpo a cada passada era quase imperceptivel. */
     /* §D38 · 0,09·r nao se lia. O corpo sobe DUAS vezes por ciclo (uma por
        perna de apoio), que e o que da a leitura de passo em vez de deslize. */
-    const bob = Math.abs(sw) * r * .16 - (tackling ? r * .16 : 0) + (dribbling ? r * .10 : 0)
-              - (intercepting ? r * .07 * w : 0)   /* §D39 · estica, nao agacha */
+    const bob = Math.abs(swL) * r * .16 - (tackling ? r * .16 : 0) + (dribbling ? r * .10 : 0)
+              - (P ? r * P.agacha : 0)             /* §D42 · o agachamento do estado */
               - (blocking ? r * .12 * Math.sin(dphase * Math.PI) : 0);   /* OS-60 · agacha no bloqueio */
 
     /* OS-47 · GIRO DE 360. Em vista 2,5D o giro se le pelo estreitamento: o
@@ -20617,13 +20667,19 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
     const _vig = (o.divePose || spinning) ? 0 : Math.max(0, Math.min(1, d.vms / 4.2));
     ctx.save();
     ctx.translate(x, y - bob - (spinning ? r * .16 * Math.sin(spinTh / 2) : 0));
-    if (!o.divePose && !spinning && _vig > .02) {
+    /* §D42 · o portao era so `_vig > .02` (velocidade de tela). Postura parada —
+       `jockey`, `protect`, `receive_*` — acontece justamente com pouca
+       velocidade: sem abrir o portao para ela, a inclinacao do estado nunca
+       chegava a ser aplicada. */
+    if (!o.divePose && !spinning && (_vig > .02 || (P && P.inc !== 0))) {
       /* OS-60 · corte joga o peso para fora antes de sair para dentro;
          arrancada projeta o tronco a frente. */
       const _extra = cutting  ? -face * .30 * Math.sin(dphase * Math.PI)
                    : bursting ?  face * .26 * Math.min(1, dphase * 2.4)
                    : 0;
-      ctx.rotate(_cos * _vig * 0.20 + _extra);
+      /* §D42 · a inclinacao da postura e do estado, e olha para onde o atleta
+         encara: recuar de frente para a bola tem que ler diferente de correr */
+      ctx.rotate(_cos * _vig * 0.20 + _extra + (P ? face * P.inc : 0));
       const _sq = 1 - Math.abs(_sin) * _vig * 0.22;
       ctx.scale(_sq < .5 ? .5 : _sq, 1);
     }
@@ -20663,16 +20719,21 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
       /* OS-58 · a passada movia a perna SO em Y, por r*.20 — com r ~ 30 px sao
          6 px de diferenca entre as duas pernas, quase nada. Agora ha TESOURA:
          uma perna vai a frente e a outra atras, e a amplitude vertical sobe. */
-      const llY = r * .40 - Math.max(0, sw) * r * .30;
-      const rlY = r * .40 - Math.max(0, -sw) * r * .30;
+      const llY = r * .40 - Math.max(0, swL) * r * .30;
+      const rlY = r * .40 - Math.max(0, -swL) * r * .30;
       const spr = (dribbling ? r * .06 : 0)
-                + (cutting ? r * .22 * Math.sin(dphase * Math.PI) : 0);          // OS-60 · corte planta e abre
-      const lsx = sw * r * .20 * face, rsx = -sw * r * .20 * face;
+                + (cutting ? r * .22 * Math.sin(dphase * Math.PI) : 0)            // OS-60 · corte planta e abre
+                + (P ? r * P.spr : 0);                                            // §D42 · base da postura
+      /* §D42 · `estica` poe UMA perna a frente, na direcao que o atleta encara.
+         E o que separa alcancar de correr: interceptar, dominar e tocar longo
+         sao gestos de alcance, e sem isto os tres saiam com passada normal. */
+      const ext = P ? face * r * P.estica * (P.estica > .3 ? (0.35 + 0.65 * Math.sin(Math.max(0, Math.min(1, dphase)) * Math.PI)) : 1) : 0;
+      const lsx = swL * r * .20 * face, rsx = -swL * r * .20 * face;
       ctx.fillRect(-r * .34 - spr + lsx, llY, r * .26, r * .46);
-      ctx.fillRect(r * .08 + spr + rsx, rlY, r * .26, r * .46);
+      ctx.fillRect(r * .08 + spr + rsx + ext, rlY, r * .26, r * .46);
       ctx.fillStyle = '#0b0f16';
       ctx.fillRect(-r * .36 - spr + lsx, llY + r * .38, r * .30, r * .22);
-      ctx.fillRect(r * .06 + spr + rsx, rlY + r * .38, r * .30, r * .22);
+      ctx.fillRect(r * .06 + spr + rsx + ext, rlY + r * .38, r * .30, r * .22);
     }
     // shorts
     ctx.fillStyle = dark;
@@ -20711,9 +20772,13 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
       /* OS-58 · os bracos eram dois retangulos FIXOS, sem nenhuma dependencia
          da passada. Braco parado e o que mais denuncia "boneco deslizando".
          Agora balancam em contrafase com a perna, em Y e em X. */
-      const abY = -sw * r * .26, abX = -sw * r * .10 * face;
-      rr(ctx, -r * .8 + tl + abX, -r * .46 + abY, r * .26, r * .58, r * .09); ctx.fill();
-      rr(ctx, r * .54 + tl - abX, -r * .46 - abY, r * .26, r * .58, r * .09); ctx.fill();
+      /* §D42 · `braco` acima de 1 abre os bracos para fora alem de balancar:
+         proteger a bola, marcar de lado e perder o controle sao gestos de
+         BRACO, e com o balanco puro os tres liam como corrida. */
+      const abY = -swB * r * .26, abX = -swB * r * .10 * face;
+      const abrir = P ? r * .12 * Math.max(0, P.braco - 1) : 0;
+      rr(ctx, -r * .8 + tl + abX - abrir, -r * .46 + abY, r * .26, r * .58, r * .09); ctx.fill();
+      rr(ctx, r * .54 + tl - abX + abrir, -r * .46 - abY, r * .26, r * .58, r * .09); ctx.fill();
     }
     if (gk) {                                            // LUVAS do goleiro nas pontas dos braços
       ctx.fillStyle = '#eef3ff';
@@ -21018,6 +21083,48 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
     return s;
   }
 
+  /* §D42 · O PISO SO SABIA ANDAR PARA A FRENTE.
+     ------------------------------------------------------------------------
+     MEDIDO com `tools/fisica/tela/gestos.js`: **32 dos 62 estados declarados
+     nunca chegaram a ser desenhados** numa amostra de 60 s a 6X. A causa nao
+     e o desenho, e o contexto: a ponte entregava aos controladores TRES
+     campos — `speed`, `hasBall`, `isGK` — e `locoFor` so sabe devolver
+     idle/walk/jog/run/sprint a partir do modulo da velocidade.
+
+     Com isso, familias inteiras ficavam inalcancaveis por construcao: toda a
+     locomocao de transicao (accelerate, decelerate, turn, strafe, backpedal),
+     toda a postura defensiva sem bola (press, jockey, body_duel, recover) e
+     toda a recepcao (receive_prepare/contact/control).
+
+     Nenhuma delas precisa de informacao nova do MOTOR — todas saem da
+     velocidade, da sua derivada e da relacao com a bola, que a ponte ja podia
+     calcular e nao calculava. Segue sendo observacao pura. */
+  function posturaFor(ctx) {
+    const v = finite(ctx.speed);
+    const dot = finite(ctx.dotBola, 1);          // +1 corre para a bola, -1 recua dela
+    /* a bola esta a caminho DELE: o corpo se prepara antes de ela chegar */
+    if (ctx.recebendo && !ctx.hasBall) return 'receive_prepare';
+    /* parado marcando: agachado, de lado, base larga */
+    if (ctx.marcando && v < 2.4) return 'jockey';
+    if (v < 0.25) return 'idle';
+    /* de frente para a bola e recuando: nao e correr, e recuar */
+    if (ctx.temRefBola && dot < -0.55 && v > 1.2 && v < 5.2) return 'backpedal';
+    /* atravessado em relacao a bola: deslocamento lateral */
+    if (ctx.temRefBola && Math.abs(dot) < 0.40 && v > 1.8 && v < 5.6) return 'strafe';
+    if (ctx.pressionando) return 'press';
+    return locoFor(v);
+  }
+
+  /* transicoes curtas: disparam UMA vez por gesto, a partir de estado ciclico */
+  function transicaoFor(ctx) {
+    const dv = finite(ctx.dSpeed);               // m/s por segundo
+    const gir = Math.abs(finite(ctx.giro));      // rad/s da direcao de corrida
+    if (gir > 3.2 && finite(ctx.speed) > 2.2) return 'turn';
+    if (dv > 4.5) return 'accelerate';
+    if (dv < -5.0) return 'decelerate';
+    return null;
+  }
+
   function Controller(id) {
     this.id = id;
     this.state = 'idle';
@@ -21085,6 +21192,20 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
   Controller.prototype.update = function (dt, now, ctx) {
     ctx = ctx || {};
     this.t += finite(dt);
+    /* §D42 · A BOLA CHEGAVA E O CORPO NAO REAGIA. O dominio e o gesto mais
+       frequente de uma partida — umas 500 vezes — e os tres estados que o
+       descrevem (`receive_prepare/contact/control`) nunca eram pedidos por
+       ninguem. O preparo sai da postura; contato e dominio sao encadeados aqui,
+       no quadro em que a posse muda, que e a unica hora em que se sabe que a
+       bola chegou de fato. */
+    if (ctx.hasBall && this.state === 'receive_prepare' && !this.seq) {
+      this.seq = ['receive_contact', 'receive_control'];
+      this.seqIdx = 0;
+      this.contract = { recoveryDuration: 0.22 };
+      this._enter('receive_contact', 0.10, now);
+      this.tier = T_BALL;
+      return this.snapshot();
+    }
     if (this.dur > 0 && this.t >= this.dur) {
       if (this.seq) {
         this.seqIdx++;
@@ -21101,16 +21222,32 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
         this.contract = null;
       }
       // caiu para o piso: locomoção (ou prontidão do goleiro)
-      const base = ctx.isGK ? 'gk_ready' : locoFor(finite(ctx.speed), this.state);
-      this.tier = ctx.isGK ? T_GK : T_LOCO;
+      const base = ctx.isGK ? 'gk_ready' : posturaFor(ctx);
       this._enter(base, null, now);
+      /* §D42 · `_enter` sobrescreve `this.tier` com o tier declarado do estado,
+         entao a atribuicao que ficava ANTES dele era codigo morto. Agora vem
+         depois — e precisa vir: `jockey`/`press` sao T_DEF, e um tier acima de
+         T_BALL trava o ramo ciclico abaixo, deixando o atleta preso na postura
+         para sempre. Como piso, eles valem como locomocao. */
+      this.tier = ctx.isGK ? T_GK : T_LOCO;
     } else if (this.dur === 0) {
+      /* §D42 · transicao curta antes do piso: so a partir de estado ciclico e
+         so uma vez por gesto, senao ela reinicia a cada quadro e nada se le */
+      const tr = ctx.isGK ? null : transicaoFor(ctx);
+      if (tr && tr !== this._ultTr) {
+        this._ultTr = tr;
+        this._enter(tr, null, now);
+        this.tier = T_LOCO;
+        return this.snapshot();
+      }
+      if (!tr) this._ultTr = null;
       // estado cíclico acompanha a velocidade sem reiniciar a fase à toa
       const base = ctx.isGK ? 'gk_ready'
                  : ctx.hasBall ? (finite(ctx.speed) > 0.3 ? 'carry' : 'protect')
-                 : locoFor(finite(ctx.speed), this.state);
-      if (base !== this.state && this.tier <= T_BALL) {
+                 : posturaFor(ctx);
+      if (base !== this.state && this.tier <= T_DEF) {
         this._enter(base, null, now);
+        if (!ctx.isGK) this.tier = T_LOCO;
       }
     }
     return this.snapshot();
@@ -21221,6 +21358,10 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
       try {
         if (this.__anim) {
           const ctx = Object.create(null);
+          const _dt = Number(dt) || 0;
+          const b = this.ball || {};
+          if (!this.__animPrev) this.__animPrev = Object.create(null);
+          const prev = this.__animPrev;
           for (const tm of this.teams) {
             for (const p of tm.players) {
               if (p.red) continue;
@@ -21228,10 +21369,46 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
               // recebe um evento de ação ganha estado, e os demais ficam sem
               // locomoção nenhuma para o desenhista consultar
               this.__anim.of(idOf(p));
-              ctx[idOf(p)] = {
-                speed: Math.hypot(Number(p.vx) || 0, Number(p.vy) || 0),
-                hasBall: this.ball && this.ball.owner === p,
-                isGK: !!p.isGK
+              /* §D42 · o contexto tinha TRES campos e por isso 32 dos 62
+                 estados eram inalcancaveis. Nada aqui pergunta nada de novo ao
+                 motor: e a mesma velocidade, sua derivada, e a relacao
+                 geometrica com a bola. Continua sendo observacao pura. */
+              const _id = idOf(p);
+              const vx = Number(p.vx) || 0, vy = Number(p.vy) || 0;
+              const v = Math.hypot(vx, vy);
+              const ant = prev[_id];
+              const ang = v > 0.4 ? Math.atan2(vy, vx) : (ant ? ant.ang : 0);
+              let giro = 0;
+              if (ant && _dt > 0 && v > 0.4 && ant.v > 0.4) {
+                let da = ang - ant.ang;
+                while (da > Math.PI) da -= Math.PI * 2;
+                while (da < -Math.PI) da += Math.PI * 2;
+                giro = da / _dt;
+              }
+              const dSpeed = (ant && _dt > 0) ? (v - ant.v) / _dt : 0;
+              prev[_id] = { v: v, ang: ang };
+
+              const bx = Number(b.x) || 0, by = Number(b.y) || 0;
+              const dbx = bx - (Number(p.x) || 0), dby = by - (Number(p.y) || 0);
+              const db = Math.hypot(dbx, dby);
+              /* projecao da corrida na direcao da bola: +1 vai para cima dela,
+                 -1 recua de frente para ela, ~0 corre atravessado */
+              const dot = (v > 0.5 && db > 0.4) ? (vx * dbx + vy * dby) / (v * db) : 1;
+              const dono = b.owner;
+              const advers = !!(dono && dono.team !== p.team && dono !== p);
+              const dDono = advers ? Math.hypot((Number(dono.x) || 0) - (Number(p.x) || 0),
+                                                (Number(dono.y) || 0) - (Number(p.y) || 0)) : 1e9;
+              ctx[_id] = {
+                speed: v,
+                hasBall: b.owner === p,
+                isGK: !!p.isGK,
+                dSpeed: dSpeed,
+                giro: giro,
+                dotBola: dot,
+                temRefBola: v > 0.5 && db > 0.4,
+                marcando: advers && dDono < 4.5,
+                pressionando: advers && dDono < 14 && v > 3.6 && dot > 0.5,
+                recebendo: !!(b.traveling && b.receiver === p && db < 9),
               };
             }
           }

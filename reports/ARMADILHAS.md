@@ -558,6 +558,18 @@ estado que o código produziu, ou observa o efeito — nunca recalcula a conta q
 está sob teste. A versão que valeu põe um `Proxy` no `ctx` e lê os retângulos de
 perna que o desenho de fato pinta; ela não sabe nenhuma fórmula.
 
+**A base de comparação é parte do instrumento.** No dia seguinte, a sonda de
+silhueta (`gestos.js`) reincidiu de outras duas formas:
+
+- **ponto cego:** eu gravava `fillRect`/`arc`, mas o tronco e os dois braços são
+  desenhados por `rr()`, que chama `ctx.roundRect`. Metade do corpo estava fora
+  da assinatura, e a modulação de braço era invisível para a sonda que deveria
+  medi-la.
+- **base contaminada:** pus os cinco estados sob teste dentro da lista de
+  "locomoção comum" que servia de referência. Passavam por construção — e ainda
+  absorveram `protect`, que foi declarado "sem gesto próprio" por dividir o
+  afastamento de pés com `strafe`. Era falso.
+
 Parente próximo da **B8** (detector sem teste contra positivo conhecido): as
 duas são o instrumento concordando consigo mesmo. E é o segundo caso desta
 investigação em que a suíte respondeu com um número tranquilizador enquanto não
