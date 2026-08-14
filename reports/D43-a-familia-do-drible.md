@@ -5,24 +5,46 @@
 
 ---
 
-## Primeiro: o drible é raro
+## Primeiro: quantos dribles acontecem — e a minha conta errada
 
-Antes de fiar qualquer coisa, contei o que o motor emite. Em ~38 min de jogo
-(75 s a 6X):
+> ### ⚠ CORREÇÃO (2026-08-14, mesmo dia)
+>
+> A primeira versão desta seção dizia **"o duelo de drible acontece ~4 vezes
+> por partida"**, a partir de uma amostra de 75 s no navegador que contou 3
+> dribles. **Está errado.** Três medições independentes dizem outra coisa:
+>
+> | fonte | dribles por partida |
+> |---|---|
+> | bateria, 24 partidas (`eventosPorPartida`) | **32,3** |
+> | sonda headless, 14 partidas completas | **30,7** |
+> | navegador, razão drible/pressão × taxa da bateria | **~32** |
+>
+> O drible **não é raro** — é um dos duelos mais frequentes do jogo, atrás só
+> de pressão e contenção. As poses fiadas aqui valem muito mais do que eu
+> disse.
+>
+> Testei a hipótese óbvia para a discrepância — que a bateria usa Brasil 1970
+> dos dois lados e o navegador usa esquadras arbitrárias — e ela **caiu**: a
+> razão drible/pressão é 0,0688 (Bélgica 2022 × Inglaterra 1998), 0,0687
+> (Brasil 1970 × Brasil 1970) e 0,0661 (bateria). O motor se comporta igual nas
+> três. A contagem baixa daquela amostra específica ficou sem explicação, e é
+> por isso que ela não pode ser a base de nada.
 
-| evento | n |
+Contagem correta, por partida (bateria, 24 partidas):
+
+| evento | por partida |
 |---|---|
-| pressure | 187 |
-| containment (press) | 81 |
-| tackle_attempt | 23 |
-| bad_pass | 20 |
-| **dribble** | **3** |
-| loose_duel | 1 |
-| containment (dribble_declined) | 1 |
+| pressure | 488,3 |
+| containment | 201,0 |
+| tackle_attempt | 78,6 |
+| tackle | 47,1 |
+| **dribble** | **32,3** |
+| shot_taken | 15,7 |
+| loose_duel | 3,0 |
 
-**O duelo de drible acontece ~4 vezes por partida.** A pressão acontece 50×
-mais. Isso não invalida o pedido — mas define o tamanho do ganho, e por isso
-fiei também os vizinhos de alta frequência que sofriam do mesmo defeito.
+Os vizinhos de alta frequência que fiei junto (`tackle_attempt`, `containment`)
+seguem valendo — mas não porque o drible seja pequeno, e sim porque eles também
+não tinham pose.
 
 ---
 
@@ -47,7 +69,7 @@ Os demais buracos:
 | `dribble_success` | nenhum evento mapeava para ele — falta o *depois* do gesto |
 | `outside_cut` | a tabela `MOVE` só tinha `'corta pra dentro'` |
 | `dribble_prepare` | era o *fallback* de `move` nulo, e `move` nunca é nulo |
-| `burst_touch`, `protect_turn` | só vinham de um drible **de elite** (`vel≥88`, `dri≥88`) dentro de um duelo que ocorre 4×/partida |
+| `burst_touch`, `protect_turn` | só vinham de um drible **de elite** (`vel≥88`, `dri≥88`), e nunca do portador comum |
 
 E os dois cortes, quando disparavam, **desenhavam idênticos**: `cutting` não
 olhava para qual dos dois era.
@@ -74,7 +96,7 @@ piso dele era `speed > 0.3 ? 'carry' : 'protect'` — duas posturas para tudo.
 Agora aceleração forte com bola vira arrancada, e giro sob marcação (adversário
 a menos de 3 m) vira giro de proteção.
 
-**5. Os vizinhos.** `tackle_attempt` (23×) não tinha pose nenhuma — só `tackle` e
+**5. Os vizinhos.** `tackle_attempt` (78,6 por partida) não tinha pose nenhuma — só `tackle` e
 `tackle_missed` estavam fiados. E o bote perdido agora encadeia `recover`, que é
 a versão visível do `_beatenUntil` que a física do defensor já paga.
 
@@ -149,10 +171,8 @@ modificado. Não é da mudança.
 
 ## O que sobra: 15 estados
 
-- **`body_feint`** — mapeado, desenhado, e travado atrás de `dri≥88 && tec≥84`
-  dentro de um duelo de 4×/partida. É decisão de design do motor, não bug de
-  fiação; não mexi.
-- **`long_pass`, `placed_shot`, `power_shot`, `volley`** — o motor só classifica
-  `pass`/`cross`/`shot`. Precisa de classificação de ação, não de desenho.
-- **10 dos 13 estados de goleiro** — mesma história: `_startTravel` só distingue
-  mergulho alto/baixo/palma/pé.
+- **`body_feint`** — mapeado, desenhado, e travado atrás de `dri≥88 && tec≥84`.
+  19,2% dos atletas em campo passam nesse corte (medido), então ele acontece —
+  só não caiu na amostra. É decisão de design do motor; não mexi.
+- **`long_pass`, `placed_shot`, `power_shot`, `volley`** e os estados de goleiro:
+  tratados na **§D45–§D48**, no laudo `D45-o-goleiro-e-a-tela.md`.

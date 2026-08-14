@@ -603,6 +603,37 @@ nao a origem da diferenca. Uma unica repeticao nao separa "deterministico" de
 Parente da **B7** (n pequeno responde qualquer coisa), aplicada ao numero de
 EXECUCOES em vez de ao numero de partidas.
 
+## D9 · Frequencia medida na TELA nao substitui frequencia medida no motor
+
+Em 2026-08-14 eu contei eventos numa amostra de 75 s de navegador a 6X e
+publiquei **"o duelo de drible acontece ~4 vezes por partida"** — em laudo, em
+mensagem de commit e para o usuario. Tres medicoes posteriores dizem **~31**:
+
+```
+bateria, 24 partidas (eventosPorPartida)   32,3 / partida
+sonda headless, 14 partidas completas      30,7 / partida
+navegador, razao drible/pressao            bate com a bateria (0,0688 vs 0,0661)
+```
+
+Testei a hipotese obvia — a bateria usa Brasil 1970 dos dois lados, o navegador
+usa esquadras arbitrarias — e ela CAIU: a razao drible/pressao e a mesma nas
+duas populacoes. O motor se comporta igual; a amostra e que nao valia.
+
+**As regras:**
+
+1. Para **frequencia de evento**, a fonte e a bateria ou uma sonda headless que
+   roda partidas INTEIRAS. A sonda de tela existe para ver ANIMACAO, e uma
+   janela de 75 s e uma fatia arbitraria de uma partida.
+2. Quando duas fontes discordam por fator > 2, **nao escolha a mais recente**:
+   ache um invariante que as duas medem (aqui, a razao drible/pressao) e use ele
+   para decidir qual esta fora.
+3. Um numero que vai para laudo e para o usuario precisa de duas fontes
+   independentes quando ele **enquadra** a decisao — este enquadrava: eu usei o
+   "~4 por partida" para dizer que o ganho seria pequeno.
+
+Parente da **B7** (n pequeno responde qualquer coisa) e da **C2** (a bateria nao
+ve a tela): aqui e o inverso da C2 — **a tela nao conta o motor**.
+
 ## D6 · Um teste que sai com 0 sem imprimir nada passou por omissão
 
 Em 2026-08-13 eu truquei `tools/defeitos.py` **a zero bytes** sem perceber:

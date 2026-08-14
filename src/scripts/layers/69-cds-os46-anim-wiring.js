@@ -85,13 +85,45 @@ if(typeof oldST==='function'){
              para bola em cima dele. */
           var est = dy>0.55 ? (tz>1.15?'gk_high_dive':'gk_low_dive')
                   : (tz<0.5?'gk_foot_save':'gk_parry');
-          pede(this,ator,est);
+          /* §D45 · quem mergulha cai. `gk_ground_recover` existia so para o
+             encaixe perdido; agora e o desfecho de todo voo, que e quando ele
+             de fato acontece — o goleiro nao levanta instantaneamente. */
+          pede(this,ator,est,/dive$/.test(est)?'gk_ground_recover':null);
         } else if(meta.outcome==='block'&&ator){ pede(this,ator,'block'); }
+      }
+      /* §D45 · A DISTRIBUICAO DO GOLEIRO NAO TINHA GESTO NENHUM.
+         `gk_throw` e `gk_kick` estao declarados desde a R14 e nenhum evento
+         mapeava para eles — o goleiro soltava a bola sem mover um musculo, em
+         todo tiro de meta e em toda reposicao. Nao falta evento: a bola parte
+         por `_startTravel`, com o goleiro como origem. O alcance decide qual
+         dos dois e — reposicao curta e de mao, saida longa e de pe. */
+      if(o&&o.isGK&&target){
+        var _dx=(Number(target.x)||0)-(Number(o.x)||0);
+        var _dy2=(Number(target.y)||0)-(Number(o.y)||0);
+        pede(this,o,Math.sqrt(_dx*_dx+_dy2*_dy2)>32?'gk_kick':'gk_throw');
       }
       /* CHUTE: o contrato de acao da R14 cobre pouco (shot_ em 0,02% do
          tempo contra 18 chutes por partida). Todo voo de chute pede a pose. */
+      /* §D48 · e agora a pose diz QUE chute foi. `power_shot`, `placed_shot` e
+         `volley` estavam declarados e desenhados e nenhum evento mapeava para
+         eles — todo chute virava `shot_prepare`. O motor nao classifica a
+         acao, mas nao precisa: a altura da bola no momento da batida separa o
+         voleio, e a distancia ate o alvo separa forca de colocacao. */
       if(kind==='shot'&&o&&!(meta&&meta.actor===o)
-         && !(o.__os59Head && (Number(this.t)||0) < o.__os59Head)){ pede(this,o,'shot_prepare'); }
+         && !(o.__os59Head && (Number(this.t)||0) < o.__os59Head)){
+        var _z=Number(this.ball&&this.ball.z)||0;
+        var _ddx=(Number(target&&target.x)||0)-(Number(o.x)||0);
+        var _ddy=(Number(target&&target.y)||0)-(Number(o.y)||0);
+        var _d=Math.sqrt(_ddx*_ddx+_ddy*_ddy);
+        pede(this,o,_z>0.55?'volley':_d>20?'power_shot':'placed_shot','shot_followthrough');
+      }
+      /* §D48 · `long_pass` idem: o lancamento ja se distingue do toque curto
+         pela distancia, e o motor ate marca `passKind === 'launch'`. */
+      if(kind==='pass'&&o&&target){
+        var _px=(Number(target.x)||0)-(Number(o.x)||0);
+        var _py=(Number(target.y)||0)-(Number(o.y)||0);
+        if(style==='launch'||Math.sqrt(_px*_px+_py*_py)>28) pede(this,o,'long_pass');
+      }
     }catch(_){}
     return oldST.apply(this,arguments);
   };

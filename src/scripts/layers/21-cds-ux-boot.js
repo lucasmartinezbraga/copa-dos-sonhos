@@ -383,6 +383,14 @@
        (o pe/corpo estica para a linha de passe) e desce devagar (recomposicao).
        Por isso nao e `sin(p*PI)`, que e simetrico e parece um chute. */
     if (state === 'intercept') return p < .3 ? p / .3 : 1 - (p - .3) / .7 * .85;
+    /* §D48 · as VARIANTES de chute e passe nao tinham envelope: `animWave` nao
+       conhecia a palavra e devolvia 0, entao mesmo depois de fiadas elas
+       chegariam ao desenho com onda zero — sem perna de chute, exatamente o
+       defeito que a §D39 achou na interceptacao. Gesto completo: carrega, bate
+       no pico, desce. */
+    if (/^(power_shot|placed_shot|volley|long_pass|first_touch_pass)$/.test(state)) {
+      return Math.sin(p * Math.PI);
+    }
     return 0;
   }
 
@@ -410,13 +418,13 @@
        estica  perna estendida a frente, em raios (alcance) */
   const POSE = {
     /* locomocao de transicao */
-    accelerate: { esc: 0.80, spr: 0.00, inc:  0.40, agacha: 0.10, braco: 1.25, estica: 0.00 },
-    decelerate: { esc: 0.50, spr: 0.22, inc: -0.34, agacha: 0.16, braco: 1.10, estica: 0.20 },
+    accelerate: { esc: 0.80, spr: 0.00, inc:  0.28, agacha: 0.10, braco: 1.25, estica: 0.00 },
+    decelerate: { esc: 0.50, spr: 0.22, inc: -0.26, agacha: 0.16, braco: 1.10, estica: 0.20 },
     turn:       { esc: 0.55, spr: 0.18, inc:  0.00, agacha: 0.10, braco: 0.90, estica: 0.00 },
     strafe:     { esc: 0.35, spr: 0.32, inc:  0.00, agacha: 0.12, braco: 0.80, estica: 0.00 },
     backpedal:  { esc: 0.55, spr: 0.12, inc: -0.30, agacha: 0.08, braco: 0.55, estica: 0.00 },
     /* defesa sem bola */
-    press:      { esc: 1.10, spr: 0.00, inc:  0.26, agacha: 0.00, braco: 1.30, estica: 0.00 },
+    press:      { esc: 1.10, spr: 0.00, inc:  0.20, agacha: 0.00, braco: 1.30, estica: 0.00 },
     jockey:     { esc: 0.25, spr: 0.36, inc:  0.08, agacha: 0.22, braco: 1.35, estica: 0.00 },
     recover:    { esc: 0.90, spr: 0.00, inc:  0.30, agacha: 0.04, braco: 1.20, estica: 0.00 },
     body_duel:  { esc: 0.30, spr: 0.30, inc:  0.16, agacha: 0.16, braco: 1.45, estica: 0.00 },
@@ -430,8 +438,25 @@
        `dribbling` e por isso desenhavam como `carry` — mesma armadilha dos
        cinco mudos da §D42, um nivel abaixo. */
     dribble_prepare: { esc: 0.35, spr: 0.18, inc:  0.12, agacha: 0.14, braco: 1.10, estica: 0.10 },
-    dribble_success: { esc: 1.00, spr: 0.00, inc:  0.34, agacha: 0.02, braco: 1.15, estica: 0.00 },
+    dribble_success: { esc: 1.00, spr: 0.00, inc:  0.26, agacha: 0.02, braco: 1.15, estica: 0.00 },
     dribble_failure: { esc: 0.40, spr: 0.26, inc: -0.26, agacha: 0.06, braco: 1.50, estica: 0.22 },
+    /* §D45 · goleiro. A `braco` nao vale para ele — o braco do goleiro sai do
+       ramo `gk` do desenho, nao do balanco de corrida — mas base, agachamento e
+       inclinacao valem, e sao o que separa deslocar de esperar o chute. */
+    /* `gl`/`gr` = altura do braco ESQUERDO e DIREITO em raios (negativo sobe),
+       `gx` = abertura extra para fora. Sem isto os estados de goleiro sao
+       indistinguiveis: o tronco dele e grande e os bracos ficavam sempre na
+       mesma posicao em T, entao `esc`/`spr`/`agacha` mexiam so no que estava
+       escondido atras do tronco. Conferido na folha de poses. */
+    gk_ready:    { esc: 0.15, spr: 0.24, inc:  0.00, agacha: 0.10, braco: 1.00, estica: 0.00, gl:  0.00, gr:  0.00, gx: 0.00 },
+    gk_shift:    { esc: 0.45, spr: 0.32, inc:  0.00, agacha: 0.16, braco: 1.00, estica: 0.00, gl:  0.14, gr:  0.14, gx: 0.10 },
+    gk_set:      { esc: 0.05, spr: 0.44, inc:  0.14, agacha: 0.30, braco: 1.00, estica: 0.00, gl:  0.40, gr:  0.40, gx: 0.16 },
+    gk_throw:    { esc: 0.30, spr: 0.20, inc:  0.24, agacha: 0.04, braco: 1.00, estica: 0.20, gl:  0.36, gr: -0.72, gx: 0.06 },
+    gk_kick:     { esc: 0.50, spr: 0.12, inc:  0.20, agacha: 0.00, braco: 1.00, estica: 0.42, gl: -0.24, gr:  0.28, gx: 0.20 },
+    gk_smother:  { esc: 0.20, spr: 0.36, inc:  0.30, agacha: 0.34, braco: 1.00, estica: 0.34, gl:  0.58, gr:  0.58, gx: 0.22 },
+    gk_ground_recover: { esc: 0.20, spr: 0.34, inc: -0.32, agacha: 0.30, braco: 1.00, estica: 0.00, gl: 0.52, gr: 0.52, gx: 0.00 },
+    gk_foot_save:{ esc: 0.25, spr: 0.30, inc:  0.10, agacha: 0.22, braco: 1.00, estica: 0.66, gl:  0.30, gr:  0.30, gx: 0.26 },
+    gk_parry:    { esc: 0.20, spr: 0.34, inc:  0.16, agacha: 0.18, braco: 1.00, estica: 0.24, gl: -0.66, gr:  0.20, gx: 0.14 },
     /* recepcao */
     receive_prepare: { esc: 0.30, spr: 0.24, inc:  0.10, agacha: 0.14, braco: 1.40, estica: 0.30 },
     receive_contact: { esc: 0.15, spr: 0.20, inc:  0.18, agacha: 0.18, braco: 1.20, estica: 0.50 },
@@ -548,9 +573,16 @@
     // sem a camada de animação.
     const A = (root.__CDS_ANIM_BY_KEY && root.__CDS_ANIM_BY_KEY[o.key]) || null;
     const st = A ? A.state : '';
-    const w = o.divePose ? 0 : (A ? animWave(st, A.phase) : (o.wave || 0));
+    /* §D45 · O MERGULHO DA MAQUINA DE ESTADOS NAO ERA DESENHADO COMO MERGULHO.
+       `o.divePose` vem de `activeMotion` — o caminho LEGADO de poses. Quando a
+       maquina da R14 entra em `gk_low_dive`/`gk_high_dive` sem que o caminho
+       antigo tenha agendado um `dive`, o goleiro voava de pe. */
+    const mergulho = o.divePose || (A && /^gk_(low|high)_dive$/.test(st));
+    const w = mergulho ? 0 : (A ? animWave(st, A.phase) : (o.wave || 0));
     const act = o.act || '', pose = o.pose || '';
-    const kicking = A ? /^(pass|shot)_(prepare|contact|followthrough)$|^cross$/.test(st)
+    /* §D48 · as variantes entram no ramo de CHUTE do desenho: sem isto elas
+       cairiam na modulacao de corrida e o atleta "bateria" correndo. */
+    const kicking = A ? /^(pass|shot)_(prepare|contact|followthrough)$|^cross$|^(power_shot|placed_shot|volley|long_pass|first_touch_pass)$/.test(st)
                       : ((pose === 'kick' || act === 'shoot') && w > 0.02);
     const tackling = A ? /tackle$/.test(st) : (pose === 'tackle' && w > 0.02);
     const heading = A ? (st === 'header') : (pose === 'jump' && w > 0.02);
@@ -578,7 +610,7 @@
        mv = 0,470 px/quadro em 1X contra 1,309 em 3X, o mesmo atleta a ~3,5 m/s.
        Agora vem de `d.vms`, que e a velocidade FISICA em m/s: 4,2 m/s abre a
        perna por inteiro, em qualquer velocidade de exibicao. */
-    const amp = (o.divePose || kicking || tackling) ? 0
+    const amp = (mergulho || kicking || tackling) ? 0
               : clamp(d.vms / 4.2, 0, 1) * (bursting ? 1.35 : 1);   // 0 parado … 1 correndo
     const sw = Math.sin(d.gait) * amp;                  // -1..1 alterna as pernas
     /* §D42 · a postura do estado modula a corrida em vez de substitui-la */
@@ -606,14 +638,15 @@
     /* §D41 · a inclinacao do tronco e o estreitamento de perspectiva saiam da
        mesma `d.spd` de tela: o jogador se jogava para a frente ao apertar 3X e
        endireitava ao voltar para 1X, sem mudar de velocidade no campo. */
-    const _vig = (o.divePose || spinning) ? 0 : Math.max(0, Math.min(1, d.vms / 4.2));
+    const _vig = (mergulho || spinning) ? 0 : Math.max(0, Math.min(1, d.vms / 4.2));
+    let _rotTot = 0;
     ctx.save();
     ctx.translate(x, y - bob - (spinning ? r * .16 * Math.sin(spinTh / 2) : 0));
     /* §D42 · o portao era so `_vig > .02` (velocidade de tela). Postura parada —
        `jockey`, `protect`, `receive_*` — acontece justamente com pouca
        velocidade: sem abrir o portao para ela, a inclinacao do estado nunca
        chegava a ser aplicada. */
-    if (!o.divePose && !spinning && (_vig > .02 || (P && P.inc !== 0))) {
+    if (!mergulho && !spinning && (_vig > .02 || (P && P.inc !== 0))) {
       /* OS-60 · corte joga o peso para fora antes de sair para dentro;
          arrancada projeta o tronco a frente. */
       const _extra = cutting  ? -face * cutLado * .30 * Math.sin(dphase * Math.PI)
@@ -621,11 +654,18 @@
                    : 0;
       /* §D42 · a inclinacao da postura e do estado, e olha para onde o atleta
          encara: recuar de frente para a bola tem que ler diferente de correr */
-      ctx.rotate(_cos * _vig * 0.20 + _extra + (P ? face * P.inc : 0));
+      /* §D46 · COM TETO. A rotacao gira o boneco INTEIRO em torno do ponto de
+         chao, entao a cabeca — que fica a 0,82·r de altura — descreve um arco:
+         a 0,60 rad ela desloca 0,46·r, mais que a meia-largura do tronco
+         (0,56·r), e o atleta le como "caindo" em vez de "inclinado". Visto na
+         folha de poses em `accelerate` e `press`, que juntos sao dois dos
+         estados mais frequentes do jogo. */
+      _rotTot = clamp(_cos * _vig * 0.20 + _extra + (P ? face * P.inc : 0), -0.34, 0.34);
+      ctx.rotate(_rotTot);
       const _sq = 1 - Math.abs(_sin) * _vig * 0.22;
       ctx.scale(_sq < .5 ? .5 : _sq, 1);
     }
-    if (o.divePose) ctx.rotate(Math.PI / 2);
+    if (mergulho) ctx.rotate(Math.PI / 2);
     else if (spinning) {
       const _c = Math.cos(spinTh);
       ctx.scale(Math.abs(_c) < .16 ? (_c < 0 ? -.16 : .16) : _c, 1);
@@ -634,12 +674,17 @@
     // ── PERNAS conforme a ação
     ctx.fillStyle = '#17202e';
     if (kicking) {
-      const back = -face * r * .28, front = face * (r * .06 + w * r * .52);
+      /* §D48 · o VOLEIO e a bola no ar: a perna sobe muito mais que num chute
+         de chao, e e so isso que o separa visualmente. `alto` tambem serve ao
+         chute de forca, que projeta mais a perna que a cavadinha. */
+      const alto = (st === 'volley') ? r * .46 : (st === 'power_shot') ? r * .16 : 0;
+      const forca = (st === 'power_shot') ? 1.35 : (st === 'placed_shot') ? 0.78 : 1;
+      const back = -face * r * .28, front = face * (r * .06 + w * r * .52 * forca);
       ctx.fillRect(back - r * .13, r * .40, r * .26, r * .46);                  // apoio
-      ctx.fillRect(front - r * .13, r * .40 - w * r * .12, r * .26, r * .46);   // perna de chute
+      ctx.fillRect(front - r * .13, r * .40 - w * r * .12 - w * alto, r * .26, r * .46);   // perna de chute
       ctx.fillStyle = '#0b0f16';
       ctx.fillRect(back - r * .15, r * .78, r * .30, r * .20);
-      ctx.fillRect(front - r * .15, r * .78 - w * r * .12, r * .30, r * .20);
+      ctx.fillRect(front - r * .15, r * .78 - w * r * .12 - w * alto, r * .30, r * .20);
     } else if (blocking) {
       /* OS-60 · MEDIDO: o estado de bloqueio desenhava exatamente igual ao de
          corrida — tinha 100% de cobertura de evento e nenhuma pose. Agora o
@@ -695,15 +740,21 @@
     // MANGAS/braços — GOLEIRO tem prontidão/encaixe + LUVAS (ATL-032); linha de campo
     // ergue no cabeceio e abre no chute (equilíbrio).
     const gk = o.isGK;
-    const gkClaim = gk && (pose === 'claim' || pose === 'jump') && w > 0.02;
+    /* §D45 · os bracos ao alto do goleiro so respondiam ao caminho legado
+       (`o.pose`). Encaixe, soco e mergulho alto sao ESTADOS da R14 ha muito
+       tempo e nenhum deles levantava o braco. */
+    const gkClaim = gk && ((pose === 'claim' || pose === 'jump') && w > 0.02
+                           || /^gk_(catch|punch|high_dive)$/.test(st));
     ctx.fillStyle = jersey;
     if (gkClaim) {                                       // goleiro no ENCAIXE: braços ao alto
       const up = r * (.72 + w * .36);
       rr(ctx, -r * .48, -up, r * .24, r * .58, r * .09); ctx.fill();
       rr(ctx, r * .24, -up, r * .24, r * .58, r * .09); ctx.fill();
-    } else if (gk) {                                     // goleiro em PRONTIDÃO: braços abertos
-      rr(ctx, -r * .94, -r * .36, r * .24, r * .52, r * .09); ctx.fill();
-      rr(ctx, r * .70, -r * .36, r * .24, r * .52, r * .09); ctx.fill();
+    } else if (gk) {                                     // goleiro: braços pela POSTURA
+      /* §D45 · era uma unica pose de "prontidao" para os 13 estados. */
+      const _gl = r * ((P && P.gl) || 0), _gr = r * ((P && P.gr) || 0), _gx = r * ((P && P.gx) || 0);
+      rr(ctx, -r * .94 - _gx, -r * .36 + _gl, r * .24, r * .52, r * .09); ctx.fill();
+      rr(ctx, r * .70 + _gx, -r * .36 + _gr, r * .24, r * .52, r * .09); ctx.fill();
     } else if (heading) {
       rr(ctx, -r * .88, -r * .74 - w * r * .32, r * .24, r * .52, r * .09); ctx.fill();
       rr(ctx, r * .64, -r * .74 - w * r * .32, r * .24, r * .52, r * .09); ctx.fill();
@@ -740,12 +791,19 @@
         ctx.beginPath(); ctx.arc(-r * .36, -up - r * .02, r * .19, 0, TAU); ctx.fill();
         ctx.beginPath(); ctx.arc(r * .36, -up - r * .02, r * .19, 0, TAU); ctx.fill();
       } else {
-        ctx.beginPath(); ctx.arc(-r * .82, r * .16, r * .18, 0, TAU); ctx.fill();
-        ctx.beginPath(); ctx.arc(r * .82, r * .16, r * .18, 0, TAU); ctx.fill();
+        /* §D45 · a luva ficava num ponto FIXO enquanto o braco se movia: com a
+           postura ligada, a mao descolava do braco. */
+        const _gl = r * ((P && P.gl) || 0), _gr = r * ((P && P.gr) || 0), _gx = r * ((P && P.gx) || 0);
+        ctx.beginPath(); ctx.arc(-r * .82 - _gx, r * .16 + _gl, r * .18, 0, TAU); ctx.fill();
+        ctx.beginPath(); ctx.arc(r * .82 + _gx, r * .16 + _gr, r * .18, 0, TAU); ctx.fill();
       }
     }
     // CABEÇA + cabelo — inclina à frente no cabeceio/drible
-    const hx = lean * .4 + tl + (heading ? face * r * .26 : 0) + (dribbling ? face * r * .10 : 0);
+    /* §D46 · a cabeca desfaz PARTE do arco da inclinacao. Compensar tudo
+       deixaria o pescoco rigido e mataria a leitura do gesto; 62% mantem a
+       cabeca sobre o quadril e ainda deixa o tronco projetado a frente. */
+    const hx = lean * .4 + tl + (heading ? face * r * .26 : 0) + (dribbling ? face * r * .10 : 0)
+             - _rotTot * r * .62;
     const hy = -r * .82 + (heading ? w * r * .10 : 0);
     ctx.beginPath(); ctx.arc(hx, hy, r * .34, 0, TAU);
     ctx.fillStyle = '#e9b98b'; ctx.fill();
@@ -1084,6 +1142,34 @@
     return v > 0.3 ? 'carry' : 'protect';
   }
 
+  /* §D45 · O PISO DO GOLEIRO ERA UMA CONSTANTE.
+     `ctx.isGK ? 'gk_ready'` — sempre, em qualquer velocidade, com ou sem bola.
+     Ele esta em cena 100% do tempo e tinha um estado so fora dos instantes de
+     defesa.
+
+     MEDIDO em `tools/fisica/tela/goleiro.js`, 10.586 amostras:
+
+       parado (v < 0,3 m/s)     18,2%     <- os outros 81,8% ele se desloca
+       velocidade mediana       1,26 m/s   p90 3,01   p99 6,81
+       bola a menos de 18 m     12,2%
+       com a bola na mao         0,9%
+
+     Ou seja: em **quatro de cada cinco quadros** o goleiro estava andando e
+     sendo desenhado parado em prontidao. `gk_shift` e `gk_set` estavam
+     declarados desde a R14 e nunca tinham sido pedidos por ninguem. */
+  function goleiroFor(ctx) {
+    const v = finite(ctx.speed);
+    if (ctx.hasBall) return 'gk_ready';        // a distribuicao vem por evento
+    /* A POSICAO DE ESPERA VEM ANTES DO DESLOCAMENTO. Na primeira versao eu
+       exigi `v < 0,6` E bola perto, e `gk_set` nao disparou nenhuma vez: quando
+       a bola se aproxima o goleiro esta justamente se MOVENDO, entao as duas
+       condicoes sao quase disjuntas. "Set" nao quer dizer imovel, quer dizer
+       plantado e esperando o chute — o que exclui o sprint, nao o passo. */
+    if (finite(ctx.distBola, 99) < 20 && v < 2.2) return 'gk_set';
+    if (v > 0.6) return 'gk_shift';            // desloca na linha
+    return 'gk_ready';
+  }
+
   /* transicoes curtas: disparam UMA vez por gesto, a partir de estado ciclico */
   function transicaoFor(ctx) {
     const dv = finite(ctx.dSpeed);               // m/s por segundo
@@ -1203,7 +1289,7 @@
         if (this._enter(_nx, null, now)) return this.snapshot();
       }
       // caiu para o piso: locomoção (ou prontidão do goleiro)
-      const base = ctx.isGK ? 'gk_ready' : posturaFor(ctx);
+      const base = ctx.isGK ? goleiroFor(ctx) : posturaFor(ctx);
       this._enter(base, null, now);
       /* §D42 · `_enter` sobrescreve `this.tier` com o tier declarado do estado,
          entao a atribuicao que ficava ANTES dele era codigo morto. Agora vem
@@ -1223,7 +1309,7 @@
       }
       if (!tr) this._ultTr = null;
       // estado cíclico acompanha a velocidade sem reiniciar a fase à toa
-      const base = ctx.isGK ? 'gk_ready'
+      const base = ctx.isGK ? goleiroFor(ctx)
                  : ctx.hasBall ? comBolaFor(ctx)
                  : posturaFor(ctx);
       if (base !== this.state && this.tier <= T_DEF) {
@@ -1405,6 +1491,7 @@
                 marcando: advers && dDono < 4.5,
                 pressionando: advers && dDono < 14 && v > 3.6 && dot > 0.5,
                 recebendo: !!(b.traveling && b.receiver === p && db < 9),
+                distBola: db,
                 oponenteProx: opProx,
               };
             }

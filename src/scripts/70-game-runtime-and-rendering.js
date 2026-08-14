@@ -3358,11 +3358,23 @@ function paintField() {
       else ctx.ellipse(groundX,groundY+5,r*(1+actionWave*.18),r*.72,0,0,Math.PI*2);
       ctx.fillStyle='#000'; ctx.fill(); ctx.restore();
 
-      // aura (dono da bola)
+      /* §D47 · A AURA DO PORTADOR ERA UM DISCO DE LAMA.
+         Era um circulo CHEIO de raio r+9 (quase o dobro do atleta), na cor do
+         time, a 28% de alfa, desenhado na altura do CORPO. Cor de time a 28%
+         sobre grama nao le como a cor do time: le como marrom sujo, e o disco
+         cobre o jogador que ele deveria destacar. Visto ampliando um quadro do
+         jogo — o boneco sumia dentro da propria marca.
+
+         Agora e um ANEL no CHAO, no mesmo plano e com a mesma proporcao da
+         sombra que ja existe logo acima. Marca quem tem a bola sem tapar
+         ninguem, e como esta no gramado ela nao compete com o corpo. */
       if (p.hasBall) {
-        ctx.save(); ctx.globalAlpha=.28;
-        ctx.beginPath(); ctx.arc(x,y,r+9,0,Math.PI*2);
-        ctx.fillStyle=pc; ctx.fill(); ctx.restore();
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(groundX, groundY + r * .98, r * 1.24, r * .50, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = pc; ctx.lineWidth = Math.max(1.5, r * .16);
+        ctx.globalAlpha = .85; ctx.stroke();
+        ctx.restore();
       }
 
       // aura de LENDA: anel dourado pulsante (r>=92); brilho forte se em chamas
@@ -3409,6 +3421,24 @@ function paintField() {
         if (motion.type === 'dive') { ctx.moveTo(x-10,y); ctx.lineTo(x+10,y); }
         else { ctx.moveTo(x-15,y-5); ctx.lineTo(x+15,y-5); }
         ctx.stroke(); ctx.restore();
+      }
+
+      /* §D47 · SETA DO PORTADOR, acima da cabeca.
+         O anel de chao que substituiu o disco de lama ficava debaixo da placa
+         de nome — que e desenhada justamente nos jogadores perto da bola, ou
+         seja, sempre no portador. Marca invisivel nao e marca. Acima da cabeca
+         nao ha nada que colida, e e onde todo jogo de futebol poe. */
+      if (p.hasBall) {
+        const _sy = y - r * 1.62, _sw = Math.max(3.2, r * .42);
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x, _sy + _sw);
+        ctx.lineTo(x - _sw, _sy - _sw * .5);
+        ctx.lineTo(x + _sw, _sy - _sw * .5);
+        ctx.closePath();
+        ctx.fillStyle = pc; ctx.fill();
+        ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.stroke();
+        ctx.restore();
       }
 
       // cartão amarelo (flag no ombro)

@@ -117,6 +117,10 @@ const ARMAR = () => {
   console.log('\n');
 
   const est = await pg.evaluate(() => window.__gst.est);
+  const audit = await pg.evaluate(() => {
+    const s = window.__CDS_ACTIVE_SIM;
+    return (s && s.getOS46Audit) ? s.getOS46Audit() : null;
+  });
   await nav.close();
 
   /* conjunto de silhuetas da locomocao comum */
@@ -145,8 +149,22 @@ const ARMAR = () => {
   const vistos = new Set(Object.keys(est));
   const nunca = declarados.filter(s => !vistos.has(s));
   if (nunca.length) {
-    console.log(`\nNUNCA DESENHADOS (${nunca.length} de ${declarados.length} declarados):`);
-    console.log('  ' + nunca.join(', '));
+    /* "nao desenhado" nao e a mesma coisa que "inalcancavel". A defesa acontece
+       ~2x por partida: numa amostra curta o sorteador de quadros simplesmente
+       nao pega o gesto. O AUDITOR conta os PEDIDOS, entao separa o que nunca
+       foi pedido (defeito de estrutura) do que foi pedido e nao caiu na
+       amostra (raridade). Sem esta coluna eu ja estava a um passo de relatar
+       raridade como defeito. */
+    const pedidos = (audit && audit.porEstado) || {};
+    const estrut = nunca.filter(s => !pedidos[s]);
+    const raros = nunca.filter(s => pedidos[s]);
+    console.log(`\nNAO DESENHADOS (${nunca.length} de ${declarados.length} declarados):`);
+    console.log(`  nunca PEDIDOS por ninguem (${estrut.length}) — defeito de estrutura:`);
+    console.log('    ' + (estrut.join(', ') || '(nenhum)'));
+    if (raros.length) {
+      console.log(`  pedidos mas fora da amostra (${raros.length}) — raridade, nao defeito:`);
+      console.log('    ' + raros.map(s => `${s} (${pedidos[s]}x)`).join(', '));
+    }
   }
   const mudos = linhas.filter(l => !LOCO.includes(l.st) && l.prop === 0);
   console.log(`\n${mudos.length} estado(s) entram e desenham exatamente a corrida.`);
