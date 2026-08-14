@@ -1316,6 +1316,46 @@
   Controller.prototype.beginAction = function (contract, now) {
     const seq = SEQ[contract && contract.action];
     if (!seq) return false;
+    /* §OS-210 · `beginAction` ENTRAVA SEM PERGUNTAR NADA.
+       `request` tem uma regra de compromisso — tier menor nao interrompe gesto
+       em curso — e `beginAction` chamava `_enter` direto, por baixo dela. O
+       contrato de acao do motor e generico ("um passe esta saindo"); o gesto do
+       goleiro e especifico (ele repoe com a mao, ou bate de pe). O generico
+       apagava o especifico no quadro seguinte.
+       Medido: `gk_throw` e `gk_kick` entram na maquina e nunca chegam a um
+       quadro desenhado. Aqui so o goleiro e protegido, e so enquanto o gesto
+       dele ainda corre: e a familia cujo estado carrega informacao que a
+       sequencia de passe nao tem. */
+    if (this.tier === T_GK && this.dur > 0 && this.t < this.dur) return false;
+    /* §OS-210 · A SEQUENCIA ADOTA A VARIANTE EM VEZ DE APAGA-LA.
+       `power_shot`, `placed_shot`, `volley`, `long_pass`, `first_touch_pass` e
+       `cross` nao sao gestos CONCORRENTES do passe e do chute: sao o mesmo
+       gesto, ditos com mais precisao. A camada OS-46 os pede em
+       `_startTravel`, o motor emite o contrato logo depois, e `pass_prepare`
+       generico entrava por cima — o preparo especifico morria antes de virar
+       quadro.
+       Medido: `first_touch_pass` entrava 47 vezes e era desenhado ZERO
+       (tools/fisica/tela/gesto-perdido.js); `placed_shot`, 2 e zero.
+       Nao da para simplesmente barrar o contrato: e dele que vem a duracao do
+       preparo, e e por isso que o quadro do contato cai no tick em que a bola
+       sai — a razao de existir da Fase 3. Entao a variante VIRA a primeira
+       fase da sequencia: o motor continua mandando no tempo, e o desenho
+       continua dizendo QUE passe ou QUE chute foi. */
+    const _varPasse = { first_touch_pass: 1, long_pass: 1, cross: 1 };
+    const _varChute = { power_shot: 1, placed_shot: 1, volley: 1 };
+    const _acao = contract && contract.action;
+    const _adota = (_acao === 'pass' && _varPasse[this.state]) ||
+                   (_acao === 'cross' && _varPasse[this.state]) ||
+                   (_acao === 'shot' && _varChute[this.state]);
+    if (_adota) {
+      const s2 = seq.slice(); s2[0] = this.state;
+      this.seq = s2; this.seqIdx = 0; this.contract = contract; this.interrupted = false;
+      /* a variante ja esta em curso: mantem a fase dela e so garante que a
+         duracao seja a que o contrato declarou para o preparo */
+      this.dur = Math.max(0.02, finite(contract.prepareDuration, this.dur || 0.15));
+      this.tier = T_ACTION;
+      return true;
+    }
     this.seq = seq.slice();
     this.seqIdx = 0;
     this.contract = contract;

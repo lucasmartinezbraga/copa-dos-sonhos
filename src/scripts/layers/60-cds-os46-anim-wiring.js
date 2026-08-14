@@ -18,6 +18,12 @@ var MOVE={
   'corta pra dentro':'inside_cut'
 };
 
+/* §OS-210 · janela do passe de primeira, em segundos de simulacao. Medida, nao
+   escolhida: p10 do tempo entre ganhar a bola e solta-la e 0,433 s e p25 e
+   0,467 s, porque `settle` gateia a decisao. 0,47 s pega o decil mais rapido
+   sem chamar de "de primeira" um passe que teve dominio. */
+var TOQUE_UNICO=0.47;
+
 var dbg={pedidos:0,porEstado:Object.create(null)};
 
 function pede(sim,p,estado,entao){
@@ -119,10 +125,40 @@ if(typeof oldST==='function'){
       }
       /* §D48 · `long_pass` idem: o lancamento ja se distingue do toque curto
          pela distancia, e o motor ate marca `passKind === 'launch'`. */
-      if(kind==='pass'&&o&&target){
+      /* §OS-210 · O GOLEIRO NAO ENTRA AQUI, E ERA POR ISSO QUE ELE NAO TINHA
+         GESTO DE REPOSICAO.
+         Vinte linhas acima esta camada pede `gk_kick`/`gk_throw` para o
+         goleiro. Esta linha pedia `long_pass` para o MESMO ator, no MESMO
+         quadro, logo em seguida — e o segundo pedido vence.
+         Nao e sutil: `gk_kick` sai acima de 32 m e `long_pass` acima de 28,
+         entao TODA saida de pe do goleiro era sobrescrita, por construcao.
+         Medido em partida real: das distribuicoes do goleiro, 5 de 7 passam de
+         32 m; e `gk_kick`/`gk_throw` entram na maquina 4 e 5 vezes e chegam a
+         ZERO quadro desenhado (tools/fisica/tela/gesto-perdido.js).
+         O gesto do goleiro e o ESPECIFICO — ele repoe com a mao ou com o pe, e
+         isso ja diz que e um lancamento. O generico sai da frente. */
+      if(kind==='pass'&&o&&!o.isGK&&target){
         var _px=(Number(target.x)||0)-(Number(o.x)||0);
         var _py=(Number(target.y)||0)-(Number(o.y)||0);
         if(style==='launch'||Math.sqrt(_px*_px+_py*_py)>28) pede(this,o,'long_pass');
+        /* §OS-210 · O PASSE DE PRIMEIRA existia desenhado e ninguem o pedia.
+           Nao falta evento — falta a unica informacao que o distingue: ha
+           quanto tempo aquele pe esta com a bola. O motor nao publica isso,
+           mas publica a troca de dono, e dai sai um carimbo (ver o passo, no
+           fim desta camada).
+           A DOSE VEIO DA MEDIDA, nao do gosto. Em partida real, o tempo entre
+           ganhar a bola e solta-la tem p10 = 0,433 s e p25 = 0,467 s; abaixo
+           de 0,35 s ficam 2 passes em 161. Nao e ruido de amostragem: o motor
+           poe `settle` no receptor e so decide quando ele expira, entao o
+           passe mais rapido que este jogo consegue dar E o que sai logo depois
+           do dominio. `first_touch_pass` passa a ser exatamente esse — o mais
+           rapido que o modelo permite — e nao um toque instantaneo que o motor
+           nunca produziria.
+           Nao substitui `long_pass`: um lancamento de primeira e as duas
+           coisas, e o lancamento e o gesto maior. */
+        else if(o.__os210Posse!=null&&(Number(this.t)||0)-o.__os210Posse<TOQUE_UNICO){
+          pede(this,o,'first_touch_pass');
+        }
       }
     }catch(_){}
     return oldST.apply(this,arguments);
@@ -196,6 +232,24 @@ P._emit=function(type,data){
       else if(type==='bad_pass'&&data.by){ pede(this,data.by,'lose_control'); }
       else if(type==='miscontrol_out'&&data.by){ pede(this,data.by,'heavy_touch'); }
     }
+  }catch(_){}
+  return r;
+};
+
+/* §OS-210 · O CARIMBO DA POSSE.
+   A troca de dono nao e evento: nenhuma das duas pontes desta camada (`_emit`
+   e `_startTravel`) consegue ve-la. Um passo curto observa `ball.owner` e
+   anota QUANDO ele mudou. E o unico dado que faltava para distinguir o passe
+   de primeira do passe apos dominio.
+   Escreve um campo que o motor nao le, como `__os59Head` logo acima ja faz:
+   nenhum sorteio, nenhuma decisao, nenhum xG. */
+var oldStepOS210=P.step;
+P.step=function(dt){
+  var r=oldStepOS210.apply(this,arguments);
+  try{
+    var o=this.ball&&this.ball.owner;
+    if(o){ if(this.__os210Ult!==o){ this.__os210Ult=o; o.__os210Posse=Number(this.t)||0; } }
+    else this.__os210Ult=null;
   }catch(_){}
   return r;
 };
