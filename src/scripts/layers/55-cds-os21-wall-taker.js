@@ -42,7 +42,8 @@ function tela(){return root.__CDS_SCREEN||null;}
 function projJog(p){
   try{
     var t=tela(); if(!t||!p)return null;
-    var k=(p.ref&&p.ref.n)||p.n||('#'+(p.num||0));
+    /* §OS-209 · a chave de tela passou a ser qualificada por time */
+    var k=(p.team!=null?p.team:'?')+':'+((p.ref&&(p.ref.id!=null?'i'+p.ref.id:p.ref.n))||p.n||('#'+(p.num||0)));
     var q=t.p&&t.p[k];
     if(q&&isFinite(q.x)&&isFinite(q.y))return {x:q.x,y:q.y,s:q.s||1};
   }catch(_){}

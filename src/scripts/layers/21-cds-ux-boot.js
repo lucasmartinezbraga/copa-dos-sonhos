@@ -1610,7 +1610,11 @@
             for (const p of tm.players) {
               if (p.red) continue;
               const s = this.__animState[idOf(p)];
-              if (s) byKey[(p.ref && p.ref.n) || p.n || ('#' + (p.num || 0))] = s;
+              /* §OS-209 · a MESMA chave que o desenhista monta (time + ref.id,
+                 ou o nome quando nao ha id). Antes era so o nome, e dois
+                 homonimos liam o estado um do outro. */
+              if (s) byKey[(p.team != null ? p.team : '?') + ':' +
+                           ((p.ref && (p.ref.id != null ? 'i' + p.ref.id : p.ref.n)) || p.n || ('#' + (p.num || 0)))] = s;
             }
           }
           root.__CDS_ANIM_BY_KEY = byKey;

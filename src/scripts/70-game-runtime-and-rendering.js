@@ -3299,10 +3299,14 @@ function paintField() {
   /* jogadores — agrupa por "time" (ao vivo) ou lista única (replay) */
   let groups = playersToDraw
     ? [{ color: null, players: playersToDraw }]
-    : st.teams.map(t => ({ color: t.color, players: t.players }));
+    : st.teams.map(t => ({ color: t.color, players: t.players, side: t.side }));
   if (window.CDS_F25D) {
     const _all = [];
-    for (const g of groups) for (const pl of g.players) { if (g.color && pl.color == null) pl.color = g.color; _all.push(pl); }
+    /* §OS-209 · o LADO viaja junto com o atleta. `getState()` publica `side` no
+       time e nada no jogador, entao ao fundir os dois grupos numa lista unica
+       (para ordenar por y) a informacao de time se perdia -- e e ela que
+       desempata a chave de desenho. Ver o bloco da chave, abaixo. */
+    for (const g of groups) for (const pl of g.players) { if (g.color && pl.color == null) pl.color = g.color; if (pl.__lado == null) pl.__lado = g.side; _all.push(pl); }
     _all.sort((a, b) => a.y - b.y);
     groups = [{ color: null, players: _all }];
   }
@@ -3407,7 +3411,20 @@ function paintField() {
           _rx = cx(p.x + fkStep.dx * _k); _ry = cy(p.y + fkStep.dy * _k);
         }
       }
-      const _pk = p.ref && p.ref.n;
+      /* §OS-209 · A CHAVE DE DESENHO ERA SO O NOME.
+         Tres caches do desenho indexavam o atleta pelo nome: `_prevScreen`
+         (balanco), `dirCache` (a passada, dentro de `CDS_F25D.body`) e
+         `__CDS_SCREEN.p` (posicao de tela, lida pela OS-21). Dois homonimos em
+         campo -- e o banco tem homonimos -- dividiam passada, balanco e
+         posicao a partida INTEIRA: as pernas de um andavam com a velocidade do
+         outro, e a marca de tela de um saia em cima do outro.
+         A ponte de animacao ja tinha achado e corrigido esta mesma colisao
+         para os ids DELA ("22 jogadores viravam 17 estados"), mas os tres
+         caches do desenho ficaram por nome. Agora todos usam a mesma chave
+         qualificada por time, e a ponte publica com ela. */
+      const _pkBase = (p.ref && (p.ref.id != null ? 'i' + p.ref.id : p.ref.n)) || p.n || ('#' + (p.num || 0));
+      const _chave = (p.__lado != null ? p.__lado : (p.team != null ? p.team : '?')) + ':' + _pkBase;
+      const _pk = _chave;
       if (_pk) {
         const _pp = _prevScreen[_pk];
         if (_pp && !_semCardume) {
@@ -3481,9 +3498,9 @@ function paintField() {
         if(!_sc){ _sc = window.__CDS_SCREEN = { p:Object.create(null), m:[1,0,0,1,0,0] }; }
         const _mm = ctx.getTransform ? ctx.getTransform() : null;
         if(_mm){ _sc.m[0]=_mm.a;_sc.m[1]=_mm.b;_sc.m[2]=_mm.c;_sc.m[3]=_mm.d;_sc.m[4]=_mm.e;_sc.m[5]=_mm.f; }
-        _sc.p[(p.ref&&p.ref.n)||p.n||('#'+(p.num||0))] = { x:groundX, y:groundY, r:r, s:_ps };
+        _sc.p[_chave] = { x:groundX, y:groundY, r:r, s:_ps };
       }catch(_){}
-      if (window.CDS_F25D) { window.CDS_F25D.body(ctx, { x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall, key: (p.ref&&p.ref.n)||p.n||('#'+(p.num||0)), act: p._act||'', pose: (motion&&motion.type)||'', wave: actionWave }); } else {
+      if (window.CDS_F25D) { window.CDS_F25D.body(ctx, { x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall, key: _chave, act: p._act||'', pose: (motion&&motion.type)||'', wave: actionWave }); } else {
       // corpo: no mergulho do goleiro vira uma elipse lateral, deixando o pulo
       // legível sem alterar a posição física usada pelo motor.
       ctx.beginPath();
