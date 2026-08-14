@@ -373,6 +373,16 @@
     if (/tackle$/.test(state) || state === 'header' || state === 'block') return Math.sin(p * Math.PI);
     if (/^gk_(low_dive|high_dive|catch|parry|punch|smother|foot_save)$/.test(state)) return Math.sin(p * Math.PI);
     if (state === 'lose_control' || state === 'heavy_touch') return 0.5 * (1 - p);
+    /* §D39 · A INTERCEPTACAO NAO TINHA GESTO.
+       A camada 69 pede `pede(this, data.by, 'intercept')` no evento, a maquina
+       de animacao entra no estado — e este `animWave` nao conhecia a palavra:
+       caia no `return 0` de baixo e o jogador interceptava SEM MOVIMENTO
+       NENHUM. A bola trocava de dono e o corpo nem reagia.
+
+       O gesto e curto e assimetrico, ao contrario do carrinho: sobe rapido
+       (o pe/corpo estica para a linha de passe) e desce devagar (recomposicao).
+       Por isso nao e `sin(p*PI)`, que e simetrico e parece um chute. */
+    if (state === 'intercept') return p < .3 ? p / .3 : 1 - (p - .3) / .7 * .85;
     return 0;
   }
 
@@ -390,7 +400,30 @@
     const mvx = x - d.x, mvy = y - d.y, mv = Math.hypot(mvx, mvy);
     const lean = clamp(mvx * .55 + d.lean * .72, -2.4, 2.4);
     d.spd = d.spd * .6 + mv * .4;                       // velocidade de tela suavizada
-    d.gait += Math.min(mv, r * 1.2) / Math.max(4, r * .5);   // passada ∝ distância (cap anti-teleporte)
+    /* §D38 · A PASSADA — três defeitos que se somavam.
+       ---------------------------------------------------------------------
+       [1] A fase NUNCA voltava ao neutro. Ao parar, `mv → 0` e `d.gait`
+           congelava onde estivesse: o jogador ficava com as pernas ABERTAS,
+           paradas no meio do passo. O `amp` some com a velocidade e disfarça,
+           mas a transição é um corte, não uma parada.
+       [2] A cadência era LINEAR na distância (`mv / 4`). Correndo, as pernas
+           batem rápido demais e viram borrão; no futebol real a passada CRESCE
+           com a velocidade — o atleta dá passos maiores, não infinitamente
+           mais rápidos.
+       [3] A subida do corpo era 0,09·r e quase não se lia.
+
+       Agora: cadência sublinear (raiz), fase que relaxa para o neutro quando o
+       jogador para, e passo com leitura. Só desenho — não toca no motor. */
+    var _passo = Math.min(mv, r * 1.2);
+    if (_passo > 0.05) {
+      /* sublinear: dobrar a velocidade não dobra a frequência, alonga o passo */
+      d.gait += Math.sqrt(_passo / Math.max(1.2, r * .16)) * .62;
+    } else if (d.gait !== 0) {
+      /* parou: fecha as pernas pelo caminho mais curto até o próximo neutro */
+      var _alvo = Math.round(d.gait / Math.PI) * Math.PI;
+      d.gait += (_alvo - d.gait) * .22;
+      if (Math.abs(_alvo - d.gait) < .02) d.gait = _alvo;
+    }
     /* OS-49 · antes, `face` so mudava com deslocamento LATERAL maior que
        0,4 px, entao quem corria para cima ou para baixo do campo mantinha a
        orientacao antiga e descia o gramado encarando o lado. Agora a direcao
@@ -421,6 +454,10 @@
                       : ((pose === 'kick' || act === 'shoot') && w > 0.02);
     const tackling = A ? /tackle$/.test(st) : (pose === 'tackle' && w > 0.02);
     const heading = A ? (st === 'header') : (pose === 'jump' && w > 0.02);
+    /* §D39 · a interceptacao usa a pose de bote, mas SEM o agachamento do
+       carrinho: o corpo estica na direcao da linha de passe e volta. Entra aqui
+       para o desenho reagir, alem da onda que o animWave passou a devolver. */
+    const intercepting = A ? (st === 'intercept') : false;
     const dribbling = A ? /^(carry|dribble_|body_feint|inside_cut|outside_cut|burst_touch)/.test(st)
                         : (act === 'dribble' && !kicking && !tackling);
     /* OS-60 · os quatro estados de drible caiam no mesmo desenho. Agora cada um
@@ -434,7 +471,10 @@
               : clamp(d.spd / 1.5, 0, 1) * (bursting ? 1.35 : 1);   // 0 parado … 1 correndo
     const sw = Math.sin(d.gait) * amp;                  // -1..1 alterna as pernas
     /* OS-58 · a subida do corpo a cada passada era quase imperceptivel. */
-    const bob = Math.abs(sw) * r * .09 - (tackling ? r * .16 : 0) + (dribbling ? r * .10 : 0)
+    /* §D38 · 0,09·r nao se lia. O corpo sobe DUAS vezes por ciclo (uma por
+       perna de apoio), que e o que da a leitura de passo em vez de deslize. */
+    const bob = Math.abs(sw) * r * .16 - (tackling ? r * .16 : 0) + (dribbling ? r * .10 : 0)
+              - (intercepting ? r * .07 * w : 0)   /* §D39 · estica, nao agacha */
               - (blocking ? r * .12 * Math.sin(dphase * Math.PI) : 0);   /* OS-60 · agacha no bloqueio */
 
     /* OS-47 · GIRO DE 360. Em vista 2,5D o giro se le pelo estreitamento: o
