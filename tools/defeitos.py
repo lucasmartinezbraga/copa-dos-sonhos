@@ -618,7 +618,7 @@ DEFEITOS = [
                  "_attackTarget com alvo LATERAL NaN e 902.014 chegavam assim ao _integrate. "
                  "O envenenado ficava ainda 16 m a frente da bola, ISENTO DO TETO DE "
                  "IMPEDIMENTO, fora da suavizacao de reacao, com +2,4 no _bestPass e impedido "
-                 "de iniciar uma arrancada de verdade."),
+                 "de iniciar uma arrancada de verdade. CORRECAO 2026-08-13 — O NaN E ABSORVIDO: `_integrate` da camada 16 abre com `dy = finite(ty,sy)-sy`, e o helper devolve o DEFAULT quando o valor nao e finito, entao dy=0. O envenenado fica sem ALVO lateral, nao com posicao quebrada; nao ha teletransporte nem tremor. E na TELA nao aparece: seis capturas no Chromium (tools/fisica/tela/envenenados.js), minutos 2,6 a 13,5, mostram os envenenados ATRAS da bola e 39 a 45 m ATRAS da linha de impedimento — uma unica vez alem dela. O `max(tProg, ballProg+16)` so vale dentro de _attackTarget, e os envenenados sao cobradores de lateral, que passam a maior parte do tempo no _defendTarget. A frase antiga (16 m a frente, atacando as costas da linha) estava ERRADA."),
       dono="camada 17 (R13) arma; motor le em 8 pontos",
       intercepta=["17"],
       criterio=["nenhum ty NaN chegando ao _integrate",

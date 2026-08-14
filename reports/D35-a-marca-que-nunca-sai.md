@@ -288,6 +288,79 @@ function varreArrancadaInvalida13(sim){
 
 ---
 
+---
+
+## ⚠ CORREÇÃO (2026-08-13) — eu superestimei o estrago, e fui olhar
+
+Este laudo dizia que o NaN "destrói o alvo lateral" e implicava dano visível.
+**Fui abrir o jogo no Chromium e medir o que o NaN realmente faz. Não é isso.**
+
+### O que o NaN faz, exatamente
+
+`_integrate` da camada 16, primeira linha:
+
+```js
+const sx=finite(p.x), sy=finite(p.y), dx=finite(tx,sx)-sx, dy=finite(ty,sy)-sy, …
+```
+
+e o helper da própria camada é
+
+```js
+const finite=(v,d=0)=>Number.isFinite(v)?v:d;
+```
+
+Com `ty` NaN, `finite(ty, sy)` devolve **`sy`** — e `dy = 0`. **O NaN é absorvido
+na primeira linha.** As 902.014 chamadas medidas chegam mesmo ao `_integrate`, e
+lá são neutralizadas.
+
+O efeito real é mais modesto e mais preciso: **o jogador envenenado fica sem alvo
+lateral.** Ele persegue só o `tx`; em `y` sobra a inércia, a separação e o
+`_resolveOverlaps`. Não há teletransporte, não há posição NaN, não há tremor.
+
+### Erro da minha sonda
+
+A sonda `envenenados.js` publicava `alvoLateralNaN` lendo `p._smy` — e deu
+**false para todos**. `_smy` é irrelevante para eles: `ballDutyEarly` inclui
+`p._breaking`, então o envenenado **pula a suavização inteira** e o `_smy` nunca
+é usado no caminho dele. Medi o campo errado. O número que vale continua sendo o
+outro: 902.014 chamadas de `_integrate` com `ty` não-finito.
+
+### E na tela
+
+Seis capturas do jogo real (Chromium, `tools/fisica/tela/envenenados.js`), com
+o estado do sim lido no mesmo instante, minutos 2,6 a 13,5:
+
+| | |
+|---|---|
+| envenenados em campo | 1 · 2 · 2 · 5 · 5 · 5 |
+| posição típica | **atrás da bola** (−38,8 a +25,5 m; mediana negativa) |
+| distância da linha de impedimento | **−39,8 · −45,2 · −44,1 · −43,2 m** — muito atrás |
+| vezes além da linha, nas 6 fotos | **1** (LW, +3,7 m) |
+
+**O oposto do que eu descrevi.** Eu tinha escrito "16 m à frente da bola,
+isentos de impedimento, atacando as costas da linha". Na prática o
+`tProg = max(tProg, ballProg+16)` só vale dentro de `_attackTarget`, que só roda
+quando o time do jogador ataca — e os envenenados são cobradores de lateral,
+majoritariamente laterais e pontas, que passam a maior parte do tempo no
+`_defendTarget`.
+
+**Olhando as fotos, o jogo parece futebol.** Não se vê o defeito. O que se vê é
+outra coisa, e ela é do D08: **duas faixas vazias ao longo das laterais**, com o
+jogo comprimido no miolo — exatamente os 23,87 m médios que o laudo do D08 mediu.
+
+### O que isto muda na decisão
+
+A justificativa "as métricas estão defendendo um bug que o olho vê" **não se
+sustenta para o D35**. O olho não vê. Isso *reforça* a recomendação de não
+consertá-lo isoladamente — já reprovado em 300 partidas — e tira a urgência de
+um projeto de recalibração feito só por causa dele.
+
+O defeito continua real: a marca não expira, e ela **é** o que sustenta o volume
+ofensivo. Mas a decisão de mexer nisso passa a ser sobre o placar do futebol
+real, não sobre o que aparece na tela.
+
+---
+
 ## O que isto NÃO é
 
 **Não é o D08.** O D08 pergunta por que há 15,9 laterais contra 33–48 do futebol
