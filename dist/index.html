@@ -20167,7 +20167,13 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
    * interpolação perspectiva exata (largura ∝ 1/profundidade). */
   const G = {
     CW: 1024, CH: 500, M: 12,          // corrigidos no 1º grass()
-    R0: 0.72,                          // largura distante / próxima
+    /* §D49 · CAMERA DE TV. Era 0,72 — perspectiva branda, jogo quase visto de
+       cima. 0,54 baixa a camera para o angulo de transmissao, e foi escolhido
+       comparando o MESMO quadro congelado em quatro alturas: 0,62 muda pouco,
+       0,46 comprime demais o lado distante. Ajustavel por `CDS_CAM_TUNE`. */
+    R0: 0.54,                          // largura distante / próxima
+    R0_BASE: 0.72,                     // §D49 · referencia dos 22 px/m de altura
+    topY0: 46,                         // §D49 · faixa antes do achatamento
     topY: 46, bottomY: 497,            // faixa vertical do pitch projetado
     ready: false,
   };
@@ -20191,8 +20197,46 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
        anteriores. A mudanca e nula ate alguem mexer em CH. */
     var CH_REF = 500;
     G.bottomY = G.CH - 3;
-    G.topY = G.bottomY - ((CH_REF - 3) - (M + 34));
+    G.topY0 = G.bottomY - ((CH_REF - 3) - (M + 34));   // §D49 · faixa de referencia
+    G.topY = G.topY0;
     G.ready = true;
+  }
+  /* §D49 · A CAMERA DE TV: baixar E angular.
+     ---------------------------------------------------------------------
+     Duas coisas separadas, e so as duas juntas dao a camera de transmissao:
+
+       R0     razao entre a largura da borda DISTANTE e a da proxima. 1,0 seria
+              planta baixa (camera no zenite); quanto menor, mais baixa a
+              camera, porque o fundo encolhe mais. Estava fixo em 0,72.
+       faixa  quanto da altura de tela o gramado ocupa. Camera baixa ACHATA o
+              campo na vertical — sem isto o campo so fica trapezoidal, e
+              continua parecendo visto de cima.
+
+     Aplicados MUTANDO `G` uma vez por quadro, no inicio do `grass()`, em vez de
+     lidos em cada consumidor. E o unico jeito que mantem todo mundo de acordo:
+     `G.topY` e lido pela projecao, pelo teto de altura da bola, pela base da
+     arquibancada, pela vinheta e pelo `faixa()` publico. Se so a projecao
+     soubesse da camera nova, os jogadores andariam num gramado que o desenho
+     poe em outro lugar.
+
+     ATENCAO, e ja custou uma tentativa: baixar a camera sem mexer na ALTURA nao
+     funciona. Os 22 px por metro do `liftY` foram calibrados para R0=0,72 — com
+     a camera mais baixa, um metro tem que ocupar mais tela, senao a bola alta
+     fica rasteira e a balistica da OS-200 deixa de se ler. A escala de altura
+     acompanha `R0_BASE / R0`. */
+  function camKey() {
+    var t = root.CDS_CAM_TUNE;
+    return t ? (t.R0 + '/' + t.faixa) : 'base';
+  }
+  function aplicarCam() {
+    var t = root.CDS_CAM_TUNE;
+    var r0 = G.R0_BASE, fx = 1;
+    if (t) {
+      var a = +t.R0;    if (isFinite(a) && a >= 0.30 && a <= 0.95) r0 = a;
+      var b = +t.faixa; if (isFinite(b) && b >= 0.45 && b <= 1.30) fx = b;
+    }
+    G.R0 = r0;
+    G.topY = G.bottomY - (G.bottomY - G.topY0) * fx;
   }
   function project(fx, fy) {
     const fW = G.CW - 2 * G.M, fH = G.CH - 2 * G.M;
@@ -20229,8 +20273,25 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
     const e = a - Z_FIEL;
     return Z_FIEL + e / (1 + e / Z_FOLGA);
   }
+  /* §D50 · UMA escala de altura, para a bola E para o gol.
+     ---------------------------------------------------------------------
+     O travessao era desenhado com `hPx = 30 * s`, um numero solto, enquanto a
+     bola sobe a 22 px por metro. 30 / 22 = **1,36 m**: o travessao desenhado
+     estava na altura de um travessao de 1,36 m, e o real tem 2,44 m.
+
+     A consequencia se ve em campo: uma bola a 2,0 m esta CONFORTAVELMENTE sob o
+     travessao para a fisica e e desenhada a 44 px, bem ACIMA da barra de 30 px.
+     Defesa embaixo da trave parecia bola por cima. O laudo da OS-200 chega a
+     dizer que ate 2,6 m o mapeamento e 1:1 "senao uma bola por cima do
+     travessao nao PARECE por cima do travessao" — a intencao estava escrita, o
+     gol e que nao seguia.
+
+     Agora os dois saem de `alturaPxM()`, que tambem carrega a compensacao de
+     camera da §D49. */
+  const ALT_PX_M = 22, TRAVESSAO_M = 2.44;
+  function alturaPxM() { return ALT_PX_M * (G.R0_BASE / G.R0); }
   function liftY(baseY, z, s) {
-    return Math.max(G.topY + 8, baseY - alturaVisual(z) * 22 * s);
+    return Math.max(G.topY + 8, baseY - alturaVisual(z) * alturaPxM() * s);
   }
 
   /* PLANO DE CHÃO ÚNICO.
@@ -20384,7 +20445,8 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
       const goalH = (7.32 / 68) * fH;
       const y0 = (CH - goalH) / 2, y1 = (CH + goalH) / 2;
       const b0 = P(gx, y0), b1 = P(gx, y1);
-      const hPx = 30 * ((b0.s + b1.s) / 2);          // altura visual do gol
+      /* §D50 · era `30 * s` — 1,36 m na escala em que a bola sobe. */
+      const hPx = TRAVESSAO_M * alturaPxM() * ((b0.s + b1.s) / 2);   // altura visual do gol
       const back = 9 * ((b0.s + b1.s) / 2) * dir;    // profundidade da rede
       // rede (atrás)
       g.strokeStyle = 'rgba(220,235,255,.20)'; g.lineWidth = .7;
@@ -20420,9 +20482,12 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
        grass roda todo frame antes de tudo, resetar aqui zera qualquer vazamento
        de estado e garante o campo sempre em opacidade cheia. */
     ctx.globalAlpha = 1;
-    const key = M + ':' + fW + 'x' + fH;
+    /* §D49 · a camera entra ANTES do palco: `buildStage` desenha arquibancada e
+       ceu a partir de `G.topY`, entao mudar a camera depois deixaria o estadio
+       no lugar antigo com o gramado no novo. */
+    const key = M + ':' + fW + 'x' + fH + ':' + camKey();
     if (stage.key !== key) {
-      setGeom(M, fW, fH); stage.cv = buildStage(); stage.key = key;
+      setGeom(M, fW, fH); aplicarCam(); stage.cv = buildStage(); stage.key = key;
       dirCache.clear(); gradCache.clear();   // PRF-031: caches limpos na fronteira de layout
     }
     ctx.drawImage(stage.cv, 0, 0);
