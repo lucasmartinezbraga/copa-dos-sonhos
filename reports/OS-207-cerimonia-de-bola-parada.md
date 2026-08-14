@@ -246,3 +246,50 @@ O residuo de 34,5% e a folga deliberada do teto — saltos entre o maximo fisico
 (~7 m/s) e os 15 m/s do teto ainda passam. Apertar o teto reduz o residuo e
 comeca a atrasar o corpo em relacao a bola; a folga foi escolhida para o lado
 de nunca dever corrida.
+
+
+---
+
+# OS-209 · a chave de desenho passa a ser qualificada por time
+
+Tres caches do desenho indexavam o atleta so pelo **nome**: `_prevScreen` (o
+balanco), `dirCache` (a passada, dentro de `CDS_F25D.body`) e `__CDS_SCREEN.p`
+(a posicao de tela, lida pela OS-21). Dois homonimos em campo dividiam passada,
+balanco e posicao a partida inteira.
+
+A ponte de animacao ja tinha achado e corrigido esta mesma colisao para os ids
+dela — *"22 jogadores viravam 17 estados"*. Os tres caches do desenho ficaram
+para tras. Agora os quatro pontos usam a mesma formula.
+
+Risco conferido: se a chave do desenhista e a da ponte nao casarem, a animacao
+inteira para. Medido com `gestos.js` — 79.024 amostras, 22 sem estado (0,03%,
+os primeiros quadros antes da primeira publicacao) e os mesmos 49 estados.
+
+---
+
+# Fila medida, ainda aberta
+
+Ordenada por evidencia, nao por palpite. Cada item ja tem o numero que o
+justifica.
+
+1. **8 gestos declarados e nunca desenhados** (`gestos.js`): `first_touch_pass`,
+   `placed_shot`, `volley`, `body_feint`, `gk_punch`, `gk_smother`, `gk_throw`,
+   `gk_kick`. Tres deles (`placed_shot`, `gk_kick`, `gk_throw`) chegam a ser
+   **pedidos** pela OS-46 e ainda assim nunca viram quadro — sao atropelados no
+   mesmo tier. `placed_shot` sai so abaixo de 20 m e `power_shot` desenhou 94
+   amostras contra 0 dele, o que sugere que o predicado de distancia, e nao o
+   tier, e o culpado. Precisa de instrumentacao do caminho pedido -> desenho.
+
+2. **Salto de desenho residual: 34,5%.** O teto da OS-208 e 15 m/s, o dobro do
+   sprint, escolhido para nunca dever corrida. Apertar reduz o residuo e comeca
+   a atrasar o corpo em relacao a bola — precisa de medicao do atraso, nao so
+   do salto.
+
+3. **O freio da cerimonia** (diagnostico de pe, correcao reprovada). O `freeze`
+   e um degrau em `dead = 0.4` e as camadas de espera o mantem desligado
+   segurando `dead = 0.12`. Qualquer correcao aqui muda placar: exige rodada de
+   calibracao propria.
+
+4. **O snap do batedor no reinicio**: 5,66% dos reinicios, media 0,95 m, maximo
+   4,94 m. Escapa do orcamento da R18.99 por duas excecoes. A OS-208 disfarca no
+   desenho; a fisica continua saltando.
