@@ -20,15 +20,33 @@ var MOVE={
 
 var dbg={pedidos:0,porEstado:Object.create(null)};
 
-function pede(sim,p,estado){
+function pede(sim,p,estado,entao){
   try{
     if(!p||!estado)return;
     if(!sim.__anim)sim.__anim=A.create();
     var c=sim.__anim.of(idOf(p));
     if(!c||typeof c.request!=='function')return;
-    c.request(estado,Number(sim.t)||0,{force:true});
+    c.request(estado,Number(sim.t)||0,{force:true,entao:entao||null});
     dbg.pedidos++;dbg.porEstado[estado]=(dbg.porEstado[estado]||0)+1;
+    if(entao)dbg.porEstado[entao]=(dbg.porEstado[entao]||0)+1;
   }catch(_){}
+}
+
+/* §D43 · CORTE PARA DENTRO OU PARA FORA — decidido pela geometria.
+   `outside_cut` estava declarado, desenhado e sem nenhum mapeamento: a tabela
+   MOVE so tinha 'corta pra dentro'. Os dois cortes nao precisam de nome novo do
+   motor — o duelo ja escreveu `_tx/_ty` no driblador ANTES de emitir, entao da
+   para ler para onde ele saiu. Sair na direcao do meio do campo e por dentro;
+   sair na direcao da linha de fundo lateral e por fora. */
+function corteDe(p){
+  try{
+    var ty=Number(p&&p._ty);if(!isFinite(ty))return 'inside_cut';
+    var meio=(typeof FW==='number'?FW:68)/2;
+    var y=Number(p.y)||0;
+    /* movimento em y contra a posicao dele em relacao ao meio */
+    var paraMeio=(meio-y)*(ty-y)>0;
+    return paraMeio?'inside_cut':'outside_cut';
+  }catch(_){return 'inside_cut';}
 }
 
 /* A DEFESA e escolhida pela geometria, nao por sorteio: quanto o goleiro teve
@@ -87,8 +105,33 @@ P._emit=function(type,data){
       if(type==='save'&&data.gk){ pede(this,data.gk,defesa(this,data.gk,data)); }
       else if(type==='gk_sweep'&&data.gk){ pede(this,data.gk,'gk_smother'); }
       else if(type==='dribble'&&data.by){
-        pede(this,data.by,(data.move&&MOVE[String(data.move).toLowerCase()])||'dribble_prepare');
+        /* §D43 · o corte agora vem da geometria, nao so do nome do move; e o
+           drible bem-sucedido termina em `dribble_success`, que existia sem
+           nunca ter sido pedido por ninguem. */
+        var _mv=data.move&&MOVE[String(data.move).toLowerCase()];
+        if(!_mv||_mv==='inside_cut')_mv=corteDe(data.by);
+        pede(this,data.by,_mv,'dribble_success');
+        /* o defensor passado se recompoe */
+        if(data.on)pede(this,data.on,'recover');
       }
+      /* §D43 · O DRIBLADOR QUE FALHA NAO TINHA GESTO — e nao por falta de
+         evento, por falta de LEITURA. Toda a fiacao aqui le `data.by`, e nos
+         desfechos defensivos o `by` e o DEFENSOR: quem perdeu a bola esta em
+         `data.on` e nunca era consultado. */
+      else if(type==='loose_duel'){
+        if(data.by)pede(this,data.by,'body_duel');
+        if(data.on)pede(this,data.on,'dribble_failure');
+      }
+      else if(type==='containment'&&data.on){
+        /* recusar o duelo e o proprio gesto de preparo abortado; o drible que
+           falhou e desfecho */
+        pede(this,data.on,data.source==='dribble_declined'?'dribble_prepare'
+                        :data.source==='failed_dribble'?'dribble_failure'
+                        :'body_duel');
+      }
+      /* a tentativa de bote e 23x mais frequente que o drible e nao tinha pose:
+         so `tackle` e `tackle_missed` estavam fiados */
+      else if(type==='tackle_attempt'&&data.by){ pede(this,data.by,'standing_tackle'); }
       else if((type==='header_shot'||type==='header_clear')&&data.by){
         pede(this,data.by,'header');
         /* OS-59 · marca quem cabeceou: o voo de chute que vem logo a seguir
@@ -98,7 +141,14 @@ P._emit=function(type,data){
       }
       else if(type==='blocked'&&data.by){ pede(this,data.by,'block'); }
       else if(type==='intercept'&&data.by){ pede(this,data.by,'intercept'); }
-      else if(type==='tackle_missed'&&data.by){ pede(this,data.by,'slide_tackle'); }
+      else if(type==='tackle_missed'&&data.by){
+        /* o motor ja marca `_beatenUntil` no defensor: o `recover` e a versao
+           visivel do atraso que a fisica dele ja paga */
+        pede(this,data.by,'slide_tackle','recover');
+      }
+      else if(type==='tackle'&&data.on&&data.source==='dribble'){
+        pede(this,data.on,'dribble_failure');
+      }
       else if(type==='bad_pass'&&data.by){ pede(this,data.by,'lose_control'); }
       else if(type==='miscontrol_out'&&data.by){ pede(this,data.by,'heavy_touch'); }
     }

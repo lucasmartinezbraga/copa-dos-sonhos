@@ -575,6 +575,34 @@ duas são o instrumento concordando consigo mesmo. E é o segundo caso desta
 investigação em que a suíte respondeu com um número tranquilizador enquanto não
 media nada — o primeiro foi o **D6**.
 
+## D8 · "Rodei de novo e deu igual" com n=1 nao estabelece determinismo
+
+Em 2026-08-14, ao medir a §D43 contra a bateria pareada, tudo bateu ao digito —
+14 metricas agregadas, 73 contadores de evento — menos `ramos.defSomaP`:
+
+```
+antes:  91.31169766855994        depois: 91.31169766855996
+```
+
+Rodei o build NOVO uma segunda vez, deu bit-identico, e conclui que a diferenca
+de 2·10⁻¹⁴ era da mudanca. **Errado.** Rodando o build ANTIGO uma segunda vez,
+ele produziu os dois valores:
+
+```
+antes  run1: …855994      antes  run2: …855996
+```
+
+Era oscilacao de ultimo bit na ordem de soma entre partidas, presente no build
+que eu nao tinha tocado.
+
+**A regra:** para atribuir uma diferenca a uma mudanca, o **controle** tem que
+ser repetido tambem. Repetir so o lado novo mede a estabilidade do lado novo, e
+nao a origem da diferenca. Uma unica repeticao nao separa "deterministico" de
+"deu na mesma daquela vez".
+
+Parente da **B7** (n pequeno responde qualquer coisa), aplicada ao numero de
+EXECUCOES em vez de ao numero de partidas.
+
 ## D6 · Um teste que sai com 0 sem imprimir nada passou por omissão
 
 Em 2026-08-13 eu truquei `tools/defeitos.py` **a zero bytes** sem perceber:

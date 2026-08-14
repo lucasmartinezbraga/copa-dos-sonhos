@@ -426,6 +426,12 @@
     intercept:  { esc: 0.35, spr: 0.10, inc:  0.34, agacha: 0.04, braco: 1.20, estica: 0.62 },
     lose_control:{esc: 0.40, spr: 0.28, inc: -0.26, agacha: 0.02, braco: 1.60, estica: 0.16 },
     heavy_touch:{ esc: 0.95, spr: 0.06, inc:  0.30, agacha: 0.00, braco: 1.15, estica: 0.44 },
+    /* §D43 · familia do drible. Os tres `dribble_*` casam com o regex de
+       `dribbling` e por isso desenhavam como `carry` — mesma armadilha dos
+       cinco mudos da §D42, um nivel abaixo. */
+    dribble_prepare: { esc: 0.35, spr: 0.18, inc:  0.12, agacha: 0.14, braco: 1.10, estica: 0.10 },
+    dribble_success: { esc: 1.00, spr: 0.00, inc:  0.34, agacha: 0.02, braco: 1.15, estica: 0.00 },
+    dribble_failure: { esc: 0.40, spr: 0.26, inc: -0.26, agacha: 0.06, braco: 1.50, estica: 0.22 },
     /* recepcao */
     receive_prepare: { esc: 0.30, spr: 0.24, inc:  0.10, agacha: 0.14, braco: 1.40, estica: 0.30 },
     receive_contact: { esc: 0.15, spr: 0.20, inc:  0.18, agacha: 0.18, braco: 1.20, estica: 0.50 },
@@ -559,6 +565,10 @@
     const dphase = A ? clamp(A.phase || 0, 0, 1) : 0;
     const feint  = A && st === 'body_feint';
     const cutting= A && (st === 'inside_cut' || st === 'outside_cut');
+    /* §D43 · os dois cortes desenhavam IDENTICOS: `cutting` nao olhava para
+       qual dos dois era. Agora o peso vai para o lado oposto conforme o corte,
+       que e a unica coisa que distingue um do outro. */
+    const cutLado = (st === 'outside_cut') ? -1 : 1;
     const bursting = A && st === 'burst_touch';
     const blocking = A ? (st === 'block') : false;
     /* §D41 · A AMPLITUDE TAMBEM DEPENDIA DO BOTAO DE VELOCIDADE.
@@ -606,7 +616,7 @@
     if (!o.divePose && !spinning && (_vig > .02 || (P && P.inc !== 0))) {
       /* OS-60 · corte joga o peso para fora antes de sair para dentro;
          arrancada projeta o tronco a frente. */
-      const _extra = cutting  ? -face * .30 * Math.sin(dphase * Math.PI)
+      const _extra = cutting  ? -face * cutLado * .30 * Math.sin(dphase * Math.PI)
                    : bursting ?  face * .26 * Math.min(1, dphase * 2.4)
                    : 0;
       /* §D42 · a inclinacao da postura e do estado, e olha para onde o atleta
@@ -707,7 +717,18 @@
       /* §D42 · `braco` acima de 1 abre os bracos para fora alem de balancar:
          proteger a bola, marcar de lado e perder o controle sao gestos de
          BRACO, e com o balanco puro os tres liam como corrida. */
-      const abY = -swB * r * .26, abX = -swB * r * .10 * face;
+      /* §D44 · O BALANCO GRANDE ESTAVA NO EIXO ERRADO.
+         Era `abY = -sw*r*.26` (vertical) contra `abX = -sw*r*.10` (no eixo da
+         corrida): o componente GRANDE subia e descia. Braco humano nao sobe e
+         desce ao correr — ele vai e volta ao longo do corpo, e o pouco de
+         vertical que aparece e consequencia. Com o peso invertido o boneco
+         abanava, e abanava em contrafase com a perna, que e o que da a leitura
+         de brinquedo.
+
+         Agora o curso principal e no eixo do deslocamento (`face`), com um
+         terco do vertical de antes, e a amplitude total cai — os bracos
+         acompanham a passada em vez de disputar com ela. */
+      const abY = -swB * r * .08, abX = swB * r * .17 * face;
       const abrir = P ? r * .12 * Math.max(0, P.braco - 1) : 0;
       rr(ctx, -r * .8 + tl + abX - abrir, -r * .46 + abY, r * .26, r * .58, r * .09); ctx.fill();
       rr(ctx, r * .54 + tl - abX + abrir, -r * .46 - abY, r * .26, r * .58, r * .09); ctx.fill();
@@ -1047,6 +1068,22 @@
     return locoFor(v);
   }
 
+  /* §D43 · QUEM ESTA COM A BOLA SO SABIA DUAS COISAS.
+     O piso do portador era `speed > 0.3 ? 'carry' : 'protect'` — duas posturas
+     para tudo. `burst_touch` e `protect_turn` estao declarados, tem desenho, e
+     so podiam vir de um evento de drible que **acontece 3 vezes em 38 minutos**
+     (medido em `tools/fisica/tela/drible.js`) e ainda exige atributo de elite.
+
+     Como gesto, os dois nao dependem do duelo: arrancar com a bola e girar
+     protegendo-a sao coisas que o portador faz o tempo todo. Saem da propria
+     cinematica dele, que a §D42 ja poe no contexto. */
+  function comBolaFor(ctx) {
+    const v = finite(ctx.speed);
+    if (finite(ctx.dSpeed) > 4.5 && v > 2.6) return 'burst_touch';
+    if (finite(ctx.oponenteProx, 99) < 3.0 && Math.abs(finite(ctx.giro)) > 2.6) return 'protect_turn';
+    return v > 0.3 ? 'carry' : 'protect';
+  }
+
   /* transicoes curtas: disparam UMA vez por gesto, a partir de estado ciclico */
   function transicaoFor(ctx) {
     const dv = finite(ctx.dSpeed);               // m/s por segundo
@@ -1093,7 +1130,13 @@
     if (!force && def.tier < this.tier && !finished && !cyclic) return false;
     if (!force && def.tier === this.tier && this.seq && !finished) return false;
     if (this.seq && (force || def.tier > this.tier)) { this.seq = null; this.contract = null; }
-    return this._enter(state, opts && opts.dur, now);
+    const ok = this._enter(state, opts && opts.dur, now);
+    /* §D43 · encadeamento de UM passo: o gesto pedido e, quando ele acabar, o
+       desfecho. Sem isto nao ha como dizer "driblou" e depois "passou", nem
+       "errou o bote" e depois "se recompoe" — os estados de desfecho
+       (`dribble_success`, `recover`) existem justamente para o depois. */
+    if (ok) this._apos = (opts && opts.entao) || null;
+    return ok;
   };
 
   /* Dirige a sequência de ação a partir do contrato da Fase 2. As durações vêm
@@ -1153,6 +1196,12 @@
         this.seq = null;
         this.contract = null;
       }
+      /* §D43 · o desfecho encadeado entra antes do piso */
+      if (this._apos) {
+        const _nx = this._apos;
+        this._apos = null;
+        if (this._enter(_nx, null, now)) return this.snapshot();
+      }
       // caiu para o piso: locomoção (ou prontidão do goleiro)
       const base = ctx.isGK ? 'gk_ready' : posturaFor(ctx);
       this._enter(base, null, now);
@@ -1175,11 +1224,14 @@
       if (!tr) this._ultTr = null;
       // estado cíclico acompanha a velocidade sem reiniciar a fase à toa
       const base = ctx.isGK ? 'gk_ready'
-                 : ctx.hasBall ? (finite(ctx.speed) > 0.3 ? 'carry' : 'protect')
+                 : ctx.hasBall ? comBolaFor(ctx)
                  : posturaFor(ctx);
       if (base !== this.state && this.tier <= T_DEF) {
         this._enter(base, null, now);
-        if (!ctx.isGK) this.tier = T_LOCO;
+        /* so estado CICLICO volta a valer como piso; rebaixar o tier de um
+           gesto com duracao (burst_touch, protect_turn) deixaria ele ser
+           interrompido no meio pela propria locomocao */
+        if (!ctx.isGK && (STATES[base] || {}).loop) this.tier = T_LOCO;
       }
     }
     return this.snapshot();
@@ -1326,6 +1378,18 @@
               /* projecao da corrida na direcao da bola: +1 vai para cima dela,
                  -1 recua de frente para ela, ~0 corre atravessado */
               const dot = (v > 0.5 && db > 0.4) ? (vx * dbx + vy * dby) / (v * db) : 1;
+              /* §D43 · distancia ao adversario mais proximo: e o que distingue
+                 girar com espaco de girar protegendo a bola */
+              let opProx = 99;
+              for (const otm of this.teams) {
+                if (otm === tm) continue;
+                for (const q of otm.players) {
+                  if (!q || q.red) continue;
+                  const dq = Math.hypot((Number(q.x) || 0) - (Number(p.x) || 0),
+                                        (Number(q.y) || 0) - (Number(p.y) || 0));
+                  if (dq < opProx) opProx = dq;
+                }
+              }
               const dono = b.owner;
               const advers = !!(dono && dono.team !== p.team && dono !== p);
               const dDono = advers ? Math.hypot((Number(dono.x) || 0) - (Number(p.x) || 0),
@@ -1341,6 +1405,7 @@
                 marcando: advers && dDono < 4.5,
                 pressionando: advers && dDono < 14 && v > 3.6 && dot > 0.5,
                 recebendo: !!(b.traveling && b.receiver === p && db < 9),
+                oponenteProx: opProx,
               };
             }
           }
