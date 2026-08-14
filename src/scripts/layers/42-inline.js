@@ -1,1 +1,0 @@
-try{document.title='Copa dos Sonhos — R18.17.3.2';window.CDS_BUILD_ID='R18.17.3.2';}catch(_){}

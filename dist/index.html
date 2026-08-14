@@ -1682,23 +1682,37 @@ body {
   /* A partida abre focada no gramado. O conteúdo tático fica fisicamente
      abaixo e aparece com o gesto natural de rolar a página sobre o campo. */
   #app:has(.mh) > .field-wrap {
-    /* O placar ocupa o topo e o gramado preenche todo o restante da primeira
-       tela. As abas e os painéis continuam logo abaixo, acessíveis ao arrastar
-       para cima sobre o próprio campo. */
-    height:calc(100dvh - 54px);
-    min-height:560px;
-    max-height:none;
+    /* D24 · O CAMPO INTEIRO, EM VEZ DE UM TERCO DELE AMPLIADO.
+       ---------------------------------------------------------
+       A intencao — "o gramado preenche toda a primeira tela" — era boa e o
+       meio era ruim. `height:calc(100dvh - 54px)` com o canvas em
+       `width:auto; height:100%` fazia o canvas se dimensionar pela ALTURA e
+       transbordar na largura. Medido por tools/fisica/tela/caixa.js em
+       412x892: canvas de 1241 px DENTRO de um quadro de 412. O
+       `overflow:hidden` cortava 67% do campo e o jogador via uma fatia
+       vertical com quatro jogadores.
+
+       Agora o quadro tem a proporcao do mundo e o campo cabe inteiro. O que
+       sobra da primeira tela vai para o conteudo que ja existe logo abaixo —
+       abas, painel e narracao, que era justamente o que o gesto de arrastar
+       ia buscar. */
+    height:auto;
+    aspect-ratio:1024/500;
+    min-height:0;
+    max-height:calc(100dvh - 54px);
     overflow:hidden;
     background:#0d5428;
     scroll-margin-top:0;
   }
   #app:has(.mh) > .field-wrap canvas#fieldcv {
+    /* D24 · cabe pela LARGURA. Era `width:auto; height:100%`, que dimensionava
+       pela altura e transbordava 3x na horizontal. */
     position:absolute;
-    left:50%; top:50%; right:auto; bottom:auto;
-    width:auto !important;
+    left:0; top:0; right:0; bottom:0;
+    width:100% !important;
     height:100% !important;
-    max-width:none !important;
-    transform:translate(-50%,-50%);
+    max-width:100% !important;
+    transform:none;
     object-fit:fill;
     touch-action:pan-y !important;
   }
@@ -2760,6 +2774,15 @@ const ENGINE_CALIBRATION = Object.freeze({
     transitionProtection: 0.42,
   }),
   passing: Object.freeze({
+    /* POTENCIA E VELOCIDADE DO PASSE — mesma historia da velocidade de chute:
+       `0.92 + pass/100*0.16` estava em `_startTravel`, na mira, e na copia da
+       camada 14 que estima interceptacao. As velocidades por tipo idem.
+       Valores inalterados. */
+    powerBase: 0.92,
+    powerRange: 0.16,
+    speedLaunch: 22.5,
+    speedThrough: 19.5,
+    speedShort: 16.2,
     baseError: 0.018,
     pressureError: 0.075,
     longPassError: 0.090,
@@ -2777,11 +2800,74 @@ const ENGINE_CALIBRATION = Object.freeze({
        Fica registrado como pendencia real. */
     foulBase: 0.29,
     foulComposure: 0.12,
-    yellowFirst: 0.18,
+    /* CARTAO POR FALTA (OS-206).
+       Estava em 0,18 e entregava 0,279 cartao por falta depois do multiplicador
+       de risco — contra 0,177 do futebol real (~3,9 amarelos para ~22 faltas).
+       A distorcao ficou invisivel enquanto o jogo tinha 15,5 faltas por
+       partida: o numero de cartoes saia certo por compensacao de dois erros.
+       Quando a OS-206 levou as faltas para 22 (dentro da faixa real de 19-26),
+       os cartoes estouraram e mostraram a taxa verdadeira. */
+    yellowFirst: 0.125,
     yellowSecond: 0.05,
     straightRed: 0.0008,
+
+    /* D20 · O COMPRIMENTO DO BLOCO NAO MORA AQUI — E ISSO ESTA MEDIDO.
+       -----------------------------------------------------------------
+       Fica escrito porque a proxima pessoa vai querer por o parametro aqui,
+       como eu quis, e vai gastar quatro baterias de 300 partidas.
+
+       O dono e a camada 60 (R18.43), com dois pisos de profundidade do
+       atacante: 32 m a frente da propria zaga DEFENDENDO e 33 m ATACANDO. Um
+       metro de diferenca — e o encurtamento do bloco ao perder a bola E essa
+       diferenca. Medido com forma.js: 41,0 m com a bola, 38,2 m sem, 2,8 m de
+       encurtamento contra 8 a 10 do futebol de elite.
+
+       O que NAO funcionou, tudo medido em 300 partidas:
+
+         piso defensivo 32 -> 24 (fixo)
+             forma: 41,0 -> 36,7 com bola e 38,2 -> 33,3 sem — os DOIS dentro
+             da faixa real pela primeira vez.
+             portao: REPROVADO. chutes -2,18, gols -0,374, escanteios -1,29,
+             zeroZeroRate 0,080 -> 0,127 (fora). Bloco compacto o tempo todo
+             mata o ataque: o atacante recuado tem chao demais na transicao.
+
+         piso que envelhece com a stamina do time (24 inteiro -> 33 exausto)
+             portao: REPROVADO. chutes -1,28 (2 SE = 1,18) e cartoes vermelhos
+             0,250 -> 0,310, fora da faixa por 0,01. Os gols quase voltaram
+             (-0,07), mas a distribuicao por faixa NAO melhorou: 76+ ficou em
+             14,7%, o mesmo de antes.
+
+         achatar a fadiga na velocidade (o D19, staminaF .7+.3 -> .75+.25)
+             portao: APROVADO nos dois criterios, gols 76+ de 14,7% para 16,1%.
+             forma: o encurtamento do bloco CAIU de 2,8 para 0,8 m.
+
+       A conclusao vale mais que qualquer um dos tres: forma e volume de
+       chances sao a MESMA alavanca puxada em sentidos opostos, e nenhum
+       parametro isolado paga as duas pontas. O caminho que sobra nao e
+       calibrar — e dar ao motor uma fase de transicao de verdade, em que o
+       time que perde a bola recompoe em vez de so mudar de alvo.
+
+       Laudo completo em reports/D19-D20-a-mesma-alavanca.md. */
   }),
   shooting: Object.freeze({
+    /* VELOCIDADE DO CHUTE, em m/s: base + faceta 'shot' de 0 a 100, com teto.
+       -------------------------------------------------------------------
+       Estava escrita QUATRO VEZES com os mesmos numeros: em `_startTravel`,
+       na falta, no penalti e — a pior — dentro da camada 14, que usa a copia
+       dela para ESTIMAR a interceptacao do chute. Achado por
+       `python3 tools/auditor.py --forma 1`, que procura exatamente isto.
+
+       Quatro copias de um numero nao sao quatro numeros: sao um numero e tres
+       chances de ele divergir. Se alguem mudasse a do motor, a camada 14
+       passaria a calcular a interceptacao de um chute que nao existe — o
+       defensor iria para o lugar errado e ninguem teria como ver, porque a
+       trajetoria continuaria plausivel.
+
+       Os valores nao mudaram: 34 + shot/100*16, preso entre 32 e 54. */
+    speedBase: 34,
+    speedRange: 16,
+    speedMin: 32,
+    speedMax: 54,
     distanceXg: Object.freeze([
       [6, 0.48], [11, 0.27], [16, 0.135], [22, 0.064], [30, 0.032], [Infinity, 0.015],
     ]),
@@ -4785,28 +4871,16 @@ class MatchSim {
 
   /* Suspende somente o relógio/física enquanto o jogador prepara a cobrança.
      O callback resolve uma única vez e devolve o controle ao motor. */
-  _requestSetPiece(kind, data, execute) {
-    /* MOTOR VISUAL · minigames de falta e pênalti DESATIVADOS: as cobranças
-       resolvem no motor com voo real e goleiro convergindo. A arquitetura de
-       requisição fica preservada para reconexão futura sobre a base coerente. */
-    return false;
-    if (!this.opts.onSetPiece || data.team !== this.interactiveTeam) return false;
-    this.waiting = true;
-    this.dead = 9999;
-    let resolved = false;
-    const request = Object.assign({ kind }, data, {
-      resolve: input => {
-        if (resolved) return;
-        resolved = true;
-        this.dead = 0;
-        this.waiting = false;
-        execute(input || {});
-      }
-    });
-    try { this.opts.onSetPiece(request); }
-    catch (_) { request.resolve({ aimX:.5, aimY:.48, power:.72, curve:0, assisted:true }); }
-    return true;
-  }
+  /* MOTOR VISUAL · minigames de falta e pênalti DESATIVADOS desde a R18: as
+     cobranças resolvem no motor, com voo real e goleiro convergindo.
+
+     D03 · aqui havia 17 linhas montando a requisição interativa, todas depois
+     de um `return false;` — inalcançáveis, e escritas de forma a parecerem
+     vivas. Foram removidas. A reconexão futura de um minigame não passa por
+     este método: passa por `_freeKick` e `_penalty`, que são os donos do lance.
+     Os dois pontos de chamada continuam testando `input == null` por hábito;
+     ver D30, que é a decisão de produto pendente. */
+  _requestSetPiece() { return false; }
 
   _switchSides() {
     for (const tm of this.teams) {
@@ -5511,23 +5585,12 @@ class MatchSim {
            cruzamento rasteiro tambem era sorteada antes da bola sair do pe.
            Forca menor que a de um chute armado — e uma finalizacao de
            primeira, nao uma bomba. */
-        if(this._os200ResolverChute){
-          this._os200ResolverChute(atk,{g,tm:this.teams[atk.team],gk,atk:finish,pGoal,
-            dtg:D(atk.x,atk.y,g.x,g.y),longshot:false,volley:false,oneOnOne:true,
-            forca:clamp(20+finish/100*8,18,29),
-            finishPlan:{type:'placed',dispersionMul:1,speedMul:1},gkScrambling:false});
-          return;
-        }
-        if(chance(pGoal)) this._startTravel(atk,{x:g.x+lcDir*.9,y:clamp(g.y+R(-3,3),g.y-3.3,g.y+3.3)},'shot',()=>this._goal(atk,false),null,'shot');
-        else {
-          const goalAim={x:g.x+lcDir*.9,y:clamp(g.y+R(-2.5,2.5),g.y-3.3,g.y+3.3)};
-          const shotSpeed=clamp(34+facet(atk,'shot')/100*16,32,54);
-          const st=this._gkInterceptTarget(gk,atk.x,atk.y,goalAim,shotSpeed,1.95);
-          if(chance(.48+(gk?facet(gk,'gk')/300:0))&&st){
-            this._startTravel(atk,st,'shot',()=>this._gkResolveSave(gk,atk,{atk:finish,oneOnOne:true,saveTarget:st,g,tm:this.teams[atk.team],cornerChance:CAL.restarts.lowCrossSaveCorner}),null,'shot',{outcome:'save',actor:gk,contactRadius:1.95,interceptT:st.t});
-          } else this._startTravel(atk,{x:g.x+lcDir*2,y:g.y+(chance(.5)?1:-1)*R(3.4,6.4)},'shot',()=>{this._emit('miss',{by:atk});this._goalKickOrRestart(1-o.team);},null,'shot');
-        }
-        /* fim da resolução física do chute rasteiro */
+        /* D03 · abaixo havia 10 linhas do desfecho antigo do cruzamento
+           rasteiro, guardadas por um `if` que nunca e falso. Removidas. */
+        this._os200ResolverChute(atk,{g,tm:this.teams[atk.team],gk,atk:finish,pGoal,
+          dtg:D(atk.x,atk.y,g.x,g.y),longshot:false,volley:false,oneOnOne:true,
+          forca:clamp(20+finish/100*8,18,29),
+          finishPlan:{type:'placed',dispersionMul:1,speedMul:1},gkScrambling:false});
       },atk,'through');
       return;
     }
@@ -5624,44 +5687,13 @@ class MatchSim {
         /* OS-200 · o cabeceio tambem sorteava o desfecho antes. A forca vem
            do cabeceio, nao do chute: bola de cabeca sai bem mais devagar, e
            usar a faixa do chute daria ao goleiro tempo nenhum. */
-        if(this._os200ResolverChute){
-          this._os200ResolverChute(atk,{g,tm:this.teams[atk.team],gk,atk:facet(atk,'head_atk'),pGoal,
-            dtg:D(atk.x,atk.y,g.x,g.y),longshot:false,volley:false,oneOnOne:false,
-            forca:clamp(13+facet(atk,'head_atk')/100*7,12,21),
-            finishPlan:{type:'power',dispersionMul:1,speedMul:1},gkScrambling:false});
-          return;
-        }
-        if(chance(pGoal))this._startTravel(atk,{x:g.x+hdDir*.9,y:clamp(g.y+R(-3,3),g.y-3.3,g.y+3.3)},'shot',()=>this._goal(atk,false),null,'shot');
-        else{
-          const hr=R();
-          const goalAim={x:g.x+hdDir*.9,y:clamp(g.y+R(-3,3),g.y-3.3,g.y+3.3)};
-          const shotSpeed=clamp(34+facet(atk,'shot')/100*16,32,54);
-          const st=this._gkInterceptTarget(gk,atk.x,atk.y,goalAim,shotSpeed,1.95);
-          const saveShare=st?.27+(gk?facet(gk,'gk')/100:.4)*.12:0;
-          if(hr<saveShare&&st){
-            this._startTravel(atk,st,'shot',()=>this._gkResolveSave(gk,atk,{atk:facet(atk,'head_atk'),oneOnOne:false,saveTarget:st,g,tm:this.teams[atk.team],cornerChance:CAL.restarts.aerialSaveCorner}),null,'shot',{outcome:'save',actor:gk,contactRadius:1.95,interceptT:st.t});
-          }
-          else if(hr<saveShare+.18&&def){
-            const bt=this._physicalBlockPoint(atk,g,def,.08,.62);
-            if(bt&&this._actorReachable(def,atk.x,atk.y,bt,34)){
-              this._startTravel(atk,bt,'shot',()=>{
-                const _cv=this._physicalContactValid(def,2.05,this.ball.z),contactD=_cv.horizontal;
-                if(!_cv.ok){
-                  this.visualIntegrity.failedContacts++;
-                  this._emit('visual_contact_failed',{kind:'header_block',by:def,distance:contactD});
-                  const miss={x:g.x+hdDir*2,y:g.y+(chance(.5)?1:-1)*R(4.5,10)};
-                  this._continueTravel(miss,'shot',()=>{this._emit('miss',{by:atk,reason:'header_blocker_did_not_reach'});this._goalKickOrRestart(1-o.team);},{outcome:'miss'},30);
-                  return;
-                }
-                this._recordVisualContact('header_block',def,this.ball.x,this.ball.y,{distance:contactD,z:this.ball.z,maxZ:_cv.maxZ,surface:_cv.surface});
-                this._emit('blocked',{by:def,kind:'header',contact:{x:this.ball.x,y:this.ball.y,distance:contactD}});
-                if(chance(CAL.restarts.aerialBlockCorner))this._setCorner(o.team);
-                else this._deflectTo(clamp(this.ball.x-hdDir*R(2,6),2,FL-2),clamp(this.ball.y+R(-5,5),2,FW-2),10);
-              },null,'shot',{outcome:'block',actor:def,contactRadius:2.05});
-            } else this._startTravel(atk,{x:g.x+hdDir*2,y:g.y+(chance(.5)?1:-1)*R(4.5,10)},'shot',()=>{this._emit('miss',{by:atk,reason:'no_physical_header_block'});this._goalKickOrRestart(1-o.team);},null,'shot');
-          }
-          else this._startTravel(atk,{x:g.x+hdDir*2,y:g.y+(chance(.5)?1:-1)*R(4.5,10)},'shot',()=>{this._emit('miss',{by:atk});this._goalKickOrRestart(1-o.team);},null,'shot');
-        }
+        /* D03 · abaixo havia 30 linhas do desfecho antigo do cabeceio (defesa,
+           bloqueio com contato visual, rebote), guardadas por um `if` que nunca
+           e falso. Removidas — a resolucao e da camada 88 desde a OS-200. */
+        this._os200ResolverChute(atk,{g,tm:this.teams[atk.team],gk,atk:facet(atk,'head_atk'),pGoal,
+          dtg:D(atk.x,atk.y,g.x,g.y),longshot:false,volley:false,oneOnOne:false,
+          forca:clamp(13+facet(atk,'head_atk')/100*7,12,21),
+          finishPlan:{type:'power',dispersionMul:1,speedMul:1},gkScrambling:false});
       }else{if(setPiece)this.stats[o.team].setPieceFirstContactLost++;if(def){def.rating+=.08;this._emit('header_clear',{by:def});/* §R19.04 · sob pressao, perto da propria linha, o corte de cabeca sai. */if(!(this._r19ClearOut&&this._r19ClearOut(def,'header')))this._turnover(def);}else this._goalKickOrRestart(1-o.team);}
     },atk,'launch');
   }
@@ -5780,6 +5812,25 @@ class MatchSim {
     const opps = this.teams[1 - o.team].players.filter(p => !p.red);
     const cands = [];
     const vis = getAttr(o, 'visao');
+    /* ═══ A1 · O PASSADOR ENXERGA A LINHA DE IMPEDIMENTO ═══════════════════
+       Medido: 10,0 impedimentos por partida contra 2,5–6 do futebol de elite.
+       A causa não é a marcação — é que ela nunca era EVITADA. `_pass` marca o
+       impedimento com probabilidade travada em 0,97, e `_offsideLine()` já
+       existia e estava correto, mas era consultado apenas pela MOVIMENTAÇÃO
+       (`_attackTarget`, e as camadas 36/43/60). Nesta função, que escolhe o
+       passe com 25 termos, a linha não entrava em nenhum deles: o portador
+       jogava a bola no companheiro impedido e o juiz marcava depois.
+
+       No futebol real o mecanismo dominante é o inverso — o passe não sai. É
+       isso que este termo acrescenta. Ele não impede o impedimento: encarece.
+       Erro de leitura continua existindo, e continua sendo mais comum em quem
+       lê pior o jogo.
+
+       Calculado UMA vez por decisão: dentro do laço seria O(n²). */
+    const linhaImped = this._offsideLine(o.team);
+    /* quem lê melhor o jogo evita mais — visão e decisão, os mesmos atributos
+       que o resto de `_bestPass` já usa */
+    const leituraLinha = clamp((vis * 0.5 + getAttr(o, 'decisao') * 0.5) / 100, 0.30, 1);
     for (const m of mates) {
       const dist = D(o.x, o.y, m.x, m.y);
       if (dist < 3.5 || dist > 62) continue;
@@ -5789,6 +5840,15 @@ class MatchSim {
       if (dist > 30 && vis < clamp(54 + (dist - 30) * 1.15, 54, 90)) continue;
       const progressM = dir > 0 ? (m.x - o.x) : (o.x - m.x);
       const progN = progressM / FL;
+      /* A1 · custo do impedimento. Mesma geometria que `_pass` usa para marcar
+         (:1746): só passe para frente conta, e a margem é medida contra o
+         penúltimo adversário. `-1.2` inclui a zona de quase-impedimento, onde o
+         passador de verdade já hesita. */
+      let penaImped = 0;
+      if (progressM > 2) {
+        const margem = (dir > 0 ? m.x : FL - m.x) - linhaImped;
+        if (margem > -1.2) penaImped = clamp(0.85 + margem * 0.62, 0, 3.1) * (0.55 + leituraLinha * 0.85);
+      }
       let mk = 1e9; for (const d of opps){ const dd = D(m.x,m.y,d.x,d.y); if (dd<mk) mk=dd; }
       const space = clamp(mk / 11, 0, 1);
       let risk = this._laneRisk(o, m, opps);
@@ -5887,7 +5947,8 @@ class MatchSim {
         + (/artilheiro|sombra|atacante/.test(rid) && progressM > 4 ? 0.24 * space : 0)
         + (rid === 'fc_alvo' && progressM > 0 ? 0.13 * clamp(getAttr(m,'fisico')/80, .65, 1.2) : 0);
       const score = progN * progWc * mood.risk + space * spaceW - risk * riskTol + boxBonus - backPen * (2 - mood.risk) - pingPen - farPen + hunger + tendB + legendPull + comboB + lateralBonus + switchBonus + smartPass + roleBonus + roleChoice
-        + facet(o,'pass')/100 * 0.3 + decisionNoise + throughThreat * ADV4.through.maxDecisionBonus + roleSynergy;
+        + facet(o,'pass')/100 * 0.3 + decisionNoise + throughThreat * ADV4.through.maxDecisionBonus + roleSynergy
+        - penaImped;
       // DIMENSÃO TEMPORAL do campo: corredor em movimento tem valor SUBINDO —
       // projeta 0.65s à frente pela velocidade real e mede o ganho de espaço+progresso.
       let proj = score;
@@ -6111,8 +6172,8 @@ class MatchSim {
       : best.dist > 32 ? 'launch' : 'short';
     // R7: a previsão de interceptação usa a MESMA velocidade da execução.
     // O passe curto anterior chegava perto de 30 m/s e criava alvos irreais.
-    const passPowPhysical = 0.92 + facet(o,'pass')/100 * 0.16;
-    const passSpeedPhysical = kind === 'launch' ? 22.5 : kind === 'through' ? 19.5 * passPowPhysical : 16.2 * passPowPhysical;
+    const passPowPhysical = CAL.passing.powerBase + facet(o,'pass')/100 * CAL.passing.powerRange;
+    const passSpeedPhysical = kind === 'launch' ? CAL.passing.speedLaunch : kind === 'through' ? CAL.passing.speedThrough * passPowPhysical : CAL.passing.speedShort * passPowPhysical;
     const _os82BlockRadius=kind==='through'?1.58:1.45,_os82ControlRadius=1.00;
     const _os82Block=inter?this._actorInterceptTarget(inter.d,this.ball.x,this.ball.y,{x:m.x,y:m.y},passSpeedPhysical,_os82BlockRadius,'pass',kind):null;
     const _os82Control=inter?this._actorInterceptTarget(inter.d,this.ball.x,this.ball.y,{x:m.x,y:m.y},passSpeedPhysical,_os82ControlRadius,'pass',kind):null;
@@ -6199,8 +6260,8 @@ class MatchSim {
       // projetava o receptor até 10 m à frente e fazia passes bons parecerem
       // lançamentos sem sentido. Passe curto agora prioriza o pé; somente a
       // bola em profundidade ataca espaço de forma agressiva.
-      const passPowAim = 0.92 + facet(o,'pass')/100 * 0.16;
-      const spdK = kind === 'launch' ? 22.5 : kind === 'through' ? 19.5 * passPowAim : 16.2 * passPowAim;
+      const passPowAim = CAL.passing.powerBase + facet(o,'pass')/100 * CAL.passing.powerRange;
+      const spdK = kind === 'launch' ? CAL.passing.speedLaunch : kind === 'through' ? CAL.passing.speedThrough * passPowAim : CAL.passing.speedShort * passPowAim;
       const tv = best.dist / Math.max(12, spdK);
       const mv = Math.hypot(m.vx, m.vy);
       const rawLead = mv > 0.75 ? mv * tv : 0;
@@ -6406,147 +6467,15 @@ class MatchSim {
 
        O ramo antigo fica logo abaixo, intacto, como rede: se a camada de
        fisica nao estiver carregada, o motor se comporta como antes. */
-    if(this._os200ResolverChute){
-      this._os200ResolverChute(o,{g,tm,gk,atk,gkF,pGoal,dtg,longshot,volley,oneOnOne,finishPlan,gkScrambling});
-      o._throughReceiverUntil=0;
-      return;
-    }
-    const shotQuality=clamp(atk/100,.3,1),dispersion=R(-4.8,4.8)*(1.15-shotQuality*.62)*finishPlan.dispersionMul;
-    if(chance(pGoal)){
-      let goalY;
-      if(finishPlan.type==='placed'){
-        const far=(o.y<g.y?1:-1); goalY=clamp(g.y+far*R(1.55,3.05),g.y-3.35,g.y+3.35);
-      }else if(finishPlan.type==='chip') goalY=clamp(g.y+R(-1.45,1.45),g.y-3.35,g.y+3.35);
-      else goalY=clamp(g.y+R(-3.15,3.15)*(1.15-shotQuality*.45)*finishPlan.dispersionMul,g.y-3.35,g.y+3.35);
-      this._startTravel(o,{x:g.x+tm.attackDir*.9,y:goalY},'shot',()=>this._goal(o,longshot||facet(o,'shot')>90),null,'shot');
-    }else{
-      const gkQual=gk?(gkScrambling?.15:facet(gk,oneOnOne?'gk_one_on_one':'gk')/100):.4;
-      const r2=R();
-      // O alvo da defesa é calculado SOBRE a trajetória do chute. A fatia de
-      // save só existe quando o goleiro consegue interceptá-la no mesmo tempo.
-      const goalAim={x:g.x+tm.attackDir*.9,y:clamp(g.y+dispersion,g.y-3.35,g.y+3.35)};
-      const shotSpeed=clamp((34+facet(o,'shot')/100*16)*finishPlan.speedMul,26,59);
-      const saveTarget=this._gkInterceptTarget(gk,o.x,o.y,goalAim,shotSpeed,1.95);
-      const saveReachable=!!saveTarget;
-      if(!saveReachable){
-        /* OS-18 · o bloqueio nao depende do alcance do goleiro. Mesma busca de
-           defensor na linha do chute do ramo alcancavel (:6165), mesmo raio de
-           2,2 m, mesmo desfecho por CAL.restarts.shotBlockCorner. Sem defensor
-           na linha, nada muda. */
-        if(chance(CAL.shooting.blockedShare)){
-          const _os18Def=this.teams[1-o.team].players.filter(p=>!p.red&&!p.isGK);
-          let _os18B=null,_os18L=99,_os18T=null;
-          for(const d of _os18Def){
-            const t=clamp(this._projT(o.x,o.y,g.x,g.y,d.x,d.y),0,1);
-            if(t<.12||t>.88)continue;
-            const px=lerp(o.x,g.x,t),py=lerp(o.y,g.y,t),ld=D(d.x,d.y,px,py);
-            if(ld<_os18L){_os18L=ld;_os18B=d;_os18T={x:px,y:py};}
-          }
-          if(_os18B&&_os18L<=2.2){
-            this._startTravel(o,_os18T,'shot',()=>{
-              const _cv=this._physicalContactValid(_os18B,2.05,this.ball.z);
-              if(!_cv.ok){
-                if(this.visualIntegrity)this.visualIntegrity.failedContacts++;
-                this._emit('visual_contact_failed',{kind:'block',by:_os18B,distance:_cv.horizontal});
-                this._looseBall(this.ball.x,this.ball.y);
-                return;
-              }
-              this._recordVisualContact('block',_os18B,this.ball.x,this.ball.y,{distance:_cv.horizontal,z:this.ball.z,maxZ:_cv.maxZ,surface:_cv.surface});
-              this._emit('blocked',{by:_os18B,contact:{x:this.ball.x,y:this.ball.y,distance:_cv.horizontal}});
-              if(chance(CAL.restarts.shotBlockCorner))this._setCorner(o.team);
-              else this._looseBall(this.ball.x,this.ball.y);
-            },null,'shot',{outcome:'block',actor:_os18B,contactRadius:2.05});
-            o._throughReceiverUntil=0;
-            return;
-          }
-        }
-        const _edge=clamp((atk-gkF)/100,-.35,.55);
-        /* OS-23 · usa o MESMO pGoal contabilizado como xG em :6122. Antes
-           este ramo sorteava o gol por uma probabilidade propria, e por isso
-           os gols saiam acima do xG registrado. */
-        const _pg=clamp(pGoal,.08,.46);
-        const _y=clamp(g.y+(chance(.5)?1:-1)*R(2.55,3.28),g.y-3.35,g.y+3.35);
-        const _aim={x:g.x+tm.attackDir*.9,y:_y};
-        if(r2<_pg){
-          this._startTravel(o,_aim,'shot',()=>this._goal(o,longshot||facet(o,'shot')>90),null,'shot');
-        }else if(r2<_pg+.30){
-          this._startTravel(o,_aim,'shot',()=>{if(chance(.5))this._setCorner(o.team);else this._goalKickOrRestart(1-o.team);},null,'shot');
-        }else{
-          this._startTravel(o,{x:g.x+tm.attackDir*.9,y:g.y+(chance(.5)?1:-1)*R(3.7,4.3)},'shot',()=>{this._emit('miss',{by:o});this._goalKickOrRestart(1-o.team);},null,'shot');
-        }
-        o._throughReceiverUntil=0;
-        return;
-      }
-      const saveCut=saveReachable?clamp(CAL.shooting.savedShare+gkQual*CAL.shooting.keeperSaveInfluence+(oneOnOne?.04:0)+finishPlan.saveBias,.04,.72):0;
-      const blockCut=clamp(saveCut+CAL.shooting.blockedShare*(oneOnOne?.55:1)+finishPlan.blockBias,saveCut,.88);
-      const postCut=clamp(blockCut+CAL.shooting.postShare+finishPlan.postBias,blockCut,.94);
-      if(r2<saveCut){
-        this._startTravel(o,saveTarget,'shot',()=>this._gkResolveSave(gk,o,{atk,oneOnOne,saveTarget,g,tm}),null,'shot',{
-          outcome:'save', actor:gk, contactRadius:1.9, interceptT:saveTarget.t
-        });
-      }else if(r2<blockCut){
-        const defenders=this.teams[1-o.team].players.filter(p=>!p.red&&!p.isGK);
-        let blocker=null,bestLine=99,blockTarget=null;
-        for(const d of defenders){
-          const t=clamp(this._projT(o.x,o.y,g.x,g.y,d.x,d.y),0,1);
-          if(t<.12||t>.88)continue;
-          const px=lerp(o.x,g.x,t),py=lerp(o.y,g.y,t),ld=D(d.x,d.y,px,py);
-          if(ld<bestLine){bestLine=ld;blocker=d;blockTarget={x:px,y:py};}
-        }
-        // Sem defensor próximo da linha não existe bloqueio. A bola continua
-        // como finalização para fora, em vez de parar num ponto sem agente.
-        if(!blocker||bestLine>2.2){
-          const missY=g.y+(chance(.5)?1:-1)*R(3.8,7.4);
-          this._startTravel(o,{x:g.x+tm.attackDir*3,y:missY},'shot',()=>{
-            this._emit('miss',{by:o,reason:'no_physical_block'});
-            this._goalKickOrRestart(1-o.team);
-          },null,'shot',{outcome:'miss'});
-          o.rating-=.06;
-        }else{
-          /* OS-14 · defensor em cima do finalizador: parte desse contato e
-             falta, nao bloqueio. Entra antes do _startTravel, entao nao
-             converte bloqueio limpo — divide a populacao. Dentro da area,
-             _awardFoul (:6706) roteia sozinho para _penalty. */
-          if(chance(this._foulProb(blocker)*1)){this._awardFoul(blocker,o);return;}
-          this._startTravel(o,blockTarget,'shot',()=>{
-            const _cv=this._physicalContactValid(blocker,2.05,this.ball.z),contactD=_cv.horizontal;
-            if(!_cv.ok){
-              if(this.visualIntegrity)this.visualIntegrity.failedContacts++;
-              this._emit('visual_contact_failed',{kind:'block',by:blocker,distance:contactD});
-              const missY=g.y+(chance(.5)?1:-1)*R(3.8,7.0);
-              this._continueTravel({x:g.x+tm.attackDir*3,y:missY},'shot',()=>{
-                this._emit('miss',{by:o,reason:'blocker_did_not_reach'});
-                this._goalKickOrRestart(1-o.team);
-              },{outcome:'miss'},Math.max(24,this.ball.speed*.72));
-              return;
-            }
-            this._recordVisualContact('block',blocker,this.ball.x,this.ball.y,{distance:contactD,z:this.ball.z,maxZ:_cv.maxZ,surface:_cv.surface});
-            this._emit('blocked',{by:blocker,contact:{x:this.ball.x,y:this.ball.y,distance:contactD}});
-            if(chance(CAL.restarts.shotBlockCorner))this._setCorner(o.team);
-            else this._looseBall(this.ball.x,this.ball.y);
-          },null,'shot',{outcome:'block',actor:blocker,contactRadius:2.05});
-        }
-      }else if(r2<postCut){
-        this._startTravel(o,{x:g.x,y:g.y+(chance(.5)?1:-1)*3.66},'shot',()=>{
-          this._recordVisualContact('post',null,this.ball.x,this.ball.y,{shooterId:o.idx??null});
-          this._emit('post',{by:o,contact:{x:this.ball.x,y:this.ball.y}});
-          /* R18.15.5 · A trave não concede escanteio. Sem toque defensivo,
-             a bola que morre além da linha de fundo gera tiro de meta; caso
-             contrário, o rebote continua vivo dentro do campo. Mantemos a
-             mesma frequência de saída/rebote da calibração anterior, mudando
-             apenas o reinício incorreto. */
-          if(chance(CAL.restarts.postCorner))this._goalKickOrRestart(1-o.team);
-          else{
-            const rx=clamp(this.ball.x-tm.attackDir*R(3,9),2,FL-2);
-            const ry=clamp(this.ball.y+R(-7,7),2,FW-2);
-            this._deflectTo(rx,ry,12);
-          }
-        },null,'shot',{outcome:'post'});
-      }else{
-        const missY=g.y+(chance(.5)?1:-1)*R(3.8,7.4);
-        this._startTravel(o,{x:g.x+tm.attackDir*3,y:missY},'shot',()=>{this._emit('miss',{by:o});this._goalKickOrRestart(1-o.team);},null,'shot');o.rating-=.08;
-      }
-    }
+    /* D03 · a camada 88 (os200-balistica-real) e obrigatoria em qualquer build
+       produzido por tools/build.py — e ela que define _os200ResolverChute, e o
+       browser_smoke reprova se ela nao estiver instalada.
+       Aqui havia 136 linhas do desfecho antigo (saveCut, blockCut, postCut, os
+       ramos OS-18 e OS-23) guardadas por este `if` "como rede", inalcancaveis
+       desde a OS-200 e escritas de forma a parecerem vivas. Removidas.
+       Sem o guarda, a ausencia da camada vira erro visivel em vez de um chute
+       resolvido por um caminho que ninguem mede ha 20 releases. */
+    this._os200ResolverChute(o,{g,tm,gk,atk,gkF,pGoal,dtg,longshot,volley,oneOnOne,finishPlan,gkScrambling});
     o._throughReceiverUntil=0;
   }
 
@@ -6720,8 +6649,8 @@ class MatchSim {
     // Passe forte de bom passador viaja mais rápido; cruzamento/lançamento é aéreo.
     // R7 · força calibrada: qualidade altera precisão e um pouco da força,
     // sem transformar todo passe curto em uma pancada de quase 30 m/s.
-    const passPow = 0.92 + facet(o,'pass')/100 * 0.16;   // 0.92..1.08
-    const spd = kind === 'shot' ? clamp(34 + facet(o,'shot')/100*16, 32, 54)
+    const passPow = CAL.passing.powerBase + facet(o,'pass')/100 * CAL.passing.powerRange;   // 0.92..1.08
+    const spd = kind === 'shot' ? clamp(CAL.shooting.speedBase + facet(o,'shot')/100*CAL.shooting.speedRange, CAL.shooting.speedMin, CAL.shooting.speedMax)
               : passKind === 'launch' ? 24.3
               : passKind === 'through' ? 21.1 * passPow
               : 17.5 * passPow;
@@ -6734,6 +6663,13 @@ class MatchSim {
     const fang = ang;
     b.vx = Math.cos(fang) * spd; b.vy = Math.sin(fang) * spd;
     // ARCO baixo no passe rasteiro (bola no pé, não lob) — só lançamento sobe de verdade
+    // CUIDADO (OS-203): estes 0,12 eram decorativos — `z` só existia para o
+    // desenho. Desde a OS-200 a camada 88 lê este valor como ALTURA DE SAÍDA
+    // real e integra a queda: o passe rasteiro virava um salto de 14 cm seguido
+    // de quiques de 4 cm e 1 cm. Quem consome isto é `_startTravel` da camada
+    // 07 (`origin.z = b.z`), e o regime rasteiro da camada 88 agora achata a
+    // origem para o gramado. Não conserte aqui: mexer nos 0,12 mexe também na
+    // origem do CHUTE, que está calibrada.
     b.z = passKind === 'launch' ? 0.3 : 0.12;
     b.vz = (kind === 'shot') ? 1.0 : (passKind === 'launch' ? 7 : passKind === 'through' ? 1.2 : 0.4);
     b._timeout = dist / spd + 0.35;    // timeout de segurança generoso para chutes longos
@@ -6774,7 +6710,17 @@ class MatchSim {
       }
     }
 
-    // Física contínua da bola.
+    /* ⚠ D01 · ESTA INTEGRAÇÃO NÃO RODA. MEDIDO: 0 quadros em 12 partidas.
+       A camada 07 (physics-timeline) só chama este corpo quando a bola NÃO tem
+       `_physicsPlan` — e ela mesma cria o plano para passe, chute e desvio, com
+       a balística real da camada 88 (g = 9,81, arrasto quadrático). Sobram zero
+       quadros para o g = 20 daqui.
+       O documento afirmava que este era o segundo integrador em uso, governando
+       ~57 desvios por partida. Era HIPÓTESE e estava errada; a sonda
+       `tools/fisica/ramo-g20.js` mediu 1.588,92 quadros de desvio por partida,
+       TODOS com plano físico. A segunda física existe, mas em `_looseRoll`.
+       Não apagado por enquanto: 12 partidas não exercitam pênalti decisivo nem
+       prorrogação, e este é o único caminho se um plano falhar. */
     b.x += b.vx * dt; b.y += b.vy * dt;
     b.z += b.vz * dt; b.vz -= 20 * dt;
     if (b.z < 0) { b.z = 0; b.vz = -b.vz * 0.4; }
@@ -6794,9 +6740,19 @@ class MatchSim {
     }
     const reached=D(b.x,b.y,b.target.x,b.target.y)<=.42;
 
-    // Passes continuam usando a regra normal de saída. Chutes podem atravessar
-    // a linha de fundo porque o alvo de gol fica ligeiramente além da linha.
-    if(b.kind!=='shot'&&b.kind!=='deflect'&&(b.y<0||b.y>FW||b.x<0||b.x>FL)){
+    /* Passes continuam usando a regra normal de saída. Chutes podem atravessar
+       a linha de fundo porque o alvo de gol fica ligeiramente além da linha —
+       essa exceção tem razão de ser.
+
+       D25 · `deflect` NÃO tinha. Foi acrescentado à condição sem justificativa,
+       e o efeito era que uma bola desviada podia cruzar a linha e continuar
+       viajando até `onArrive`, sem virar reinício. As camadas 45 e 47 chegam a
+       reescrever alvos de desvio para FORA do campo de propósito
+       (`naturalTarget` manda para −0,85 / FW+0,85); com a isenção, esses alvos
+       não produziam lateral nenhum — a bola pousava fora e `_looseBall` +
+       `_contestLoose` devolviam a posse a quem estivesse por perto.
+       Um desvio que cruza a linha é um reinício, como qualquer outro. */
+    if(b.kind!=='shot'&&(b.y<0||b.y>FW||b.x<0||b.x>FL)){
       this._ballOut();return;
     }
 
@@ -6863,6 +6819,17 @@ class MatchSim {
     b.receiver = null;
   }
 
+  /* ⚠ D04 · ESTE CORPO QUASE NUNCA RODA.
+     A camada 08 (`p04-physical-reception`) intercepta `_looseBall` e, com a
+     bola viva e alvo a mais de 0,14 m, converte a chamada num desvio físico e
+     RETORNA SEM CHAMAR AQUI. O que você quer editar provavelmente está lá.
+
+       node tools/fisica/pilha.js dist/index.html 14   # confirme o dono
+       python3 tools/defeito.py D04                    # ficha + código atual
+
+     Histórico: a tentativa A4 editou este corpo e não moveu 0,15 SE em nenhuma
+     das 14 métricas. Foi a quinta vez que editar o motor não fez nada. Ver
+     reports/A4-tentativa-revertida.md e a seção 2.5 da investigação. */
   _looseBall(x, y) {
     const b = this.ball; b.owner = null; b.traveling = false; b.meta = null;
     b.x = x; b.y = y; b.z = 0; b.vx = 0; b.vy = 0;
@@ -6895,7 +6862,14 @@ class MatchSim {
     // R7: a bola não perde toda a energia em poucos quadros. Ainda desacelera,
     // mas continua rolando o bastante para a disputa parecer natural.
     b.vx = (b.vx || 0) * (1 - 0.92 * dt); b.vy = (b.vy || 0) * (1 - 0.92 * dt);
-    if (b.z > 0 || (b.vz || 0) !== 0) { b.z += (b.vz || 0) * dt; b.vz = (b.vz || 0) - 20 * dt; if (b.z <= 0) { b.z = 0; b.vz = 0; } }
+    /* D01 · AQUI está a segunda física, e não em `_ballTravel`.
+       Medido com `tools/fisica/ramo-rolagem.js`: 39,25 quadros por partida
+       integram esta linha, com a bola a 0,995 m de altura média e até 2,685 m.
+       É a sobra alta caindo — e caía com o DOBRO da gravidade real, enquanto
+       todo o resto do jogo usa g = 9,81 desde a OS-200.
+       A restituição continua zero de propósito: aqui a bola pousa e passa a
+       rolar; quique é assunto do plano físico, não da sobra. */
+    if (b.z > 0 || (b.vz || 0) !== 0) { b.z += (b.vz || 0) * dt; b.vz = (b.vz || 0) - 9.81 * dt; if (b.z <= 0) { b.z = 0; b.vz = 0; } }
     // fora de campo
     if (b.x < -0.5 || b.x > FL + 0.5 || b.y < -0.5 || b.y > FW + 0.5) { this._ballOut(); return; }
     // jogador mais próximo coleta ao alcançar
@@ -7139,7 +7113,7 @@ class MatchSim {
     const goalY=clamp(tmA.oppGoal.y+((visual&&visual.actualX!=null)?(visual.actualX-.5)*6:R(-3,3)),tmA.oppGoal.y-3.3,tmA.oppGoal.y+3.3);
     const fkHeight=clamp((1-((visual&&Number.isFinite(visual.actualY))?visual.actualY:.52))*2.35,.16,2.32);
     const fkGoalAim={x:tmA.oppGoal.x+tmA.attackDir*.9,y:goalY,z:fkHeight};
-    const fkSpeed=clamp(34+facet(taker,'shot')/100*16,32,54);
+    const fkSpeed=clamp(CAL.shooting.speedBase+facet(taker,'shot')/100*CAL.shooting.speedRange,CAL.shooting.speedMin,CAL.shooting.speedMax);
     const saveTarget=this._gkInterceptTarget(gk,taker.x,taker.y,fkGoalAim,fkSpeed,1.95);
     if(result==='save'&&!saveTarget)result='miss';
     this.stats[team].xg += pGoal;
@@ -7217,7 +7191,7 @@ class MatchSim {
     const aimLat = clamp(pg.y + (actualX - .5) * 6.6, pg.y - 3.3, pg.y + 3.3);
     const penaltyHeight=clamp((1-actualY)*2.35,.12,2.28);
     const penaltyGoalAim={x:pg.x+tmA.attackDir*.9,y:aimLat,z:penaltyHeight};
-    const penaltySpeed=clamp(34+facet(taker,'shot')/100*16,32,54);
+    const penaltySpeed=clamp(CAL.shooting.speedBase+facet(taker,'shot')/100*CAL.shooting.speedRange,CAL.shooting.speedMin,CAL.shooting.speedMax);
     const penaltySaveTarget=this._gkInterceptTarget(gk,taker.x,taker.y,penaltyGoalAim,penaltySpeed,1.95);
     if(result==='save'&&!penaltySaveTarget)result='goal';
     this._emit('penalty', { by: taker, manual, visual, result });
@@ -8007,47 +7981,27 @@ class MatchSim {
     }
   }
 
-  _integrate(p, tx, ty, dt, freeze) {
-    // timers de corrida com propósito (tabela/ultrapassagem)
-    if (p._burst) { p._burst.t -= dt; if (p._burst.t <= 0) p._burst = null; else p.stamina = Math.max(35, p.stamina - dt * 1.1); }
-    if (p._burstCd) { p._burstCd -= dt; if (p._burstCd <= 0) p._burstCd = 0; }
-    if (p._overlapT && p._overlapT > 0) { p._overlapT -= dt; if (p._overlapT <= 0) { p._overlapT = 0; p._overlapping = false; } }
-    const dx = tx - p.x, dy = ty - p.y;
-    const dist = Math.hypot(dx, dy) || 1e-6;
-    // velocidade desejada (desaceleração suave perto do alvo)
-    const staminaF = 0.7 + p.stamina/100 * 0.3;
-    // RITMO INDIVIDUAL (§movimento): nem todo jogador corre a 100% o tempo todo —
-    // isso é o que causava a "mesma velocidade" (deslizar em bloco). Cada um tem uma
-    // marcha própria que respira: longe da ação, muitos TROTAM (60-75%); só quem tem
-    // urgência real (perto do alvo, ou com dever de bola) esprinta. A fase pessoal
-    // dessincroniza quem acelera e quando.
-    if (p._gaitPh === undefined) p._gaitPh = R() * 6.28;
-    const hasBallDuty = p._breaking || p._burst || p === this.ball.owner ||
-                        (this.ball.traveling && this.ball.receiver === p);
-    let effort;
-    if (hasBallDuty || dist > 16) effort = 1;           // dever real ou muito longe: esprinta
-    else {
-      // marcha que respira, escalada pela distância: perto trota, longe apressa.
-      // cada jogador num ponto diferente do ciclo → ninguém na mesma velocidade.
-      const distF = clamp((dist - 3) / 13, 0, 1);        // 3m→16m mapeia 0→1
-      const breathe = 0.5 + 0.5 * Math.sin(this.t * 0.85 + p._gaitPh);
-      effort = clamp(0.55 + distF * 0.35 + breathe * 0.14, 0.5, 1);
-    }
-    const vmax = p.maxSpd * staminaF * effort * (freeze ? 0.5 : 1);
-    const desired = Math.min(vmax, dist * 3.2);         // freia perto do alvo
-    const dvx = dx/dist * desired - p.vx;
-    const dvy = dy/dist * desired - p.vy;
-    // inércia: aproxima com aceleração limitada
-    const currentDir = Math.atan2(p.vy,p.vx), wantedDir = Math.atan2(dy,dx);
-    const turnDelta = Math.abs(Math.atan2(Math.sin(wantedDir-currentDir),Math.cos(wantedDir-currentDir)));
-    const turnPenalty = lerp(1, p.turn || 1, clamp(turnDelta/Math.PI,0,1));
-    const amax = p.acc * turnPenalty * dt;
-    const dv = Math.hypot(dvx, dvy);
-    if (dv > amax) { p.vx += dvx/dv*amax; p.vy += dvy/dv*amax; }
-    else { p.vx += dvx; p.vy += dvy; }
-    p.x += p.vx * dt; p.y += p.vy * dt;
-    p.x = clamp(p.x, 0, FL); p.y = clamp(p.y, 0, FW);
-  }
+  /* D17 · `_integrate` MORAVA AQUI e estava MORTO. Removido: 73 linhas.
+     ---------------------------------------------------------------------
+     A camada 16 (`16-cds-r12-transactional-core-r123.js`) substitui
+     `P._integrate` SEM capturar o anterior — ela e TERMINAL. Este corpo nunca
+     era alcancado num bundle de tools/build.py.
+
+     Nao era codigo morto inofensivo: ele trazia a sua propria copia de
+
+         const staminaF = 0.7 + p.stamina/100 * 0.3;
+
+     identica a da camada 16. Editar esta aqui e nao acontecer nada custou uma
+     rodada inteira de medicao ao D19, e virou a armadilha A6. `pilha.js`
+     respondia VIVA para `_integrate` e estava certa — o METODO roda; a LINHA
+     nao era esta.
+
+     Quem executa hoje: camada 16 (dona), depois 17, 23, 24 e 71, que a
+     encadeiam. Se precisar mexer na velocidade, e la.
+
+     Verificado com `aceitar.sh --depois --identico`: as 14 metricas identicas
+     ao digito. */
+
 
   /* ------------------------------ EVENTOS ----------------------------- */
   _emit(type, data) {
@@ -11193,6 +11147,9 @@ const $ = s => document.querySelector(s);
    1.366 s de simulacao, entao 3X entrega ~7,6 min — perto dos ~8,2 min que o
    jogo tinha antes, e na faixa de "key highlights" do Football Manager. TURBO
    segue para quem quer varrer a Copa. */
+/* OS-203 · quanto a bola parada corre a mais que o jogo. */
+const ADIANTA_PARADA = 3.5;
+
 const SPEEDS = [
   { k: '1X',    v: 1.0 },   // ~22,8 min por partida
   { k: '2X',    v: 2.0 },   // ~11,4 min
@@ -12921,7 +12878,21 @@ function startLoop() {
     if (matchOver) fastForwardFullTime(now);
     if (!finished && !paused && !celebrating && !penActive) {
       if (!matchOver) {
-        acc += dt * (slowmo ? Math.min(G.speed, 1) * slowmo.f : G.speed);
+        /* OS-203 · A ESPERA ANDA MAIS RAPIDO QUE O JOGO.
+           Medido: 12,2% da partida (166 s de 1.361) e bola parada — tiro de
+           meta, lateral, arrumacao de escanteio, reinicio de falta. Nao e
+           futebol, e espera, e e o tipo de trecho em que quem assiste sente
+           que nada acontece.
+
+           Comemoracao de gol e minijogo de bola parada NAO entram aqui: o
+           bloco inteiro ja e barrado por `celebrating` e `penActive` acima,
+           entao o que sobra e so a espera burocratica. Camera lenta tambem
+           fica de fora — ela existe justamente para alguem olhar.
+
+           Isto e SO apresentacao: o simulador recebe os mesmos passos, na
+           mesma ordem. O resultado da partida nao muda em nada. */
+        const _espera = (sim && sim.dead > 0 && !slowmo) ? ADIANTA_PARADA : 1;
+        acc += dt * (slowmo ? Math.min(G.speed, 1) * slowmo.f : G.speed) * _espera;
         const h = 1/60; let g = 0;
         while (acc >= h && g++ < 500) {
           sim.step(h); acc -= h; minorCd = Math.max(0, minorCd - h);
@@ -14191,10 +14162,49 @@ function bindControls() {
 
 /* ─── CANVAS ──────────────────────────────────────────────────────────── */
 let _cdsChipFrame = 0; /* OS-62 · vira a cada quadro para zerar a ocupacao dos chips */
-const CW=1024, CH=500, M=14;
+/* D24 · A ALTURA DO MUNDO LOGICO ACOMPANHA O QUADRO.
+   ---------------------------------------------------
+   `CH` era 500 fixo. O canvas tinha proporcao 1024:500 = 2,048 e o quadro do
+   jogo fica entre 1,17 e 1,66 conforme a resolucao — sempre MAIS ALTO. A
+   sobra virava faixa preta, de 22% a 46% do quadro.
+
+   Nao da para resolver isso com outro valor fixo: com proporcao fixa o vazio e
+   `1 - min(A,Acaixa)/max(A,Acaixa)`, e as caixas vao de 1,174 a 1,655 (razao
+   0,709). Nenhum A fixo fica abaixo de 4% nas quatro; o melhor possivel deixa
+   15,8% nas pontas.
+
+   Entao `CH` passa a ser calculado a partir da caixa, em `syncCanvasResolution`.
+   Isso e seguro por causa de duas coisas medidas:
+
+     · A FORMA DO CAMPO NAO DEPENDE DE CH. A projecao do palco 2.5D faz
+       `vn = (fy - M) / fH` — normaliza a altura logica antes de projetar. Quem
+       decide o desenho e fW, topY, bottomY e R0.
+     · A FAIXA DA PROJECAO E FIXA (camada 21). Antes `bottomY = CH - 3` e
+       `topY = M + 34` faziam a faixa CRESCER com CH; foi isso que quebrou a
+       tela numa tentativa anterior, com o gramado virando um trapezio torto.
+
+   O que sobra de altura vira ceu e arquibancada, que o palco ja desenha de 0
+   ate standBot. Preto vira estadio.
+
+   `fH` deixa de ser const pelo mesmo motivo; `cy` ja le CH em tempo de
+   chamada. A chave do palco (`M + ':' + fW + 'x' + fH`) muda junto, entao a
+   camada 21 se reconstroi sozinha. */
+const CW=1024, M=14;
+let CH=500;
 const cx = x => M + x*(CW-M*2);
 const cy = y => M + y*(CH-M*2);
-const fW = CW-M*2, fH = CH-M*2;
+const fW = CW-M*2;
+let fH = CH-M*2;
+/* Faixa sa para CH: 1024/2,44 ate 1024/1,25. Fora dela o enquadramento deixa
+   de fazer sentido — janela extremamente larga nao precisa de arquibancada
+   ate o teto, e janela quase quadrada esticaria o ceu sem ganho. */
+const CH_MIN = 420, CH_MAX = 820;
+function definirCH(novo){
+  const v = Math.max(CH_MIN, Math.min(CH_MAX, Math.round(novo / 4) * 4));
+  if (v === CH) return false;
+  CH = v; fH = CH - M*2;
+  return true;
+}
 
 /* ============================================================================
    PONTO 3 · CANVAS EM TELAS DE ALTA DENSIDADE — syncCanvasResolution()
@@ -14221,10 +14231,15 @@ function syncCanvasResolution(cv){
   try{
     const rect = cv.getBoundingClientRect();
     const cssW = rect.width || CW;                       // 0 => usa o lógico
+    const cssH = rect.height || 0;
+    /* D24 · a altura lógica acompanha a CAIXA. Quantizada em passos de 4 para
+       não realocar o backing store a cada subpixel do layout, e só quando a
+       caixa tem altura real (durante a montagem ela pode vir 0). */
+    const mudouCH = (cssH > 8 && cssW > 8) ? definirCH(CW * cssH / cssW) : false;
     const dpr  = Math.min(window.devicePixelRatio || 1, 2.5);
     let k = clamp((cssW * dpr) / CW, .75, 2.5);
     k = Math.round(k * 20) / 20;                         // quantiza (passos .05)
-    if (cv._k === k) return;                             // nada mudou: não realoca
+    if (cv._k === k && !mudouCH) return;                 // nada mudou: não realoca
     cv._k = k;
     cv.width  = Math.max(1, Math.round(CW * k));
     cv.height = Math.max(1, Math.round(CH * k));
@@ -14306,7 +14321,25 @@ function paintField() {
     const z = zClose + (1 - zClose) * tEase;
     const vw = CW / z, vh = CH / z;
     const cpx = Math.max(vw / 2, Math.min(CW - vw / 2, camX));
-    const cpy = Math.max(vh / 2, Math.min(CH - vh / 2, camY));
+    /* D24 · A CAMERA SE ENQUADRA NA FAIXA DO GRAMADO, NAO NA CAIXA.
+       -------------------------------------------------------------
+       `camY` persegue a posicao PROJETADA da bola (ver o `project` logo
+       acima), que vive entre topY e bottomY. O limite, porem, era a altura do
+       canvas inteiro — e enquanto a faixa ocupava quase todo o canvas isso deu
+       na mesma. Quando o canvas fica mais alto que a faixa, o limite passa a
+       cortar o campo justamente embaixo, que foi o que a tentativa com CH=619
+       mostrou.
+       Agora o limite e a propria faixa. Se a vista for mais alta que ela, os
+       dois lados se cruzam e a camera assenta no CENTRO da faixa — o gramado
+       inteiro em quadro, e o que sobra acima e arquibancada. */
+    let cpy;
+    const _fx = window.CDS_F25D && window.CDS_F25D.faixa && window.CDS_F25D.faixa();
+    if (_fx && _fx.ready) {
+      const lo = _fx.topY + vh / 2, hi = _fx.bottomY - vh / 2;
+      cpy = lo > hi ? (_fx.topY + _fx.bottomY) / 2 : Math.max(lo, Math.min(hi, camY));
+    } else {
+      cpy = Math.max(vh / 2, Math.min(CH - vh / 2, camY));
+    }
     ctx.translate(CW / 2, CH / 2);
     ctx.scale(z, z);
     ctx.translate(-cpx, -cpy);
@@ -14391,6 +14424,20 @@ function paintField() {
     _all.sort((a, b) => a.y - b.y);
     groups = [{ color: null, players: _all }];
   }
+  /* §OS-207 · O TREMOR DA BOLA PARADA.
+     O balanco #anti-cardume abaixo foi calibrado para quem CORRE: amplitude
+     ate 2,2 px oscilando a 14-24 rad/s, proporcional ao deslocamento de tela
+     do quadro. Ele entra no desenho, e `CDS_F25D.body` deriva a passada do
+     deslocamento DESENHADO (`d.vms`, :20703 do bundle) — entao o balanco
+     realimenta a propria cadencia das pernas.
+     Correndo isso e ruido (a §D41 mediu 2% de `mv`). Na bola parada, que e
+     quando todo mundo CAMINHA a ~1 m/s ate o posto do escanteio ou da falta,
+     o deslocamento real por quadro cai para a mesma ordem de grandeza do
+     balanco — e ele deixa de ser tempero para virar a maior parte do sinal.
+     E o tremor que se ve enquanto o time se arma para a cobranca.
+     Bola parada nao tem cardume para quebrar: ninguem esta correndo em bloco.
+     O balanco desliga com a bola morta e volta com ela rolando. */
+  const _semCardume = !!(sim && (sim.dead > 0 || sim.waiting));
   for (const tmSt of groups) {
     const C = tmSt.color || (tmSt.players[0] && tmSt.players[0].color) || '#2e9bff';
     const perPlayerColor = !tmSt.color;   // no replay cada jogador traz sua cor
@@ -14406,19 +14453,30 @@ function paintField() {
       // "bloco andando junto": cada um oscila no seu tempo enquanto corre.
       let _rx = cx(p.x), _ry = cy(p.y);
       /* §OS-89 · passada do cobrador de falta, so no desenho */
+      /* §OS-207 · A PASSADA NAO VOLTAVA: ELA SUMIA.
+         `_k` subia ate 1 no primeiro terco e FICAVA em 1 pelos 66% restantes
+         (277 ms dos 420), e no quadro em que `_e` cruzava 1 o offset caia a
+         zero de uma vez. O desenho saltava de volta ate `_L` metros — o mesmo
+         vetor jogador->bola que armou a passada, ate 6 m — e isso acontece
+         embaixo do `slowmo` de 0,35x que a OS-88 liga justamente para o dono
+         OLHAR a cobranca. Era o pulo que ele via na hora de bater a falta.
+         Agora o pe avanca, encosta e o corpo volta ao eixo fisico de forma
+         continua: em `_e = 1` o offset ja E zero, entao nao ha quadro de
+         salto. Mesma licenca de antes — desenho, nunca fisica. */
       if (fkStep && p.ref && p.ref.id === fkStep.id) {
         const _e = (visualNow - fkStep.t0) / fkStep.dur;
         if (_e >= 1) fkStep = null;
         else if (_e >= 0) {
-          /* sobe rapido e assenta: o pe chega na bola no primeiro terco */
-          const _k = _e < .34 ? (_e / .34) : 1;
+          const _k = _e < .34 ? (_e / .34)              /* avanca sobre a bola */
+                   : _e < .52 ? 1                        /* contato */
+                   : 1 - (_e - .52) / .48;               /* recompoe, sem corte */
           _rx = cx(p.x + fkStep.dx * _k); _ry = cy(p.y + fkStep.dy * _k);
         }
       }
       const _pk = p.ref && p.ref.n;
       if (_pk) {
         const _pp = _prevScreen[_pk];
-        if (_pp) {
+        if (_pp && !_semCardume) {
           const _dx = _rx - _pp.x, _dy = _ry - _pp.y, _sp = Math.hypot(_dx, _dy);
           if (_sp > 0.06) {
             const _ang = Math.atan2(_dy, _dx) + Math.PI / 2, _mv = Math.min(1, _sp / 2.2), _tt = performance.now() / 1000;
@@ -14447,11 +14505,23 @@ function paintField() {
       else ctx.ellipse(groundX,groundY+5,r*(1+actionWave*.18),r*.72,0,0,Math.PI*2);
       ctx.fillStyle='#000'; ctx.fill(); ctx.restore();
 
-      // aura (dono da bola)
+      /* §D47 · A AURA DO PORTADOR ERA UM DISCO DE LAMA.
+         Era um circulo CHEIO de raio r+9 (quase o dobro do atleta), na cor do
+         time, a 28% de alfa, desenhado na altura do CORPO. Cor de time a 28%
+         sobre grama nao le como a cor do time: le como marrom sujo, e o disco
+         cobre o jogador que ele deveria destacar. Visto ampliando um quadro do
+         jogo — o boneco sumia dentro da propria marca.
+
+         Agora e um ANEL no CHAO, no mesmo plano e com a mesma proporcao da
+         sombra que ja existe logo acima. Marca quem tem a bola sem tapar
+         ninguem, e como esta no gramado ela nao compete com o corpo. */
       if (p.hasBall) {
-        ctx.save(); ctx.globalAlpha=.28;
-        ctx.beginPath(); ctx.arc(x,y,r+9,0,Math.PI*2);
-        ctx.fillStyle=pc; ctx.fill(); ctx.restore();
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(groundX, groundY + r * .98, r * 1.24, r * .50, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = pc; ctx.lineWidth = Math.max(1.5, r * .16);
+        ctx.globalAlpha = .85; ctx.stroke();
+        ctx.restore();
       }
 
       // aura de LENDA: anel dourado pulsante (r>=92); brilho forte se em chamas
@@ -14498,6 +14568,24 @@ function paintField() {
         if (motion.type === 'dive') { ctx.moveTo(x-10,y); ctx.lineTo(x+10,y); }
         else { ctx.moveTo(x-15,y-5); ctx.lineTo(x+15,y-5); }
         ctx.stroke(); ctx.restore();
+      }
+
+      /* §D47 · SETA DO PORTADOR, acima da cabeca.
+         O anel de chao que substituiu o disco de lama ficava debaixo da placa
+         de nome — que e desenhada justamente nos jogadores perto da bola, ou
+         seja, sempre no portador. Marca invisivel nao e marca. Acima da cabeca
+         nao ha nada que colida, e e onde todo jogo de futebol poe. */
+      if (p.hasBall) {
+        const _sy = y - r * 1.62, _sw = Math.max(3.2, r * .42);
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x, _sy + _sw);
+        ctx.lineTo(x - _sw, _sy - _sw * .5);
+        ctx.lineTo(x + _sw, _sy - _sw * .5);
+        ctx.closePath();
+        ctx.fillStyle = pc; ctx.fill();
+        ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.stroke();
+        ctx.restore();
       }
 
       // cartão amarelo (flag no ombro)
@@ -16888,7 +16976,7 @@ P._startTravel=function(o,target,kind,onArrive,receiver,passKind,meta){const b=t
  if(target&&kind==='pass'&&receiver&&!m.actor){const ox=origin.x,oy=origin.y,rx=finite(receiver.x),ry=finite(receiver.y),baseAng=Math.atan2(ry-oy,rx-ox),tx=finite(target.x,rx),ty=finite(target.y,ry),off=dist(tx,ty,rx,ry),maxOff=pk==='through'?9.5:pk==='launch'?6.5:3.0;if(off>maxOff){const q=maxOff/Math.max(EPS,off);target.x=rx+(tx-rx)*q;target.y=ry+(ty-ry)*q;diag(this).passTargetsClamped++;}
    const vx=finite(target.x)-ox,vy=finite(target.y)-oy,len=Math.max(EPS,Math.hypot(vx,vy)),ang=Math.atan2(vy,vx),norm=a=>{while(a>Math.PI)a-=Math.PI*2;while(a<-Math.PI)a+=Math.PI*2;return a;},lim=(pk==='through'?25:pk==='launch'?35:18)*Math.PI/180,delta=norm(ang-baseAng);if(Math.abs(delta)>lim){const ca=baseAng+Math.sign(delta)*lim;target.x=clamp(ox+Math.cos(ca)*len,.5,FL-.5);target.y=clamp(oy+Math.sin(ca)*len,.5,FW-.5);diag(this).passAnglesClamped++;}
  }
- if(target&&m.actor&&typeof this._actorInterceptTarget==='function'){const fq=(a,k,f)=>{try{return typeof root.facet==='function'?finite(root.facet(a,k),f):f;}catch(_){return f;}},passQ=fq(o,'pass',70),shotQ=fq(o,'shot',70),passPow=.92+passQ/100*.16,estimate=kind==='shot'?clamp(34+shotQ/100*16,32,54):(pk==='launch'?22.5:pk==='through'?19.5*passPow:16.2*passPow),rad=Number.isFinite(m.contactRadius)?m.contactRadius:(m.actor.isGK?1.9:1.35);let hit=null;try{hit=m.actor.isGK&&kind==='shot'&&typeof this._gkInterceptTarget==='function'?this._gkInterceptTarget(m.actor,origin.x,origin.y,target,estimate,rad):this._actorInterceptTarget(m.actor,origin.x,origin.y,target,estimate,rad,kind,pk);}catch(_){}if(hit){target.x=hit.x;target.y=hit.y;target.z=hit.z;m.interceptT=hit.t;m.targetZ=hit.z;diag(this).plannedContactsRebased++;}}
+ if(target&&m.actor&&typeof this._actorInterceptTarget==='function'){const fq=(a,k,f)=>{try{return typeof root.facet==='function'?finite(root.facet(a,k),f):f;}catch(_){return f;}},passQ=fq(o,'pass',70),shotQ=fq(o,'shot',70),_c14=root.ENGINE_CALIBRATION||{},_sh=_c14.shooting||{},_pa=_c14.passing||{},passPow=(typeof _pa.powerBase==='number'?_pa.powerBase:.92)+passQ/100*(typeof _pa.powerRange==='number'?_pa.powerRange:.16),estimate=kind==='shot'?clamp((typeof _sh.speedBase==='number'?_sh.speedBase:34)+shotQ/100*(typeof _sh.speedRange==='number'?_sh.speedRange:16),(typeof _sh.speedMin==='number'?_sh.speedMin:32),(typeof _sh.speedMax==='number'?_sh.speedMax:54)):(pk==='launch'?(typeof _pa.speedLaunch==='number'?_pa.speedLaunch:22.5):pk==='through'?(typeof _pa.speedThrough==='number'?_pa.speedThrough:19.5)*passPow:(typeof _pa.speedShort==='number'?_pa.speedShort:16.2)*passPow),rad=Number.isFinite(m.contactRadius)?m.contactRadius:(m.actor.isGK?1.9:1.35);let hit=null;try{hit=m.actor.isGK&&kind==='shot'&&typeof this._gkInterceptTarget==='function'?this._gkInterceptTarget(m.actor,origin.x,origin.y,target,estimate,rad):this._actorInterceptTarget(m.actor,origin.x,origin.y,target,estimate,rad,kind,pk);}catch(_){}if(hit){target.x=hit.x;target.y=hit.y;target.z=hit.z;m.interceptT=hit.t;m.targetZ=hit.z;diag(this).plannedContactsRebased++;}}
  const r=oldStart.call(this,o,target,kind,onArrive,receiver,passKind,m);if(kind==='pass'&&this.ball){const now=finite(this.t),eta=Math.max(.1,finite(this.ball._timeout,1));this.ball.__r10Pass={start:now,expectedArrival:now+eta,hardDeadline:now+eta+8.0,receiver:receiver||null,kind:pk,bestDistance:Infinity,lastProgress:now};}return r;};
 
 /* Pequena tolerância numérica para um agente que concluiu 100% do plano de
@@ -17146,7 +17234,25 @@ const oldIsOver=P.isOver;P.isOver=function(){const over=oldIsOver.apply(this,arg
 
 /* Opções contextuais de chute/cruzamento sem atropelar passe claro. */
 const oldCanCross=P._canCross;P._canCross=function(o){if(!o||!this.teams)return oldCanCross.apply(this,arguments);const tm=this.teams[o.team],adv=tm.attackDir>0?o.x:FL-o.x,wide=o.y<27||o.y>FW-27;return oldCanCross.apply(this,arguments)||(adv>57&&wide);};
-const oldDecide=P._decide;P._decide=function(o){if(o&&!o.isGK&&this.ball&&this.ball.owner===o&&this.teams&&!(o._setPieceDeliveryUntil>this.t)){const tm=this.teams[o.team],now=finite(this.t),g=tm.oppGoal,dtg=Math.hypot(finite(o.x)-finite(g.x),finite(o.y)-finite(g.y)),near=typeof this._nearestOpponent==='function'?this._nearestOpponent(o):{dist:5},best=typeof this._bestPass==='function'?this._bestPass(o):null,superior=best&&best.intoBox&&finite(best.risk)<1.75&&finite(best.score)>1.45;if(!superior&&dtg>=10&&dtg<=27&&now-finite(tm.__r122LastContextShot,-99)>1.15){const fin=attr(o,'finalizacao'),lng=attr(o,'chute_longe'),central=clamp(1-Math.abs(finite(o.y)-finite(g.y))/31,.35,1),pressure=clamp((3.5-finite(near.dist,5))/3.5,0,1);let p=dtg<=16?.40:dtg<=20?.285:dtg<=24?.17:.072;p*=central*(1-pressure*.58)*clamp((fin*.66+lng*.34)/72,.72,1.24);if(schance(this,p)){tm.__r122LastContextShot=now;this._shoot(o,dtg,dtg>21,o.settle>0&&o.settle<.45);return;}}
+const oldDecide=P._decide;P._decide=function(o){if(o&&!o.isGK&&this.ball&&this.ball.owner===o&&this.teams&&!(o._setPieceDeliveryUntil>this.t)){const tm=this.teams[o.team],now=finite(this.t),g=tm.oppGoal,dtg=Math.hypot(finite(o.x)-finite(g.x),finite(o.y)-finite(g.y)),near=typeof this._nearestOpponent==='function'?this._nearestOpponent(o):{dist:5},best=typeof this._bestPass==='function'?this._bestPass(o):null,superior=best&&best.intoBox&&finite(best.risk)<1.75&&finite(best.score)>1.45;/* D11 · a regra inteira do chute contextual, num lugar so. O predicado da
+   camada 20 (_r183ExcecaoAoChuteContextual) diz se existe alternativa
+   melhor: chance clara, progressao limpa, saida sob pressao ou movimento
+   para dentro. Antes ele rodava num _decide proprio e envenenava
+   __r122LastContextShot — um campo que ja significa outra coisa (o
+   auto-limite do proprio sorteio).
+
+   A JANELA DE 1,15 s NAO E DETALHE. Vetar so o instante do sorteio custou
+   drawRate 0,270 -> 0,190 (3,53 SE, FORA da faixa de design) e blowoutRate
+   0,153 -> 0,197 (1,92 SE, fora da faixa) numa bateria de 300 partidas: as
+   14 metricas agregadas nao se moveram e o placar de design caiu 12/13 ->
+   10/13. O veto sempre teve memoria; o efeito colateral era o mecanismo.
+   Ele volta aqui, em campo PROPRIO e declarado. MEDIDO, nao inferido. */
+  if(typeof this._r183ExcecaoAoChuteContextual==='function'
+     &&!this.__r14Pending&&!(finite(this.dead)>0)&&!this.pendingRestart&&!this.waiting
+     &&this._r183ExcecaoAoChuteContextual(o))
+    tm.__r183VetoChuteContextual=Math.max(finite(tm.__r183VetoChuteContextual,-99),now);
+  if(!superior&&dtg>=10&&dtg<=27&&now-finite(tm.__r122LastContextShot,-99)>1.15
+     &&now-finite(tm.__r183VetoChuteContextual,-99)>1.15){const fin=attr(o,'finalizacao'),lng=attr(o,'chute_longe'),central=clamp(1-Math.abs(finite(o.y)-finite(g.y))/31,.35,1),pressure=clamp((3.5-finite(near.dist,5))/3.5,0,1);let p=dtg<=16?.40:dtg<=20?.285:dtg<=24?.17:.072;p*=central*(1-pressure*.58)*clamp((fin*.66+lng*.34)/72,.72,1.24);if(schance(this,p)){tm.__r122LastContextShot=now;this._shoot(o,dtg,dtg>21,o.settle>0&&o.settle<.45);return;}}
   if(typeof this._canCross==='function'&&this._canCross(o)){const targets=tm.players.filter(p=>!p.red&&!p.isGK&&p!==o&&Math.abs(p.x-tm.oppGoal.x)<24);if(targets.length&&now-finite(tm.__r122LastCross,-99)>1.65&&!superior){const q=clamp((attr(o,'cruzamento')-50)/50,0,1),p=clamp(.17+q*.12+Math.min(3,targets.length)*.04+(finite(near.dist)>3?.035:0),.17,.40);if(schance(this,p)){tm.__r122LastCross=now;this._cross(o);return;}}}}
   return oldDecide.apply(this,arguments);
 };
@@ -19603,6 +19709,29 @@ body::before {
      a pequena faixa de letterbox some porque a celula ja fica perto de 2.048. */
   #app:has(#fieldcv) > .field-wrap {
     grid-area: field;
+    /* D24 · O QUADRO ABRACA O CAMPO, em vez de esticar e sobrar preto.
+       -------------------------------------------------------------
+       Com `align-self: stretch` + `height: 100%` o quadro tomava a linha
+       `1fr` inteira do grid, e o canvas — que tem proporcao fixa 1024:500 —
+       so conseguia preencher parte dela. O resto virava faixa preta DENTRO da
+       moldura do campo. Medido por tools/fisica/tela/caixa.js:
+
+           1400x900    31,8% do quadro vazio
+           1920x1080   22,3%
+           1280x800    28,2%
+           1024x768    46,0%
+
+       Agora o quadro tem altura de conteudo e se centraliza na linha. A sobra
+       sai de dentro da moldura e vira fundo de pagina — deixa de parecer
+       tarja no gramado e passa a ser respiro do layout.
+
+       `max-height: 100%` mantem o guarda que a versao anterior tinha: em tela
+       baixa o quadro encolhe em vez de estourar a linha do grid. Era esse o
+       estouro que o comentario de `aspect-ratio: auto` mais acima descreve.
+
+       ISTO NAO RESOLVE O D24 INTEIRO, e o laudo diz por que: a proporcao
+       2,048 e calibracao do palco 2.5D (R0=0,72, topY=M+34, bottomY=CH-3), e
+       mexer nela desmonta a perspectiva. Ver reports/D24-a-tarja-preta.md. */
     align-self: stretch; justify-self: stretch;
     width: 100%; height: 100%; min-height: 0;
     max-height: none; float: none;
@@ -19611,9 +19740,17 @@ body::before {
     --cds-narr-h: 30px;   /* banda fina da narracao no rodape do campo */
   }
   #app:has(#fieldcv) > .field-wrap > #fieldcv {
+    /* D24 · o canvas volta a se dimensionar pela PROPRIA proporcao. Com o
+       quadro abracando o conteudo (regra acima), nao ha mais altura sobrando
+       para ele preencher, entao `object-fit: contain` nao tem o que
+       letterboxar. A banda da narracao continua reservada por margin-bottom,
+       nao por `bottom`/`height` calculados. */
+    /* D24 · o canvas PREENCHE o quadro. Nao ha o que letterboxar porque o
+       backing store passou a acompanhar a caixa (ver `definirCH` no runtime):
+       a proporcao do desenho e a da caixa, por construcao. */
     position: absolute; top: 0; left: 0; right: 0;
     bottom: var(--cds-narr-h); height: calc(100% - var(--cds-narr-h));
-    width: 100%; aspect-ratio: auto; object-fit: contain;
+    width: 100%; aspect-ratio: auto; object-fit: fill;
   }
   /* legenda dos lances: banda fina de 1 linha no rodape do campo (pedido do
      usuario). Reusa .narr, que ja recebe a narracao corrente via updateNarr(). */
@@ -19878,33 +20015,53 @@ P._startTravel=function(actor,target,kind,onArrive,receiver,travelKind,meta){
    Não força passe nem chute. Apenas bloqueia por uma janela curta a roleta
    contextual da R12 quando existe um passe objetivamente superior, deixando
    R13 + motor-base escolherem a ação final pelo fluxo normal. */
-const oldDecide=P._decide;
-P._decide=function(o){
-  if(!o||o.isGK||!this.ball||this.ball.owner!==o||this.__r14Pending||finite(this.dead)>0||this.pendingRestart||this.waiting)return oldDecide.apply(this,arguments);
-  const tm=this.teams&&this.teams[o.team];if(!tm)return oldDecide.apply(this,arguments);
+/* D11 · O SORTEIO E O CENSOR VIRARAM UMA COISA SÓ.
+   ---------------------------------------------------------------------------
+   Isto aqui era um `_decide` que rodava por FORA da camada 16 e, quando via
+   uma alternativa boa ao chute, envenenava `tm.__r122LastContextShot` com o
+   instante atual — o que fazia o `if` da camada 16 falhar. Duas camadas se
+   comunicando por um campo mutável com nome de release, e nenhuma das duas
+   documentando o contrato.
+
+   MEDIDO antes de mexer (tools/fisica/ramos.js, 12 partidas):
+     515,17 decisões examinadas por partida
+     264,67 VETOS aplicados  =  51,4% delas
+
+   Metade das decisões do jogo passava por aqui. A regra real de quando um
+   jogador chuta estava repartida entre um arquivo que sorteava e outro que
+   anulava sem citá-lo.
+
+   Agora é um PREDICADO PURO: sem efeito colateral, sem RNG, sem estado
+   compartilhado. A camada 16 o consulta no momento exato do sorteio, e o `if`
+   de lá passa a dizer a regra inteira em um lugar só.
+
+   O que mudou de comportamento: o veto deixou de PERSISTIR por 1,15 s. Aquela
+   persistência não era regra de futebol — era efeito colateral de envenenar um
+   campo que também serve de auto-limite da camada 16. Agora a exceção vale no
+   instante em que ela é verdadeira, que é o que o nome sempre prometeu. */
+P._r183ExcecaoAoChuteContextual=function(o){
+  if(!o||o.isGK||!this.ball||this.ball.owner!==o||this.__r14Pending||finite(this.dead)>0||this.pendingRestart||this.waiting)return false;
+  const tm=this.teams&&this.teams[o.team];if(!tm)return false;
   const dg=diag(this);dg.decisionChecks++;
   let best=null,safe=null;
   try{best=normalizeCandidate(this._bestPass&&this._bestPass(o),o);}catch(_){}
   try{const opps=(this.teams[1-o.team]&&this.teams[1-o.team].players||[]).filter(activePlayer);safe=normalizeCandidate(this._safePass&&this._safePass(o,opps),o);}catch(_){}
   const candidates=[];if(best)candidates.push(best);if(safe&&(!best||safe.m!==best.m))candidates.push(safe);
-  if(candidates.length){
-    candidates.sort((a,b)=>passValue(this,o,b)-passValue(this,o,a));
-    const pick=candidates[0],pv=passValue(this,o,pick),risk=finite(pick.risk,9),progress=finite(pick.progressM,0);
-    const g=tm.oppGoal,dtg=dist(o.x,o.y,g.x,g.y),pressure=nearestOpponent(this,o),sv=shotValue(this,o,dtg,pressure);
-    const iq=attr(o,'decisao',68),space=receiverSpace(this,pick.m);
-    const clearChance=!!pick.intoBox&&risk<(iq>=82?2.35:2.05)&&pv>.58;
-    const cleanProgress=progress>8&&risk<(iq>=82?1.75:1.48)&&space>3.4&&pv>sv+(iq>=82?.12:.22);
-    const pressureOutlet=pressure<2.35&&risk<1.12&&space>2.8&&pv>sv-.02;
-    const inward=edgeY(o.y)<4.9&&edgeY(pick.m.y)>edgeY(o.y)+2.4&&risk<1.8;
-    if(clearChance||cleanProgress||pressureOutlet||inward){
-      /* R12 só pode tentar chute contextual se t-last > 1.15. Marcar o
-         instante atual veta unicamente essa roleta; o restante da cadeia
-         de decisão continua intacto e ainda pode chutar pelo motor-base. */
-      tm.__r122LastContextShot=Math.max(finite(tm.__r122LastContextShot,-99),finite(this.t));
-      dg.smartShotVetoes=(dg.smartShotVetoes||0)+1;
-    }
-  }
-  return oldDecide.apply(this,arguments);
+  if(!candidates.length)return false;
+  candidates.sort((a,b)=>passValue(this,o,b)-passValue(this,o,a));
+  const pick=candidates[0],pv=passValue(this,o,pick),risk=finite(pick.risk,9),progress=finite(pick.progressM,0);
+  const g=tm.oppGoal,dtg=dist(o.x,o.y,g.x,g.y),pressure=nearestOpponent(this,o),sv=shotValue(this,o,dtg,pressure);
+  const iq=attr(o,'decisao',68),space=receiverSpace(this,pick.m);
+  /* AS QUATRO EXCECOES. Elas sempre foram a especificacao real; so nao
+     estavam escritas ao lado do sorteio que anulavam. */
+  const chanceClara      = !!pick.intoBox && risk<(iq>=82?2.35:2.05) && pv>.58;
+  const progressaoLimpa  = progress>8 && risk<(iq>=82?1.75:1.48) && space>3.4 && pv>sv+(iq>=82?.12:.22);
+  const saidaSobPressao  = pressure<2.35 && risk<1.12 && space>2.8 && pv>sv-.02;
+  const movimentoParaDentro = edgeY(o.y)<4.9 && edgeY(pick.m.y)>edgeY(o.y)+2.4 && risk<1.8;
+  const veta = chanceClara||progressaoLimpa||saidaSobPressao||movimentoParaDentro;
+  if(veta)dg.smartShotVetoes=(dg.smartShotVetoes||0)+1;
+  void dtg;
+  return veta;
 };
 
 /* R18.3-C · perfis naturais de voo. O destino e a duração permanecem os
@@ -20035,14 +20192,76 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
    * interpolação perspectiva exata (largura ∝ 1/profundidade). */
   const G = {
     CW: 1024, CH: 500, M: 12,          // corrigidos no 1º grass()
-    R0: 0.72,                          // largura distante / próxima
+    /* §D49 · CAMERA DE TV. Era 0,72 — perspectiva branda, jogo quase visto de
+       cima. 0,54 baixa a camera para o angulo de transmissao, e foi escolhido
+       comparando o MESMO quadro congelado em quatro alturas: 0,62 muda pouco,
+       0,46 comprime demais o lado distante. Ajustavel por `CDS_CAM_TUNE`. */
+    R0: 0.54,                          // largura distante / próxima
+    R0_BASE: 0.72,                     // §D49 · referencia dos 22 px/m de altura
+    topY0: 46,                         // §D49 · faixa antes do achatamento
     topY: 46, bottomY: 497,            // faixa vertical do pitch projetado
     ready: false,
   };
   function setGeom(M, fW, fH) {
     G.M = M; G.CW = fW + 2 * M; G.CH = fH + 2 * M;
-    G.topY = M + 34; G.bottomY = G.CH - 3;
+    /* D24 · A FAIXA DO GRAMADO PROJETADO E FIXA E ANCORADA EMBAIXO.
+       ------------------------------------------------------------
+       Antes: `topY = M + 34` e `bottomY = G.CH - 3`. A faixa media
+       (CH-3) - (M+34) = 449 px com CH=500, e CRESCIA JUNTO com CH. Foi isso
+       que quebrou a tela quando tentei um canvas mais alto: com CH=673 a
+       faixa virou 624 px e a mesma razao de perspectiva (R0=0,72) se espalhou
+       por 38% mais altura — o gramado saiu como um trapezio torto.
+
+       A forma do campo NAO depende de CH: `vn = (fy - M) / fH` normaliza a
+       altura logica antes de projetar. Quem decide o desenho e fW, topY,
+       bottomY e R0. Fixando a faixa, o canvas pode ter a altura que quiser e o
+       gramado sai identico; o que sobrar acima vira ceu e arquibancada, que o
+       palco ja desenha de 0 ate standBot.
+
+       Com CH=500 isto devolve topY=48 e bottomY=497 — exatamente os valores
+       anteriores. A mudanca e nula ate alguem mexer em CH. */
+    var CH_REF = 500;
+    G.bottomY = G.CH - 3;
+    G.topY0 = G.bottomY - ((CH_REF - 3) - (M + 34));   // §D49 · faixa de referencia
+    G.topY = G.topY0;
     G.ready = true;
+  }
+  /* §D49 · A CAMERA DE TV: baixar E angular.
+     ---------------------------------------------------------------------
+     Duas coisas separadas, e so as duas juntas dao a camera de transmissao:
+
+       R0     razao entre a largura da borda DISTANTE e a da proxima. 1,0 seria
+              planta baixa (camera no zenite); quanto menor, mais baixa a
+              camera, porque o fundo encolhe mais. Estava fixo em 0,72.
+       faixa  quanto da altura de tela o gramado ocupa. Camera baixa ACHATA o
+              campo na vertical — sem isto o campo so fica trapezoidal, e
+              continua parecendo visto de cima.
+
+     Aplicados MUTANDO `G` uma vez por quadro, no inicio do `grass()`, em vez de
+     lidos em cada consumidor. E o unico jeito que mantem todo mundo de acordo:
+     `G.topY` e lido pela projecao, pelo teto de altura da bola, pela base da
+     arquibancada, pela vinheta e pelo `faixa()` publico. Se so a projecao
+     soubesse da camera nova, os jogadores andariam num gramado que o desenho
+     poe em outro lugar.
+
+     ATENCAO, e ja custou uma tentativa: baixar a camera sem mexer na ALTURA nao
+     funciona. Os 22 px por metro do `liftY` foram calibrados para R0=0,72 — com
+     a camera mais baixa, um metro tem que ocupar mais tela, senao a bola alta
+     fica rasteira e a balistica da OS-200 deixa de se ler. A escala de altura
+     acompanha `R0_BASE / R0`. */
+  function camKey() {
+    var t = root.CDS_CAM_TUNE;
+    return t ? (t.R0 + '/' + t.faixa) : 'base';
+  }
+  function aplicarCam() {
+    var t = root.CDS_CAM_TUNE;
+    var r0 = G.R0_BASE, fx = 1;
+    if (t) {
+      var a = +t.R0;    if (isFinite(a) && a >= 0.30 && a <= 0.95) r0 = a;
+      var b = +t.faixa; if (isFinite(b) && b >= 0.45 && b <= 1.30) fx = b;
+    }
+    G.R0 = r0;
+    G.topY = G.bottomY - (G.bottomY - G.topY0) * fx;
   }
   function project(fx, fy) {
     const fW = G.CW - 2 * G.M, fH = G.CH - 2 * G.M;
@@ -20079,8 +20298,25 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
     const e = a - Z_FIEL;
     return Z_FIEL + e / (1 + e / Z_FOLGA);
   }
+  /* §D50 · UMA escala de altura, para a bola E para o gol.
+     ---------------------------------------------------------------------
+     O travessao era desenhado com `hPx = 30 * s`, um numero solto, enquanto a
+     bola sobe a 22 px por metro. 30 / 22 = **1,36 m**: o travessao desenhado
+     estava na altura de um travessao de 1,36 m, e o real tem 2,44 m.
+
+     A consequencia se ve em campo: uma bola a 2,0 m esta CONFORTAVELMENTE sob o
+     travessao para a fisica e e desenhada a 44 px, bem ACIMA da barra de 30 px.
+     Defesa embaixo da trave parecia bola por cima. O laudo da OS-200 chega a
+     dizer que ate 2,6 m o mapeamento e 1:1 "senao uma bola por cima do
+     travessao nao PARECE por cima do travessao" — a intencao estava escrita, o
+     gol e que nao seguia.
+
+     Agora os dois saem de `alturaPxM()`, que tambem carrega a compensacao de
+     camera da §D49. */
+  const ALT_PX_M = 22, TRAVESSAO_M = 2.44;
+  function alturaPxM() { return ALT_PX_M * (G.R0_BASE / G.R0); }
   function liftY(baseY, z, s) {
-    return Math.max(G.topY + 8, baseY - alturaVisual(z) * 22 * s);
+    return Math.max(G.topY + 8, baseY - alturaVisual(z) * alturaPxM() * s);
   }
 
   /* PLANO DE CHÃO ÚNICO.
@@ -20234,7 +20470,8 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
       const goalH = (7.32 / 68) * fH;
       const y0 = (CH - goalH) / 2, y1 = (CH + goalH) / 2;
       const b0 = P(gx, y0), b1 = P(gx, y1);
-      const hPx = 30 * ((b0.s + b1.s) / 2);          // altura visual do gol
+      /* §D50 · era `30 * s` — 1,36 m na escala em que a bola sobe. */
+      const hPx = TRAVESSAO_M * alturaPxM() * ((b0.s + b1.s) / 2);   // altura visual do gol
       const back = 9 * ((b0.s + b1.s) / 2) * dir;    // profundidade da rede
       // rede (atrás)
       g.strokeStyle = 'rgba(220,235,255,.20)'; g.lineWidth = .7;
@@ -20270,9 +20507,12 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
        grass roda todo frame antes de tudo, resetar aqui zera qualquer vazamento
        de estado e garante o campo sempre em opacidade cheia. */
     ctx.globalAlpha = 1;
-    const key = M + ':' + fW + 'x' + fH;
+    /* §D49 · a camera entra ANTES do palco: `buildStage` desenha arquibancada e
+       ceu a partir de `G.topY`, entao mudar a camera depois deixaria o estadio
+       no lugar antigo com o gramado no novo. */
+    const key = M + ':' + fW + 'x' + fH + ':' + camKey();
     if (stage.key !== key) {
-      setGeom(M, fW, fH); stage.cv = buildStage(); stage.key = key;
+      setGeom(M, fW, fH); aplicarCam(); stage.cv = buildStage(); stage.key = key;
       dirCache.clear(); gradCache.clear();   // PRF-031: caches limpos na fronteira de layout
     }
     ctx.drawImage(stage.cv, 0, 0);
@@ -20321,8 +20561,106 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
     if (/tackle$/.test(state) || state === 'header' || state === 'block') return Math.sin(p * Math.PI);
     if (/^gk_(low_dive|high_dive|catch|parry|punch|smother|foot_save)$/.test(state)) return Math.sin(p * Math.PI);
     if (state === 'lose_control' || state === 'heavy_touch') return 0.5 * (1 - p);
+    /* §OS-207 · o tombo bate forte e sustenta (o corpo vai ao chao e fica),
+       o levantar sobe do chao e devolve o atleta a locomocao — envelopes
+       espelhados, por isso um cresce e o outro decai. */
+    if (state === 'fouled') return p < .22 ? p / .22 : 1 - (p - .22) / .78 * .30;
+    if (state === 'get_up') return 1 - p;
+    /* §D39 · A INTERCEPTACAO NAO TINHA GESTO.
+       A camada 69 pede `pede(this, data.by, 'intercept')` no evento, a maquina
+       de animacao entra no estado — e este `animWave` nao conhecia a palavra:
+       caia no `return 0` de baixo e o jogador interceptava SEM MOVIMENTO
+       NENHUM. A bola trocava de dono e o corpo nem reagia.
+
+       O gesto e curto e assimetrico, ao contrario do carrinho: sobe rapido
+       (o pe/corpo estica para a linha de passe) e desce devagar (recomposicao).
+       Por isso nao e `sin(p*PI)`, que e simetrico e parece um chute. */
+    if (state === 'intercept') return p < .3 ? p / .3 : 1 - (p - .3) / .7 * .85;
+    /* §D48 · as VARIANTES de chute e passe nao tinham envelope: `animWave` nao
+       conhecia a palavra e devolvia 0, entao mesmo depois de fiadas elas
+       chegariam ao desenho com onda zero — sem perna de chute, exatamente o
+       defeito que a §D39 achou na interceptacao. Gesto completo: carrega, bate
+       no pico, desce. */
+    if (/^(power_shot|placed_shot|volley|long_pass|first_touch_pass)$/.test(state)) {
+      return Math.sin(p * Math.PI);
+    }
     return 0;
   }
+
+  /* §D42 · TABELA DE POSTURA — uma silhueta por estado, sem 15 ramos de desenho
+     ------------------------------------------------------------------------
+     MEDIDO por `tools/fisica/tela/gestos.js`, que grava a sequencia de
+     operacoes de desenho e a compara com a nuvem da corrida: **cinco estados
+     entravam e pintavam a silhueta da corrida, identica** — `protect`,
+     `shot_recover`, `intercept`, `lose_control` e `heavy_touch`. E outros 32
+     dos 62 declarados nunca chegavam a ser desenhados.
+
+     Sobre o `intercept`: a §D39 deu a ele uma onda e um `bob`, e eu dei o caso
+     por resolvido. A sonda mostra que o gesto inteiro era um deslocamento
+     VERTICAL do corpo de 0,07·r — os membros nao se mexiam. Nao era pose, era
+     empurrao. Um gesto que so translada o boneco nao e um gesto.
+
+     Em vez de mais um `else if` por estado, os parametros abaixo modulam o
+     desenho de corrida que ja existe:
+
+       esc     escala da tesoura das pernas (1 = passada normal)
+       spr     afastamento lateral dos pes, em raios
+       inc     inclinacao extra do tronco (+ para a frente, - para tras)
+       agacha  quanto o corpo baixa, em raios
+       braco   escala do balanco dos bracos
+       estica  perna estendida a frente, em raios (alcance) */
+  const POSE = {
+    /* locomocao de transicao */
+    accelerate: { esc: 0.80, spr: 0.00, inc:  0.28, agacha: 0.10, braco: 1.25, estica: 0.00 },
+    decelerate: { esc: 0.50, spr: 0.22, inc: -0.26, agacha: 0.16, braco: 1.10, estica: 0.20 },
+    turn:       { esc: 0.55, spr: 0.18, inc:  0.00, agacha: 0.10, braco: 0.90, estica: 0.00 },
+    strafe:     { esc: 0.35, spr: 0.32, inc:  0.00, agacha: 0.12, braco: 0.80, estica: 0.00 },
+    backpedal:  { esc: 0.55, spr: 0.12, inc: -0.30, agacha: 0.08, braco: 0.55, estica: 0.00 },
+    /* defesa sem bola */
+    press:      { esc: 1.10, spr: 0.00, inc:  0.20, agacha: 0.00, braco: 1.30, estica: 0.00 },
+    jockey:     { esc: 0.25, spr: 0.36, inc:  0.08, agacha: 0.22, braco: 1.35, estica: 0.00 },
+    recover:    { esc: 0.90, spr: 0.00, inc:  0.30, agacha: 0.04, braco: 1.20, estica: 0.00 },
+    body_duel:  { esc: 0.30, spr: 0.30, inc:  0.16, agacha: 0.16, braco: 1.45, estica: 0.00 },
+    /* os cinco que a sonda pegou desenhando a corrida */
+    protect:    { esc: 0.20, spr: 0.32, inc: -0.12, agacha: 0.14, braco: 1.50, estica: 0.00 },
+    shot_recover:{esc: 0.45, spr: 0.10, inc: -0.20, agacha: 0.06, braco: 0.70, estica: 0.26 },
+    intercept:  { esc: 0.35, spr: 0.10, inc:  0.34, agacha: 0.04, braco: 1.20, estica: 0.62 },
+    lose_control:{esc: 0.40, spr: 0.28, inc: -0.26, agacha: 0.02, braco: 1.60, estica: 0.16 },
+    heavy_touch:{ esc: 0.95, spr: 0.06, inc:  0.30, agacha: 0.00, braco: 1.15, estica: 0.44 },
+    /* §D43 · familia do drible. Os tres `dribble_*` casam com o regex de
+       `dribbling` e por isso desenhavam como `carry` — mesma armadilha dos
+       cinco mudos da §D42, um nivel abaixo. */
+    dribble_prepare: { esc: 0.35, spr: 0.18, inc:  0.12, agacha: 0.14, braco: 1.10, estica: 0.10 },
+    dribble_success: { esc: 1.00, spr: 0.00, inc:  0.26, agacha: 0.02, braco: 1.15, estica: 0.00 },
+    dribble_failure: { esc: 0.40, spr: 0.26, inc: -0.26, agacha: 0.06, braco: 1.50, estica: 0.22 },
+    /* §D45 · goleiro. A `braco` nao vale para ele — o braco do goleiro sai do
+       ramo `gk` do desenho, nao do balanco de corrida — mas base, agachamento e
+       inclinacao valem, e sao o que separa deslocar de esperar o chute. */
+    /* `gl`/`gr` = altura do braco ESQUERDO e DIREITO em raios (negativo sobe),
+       `gx` = abertura extra para fora. Sem isto os estados de goleiro sao
+       indistinguiveis: o tronco dele e grande e os bracos ficavam sempre na
+       mesma posicao em T, entao `esc`/`spr`/`agacha` mexiam so no que estava
+       escondido atras do tronco. Conferido na folha de poses. */
+    gk_ready:    { esc: 0.15, spr: 0.24, inc:  0.00, agacha: 0.10, braco: 1.00, estica: 0.00, gl:  0.00, gr:  0.00, gx: 0.00 },
+    gk_shift:    { esc: 0.45, spr: 0.32, inc:  0.00, agacha: 0.16, braco: 1.00, estica: 0.00, gl:  0.14, gr:  0.14, gx: 0.10 },
+    gk_set:      { esc: 0.05, spr: 0.44, inc:  0.14, agacha: 0.30, braco: 1.00, estica: 0.00, gl:  0.40, gr:  0.40, gx: 0.16 },
+    gk_throw:    { esc: 0.30, spr: 0.20, inc:  0.24, agacha: 0.04, braco: 1.00, estica: 0.20, gl:  0.36, gr: -0.72, gx: 0.06 },
+    gk_kick:     { esc: 0.50, spr: 0.12, inc:  0.20, agacha: 0.00, braco: 1.00, estica: 0.42, gl: -0.24, gr:  0.28, gx: 0.20 },
+    gk_smother:  { esc: 0.20, spr: 0.36, inc:  0.30, agacha: 0.34, braco: 1.00, estica: 0.34, gl:  0.58, gr:  0.58, gx: 0.22 },
+    gk_ground_recover: { esc: 0.20, spr: 0.34, inc: -0.32, agacha: 0.30, braco: 1.00, estica: 0.00, gl: 0.52, gr: 0.52, gx: 0.00 },
+    gk_foot_save:{ esc: 0.25, spr: 0.30, inc:  0.10, agacha: 0.22, braco: 1.00, estica: 0.66, gl:  0.30, gr:  0.30, gx: 0.26 },
+    gk_parry:    { esc: 0.20, spr: 0.34, inc:  0.16, agacha: 0.18, braco: 1.00, estica: 0.24, gl: -0.66, gr:  0.20, gx: 0.14 },
+    /* §OS-207 · a falta sofrida. O corpo perde a base: pernas param de
+       tesourar (`esc` baixo), a base abre, o tronco vai para TRAS (`inc`
+       negativo, empurrado) e os bracos sobem procurando equilibrio. O
+       levantar e o mesmo corpo agachado voltando ao eixo. */
+    fouled:     { esc: 0.10, spr: 0.40, inc: -0.34, agacha: 0.30, braco: 1.70, estica: 0.34 },
+    get_up:     { esc: 0.18, spr: 0.30, inc:  0.22, agacha: 0.34, braco: 1.15, estica: 0.00 },
+    /* recepcao */
+    receive_prepare: { esc: 0.30, spr: 0.24, inc:  0.10, agacha: 0.14, braco: 1.40, estica: 0.30 },
+    receive_contact: { esc: 0.15, spr: 0.20, inc:  0.18, agacha: 0.18, braco: 1.20, estica: 0.50 },
+    receive_control: { esc: 0.40, spr: 0.16, inc:  0.06, agacha: 0.10, braco: 1.10, estica: 0.14 },
+  };
 
   function body(ctx, o) {
     const { x, y, r } = o;
@@ -20334,11 +20672,82 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
     // ganham pose PRÓPRIA dirigida pelos eventos do motor (o.pose/o.act/o.wave). Parado
     // e sem ação, descansa. Corrige "boneco deslizando" e "ação sem causa visual".
     let d = dirCache.get(o.key);
-    if (!d) { if (dirCache.size > 48) dirCache.clear(); d = { x, y, lean: 0, gait: 0, spd: 0, face: 1 }; dirCache.set(o.key, d); }
+    if (!d) { if (dirCache.size > 48) dirCache.clear(); d = { x, y, lean: 0, gait: 0, spd: 0, vms: 0, face: 1 }; dirCache.set(o.key, d); }
     const mvx = x - d.x, mvy = y - d.y, mv = Math.hypot(mvx, mvy);
     const lean = clamp(mvx * .55 + d.lean * .72, -2.4, 2.4);
     d.spd = d.spd * .6 + mv * .4;                       // velocidade de tela suavizada
-    d.gait += Math.min(mv, r * 1.2) / Math.max(4, r * .5);   // passada ∝ distância (cap anti-teleporte)
+    /* §D38 · A PASSADA — três defeitos que se somavam.
+       ---------------------------------------------------------------------
+       [1] A fase NUNCA voltava ao neutro. Ao parar, `mv → 0` e `d.gait`
+           congelava onde estivesse: o jogador ficava com as pernas ABERTAS,
+           paradas no meio do passo. O `amp` some com a velocidade e disfarça,
+           mas a transição é um corte, não uma parada.
+       [2] A cadência era LINEAR na distância (`mv / 4`). Correndo, as pernas
+           batem rápido demais e viram borrão; no futebol real a passada CRESCE
+           com a velocidade — o atleta dá passos maiores, não infinitamente
+           mais rápidos.
+       [3] A subida do corpo era 0,09·r e quase não se lia.
+
+       Agora: cadência sublinear (raiz), fase que relaxa para o neutro quando o
+       jogador para, e passo com leitura. Só desenho — não toca no motor. */
+    /* §D40/§D41 · A PASSADA PASSA A SER BIOMECANICA, EM METROS.
+       ---------------------------------------------------------------------
+       MEDIDO em `tools/fisica/tela/passada.js`, interceptando a chamada real
+       de `CDS_F25D.body` (7.876 pares de quadro por velocidade):
+
+         1X   3,66 m/s   6,13 passos/s desenhados   contra 3,09 do alvo  (1,98x)
+         3X   3,30 m/s   7,80 passos/s desenhados   contra 2,93 do alvo  (2,66x)
+
+       Sao DOIS defeitos somados, nao um:
+
+       [1] A cadencia nunca teve unidade fisica. `sqrt(mv / (r*.16)) * .62` foi
+           ajustada no olho, em pixels, e saiu com o DOBRO da frequencia de um
+           corredor de verdade — passada implicada de 0,60 m, quando um atleta a
+           3,7 m/s da passos de ~1,19 m. O jogador nao corria: miudava.
+
+       [2] A velocidade de EXIBICAO entrava na conta. O runtime faz
+           `acc += dt * G.speed` e roda N passos de simulacao por quadro
+           desenhado, entao em 3X o deslocamento de TELA por quadro triplica —
+           e a perna, calculada a partir dele, triplicava junto. O tremor
+           anti-cardume, que eu suspeitava ser a causa, foi medido e nao e:
+           responde por 2% de `mv`.
+
+       Agora a fase sai de onde tem que sair: `pi` de fase por PASSO, e o passo
+       tem comprimento em metros que cresce com a velocidade (0,60 + 0,16·v,
+       que devolve 1,19 m a 3,7 m/s e 1,88 m a 8 m/s). Assim os pes acompanham
+       o chao em vez de patinar, em qualquer zoom e qualquer canvas.
+
+       O `_mult` sobrevive so para o avanco rapido: em 3X a cadencia HONESTA
+       seria 3x (e o que fast-forward de video e), mas isso e a vibracao de que
+       o jogador reclamou. A raiz deixa 1,73x — corrida rapida, nao borrao — e
+       o teto de 0,30 rad/quadro garante que nem em 6X vire tremor. */
+    var _pxM = 9.5;                       // px logicos por metro, ja com perspectiva
+    try {
+      var _fW = G.CW - 2 * G.M, _FL = +root.FL || 105;
+      /* r = 13*s e a largura util e fW: a razao entre os dois nao depende do
+         viewport porque o canvas do jogo e logico (1024x500). Conferido contra
+         a medicao: formula 7,98 px/m, medido 7,82 px/m. */
+      if (_fW > 0 && _FL > 0 && r > 0) _pxM = (_fW / _FL) * (r / 13);
+    } catch (_) {}
+    var _vel = 1;
+    try {
+      var _g = root.G;
+      if (_g && isFinite(+_g.speed) && +_g.speed > 0) _vel = Math.max(1, +_g.speed);
+    } catch (_) {}
+    var _dm = mv / Math.max(0.5, _pxM);                    // metros andados no quadro
+    /* velocidade FISICA do atleta: nao muda quando o jogador troca o 1X pelo 3X */
+    var _vms = Math.min(_dm * 60 / _vel, 12);
+    d.vms = (d.vms || 0) * .6 + _vms * .4;
+    var _passoM = 0.60 + 0.16 * d.vms;                     // comprimento do passo, em m
+    var _dfase = Math.PI * (_dm / _passoM) / Math.sqrt(_vel);
+    if (_dfase > 0.03) {                  // ~0,05 px de tela: o mesmo limiar de antes
+      d.gait += Math.min(_dfase, 0.30);   // teto: 5,7 passos/s, acima disso e tremor
+    } else if (d.gait !== 0) {
+      /* parou: fecha as pernas pelo caminho mais curto até o próximo neutro */
+      var _alvo = Math.round(d.gait / Math.PI) * Math.PI;
+      d.gait += (_alvo - d.gait) * .22;
+      if (Math.abs(_alvo - d.gait) < .02) d.gait = _alvo;
+    }
     /* OS-49 · antes, `face` so mudava com deslocamento LATERAL maior que
        0,4 px, entao quem corria para cima ou para baixo do campo mantinha a
        orientacao antiga e descia o gramado encarando o lado. Agora a direcao
@@ -20363,12 +20772,23 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
     // sem a camada de animação.
     const A = (root.__CDS_ANIM_BY_KEY && root.__CDS_ANIM_BY_KEY[o.key]) || null;
     const st = A ? A.state : '';
-    const w = o.divePose ? 0 : (A ? animWave(st, A.phase) : (o.wave || 0));
+    /* §D45 · O MERGULHO DA MAQUINA DE ESTADOS NAO ERA DESENHADO COMO MERGULHO.
+       `o.divePose` vem de `activeMotion` — o caminho LEGADO de poses. Quando a
+       maquina da R14 entra em `gk_low_dive`/`gk_high_dive` sem que o caminho
+       antigo tenha agendado um `dive`, o goleiro voava de pe. */
+    const mergulho = o.divePose || (A && /^gk_(low|high)_dive$/.test(st));
+    const w = mergulho ? 0 : (A ? animWave(st, A.phase) : (o.wave || 0));
     const act = o.act || '', pose = o.pose || '';
-    const kicking = A ? /^(pass|shot)_(prepare|contact|followthrough)$|^cross$/.test(st)
+    /* §D48 · as variantes entram no ramo de CHUTE do desenho: sem isto elas
+       cairiam na modulacao de corrida e o atleta "bateria" correndo. */
+    const kicking = A ? /^(pass|shot)_(prepare|contact|followthrough)$|^cross$|^(power_shot|placed_shot|volley|long_pass|first_touch_pass)$/.test(st)
                       : ((pose === 'kick' || act === 'shoot') && w > 0.02);
     const tackling = A ? /tackle$/.test(st) : (pose === 'tackle' && w > 0.02);
     const heading = A ? (st === 'header') : (pose === 'jump' && w > 0.02);
+    /* §D39/§D42 · a interceptacao TINHA aqui uma bandeira propria que so mexia
+       no `bob` — 0,07·r de deslocamento vertical do boneco inteiro. A sonda de
+       silhueta mostrou que os membros nao se moviam e o gesto lia como corrida.
+       Agora ela sai da tabela POSE, com perna estendida na linha do passe. */
     const dribbling = A ? /^(carry|dribble_|body_feint|inside_cut|outside_cut|burst_touch)/.test(st)
                         : (act === 'dribble' && !kicking && !tackling);
     /* OS-60 · os quatro estados de drible caiam no mesmo desenho. Agora cada um
@@ -20376,13 +20796,31 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
     const dphase = A ? clamp(A.phase || 0, 0, 1) : 0;
     const feint  = A && st === 'body_feint';
     const cutting= A && (st === 'inside_cut' || st === 'outside_cut');
+    /* §D43 · os dois cortes desenhavam IDENTICOS: `cutting` nao olhava para
+       qual dos dois era. Agora o peso vai para o lado oposto conforme o corte,
+       que e a unica coisa que distingue um do outro. */
+    const cutLado = (st === 'outside_cut') ? -1 : 1;
     const bursting = A && st === 'burst_touch';
     const blocking = A ? (st === 'block') : false;
-    const amp = (o.divePose || kicking || tackling) ? 0
-              : clamp(d.spd / 1.5, 0, 1) * (bursting ? 1.35 : 1);   // 0 parado … 1 correndo
+    /* §D41 · A AMPLITUDE TAMBEM DEPENDIA DO BOTAO DE VELOCIDADE.
+       `d.spd` e o deslocamento de TELA suavizado, entao ele triplica em 3X: a
+       mesma corrida saia com perna de 0,31 de amplitude em 1X (o jogador
+       miudava com as pernas quase fechadas) e 0,87 em 3X. Medido:
+       mv = 0,470 px/quadro em 1X contra 1,309 em 3X, o mesmo atleta a ~3,5 m/s.
+       Agora vem de `d.vms`, que e a velocidade FISICA em m/s: 4,2 m/s abre a
+       perna por inteiro, em qualquer velocidade de exibicao. */
+    const amp = (mergulho || kicking || tackling) ? 0
+              : clamp(d.vms / 4.2, 0, 1) * (bursting ? 1.35 : 1);   // 0 parado … 1 correndo
     const sw = Math.sin(d.gait) * amp;                  // -1..1 alterna as pernas
+    /* §D42 · a postura do estado modula a corrida em vez de substitui-la */
+    const P = POSE[st] || null;
+    const swL = P ? sw * P.esc : sw;                    // tesoura das pernas
+    const swB = P ? sw * P.braco : sw;                  // balanco dos bracos
     /* OS-58 · a subida do corpo a cada passada era quase imperceptivel. */
-    const bob = Math.abs(sw) * r * .09 - (tackling ? r * .16 : 0) + (dribbling ? r * .10 : 0)
+    /* §D38 · 0,09·r nao se lia. O corpo sobe DUAS vezes por ciclo (uma por
+       perna de apoio), que e o que da a leitura de passo em vez de deslize. */
+    const bob = Math.abs(swL) * r * .16 - (tackling ? r * .16 : 0) + (dribbling ? r * .10 : 0)
+              - (P ? r * P.agacha : 0)             /* §D42 · o agachamento do estado */
               - (blocking ? r * .12 * Math.sin(dphase * Math.PI) : 0);   /* OS-60 · agacha no bloqueio */
 
     /* OS-47 · GIRO DE 360. Em vista 2,5D o giro se le pelo estreitamento: o
@@ -20396,20 +20834,37 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
        isto, correr para cima e correr para o lado sao o mesmo desenho. */
     const _oa = (d.ang == null) ? 0 : d.ang;
     const _cos = Math.cos(_oa), _sin = Math.sin(_oa);
-    const _vig = (o.divePose || spinning) ? 0 : Math.max(0, Math.min(1, d.spd / 1.5));
+    /* §D41 · a inclinacao do tronco e o estreitamento de perspectiva saiam da
+       mesma `d.spd` de tela: o jogador se jogava para a frente ao apertar 3X e
+       endireitava ao voltar para 1X, sem mudar de velocidade no campo. */
+    const _vig = (mergulho || spinning) ? 0 : Math.max(0, Math.min(1, d.vms / 4.2));
+    let _rotTot = 0;
     ctx.save();
     ctx.translate(x, y - bob - (spinning ? r * .16 * Math.sin(spinTh / 2) : 0));
-    if (!o.divePose && !spinning && _vig > .02) {
+    /* §D42 · o portao era so `_vig > .02` (velocidade de tela). Postura parada —
+       `jockey`, `protect`, `receive_*` — acontece justamente com pouca
+       velocidade: sem abrir o portao para ela, a inclinacao do estado nunca
+       chegava a ser aplicada. */
+    if (!mergulho && !spinning && (_vig > .02 || (P && P.inc !== 0))) {
       /* OS-60 · corte joga o peso para fora antes de sair para dentro;
          arrancada projeta o tronco a frente. */
-      const _extra = cutting  ? -face * .30 * Math.sin(dphase * Math.PI)
+      const _extra = cutting  ? -face * cutLado * .30 * Math.sin(dphase * Math.PI)
                    : bursting ?  face * .26 * Math.min(1, dphase * 2.4)
                    : 0;
-      ctx.rotate(_cos * _vig * 0.20 + _extra);
+      /* §D42 · a inclinacao da postura e do estado, e olha para onde o atleta
+         encara: recuar de frente para a bola tem que ler diferente de correr */
+      /* §D46 · COM TETO. A rotacao gira o boneco INTEIRO em torno do ponto de
+         chao, entao a cabeca — que fica a 0,82·r de altura — descreve um arco:
+         a 0,60 rad ela desloca 0,46·r, mais que a meia-largura do tronco
+         (0,56·r), e o atleta le como "caindo" em vez de "inclinado". Visto na
+         folha de poses em `accelerate` e `press`, que juntos sao dois dos
+         estados mais frequentes do jogo. */
+      _rotTot = clamp(_cos * _vig * 0.20 + _extra + (P ? face * P.inc : 0), -0.34, 0.34);
+      ctx.rotate(_rotTot);
       const _sq = 1 - Math.abs(_sin) * _vig * 0.22;
       ctx.scale(_sq < .5 ? .5 : _sq, 1);
     }
-    if (o.divePose) ctx.rotate(Math.PI / 2);
+    if (mergulho) ctx.rotate(Math.PI / 2);
     else if (spinning) {
       const _c = Math.cos(spinTh);
       ctx.scale(Math.abs(_c) < .16 ? (_c < 0 ? -.16 : .16) : _c, 1);
@@ -20418,12 +20873,17 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
     // ── PERNAS conforme a ação
     ctx.fillStyle = '#17202e';
     if (kicking) {
-      const back = -face * r * .28, front = face * (r * .06 + w * r * .52);
+      /* §D48 · o VOLEIO e a bola no ar: a perna sobe muito mais que num chute
+         de chao, e e so isso que o separa visualmente. `alto` tambem serve ao
+         chute de forca, que projeta mais a perna que a cavadinha. */
+      const alto = (st === 'volley') ? r * .46 : (st === 'power_shot') ? r * .16 : 0;
+      const forca = (st === 'power_shot') ? 1.35 : (st === 'placed_shot') ? 0.78 : 1;
+      const back = -face * r * .28, front = face * (r * .06 + w * r * .52 * forca);
       ctx.fillRect(back - r * .13, r * .40, r * .26, r * .46);                  // apoio
-      ctx.fillRect(front - r * .13, r * .40 - w * r * .12, r * .26, r * .46);   // perna de chute
+      ctx.fillRect(front - r * .13, r * .40 - w * r * .12 - w * alto, r * .26, r * .46);   // perna de chute
       ctx.fillStyle = '#0b0f16';
       ctx.fillRect(back - r * .15, r * .78, r * .30, r * .20);
-      ctx.fillRect(front - r * .15, r * .78 - w * r * .12, r * .30, r * .20);
+      ctx.fillRect(front - r * .15, r * .78 - w * r * .12 - w * alto, r * .30, r * .20);
     } else if (blocking) {
       /* OS-60 · MEDIDO: o estado de bloqueio desenhava exatamente igual ao de
          corrida — tinha 100% de cobertura de evento e nenhuma pose. Agora o
@@ -20445,16 +20905,21 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
       /* OS-58 · a passada movia a perna SO em Y, por r*.20 — com r ~ 30 px sao
          6 px de diferenca entre as duas pernas, quase nada. Agora ha TESOURA:
          uma perna vai a frente e a outra atras, e a amplitude vertical sobe. */
-      const llY = r * .40 - Math.max(0, sw) * r * .30;
-      const rlY = r * .40 - Math.max(0, -sw) * r * .30;
+      const llY = r * .40 - Math.max(0, swL) * r * .30;
+      const rlY = r * .40 - Math.max(0, -swL) * r * .30;
       const spr = (dribbling ? r * .06 : 0)
-                + (cutting ? r * .22 * Math.sin(dphase * Math.PI) : 0);          // OS-60 · corte planta e abre
-      const lsx = sw * r * .20 * face, rsx = -sw * r * .20 * face;
+                + (cutting ? r * .22 * Math.sin(dphase * Math.PI) : 0)            // OS-60 · corte planta e abre
+                + (P ? r * P.spr : 0);                                            // §D42 · base da postura
+      /* §D42 · `estica` poe UMA perna a frente, na direcao que o atleta encara.
+         E o que separa alcancar de correr: interceptar, dominar e tocar longo
+         sao gestos de alcance, e sem isto os tres saiam com passada normal. */
+      const ext = P ? face * r * P.estica * (P.estica > .3 ? (0.35 + 0.65 * Math.sin(Math.max(0, Math.min(1, dphase)) * Math.PI)) : 1) : 0;
+      const lsx = swL * r * .20 * face, rsx = -swL * r * .20 * face;
       ctx.fillRect(-r * .34 - spr + lsx, llY, r * .26, r * .46);
-      ctx.fillRect(r * .08 + spr + rsx, rlY, r * .26, r * .46);
+      ctx.fillRect(r * .08 + spr + rsx + ext, rlY, r * .26, r * .46);
       ctx.fillStyle = '#0b0f16';
       ctx.fillRect(-r * .36 - spr + lsx, llY + r * .38, r * .30, r * .22);
-      ctx.fillRect(r * .06 + spr + rsx, rlY + r * .38, r * .30, r * .22);
+      ctx.fillRect(r * .06 + spr + rsx + ext, rlY + r * .38, r * .30, r * .22);
     }
     // shorts
     ctx.fillStyle = dark;
@@ -20474,15 +20939,21 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
     // MANGAS/braços — GOLEIRO tem prontidão/encaixe + LUVAS (ATL-032); linha de campo
     // ergue no cabeceio e abre no chute (equilíbrio).
     const gk = o.isGK;
-    const gkClaim = gk && (pose === 'claim' || pose === 'jump') && w > 0.02;
+    /* §D45 · os bracos ao alto do goleiro so respondiam ao caminho legado
+       (`o.pose`). Encaixe, soco e mergulho alto sao ESTADOS da R14 ha muito
+       tempo e nenhum deles levantava o braco. */
+    const gkClaim = gk && ((pose === 'claim' || pose === 'jump') && w > 0.02
+                           || /^gk_(catch|punch|high_dive)$/.test(st));
     ctx.fillStyle = jersey;
     if (gkClaim) {                                       // goleiro no ENCAIXE: braços ao alto
       const up = r * (.72 + w * .36);
       rr(ctx, -r * .48, -up, r * .24, r * .58, r * .09); ctx.fill();
       rr(ctx, r * .24, -up, r * .24, r * .58, r * .09); ctx.fill();
-    } else if (gk) {                                     // goleiro em PRONTIDÃO: braços abertos
-      rr(ctx, -r * .94, -r * .36, r * .24, r * .52, r * .09); ctx.fill();
-      rr(ctx, r * .70, -r * .36, r * .24, r * .52, r * .09); ctx.fill();
+    } else if (gk) {                                     // goleiro: braços pela POSTURA
+      /* §D45 · era uma unica pose de "prontidao" para os 13 estados. */
+      const _gl = r * ((P && P.gl) || 0), _gr = r * ((P && P.gr) || 0), _gx = r * ((P && P.gx) || 0);
+      rr(ctx, -r * .94 - _gx, -r * .36 + _gl, r * .24, r * .52, r * .09); ctx.fill();
+      rr(ctx, r * .70 + _gx, -r * .36 + _gr, r * .24, r * .52, r * .09); ctx.fill();
     } else if (heading) {
       rr(ctx, -r * .88, -r * .74 - w * r * .32, r * .24, r * .52, r * .09); ctx.fill();
       rr(ctx, r * .64, -r * .74 - w * r * .32, r * .24, r * .52, r * .09); ctx.fill();
@@ -20493,9 +20964,24 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
       /* OS-58 · os bracos eram dois retangulos FIXOS, sem nenhuma dependencia
          da passada. Braco parado e o que mais denuncia "boneco deslizando".
          Agora balancam em contrafase com a perna, em Y e em X. */
-      const abY = -sw * r * .26, abX = -sw * r * .10 * face;
-      rr(ctx, -r * .8 + tl + abX, -r * .46 + abY, r * .26, r * .58, r * .09); ctx.fill();
-      rr(ctx, r * .54 + tl - abX, -r * .46 - abY, r * .26, r * .58, r * .09); ctx.fill();
+      /* §D42 · `braco` acima de 1 abre os bracos para fora alem de balancar:
+         proteger a bola, marcar de lado e perder o controle sao gestos de
+         BRACO, e com o balanco puro os tres liam como corrida. */
+      /* §D44 · O BALANCO GRANDE ESTAVA NO EIXO ERRADO.
+         Era `abY = -sw*r*.26` (vertical) contra `abX = -sw*r*.10` (no eixo da
+         corrida): o componente GRANDE subia e descia. Braco humano nao sobe e
+         desce ao correr — ele vai e volta ao longo do corpo, e o pouco de
+         vertical que aparece e consequencia. Com o peso invertido o boneco
+         abanava, e abanava em contrafase com a perna, que e o que da a leitura
+         de brinquedo.
+
+         Agora o curso principal e no eixo do deslocamento (`face`), com um
+         terco do vertical de antes, e a amplitude total cai — os bracos
+         acompanham a passada em vez de disputar com ela. */
+      const abY = -swB * r * .08, abX = swB * r * .17 * face;
+      const abrir = P ? r * .12 * Math.max(0, P.braco - 1) : 0;
+      rr(ctx, -r * .8 + tl + abX - abrir, -r * .46 + abY, r * .26, r * .58, r * .09); ctx.fill();
+      rr(ctx, r * .54 + tl - abX + abrir, -r * .46 - abY, r * .26, r * .58, r * .09); ctx.fill();
     }
     if (gk) {                                            // LUVAS do goleiro nas pontas dos braços
       ctx.fillStyle = '#eef3ff';
@@ -20504,12 +20990,19 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
         ctx.beginPath(); ctx.arc(-r * .36, -up - r * .02, r * .19, 0, TAU); ctx.fill();
         ctx.beginPath(); ctx.arc(r * .36, -up - r * .02, r * .19, 0, TAU); ctx.fill();
       } else {
-        ctx.beginPath(); ctx.arc(-r * .82, r * .16, r * .18, 0, TAU); ctx.fill();
-        ctx.beginPath(); ctx.arc(r * .82, r * .16, r * .18, 0, TAU); ctx.fill();
+        /* §D45 · a luva ficava num ponto FIXO enquanto o braco se movia: com a
+           postura ligada, a mao descolava do braco. */
+        const _gl = r * ((P && P.gl) || 0), _gr = r * ((P && P.gr) || 0), _gx = r * ((P && P.gx) || 0);
+        ctx.beginPath(); ctx.arc(-r * .82 - _gx, r * .16 + _gl, r * .18, 0, TAU); ctx.fill();
+        ctx.beginPath(); ctx.arc(r * .82 + _gx, r * .16 + _gr, r * .18, 0, TAU); ctx.fill();
       }
     }
     // CABEÇA + cabelo — inclina à frente no cabeceio/drible
-    const hx = lean * .4 + tl + (heading ? face * r * .26 : 0) + (dribbling ? face * r * .10 : 0);
+    /* §D46 · a cabeca desfaz PARTE do arco da inclinacao. Compensar tudo
+       deixaria o pescoco rigido e mataria a leitura do gesto; 62% mantem a
+       cabeca sobre o quadril e ainda deixa o tronco projetado a frente. */
+    const hx = lean * .4 + tl + (heading ? face * r * .26 : 0) + (dribbling ? face * r * .10 : 0)
+             - _rotTot * r * .62;
     const hy = -r * .82 + (heading ? w * r * .10 : 0);
     ctx.beginPath(); ctx.arc(hx, hy, r * .34, 0, TAU);
     ctx.fillStyle = '#e9b98b'; ctx.fill();
@@ -20667,7 +21160,11 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
     ctx.restore();
   }
 
-  root.CDS_F25D = Object.freeze({ version: '2.1.0', project, grass, pitch, body, trail, ball, traj });
+  /* D24 · a faixa do gramado, para quem precisa enquadrar (a camera do runtime).
+     Sem isto o `paintField` so tem CH, que passou a nao dizer onde o campo
+     esta. */
+  function faixa() { return { topY: G.topY, bottomY: G.bottomY, ready: G.ready }; }
+  root.CDS_F25D = Object.freeze({ version: '2.2.0', project, grass, pitch, body, trail, ball, traj, faixa });
 })(typeof window !== 'undefined' ? window : globalThis);
 
 /*
@@ -20763,6 +21260,16 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
     block:           { tier: T_DEF, dur: 0.26 },
     body_duel:       { tier: T_DEF, dur: 0.30 },
     recover:         { tier: T_DEF, dur: 0.30 },
+    /* §OS-207 · QUEM SOFRE A FALTA NAO TINHA GESTO NENHUM.
+       Sao 62 estados declarados e nenhum deles e levar uma falta. O motor
+       emite `foul` com `by` (quem cometeu) e `on` (quem sofreu) desde sempre,
+       e a apresentacao so tinha `fxAt(e.on,'foul')` — uma particula e um som.
+       O jogador derrubado seguia com a locomocao que tivesse, entao a falta
+       lia como "apitou do nada" e ele saia trotando do proprio tombo.
+       Tier de ACAO porque o tombo manda no corpo: a locomocao nao pode
+       sobrescrever. `fouled` e o desequilibrio, `get_up` a recomposicao. */
+    fouled:          { tier: T_ACTION, dur: 0.52 },
+    get_up:          { tier: T_ACTION, dur: 0.46 },
     // goleiro
     gk_ready:         { tier: T_GK, loop: true },
     gk_shift:         { tier: T_GK, loop: true },
@@ -20794,6 +21301,92 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
     let s = 'idle';
     for (const [lim, name] of LOCO) { if (speed < lim) { s = name; break; } }
     return s;
+  }
+
+  /* §D42 · O PISO SO SABIA ANDAR PARA A FRENTE.
+     ------------------------------------------------------------------------
+     MEDIDO com `tools/fisica/tela/gestos.js`: **32 dos 62 estados declarados
+     nunca chegaram a ser desenhados** numa amostra de 60 s a 6X. A causa nao
+     e o desenho, e o contexto: a ponte entregava aos controladores TRES
+     campos — `speed`, `hasBall`, `isGK` — e `locoFor` so sabe devolver
+     idle/walk/jog/run/sprint a partir do modulo da velocidade.
+
+     Com isso, familias inteiras ficavam inalcancaveis por construcao: toda a
+     locomocao de transicao (accelerate, decelerate, turn, strafe, backpedal),
+     toda a postura defensiva sem bola (press, jockey, body_duel, recover) e
+     toda a recepcao (receive_prepare/contact/control).
+
+     Nenhuma delas precisa de informacao nova do MOTOR — todas saem da
+     velocidade, da sua derivada e da relacao com a bola, que a ponte ja podia
+     calcular e nao calculava. Segue sendo observacao pura. */
+  function posturaFor(ctx) {
+    const v = finite(ctx.speed);
+    const dot = finite(ctx.dotBola, 1);          // +1 corre para a bola, -1 recua dela
+    /* a bola esta a caminho DELE: o corpo se prepara antes de ela chegar */
+    if (ctx.recebendo && !ctx.hasBall) return 'receive_prepare';
+    /* parado marcando: agachado, de lado, base larga */
+    if (ctx.marcando && v < 2.4) return 'jockey';
+    if (v < 0.25) return 'idle';
+    /* de frente para a bola e recuando: nao e correr, e recuar */
+    if (ctx.temRefBola && dot < -0.55 && v > 1.2 && v < 5.2) return 'backpedal';
+    /* atravessado em relacao a bola: deslocamento lateral */
+    if (ctx.temRefBola && Math.abs(dot) < 0.40 && v > 1.8 && v < 5.6) return 'strafe';
+    if (ctx.pressionando) return 'press';
+    return locoFor(v);
+  }
+
+  /* §D43 · QUEM ESTA COM A BOLA SO SABIA DUAS COISAS.
+     O piso do portador era `speed > 0.3 ? 'carry' : 'protect'` — duas posturas
+     para tudo. `burst_touch` e `protect_turn` estao declarados, tem desenho, e
+     so podiam vir de um evento de drible que **acontece 3 vezes em 38 minutos**
+     (medido em `tools/fisica/tela/drible.js`) e ainda exige atributo de elite.
+
+     Como gesto, os dois nao dependem do duelo: arrancar com a bola e girar
+     protegendo-a sao coisas que o portador faz o tempo todo. Saem da propria
+     cinematica dele, que a §D42 ja poe no contexto. */
+  function comBolaFor(ctx) {
+    const v = finite(ctx.speed);
+    if (finite(ctx.dSpeed) > 4.5 && v > 2.6) return 'burst_touch';
+    if (finite(ctx.oponenteProx, 99) < 3.0 && Math.abs(finite(ctx.giro)) > 2.6) return 'protect_turn';
+    return v > 0.3 ? 'carry' : 'protect';
+  }
+
+  /* §D45 · O PISO DO GOLEIRO ERA UMA CONSTANTE.
+     `ctx.isGK ? 'gk_ready'` — sempre, em qualquer velocidade, com ou sem bola.
+     Ele esta em cena 100% do tempo e tinha um estado so fora dos instantes de
+     defesa.
+
+     MEDIDO em `tools/fisica/tela/goleiro.js`, 10.586 amostras:
+
+       parado (v < 0,3 m/s)     18,2%     <- os outros 81,8% ele se desloca
+       velocidade mediana       1,26 m/s   p90 3,01   p99 6,81
+       bola a menos de 18 m     12,2%
+       com a bola na mao         0,9%
+
+     Ou seja: em **quatro de cada cinco quadros** o goleiro estava andando e
+     sendo desenhado parado em prontidao. `gk_shift` e `gk_set` estavam
+     declarados desde a R14 e nunca tinham sido pedidos por ninguem. */
+  function goleiroFor(ctx) {
+    const v = finite(ctx.speed);
+    if (ctx.hasBall) return 'gk_ready';        // a distribuicao vem por evento
+    /* A POSICAO DE ESPERA VEM ANTES DO DESLOCAMENTO. Na primeira versao eu
+       exigi `v < 0,6` E bola perto, e `gk_set` nao disparou nenhuma vez: quando
+       a bola se aproxima o goleiro esta justamente se MOVENDO, entao as duas
+       condicoes sao quase disjuntas. "Set" nao quer dizer imovel, quer dizer
+       plantado e esperando o chute — o que exclui o sprint, nao o passo. */
+    if (finite(ctx.distBola, 99) < 20 && v < 2.2) return 'gk_set';
+    if (v > 0.6) return 'gk_shift';            // desloca na linha
+    return 'gk_ready';
+  }
+
+  /* transicoes curtas: disparam UMA vez por gesto, a partir de estado ciclico */
+  function transicaoFor(ctx) {
+    const dv = finite(ctx.dSpeed);               // m/s por segundo
+    const gir = Math.abs(finite(ctx.giro));      // rad/s da direcao de corrida
+    if (gir > 3.2 && finite(ctx.speed) > 2.2) return 'turn';
+    if (dv > 4.5) return 'accelerate';
+    if (dv < -5.0) return 'decelerate';
+    return null;
   }
 
   function Controller(id) {
@@ -20832,7 +21425,13 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
     if (!force && def.tier < this.tier && !finished && !cyclic) return false;
     if (!force && def.tier === this.tier && this.seq && !finished) return false;
     if (this.seq && (force || def.tier > this.tier)) { this.seq = null; this.contract = null; }
-    return this._enter(state, opts && opts.dur, now);
+    const ok = this._enter(state, opts && opts.dur, now);
+    /* §D43 · encadeamento de UM passo: o gesto pedido e, quando ele acabar, o
+       desfecho. Sem isto nao ha como dizer "driblou" e depois "passou", nem
+       "errou o bote" e depois "se recompoe" — os estados de desfecho
+       (`dribble_success`, `recover`) existem justamente para o depois. */
+    if (ok) this._apos = (opts && opts.entao) || null;
+    return ok;
   };
 
   /* Dirige a sequência de ação a partir do contrato da Fase 2. As durações vêm
@@ -20863,6 +21462,20 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
   Controller.prototype.update = function (dt, now, ctx) {
     ctx = ctx || {};
     this.t += finite(dt);
+    /* §D42 · A BOLA CHEGAVA E O CORPO NAO REAGIA. O dominio e o gesto mais
+       frequente de uma partida — umas 500 vezes — e os tres estados que o
+       descrevem (`receive_prepare/contact/control`) nunca eram pedidos por
+       ninguem. O preparo sai da postura; contato e dominio sao encadeados aqui,
+       no quadro em que a posse muda, que e a unica hora em que se sabe que a
+       bola chegou de fato. */
+    if (ctx.hasBall && this.state === 'receive_prepare' && !this.seq) {
+      this.seq = ['receive_contact', 'receive_control'];
+      this.seqIdx = 0;
+      this.contract = { recoveryDuration: 0.22 };
+      this._enter('receive_contact', 0.10, now);
+      this.tier = T_BALL;
+      return this.snapshot();
+    }
     if (this.dur > 0 && this.t >= this.dur) {
       if (this.seq) {
         this.seqIdx++;
@@ -20878,17 +21491,42 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
         this.seq = null;
         this.contract = null;
       }
+      /* §D43 · o desfecho encadeado entra antes do piso */
+      if (this._apos) {
+        const _nx = this._apos;
+        this._apos = null;
+        if (this._enter(_nx, null, now)) return this.snapshot();
+      }
       // caiu para o piso: locomoção (ou prontidão do goleiro)
-      const base = ctx.isGK ? 'gk_ready' : locoFor(finite(ctx.speed), this.state);
-      this.tier = ctx.isGK ? T_GK : T_LOCO;
+      const base = ctx.isGK ? goleiroFor(ctx) : posturaFor(ctx);
       this._enter(base, null, now);
+      /* §D42 · `_enter` sobrescreve `this.tier` com o tier declarado do estado,
+         entao a atribuicao que ficava ANTES dele era codigo morto. Agora vem
+         depois — e precisa vir: `jockey`/`press` sao T_DEF, e um tier acima de
+         T_BALL trava o ramo ciclico abaixo, deixando o atleta preso na postura
+         para sempre. Como piso, eles valem como locomocao. */
+      this.tier = ctx.isGK ? T_GK : T_LOCO;
     } else if (this.dur === 0) {
+      /* §D42 · transicao curta antes do piso: so a partir de estado ciclico e
+         so uma vez por gesto, senao ela reinicia a cada quadro e nada se le */
+      const tr = ctx.isGK ? null : transicaoFor(ctx);
+      if (tr && tr !== this._ultTr) {
+        this._ultTr = tr;
+        this._enter(tr, null, now);
+        this.tier = T_LOCO;
+        return this.snapshot();
+      }
+      if (!tr) this._ultTr = null;
       // estado cíclico acompanha a velocidade sem reiniciar a fase à toa
-      const base = ctx.isGK ? 'gk_ready'
-                 : ctx.hasBall ? (finite(ctx.speed) > 0.3 ? 'carry' : 'protect')
-                 : locoFor(finite(ctx.speed), this.state);
-      if (base !== this.state && this.tier <= T_BALL) {
+      const base = ctx.isGK ? goleiroFor(ctx)
+                 : ctx.hasBall ? comBolaFor(ctx)
+                 : posturaFor(ctx);
+      if (base !== this.state && this.tier <= T_DEF) {
         this._enter(base, null, now);
+        /* so estado CICLICO volta a valer como piso; rebaixar o tier de um
+           gesto com duracao (burst_touch, protect_turn) deixaria ele ser
+           interrompido no meio pela propria locomocao */
+        if (!ctx.isGK && (STATES[base] || {}).loop) this.tier = T_LOCO;
       }
     }
     return this.snapshot();
@@ -20992,13 +21630,36 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
     };
 
     /* Avança os controladores junto do relógio do motor e publica o estado por
-       atleta para o desenhista consultar. */
-    const oldStep = M.prototype.step;
-    M.prototype.step = function (dt) {
-      const r = oldStep.apply(this, arguments);
+       atleta para o desenhista consultar.
+
+       §OS-207 · ESTA AMOSTRAGEM ACONTECE NO MEIO DA CADEIA, NAO NO FIM.
+       Cada camada envolve `P.step` capturando a anterior, entao a ORDEM DO
+       DOCUMENTO decide quem roda por fora de quem. Esta ponte e o bloco 21;
+       depois dela ainda escrevem `p.x/p.y` — e algumas tambem `p.vx/p.vy` —
+       a OS-77 (falta comum), a OS-83 (impedimento), a OS-100 (lateral), a
+       OS-107 (bloco de bola parada), a OS-112 e a R18.99. Ou seja: tudo que
+       move gente durante a CERIMONIA de bola parada escreve DEPOIS que a
+       animacao ja escolheu a pose do quadro.
+       O sintoma e exatamente o que a R18.99/T7 descreve e tentou corrigir
+       ("o 'meio bugadinho' que se ve na hora da falta"): ela recalcula a
+       velocidade a partir do deslocamento real, mas faz isso quatro niveis
+       POR FORA daqui — a correcao existe e a animacao nunca a ve, porque o
+       quadro dela ja passou. O desenhista pinta a posicao FINAL e a maquina
+       de estados escolheu a pose pela velocidade do meio do caminho: o
+       jogador desliza pelo gramado em `idle`, ou corre parado depois de
+       chegar ao posto.
+       A correcao nao e mexer aqui na conta, e mexer na HORA: quando a camada
+       final (OS-207) esta instalada, ela chama `amostrar` depois de todo
+       mundo ter escrito, e esta copia se cala para nao amostrar duas vezes
+       nem avancar o relogio dos controladores em dobro. */
+    const amostrar = function (dt) {
       try {
         if (this.__anim) {
           const ctx = Object.create(null);
+          const _dt = Number(dt) || 0;
+          const b = this.ball || {};
+          if (!this.__animPrev) this.__animPrev = Object.create(null);
+          const prev = this.__animPrev;
           for (const tm of this.teams) {
             for (const p of tm.players) {
               if (p.red) continue;
@@ -21006,10 +21667,60 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
               // recebe um evento de ação ganha estado, e os demais ficam sem
               // locomoção nenhuma para o desenhista consultar
               this.__anim.of(idOf(p));
-              ctx[idOf(p)] = {
-                speed: Math.hypot(Number(p.vx) || 0, Number(p.vy) || 0),
-                hasBall: this.ball && this.ball.owner === p,
-                isGK: !!p.isGK
+              /* §D42 · o contexto tinha TRES campos e por isso 32 dos 62
+                 estados eram inalcancaveis. Nada aqui pergunta nada de novo ao
+                 motor: e a mesma velocidade, sua derivada, e a relacao
+                 geometrica com a bola. Continua sendo observacao pura. */
+              const _id = idOf(p);
+              const vx = Number(p.vx) || 0, vy = Number(p.vy) || 0;
+              const v = Math.hypot(vx, vy);
+              const ant = prev[_id];
+              const ang = v > 0.4 ? Math.atan2(vy, vx) : (ant ? ant.ang : 0);
+              let giro = 0;
+              if (ant && _dt > 0 && v > 0.4 && ant.v > 0.4) {
+                let da = ang - ant.ang;
+                while (da > Math.PI) da -= Math.PI * 2;
+                while (da < -Math.PI) da += Math.PI * 2;
+                giro = da / _dt;
+              }
+              const dSpeed = (ant && _dt > 0) ? (v - ant.v) / _dt : 0;
+              prev[_id] = { v: v, ang: ang };
+
+              const bx = Number(b.x) || 0, by = Number(b.y) || 0;
+              const dbx = bx - (Number(p.x) || 0), dby = by - (Number(p.y) || 0);
+              const db = Math.hypot(dbx, dby);
+              /* projecao da corrida na direcao da bola: +1 vai para cima dela,
+                 -1 recua de frente para ela, ~0 corre atravessado */
+              const dot = (v > 0.5 && db > 0.4) ? (vx * dbx + vy * dby) / (v * db) : 1;
+              /* §D43 · distancia ao adversario mais proximo: e o que distingue
+                 girar com espaco de girar protegendo a bola */
+              let opProx = 99;
+              for (const otm of this.teams) {
+                if (otm === tm) continue;
+                for (const q of otm.players) {
+                  if (!q || q.red) continue;
+                  const dq = Math.hypot((Number(q.x) || 0) - (Number(p.x) || 0),
+                                        (Number(q.y) || 0) - (Number(p.y) || 0));
+                  if (dq < opProx) opProx = dq;
+                }
+              }
+              const dono = b.owner;
+              const advers = !!(dono && dono.team !== p.team && dono !== p);
+              const dDono = advers ? Math.hypot((Number(dono.x) || 0) - (Number(p.x) || 0),
+                                                (Number(dono.y) || 0) - (Number(p.y) || 0)) : 1e9;
+              ctx[_id] = {
+                speed: v,
+                hasBall: b.owner === p,
+                isGK: !!p.isGK,
+                dSpeed: dSpeed,
+                giro: giro,
+                dotBola: dot,
+                temRefBola: v > 0.5 && db > 0.4,
+                marcando: advers && dDono < 4.5,
+                pressionando: advers && dDono < 14 && v > 3.6 && dot > 0.5,
+                recebendo: !!(b.traveling && b.receiver === p && db < 9),
+                distBola: db,
+                oponenteProx: opProx,
               };
             }
           }
@@ -21028,6 +21739,18 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
           root.__CDS_ANIM_BY_KEY = byKey;
         }
       } catch (_) { }
+    };
+
+    /* §OS-207 · a amostragem fica publicada para que a camada final possa
+       chama-la depois de TODOS os escritores de posicao. Enquanto ninguem a
+       reivindicar (`dono`), a ponte continua amostrando no lugar de sempre —
+       builds sem a OS-207 seguem funcionando exatamente como antes. */
+    root.CDS_ANIM_BRIDGE = { amostrar: amostrar, dono: null };
+
+    const oldStep = M.prototype.step;
+    M.prototype.step = function (dt) {
+      const r = oldStep.apply(this, arguments);
+      if (!root.CDS_ANIM_BRIDGE.dono) amostrar.call(this, dt);
       return r;
     };
 
@@ -21179,6 +21902,12 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
         py=clamp(p._markRef.y,2,FW-2);
       }
     }
+    /* D20 · NAO ponha teto de profundidade para o FWD aqui. Eu pus, e ele e
+       morto: a camada 60 (R18.43) roda DEPOIS e aplica um PISO de 32 m ao
+       atacante defendendo, entao qualquer teto daqui e reescrito para cima.
+       Medido pela sonda tools/fisica/ramo-d20.js: com o teto em linha+18,
+       22,9% dos alvos de FWD ainda voltavam acima de linha+30.
+       O dono do comprimento do bloco e a camada 60. */
     return[fromProg(tm,clamp(px,1,FL-1)),clamp(py,1,FW-1)];
   };
   const oldIntegrate=P._integrate;
@@ -21806,9 +22535,35 @@ try{root.CDS_BUILD_ID='R18.15.1';root.CDS_VERSION=V;document.title='Copa dos Son
         if (_r1835rota === 'comum' && victim && !victim.red && this.pendingRestart) {
           var sx = clamp(num(victim.x), 1, FL - 1), sy = clamp(num(victim.y), 1, FW - 1);
           var tm = this.teams[victim.team];
-          var cand = tm.players.filter(function (p) { return p && !p.red && !p.isGK; })
-                       .sort(function (m, n2) { return dist(m.x, m.y, sx, sy) - dist(n2.x, n2.y, sx, sy); })[0] || victim;
-          armTaker(this, cand, sx, sy, 1, 3.4, true);
+          /* §D37 · QUEM SOFREU A FALTA NAO COBRA — era por isso que ninguem
+             caminhava. O filtro pegava o jogador MAIS PROXIMO do ponto da
+             falta, e o ponto da falta E a posicao da vitima: o mais proximo era
+             ela mesma, a 0,0 m. Com d=0 o armTaker calcula `need = 1 + 0/6,5`
+             e nao ha caminhada — o juiz apita e a bola sai quase junto. E o
+             mesmo defeito que a R18.35 foi escrita para consertar ("distancia
+             mediana 0,0 m"), reintroduzido pelo criterio de escolha.
+
+             Medido na tela (tools/fisica/tela/bolaparada.js):
+                 antes    dead 0,82 s   cobrador a 0,00 m, velocidade 0
+                 escanteio dead 4,75 s  cobrador anda 26,65 m e chega
+
+             DOSE: a primeira tentativa usou (1 , 3,4) e REPROVOU — dead media
+             ~2,4 s acrescenta ~1,6 s de bola morta x ~22 faltas por partida, e
+             o `blowoutRate` foi de 0,157 para 0,203 (faixa 0,09-0,19). As 14
+             metricas nao viram; a distribuicao de placares viu (armadilha B1).
+             Medicao em reports/falta-tentativa-reprovada.json.
+             Agora (0,5 , 1,8): ACEITO em 300 partidas pareadas — 14 metricas
+             dentro de 2 SE, design 12/13 sem nenhuma sair da faixa, futebol
+             real 15/21 inalterado. `blowoutRate` 0,143, contra 0,203 da dose
+             alta e 0,157 da linha de base. */
+          var elegiveis = tm.players.filter(function (p) {
+            return p && !p.red && !p.isGK && p !== victim;
+          });
+          if (!elegiveis.length) elegiveis = tm.players.filter(function (p) { return p && !p.red; });
+          var cand = elegiveis.sort(function (m, n2) {
+            return dist(m.x, m.y, sx, sy) - dist(n2.x, n2.y, sx, sy);
+          })[0] || victim;
+          armTaker(this, cand, sx, sy, 0.5, 1.8, true);
           var sim = this;
           this.pendingRestart = function () {
             sim._giveBall(cand);
@@ -21982,7 +22737,29 @@ try{root.CDS_BUILD_ID='R18.15.1';root.CDS_VERSION=V;document.title='Copa dos Son
   });
 })(typeof window!=='undefined'?window:globalThis);
 </script>
-<script id="r18155-build-identity">
+<script id="cds-build-identity">/* D33 · IDENTIDADE DE BUILD — treze arquivos fundidos em um.
+   ===========================================================================
+   Eram treze blocos <script> separados no bundle, cada um com entrada propria
+   no manifesto e no verify.py, e nenhum deles sobrescrevia metodo nenhum: so
+   publicavam `CDS_BUILD_ID`, `CDS_VERSION`, `document.title` e um objeto
+   congelado de metadados por release.
+
+   Verificado antes de fundir (o criterio de aceite do D33):
+     - NENHUM dos onze objetos `CDS_R*_BUILD` / `CDS_OS8*` e lido em lugar
+       algum de src/, tools/ ou tests/;
+     - `CDS_BUILD_ID` so e lido por tools/fisica/tela/pinga.js, DEPOIS de todas
+       as camadas — entao so o valor final importa, e ele continua vindo das
+       camadas 86/88/89/90, que rodam depois desta.
+
+   O conteudo esta preservado LINHA POR LINHA e na ordem original: estes
+   objetos sao a memoria institucional do projeto (a nota da R18.19 removida
+   por ablacao, o vazamento de raio do goleiro na R18.40A, o motivo de
+   `_looseBall` ter sido evitado na R18.31). Fundir nao e apagar.
+
+   Ordem original: 35, 37, 41, 42, 44, 46, 48, 50, 52, 59, 72, 73, 83. */
+
+/* ─── era 35-r18155-build-identity.js ─────────────────────── */
+
 (function(){
   try{
     window.CDS_BUILD_ID='R18.15.5';
@@ -21991,6 +22768,94 @@ try{root.CDS_BUILD_ID='R18.15.1';root.CDS_VERSION=V;document.title='Copa dos Son
     window.CDS_R18155=Object.freeze({selectionToggle:true,preMatchPositionSwap:true,playerAttributesOwnSquad:true,playerAttributesOpponent:true,draftCampaignSeed:true,draftNationCooldown:4,cupDrawSeed:true,randomEraMix:{uniform:.70,strengthBiased:.30},questionMarkDraw:true,draftPitchFullyVisible:true,restartWalkFix:true,directShotMissGoalKick:true,untouchedPostOutGoalKick:true,staleCrossWindowCleared:true,engineChange:'restart-semantics-only'});
   }catch(_){ }
 })();
+
+/* ─── era 37-cds-r18161-build-identity.js ─────────────────────── */
+
+(function(){try{window.CDS_BUILD_ID='R18.16.1';window.CDS_VERSION='5.12.0-R18.16.1-EXECUCAO-REAL-NA-AREA';document.title='Copa dos Sonhos — R18.16.1';window.CDS_R18161_BUILD=Object.freeze({baseline:'R18.16-PLANEJAMENTO-AREA',flagsBaseline:'R18.15.6-BANDEIRAS-REAIS',restartLaw:'R18.15.5',boxMovementPlanning:true,physicalRuns:true,eventDriven:true,frozenPlan:true,continuousAttributes:true,roles:6,noTeleport:true,noGlobalSpeedBonus:true,noXgChange:true,maxTargetShiftMeters:.72});}catch(_){}})();
+
+/* ─── era 41-cds-r181732-mobile-start-meta.js ─────────────────────── */
+
+window.CDS_R181732_MOBILE_START = Object.freeze({version:'R18.17.3.2',directCriticalBinding:true,pointerUpFallback:true,doubleFramePaint:true,idempotent:true});
+
+/* ─── era 42-inline.js ─────────────────────── */
+try{document.title='Copa dos Sonhos — R18.17.3.2';window.CDS_BUILD_ID='R18.17.3.2';}catch(_){}
+
+/* ─── era 44-cds-r1818-build-meta.js ─────────────────────── */
+window.CDS_R1818_BUILD=Object.freeze({version:'R18.18',baseline:'R18.17.3.2',label:'PROGRESSAO OFENSIVA E CRIACAO DE CHANCES'});try{document.title='Copa dos Sonhos — R18.18';window.CDS_BUILD_ID='R18.18';}catch(_){}
+
+/* ─── era 46-cds-r18181-build-meta.js ─────────────────────── */
+window.CDS_R18181_BUILD=Object.freeze({version:'R18.18.1',baseline:'R18.18',label:'SEGUNDA FASE E BOLA FORA NATURAL'});
+
+/* ─── era 48-cds-r18182-build-meta.js ─────────────────────── */
+window.CDS_R18182_BUILD=Object.freeze({version:'R18.18.2',baseline:'R18.18.1',label:'DISPUTAS E SAIDAS NATURAIS'});
+
+/* ─── era 50-cds-r18183-build-meta.js ─────────────────────── */
+window.CDS_R18183_BUILD=Object.freeze({version:'R18.18.3',baseline:'R18.18.2',label:'BLOQUEIOS, DEFESAS E ECOLOGIA DE ESCANTEIOS'});try{document.title='Copa dos Sonhos — R18.18.3';window.CDS_BUILD_ID='R18.18.3';}catch(_){}
+
+/* ─── era 52-cds-r1820-build-meta.js ─────────────────────── */
+
+window.CDS_R1820_BUILD=Object.freeze({version:'R18.20',baseline:'R18.18.3',label:'TÁTICA AUTORITATIVA + INTELIGÊNCIA DE CHANCE',includes:Object.freeze(['R18.18.3.1','R18.19','R18.19.1','R18.19.2','R18.20'])});
+
+/* ─── era 59-cds-r1821rc1-build-meta.js ─────────────────────── */
+
+(function(root){'use strict';
+try{
+  root.CDS_R1821RC1_BUILD=Object.freeze({
+    version:'R18.21-RC1', baseline:'R18.20', label:'DEFESA, PRESSAO E ECOLOGIA',
+    removed:Object.freeze(['cds-r1819-tactical-authority']),
+    layers:Object.freeze(["cds-r1821-throwin-law","cds-r1821-post-recovery-decision","cds-r1821-shot-plausibility","cds-r1821-press-anticipation","cds-r1821-respread-top","cds-r1821-tempo-e-pausas"]),
+    note:'R18.19 removida por ablacao medida (n=49): -20% chutes, -26% tentativas de desarme, -36% faltas, e reprovacao dos 3 gates de identidade de estilo.'
+  });
+  root.CDS_R1825_ENTREGA=Object.freeze({
+    version:'R18.25', label:'CRUZAMENTO ENTREGUE NA AREA', parte:'P3',
+    note:'O cruzamento sem alvo era entregue em cima da linha de gol (x=g.x), 5,6 m atras do goleiro e de toda a defesa — por isso ninguem disputava. Medido: goleiro a 5,6 m de profundidade e bola a 0,0; lateralmente separados por so 2,7 m. Agora cai entre a pequena area e a marca do penalti.'
+  });
+  root.CDS_R1831_BOLALIVRE=Object.freeze({
+    version:'R18.31', label:'ENTREGA SEM DISPUTA VIRA BOLA LIVRE', vmin:7,
+    note:'O ramo !atk de _cross resolvia 5,47 lances por partida num chance(.76) entre escanteio e tiro de meta, sem ninguem tocar a bola. Agora a bola SEGUE: quem alcanca (1,7 m, regra do _looseRoll) fica com ela, e quem nao alcanca ve a bola sair — com o reinicio derivado por _ballOut do ultimo toque real. _looseBall foi evitado de proposito: ele entrega a bola ao mais proximo sem limite de distancia e foi o que inflou o xG em 30% na R18.22.'
+  });
+  root.CDS_R1835_FALTA=Object.freeze({version:'R18.35',label:'FALTA COMUM E COBRADA',pausa:1,teto:3.4,
+    note:'94,7% das faltas caiam num ramo que devolvia a bola ao companheiro mais proximo — que e o proprio jogador que sofreu a falta (mediana 0,0 m). A bola nunca era colocada no local. Agora usa armTaker, a mesma maquina do lateral e do escanteio.'});
+  root.CDS_R1840A=Object.freeze({version:'R18.40A',label:'O TETO DE VELOCIDADE E O GOLEIRO QUE VAI AO PONTO',
+    entrou:[
+      'OS-10 velocidade derivada satura no teto do jogador: 18,28 -> 8,98 m/s (TEC-01)',
+      'OS-01 PARCIAL: o goleiro caminha ate o ponto planejado; CAU-03 21,34% -> 17,75%, alvo 8% nao atingido'
+    ],
+    naoEntrou:[
+      'OS-09 save_energy: atinge INT-05 mas derruba chutes abaixo do piso estrito de 12',
+      'CAU-04 paridade de raio (plano 3.0 x checagem 1,95): leva CAU-03 a 1,24% mas poe gols em 2,021 e no alvo em 3,750',
+      'OS-02 escalacao: correta, poe gols em 3,729 e xG em 3,008 — recalibracao de finalizacao na R18.40B'
+    ],
+    laboratorio:'harness deixou de engolir "document is not defined" (TEC-05): 48 ok / 1 erro, com abort se faltar simbolo do motor. Baseline re-medida deu agregados identicos.',
+    note:'O mecanismo verdadeiro de OS-01 nao e velocidade: os sitios de chute planejam com raio 3.0 (posto por tools/r1821/build_rc1.js) enquanto _gkResolveSave valida com 1,95. Um ponto a 3 m tem required=0, o corpo nao recebe ordem de andar e a checagem reprova. A correcao existe e esta medida, mas o jogo esta escorado nesse vazamento para produzir ~20% dos gols.'});
+  root.CDS_BUILD_ID='R18.40A'; root.CDS_VERSION='5.30.0-R18.40A';
+  root.CDS_R1821RC2_BUILD=Object.freeze({
+    version:'R18.21-RC2', baseline:'R18.21-RC1', label:'REPLAY DE GOL',
+    patches:Object.freeze(['d1-normaliza-quadros','d2-rebobina','d3-rede']),
+    note:'Reparo do replay de gol. O clipe da timeline fisica vinha em METRO e a interface desenha em 0..1: os 22 jogadores iam ~1000x fora da tela e ctx.ellipse estourava a cada frame, deixando so o gramado. Medido no navegador: base 2330 excecoes de desenho em 19 gols e 0 voltas do clipe; corrigida 0 excecoes, 100% de cobertura e 99% da janela animada.'
+  });
+  if(root.document)root.document.title='Copa dos Sonhos — R18.40A';
+}catch(_){}
+})(typeof window!=='undefined'?window:globalThis);
+
+/* ─── era 72-cds-os81-low-cross-contact-meta.js ─────────────────────── */
+
+(function(root){root.CDS_OS81_LOW_CROSS_CONTACT=Object.freeze({version:'R18.84',baseline:'R18.83',radius:1.7,rngAdded:false,teleport:false});root.CDS_BUILD_ID='R18.84';root.CDS_VERSION='5.73.0-R18.84';try{document.title='Copa dos Sonhos — R18.84';}catch(_){}})(typeof window!=='undefined'?window:globalThis);
+
+/* ─── era 73-cds-os82-intercept-control-meta.js ─────────────────────── */
+
+(function(root){root.CDS_OS82_INTERCEPT_CONTROL=Object.freeze({version:'R18.85',baseline:'R18.84',controlRadius:1.00,minimumPreparation:2/30,rngAdded:false,teleport:false});root.CDS_BUILD_ID='R18.85';root.CDS_VERSION='5.74.0-R18.85';try{document.title='Copa dos Sonhos — R18.85';}catch(_){}})(typeof window!=='undefined'?window:globalThis);
+
+/* ─── era 83-cds-r1886-build-meta.js ─────────────────────── */
+
+(function(root){'use strict';
+root.CDS_R1886=Object.freeze({version:'R18.86',baseline:'R18.85',features:Object.freeze([
+  'OS-74_CORNER_SIDE','OS-75_NO_LEGEND_RING','OS-76_CLASSIC_HIDES_GOLD',
+  'OS-77_COMMON_FOUL_RESTART','OS-78_DEFAULT_2X','OS-83_RESTART_WATCHDOG'
+])});
+root.CDS_BUILD_ID='R18.86';root.CDS_VERSION='5.75.0-R18.86';
+try{document.title='Copa dos Sonhos — R18.86';}catch(_){}
+})(typeof window!=='undefined'?window:globalThis);
 </script>
 <script id="cds-r18161-box-runs-execution">
 /* R18.16.1 — EXECUÇÃO REAL DAS CORRIDAS OFENSIVAS NA ÁREA
@@ -22115,9 +22980,7 @@ try{root.CDS_BUILD_ID='R18.15.1';root.CDS_VERSION=V;document.title='Copa dos Son
   root.CDS_R18161=Object.freeze({version:V,roles:['first_post','far_post','split_cb','cutback','late_run','rebound'],frozenPlan:true,continuousAttributes:true,physicalRuns:true,normalIntegrator:true,consumesMatchRng:false,speedBonus:false,xgBonus:false,maxPlanSeconds:.90,maxTargetShiftMeters:.72});
 })(typeof window!=='undefined'?window:globalThis);
 </script>
-<script id="cds-r18161-build-identity">
-(function(){try{window.CDS_BUILD_ID='R18.16.1';window.CDS_VERSION='5.12.0-R18.16.1-EXECUCAO-REAL-NA-AREA';document.title='Copa dos Sonhos — R18.16.1';window.CDS_R18161_BUILD=Object.freeze({baseline:'R18.16-PLANEJAMENTO-AREA',flagsBaseline:'R18.15.6-BANDEIRAS-REAIS',restartLaw:'R18.15.5',boxMovementPlanning:true,physicalRuns:true,eventDriven:true,frozenPlan:true,continuousAttributes:true,roles:6,noTeleport:true,noGlobalSpeedBonus:true,noXgChange:true,maxTargetShiftMeters:.72});}catch(_){}})();
-</script>
+
 <script id="cds-r1817-release-meta">
 (function(root){
   'use strict';
@@ -22352,10 +23215,8 @@ root.CDS_R18173=Object.freeze({version:V,baseline:'R18.17.2',feature:'ONE_PRESSE
 try{root.CDS_BUILD_ID='R18.17.3';root.CDS_VERSION=V;document.title='Copa dos Sonhos — R18.17.3';}catch(_){ }
 })(typeof window!=='undefined'?window:globalThis);
 </script>
-<script id="cds-r181732-mobile-start-meta">
-window.CDS_R181732_MOBILE_START = Object.freeze({version:'R18.17.3.2',directCriticalBinding:true,pointerUpFallback:true,doubleFramePaint:true,idempotent:true});
-</script>
-<script>try{document.title='Copa dos Sonhos — R18.17.3.2';window.CDS_BUILD_ID='R18.17.3.2';}catch(_){}</script>
+
+
 <script id="cds-r1818-offensive-progression">
 /* R18.18 · PROGRESSÃO OFENSIVA E CRIAÇÃO DE CHANCES
    --------------------------------------------------------------------------
@@ -22482,7 +23343,7 @@ root.CDS_R1818=Object.freeze({version:V,baseline:'R18.17.3.2',feature:'OFFENSIVE
 try{root.CDS_BUILD_ID='R18.18';root.CDS_VERSION=V;document.title='Copa dos Sonhos — R18.18';}catch(_){}
 })(typeof window!=='undefined'?window:globalThis);
 </script>
-<script id="cds-r1818-build-meta">window.CDS_R1818_BUILD=Object.freeze({version:'R18.18',baseline:'R18.17.3.2',label:'PROGRESSAO OFENSIVA E CRIACAO DE CHANCES'});try{document.title='Copa dos Sonhos — R18.18';window.CDS_BUILD_ID='R18.18';}catch(_){}</script>
+
 <script id="cds-r18181-second-phase-natural-out">/* R18.18.1 · SEGUNDA FASE + ECOLOGIA NATURAL DA BOLA FORA
    --------------------------------------------------------------------------
    1) conecta bloqueio/defesa/trave/corte à RECUPERAÇÃO física da sobra;
@@ -22668,7 +23529,7 @@ const oldFull=P.getFullFootballAudit;
 P.getFullFootballAudit=function(){const r=oldFull?oldFull.apply(this,arguments):{};r.secondPhaseNaturalOut=this.getR18181Audit();return r;};
 root.CDS_R18181=Object.freeze({version:V,baseline:'R18.18',secondPhaseRecovery:true,naturalBoundaryCrossing:true,restartLottery:false,lastTouchAuthoritative:true,rngConsumption:false,xgBonus:false,speedBonus:false});
 try{root.CDS_BUILD_ID='R18.18.1';root.CDS_VERSION=V;document.title='Copa dos Sonhos — R18.18.1';}catch(_){}
-})(typeof window!=='undefined'?window:globalThis);</script><script id="cds-r18181-build-meta">window.CDS_R18181_BUILD=Object.freeze({version:'R18.18.1',baseline:'R18.18',label:'SEGUNDA FASE E BOLA FORA NATURAL'});</script><script id="cds-r18182-duels-natural-restarts">/* R18.18.2 · DISPUTAS E SAÍDAS NATURAIS
+})(typeof window!=='undefined'?window:globalThis);</script><script id="cds-r18182-duels-natural-restarts">/* R18.18.2 · DISPUTAS E SAÍDAS NATURAIS
    --------------------------------------------------------------------------
    A bola só sai quando um contato, corte ou domínio produz trajetória física
    para uma linha. Bloqueios deixam de receber escanteio por uma rolagem
@@ -22928,7 +23789,7 @@ P.getR18182Audit=function(){const s=st(this),r13=this.getR13Audit?this.getR13Aud
 const oldFull=P.getFullFootballAudit;P.getFullFootballAudit=function(){const r=oldFull?oldFull.apply(this,arguments):{};r.duelsNaturalRestarts=this.getR18182Audit();return r;};
 root.CDS_R18182=Object.freeze({version:V,baseline:'R18.18.1',feature:'DUELS_AND_NATURAL_RESTARTS',restartLottery:false,lastTouchAuthoritative:true,physicalBlockDeflections:true,deliberateClearances:true,poorTouchOuts:true,rngConsumption:false,xgBonus:false,speedBonus:false});
 try{root.CDS_BUILD_ID='R18.18.2';root.CDS_VERSION=V;document.title='Copa dos Sonhos — R18.18.2';}catch(_){}
-})(typeof window!=='undefined'?window:globalThis);</script><script id="cds-r18182-build-meta">window.CDS_R18182_BUILD=Object.freeze({version:'R18.18.2',baseline:'R18.18.1',label:'DISPUTAS E SAIDAS NATURAIS'});</script>
+})(typeof window!=='undefined'?window:globalThis);</script>
 <script id="cds-r18183-corner-ecology">/* R18.18.3 · BLOQUEIOS, DEFESAS DO GOLEIRO E ECOLOGIA DE ESCANTEIOS
    --------------------------------------------------------------------------
    Converte os últimos atalhos binários de escanteio em trajetórias físicas.
@@ -23140,7 +24001,7 @@ root.CDS_R18183=Object.freeze({version:V,baseline:'R18.18.2',feature:'PHYSICAL_B
 try{root.CDS_BUILD_ID='R18.18.3';root.CDS_VERSION=V;document.title='Copa dos Sonhos — R18.18.3';}catch(_){}
 })(typeof window!=='undefined'?window:globalThis);
 </script>
-<script id="cds-r18183-build-meta">window.CDS_R18183_BUILD=Object.freeze({version:'R18.18.3',baseline:'R18.18.2',label:'BLOQUEIOS, DEFESAS E ECOLOGIA DE ESCANTEIOS'});try{document.title='Copa dos Sonhos — R18.18.3';window.CDS_BUILD_ID='R18.18.3';}catch(_){}</script>
+
 <script id="cds-r1820-chance-intelligence">
 /* R18.20 · INTELIGÊNCIA DE CHANCE
    -------------------------------------------------------------------------
@@ -23667,9 +24528,7 @@ try {
 })(typeof window !== 'undefined' ? window : globalThis);
 
 </script>
-<script id="cds-r1820-build-meta">
-window.CDS_R1820_BUILD=Object.freeze({version:'R18.20',baseline:'R18.18.3',label:'TÁTICA AUTORITATIVA + INTELIGÊNCIA DE CHANCE',includes:Object.freeze(['R18.18.3.1','R18.19','R18.19.1','R18.19.2','R18.20'])});
-</script>
+
 <script id="cds-r1821-throwin-law">
 /* R18.21 · LEI DO LATERAL — SEM GOL DIRETO
    -------------------------------------------------------------------------
@@ -24723,47 +25582,7 @@ try {
 } catch (_) {}
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
-<script id="cds-r1821rc1-build-meta">
-(function(root){'use strict';
-try{
-  root.CDS_R1821RC1_BUILD=Object.freeze({
-    version:'R18.21-RC1', baseline:'R18.20', label:'DEFESA, PRESSAO E ECOLOGIA',
-    removed:Object.freeze(['cds-r1819-tactical-authority']),
-    layers:Object.freeze(["cds-r1821-throwin-law","cds-r1821-post-recovery-decision","cds-r1821-shot-plausibility","cds-r1821-press-anticipation","cds-r1821-respread-top","cds-r1821-tempo-e-pausas"]),
-    note:'R18.19 removida por ablacao medida (n=49): -20% chutes, -26% tentativas de desarme, -36% faltas, e reprovacao dos 3 gates de identidade de estilo.'
-  });
-  root.CDS_R1825_ENTREGA=Object.freeze({
-    version:'R18.25', label:'CRUZAMENTO ENTREGUE NA AREA', parte:'P3',
-    note:'O cruzamento sem alvo era entregue em cima da linha de gol (x=g.x), 5,6 m atras do goleiro e de toda a defesa — por isso ninguem disputava. Medido: goleiro a 5,6 m de profundidade e bola a 0,0; lateralmente separados por so 2,7 m. Agora cai entre a pequena area e a marca do penalti.'
-  });
-  root.CDS_R1831_BOLALIVRE=Object.freeze({
-    version:'R18.31', label:'ENTREGA SEM DISPUTA VIRA BOLA LIVRE', vmin:7,
-    note:'O ramo !atk de _cross resolvia 5,47 lances por partida num chance(.76) entre escanteio e tiro de meta, sem ninguem tocar a bola. Agora a bola SEGUE: quem alcanca (1,7 m, regra do _looseRoll) fica com ela, e quem nao alcanca ve a bola sair — com o reinicio derivado por _ballOut do ultimo toque real. _looseBall foi evitado de proposito: ele entrega a bola ao mais proximo sem limite de distancia e foi o que inflou o xG em 30% na R18.22.'
-  });
-  root.CDS_R1835_FALTA=Object.freeze({version:'R18.35',label:'FALTA COMUM E COBRADA',pausa:1,teto:3.4,
-    note:'94,7% das faltas caiam num ramo que devolvia a bola ao companheiro mais proximo — que e o proprio jogador que sofreu a falta (mediana 0,0 m). A bola nunca era colocada no local. Agora usa armTaker, a mesma maquina do lateral e do escanteio.'});
-  root.CDS_R1840A=Object.freeze({version:'R18.40A',label:'O TETO DE VELOCIDADE E O GOLEIRO QUE VAI AO PONTO',
-    entrou:[
-      'OS-10 velocidade derivada satura no teto do jogador: 18,28 -> 8,98 m/s (TEC-01)',
-      'OS-01 PARCIAL: o goleiro caminha ate o ponto planejado; CAU-03 21,34% -> 17,75%, alvo 8% nao atingido'
-    ],
-    naoEntrou:[
-      'OS-09 save_energy: atinge INT-05 mas derruba chutes abaixo do piso estrito de 12',
-      'CAU-04 paridade de raio (plano 3.0 x checagem 1,95): leva CAU-03 a 1,24% mas poe gols em 2,021 e no alvo em 3,750',
-      'OS-02 escalacao: correta, poe gols em 3,729 e xG em 3,008 — recalibracao de finalizacao na R18.40B'
-    ],
-    laboratorio:'harness deixou de engolir "document is not defined" (TEC-05): 48 ok / 1 erro, com abort se faltar simbolo do motor. Baseline re-medida deu agregados identicos.',
-    note:'O mecanismo verdadeiro de OS-01 nao e velocidade: os sitios de chute planejam com raio 3.0 (posto por tools/r1821/build_rc1.js) enquanto _gkResolveSave valida com 1,95. Um ponto a 3 m tem required=0, o corpo nao recebe ordem de andar e a checagem reprova. A correcao existe e esta medida, mas o jogo esta escorado nesse vazamento para produzir ~20% dos gols.'});
-  root.CDS_BUILD_ID='R18.40A'; root.CDS_VERSION='5.30.0-R18.40A';
-  root.CDS_R1821RC2_BUILD=Object.freeze({
-    version:'R18.21-RC2', baseline:'R18.21-RC1', label:'REPLAY DE GOL',
-    patches:Object.freeze(['d1-normaliza-quadros','d2-rebobina','d3-rede']),
-    note:'Reparo do replay de gol. O clipe da timeline fisica vinha em METRO e a interface desenha em 0..1: os 22 jogadores iam ~1000x fora da tela e ctx.ellipse estourava a cada frame, deixando so o gramado. Medido no navegador: base 2330 excecoes de desenho em 19 gols e 0 voltas do clipe; corrigida 0 excecoes, 100% de cobertura e 99% da janela animada.'
-  });
-  if(root.document)root.document.title='Copa dos Sonhos — R18.40A';
-}catch(_){}
-})(typeof window!=='undefined'?window:globalThis);
-</script>
+
 <script id="cds-r1843-block-depth">
 /* R18.43 · PISO DE PROFUNDIDADE DO BLOCO — OS-07.
    Zaga e meio já andam num trilho relativo a _r13LineDepth (camada R18.5). A
@@ -25327,9 +26146,17 @@ root.CDS_OS36=Object.freeze({version:'OS-36',feature:'FREEKICK_LEGAL_DISTANCE',r
 var M=root.MatchSim;if(!M||!M.prototype||M.prototype.__CDS_OS39__)return;
 var P=M.prototype;try{Object.defineProperty(P,'__CDS_OS39__',{value:true});}catch(_){P.__CDS_OS39__=true;}
 var ALC=2.8, BASE=0.90, QUEDA=0.28;
-/* CAL nao e global: fica no escopo do modulo do motor. 0.66 e o valor de
-   CAL.restarts.shotBlockCorner em :2780. */
-var CORNER_SHARE=(root.CAL&&root.CAL.restarts&&root.CAL.restarts.shotBlockCorner)||0.66;
+/* D32 · `CAL` nao existe no escopo de uma camada — e do modulo do motor, que e
+   uma IIFE. O acesso guardado que estava aqui (`root.CAL && ...`) NUNCA acertava:
+   `window.CAL` e `undefined`, medido. Ele caia no 0.66 codificado, em silencio,
+   e a calibracao ficava desconectada: mexer em restarts.shotBlockCorner no
+   20-core.js nao teria efeito nenhum nesta camada.
+   Hoje o padrao coincidia com o valor calibrado, entao o defeito era invisivel.
+   A leitura correta e por ENGINE_CALIBRATION. O lint em tools/verify.py agora
+   reprova o build se alguem reintroduzir a forma antiga. */
+var _CALIB=root.ENGINE_CALIBRATION;
+var CORNER_SHARE=(_CALIB&&_CALIB.restarts&&_CALIB.restarts.shotBlockCorner);
+if(typeof CORNER_SHARE!=='number')CORNER_SHARE=0.66;
 var oldST=P._startTravel;
 if(typeof oldST!=='function')return;
 
@@ -25526,15 +26353,33 @@ var MOVE={
 
 var dbg={pedidos:0,porEstado:Object.create(null)};
 
-function pede(sim,p,estado){
+function pede(sim,p,estado,entao){
   try{
     if(!p||!estado)return;
     if(!sim.__anim)sim.__anim=A.create();
     var c=sim.__anim.of(idOf(p));
     if(!c||typeof c.request!=='function')return;
-    c.request(estado,Number(sim.t)||0,{force:true});
+    c.request(estado,Number(sim.t)||0,{force:true,entao:entao||null});
     dbg.pedidos++;dbg.porEstado[estado]=(dbg.porEstado[estado]||0)+1;
+    if(entao)dbg.porEstado[entao]=(dbg.porEstado[entao]||0)+1;
   }catch(_){}
+}
+
+/* §D43 · CORTE PARA DENTRO OU PARA FORA — decidido pela geometria.
+   `outside_cut` estava declarado, desenhado e sem nenhum mapeamento: a tabela
+   MOVE so tinha 'corta pra dentro'. Os dois cortes nao precisam de nome novo do
+   motor — o duelo ja escreveu `_tx/_ty` no driblador ANTES de emitir, entao da
+   para ler para onde ele saiu. Sair na direcao do meio do campo e por dentro;
+   sair na direcao da linha de fundo lateral e por fora. */
+function corteDe(p){
+  try{
+    var ty=Number(p&&p._ty);if(!isFinite(ty))return 'inside_cut';
+    var meio=(typeof FW==='number'?FW:68)/2;
+    var y=Number(p.y)||0;
+    /* movimento em y contra a posicao dele em relacao ao meio */
+    var paraMeio=(meio-y)*(ty-y)>0;
+    return paraMeio?'inside_cut':'outside_cut';
+  }catch(_){return 'inside_cut';}
 }
 
 /* A DEFESA e escolhida pela geometria, nao por sorteio: quanto o goleiro teve
@@ -25573,13 +26418,45 @@ if(typeof oldST==='function'){
              para bola em cima dele. */
           var est = dy>0.55 ? (tz>1.15?'gk_high_dive':'gk_low_dive')
                   : (tz<0.5?'gk_foot_save':'gk_parry');
-          pede(this,ator,est);
+          /* §D45 · quem mergulha cai. `gk_ground_recover` existia so para o
+             encaixe perdido; agora e o desfecho de todo voo, que e quando ele
+             de fato acontece — o goleiro nao levanta instantaneamente. */
+          pede(this,ator,est,/dive$/.test(est)?'gk_ground_recover':null);
         } else if(meta.outcome==='block'&&ator){ pede(this,ator,'block'); }
+      }
+      /* §D45 · A DISTRIBUICAO DO GOLEIRO NAO TINHA GESTO NENHUM.
+         `gk_throw` e `gk_kick` estao declarados desde a R14 e nenhum evento
+         mapeava para eles — o goleiro soltava a bola sem mover um musculo, em
+         todo tiro de meta e em toda reposicao. Nao falta evento: a bola parte
+         por `_startTravel`, com o goleiro como origem. O alcance decide qual
+         dos dois e — reposicao curta e de mao, saida longa e de pe. */
+      if(o&&o.isGK&&target){
+        var _dx=(Number(target.x)||0)-(Number(o.x)||0);
+        var _dy2=(Number(target.y)||0)-(Number(o.y)||0);
+        pede(this,o,Math.sqrt(_dx*_dx+_dy2*_dy2)>32?'gk_kick':'gk_throw');
       }
       /* CHUTE: o contrato de acao da R14 cobre pouco (shot_ em 0,02% do
          tempo contra 18 chutes por partida). Todo voo de chute pede a pose. */
+      /* §D48 · e agora a pose diz QUE chute foi. `power_shot`, `placed_shot` e
+         `volley` estavam declarados e desenhados e nenhum evento mapeava para
+         eles — todo chute virava `shot_prepare`. O motor nao classifica a
+         acao, mas nao precisa: a altura da bola no momento da batida separa o
+         voleio, e a distancia ate o alvo separa forca de colocacao. */
       if(kind==='shot'&&o&&!(meta&&meta.actor===o)
-         && !(o.__os59Head && (Number(this.t)||0) < o.__os59Head)){ pede(this,o,'shot_prepare'); }
+         && !(o.__os59Head && (Number(this.t)||0) < o.__os59Head)){
+        var _z=Number(this.ball&&this.ball.z)||0;
+        var _ddx=(Number(target&&target.x)||0)-(Number(o.x)||0);
+        var _ddy=(Number(target&&target.y)||0)-(Number(o.y)||0);
+        var _d=Math.sqrt(_ddx*_ddx+_ddy*_ddy);
+        pede(this,o,_z>0.55?'volley':_d>20?'power_shot':'placed_shot','shot_followthrough');
+      }
+      /* §D48 · `long_pass` idem: o lancamento ja se distingue do toque curto
+         pela distancia, e o motor ate marca `passKind === 'launch'`. */
+      if(kind==='pass'&&o&&target){
+        var _px=(Number(target.x)||0)-(Number(o.x)||0);
+        var _py=(Number(target.y)||0)-(Number(o.y)||0);
+        if(style==='launch'||Math.sqrt(_px*_px+_py*_py)>28) pede(this,o,'long_pass');
+      }
     }catch(_){}
     return oldST.apply(this,arguments);
   };
@@ -25593,7 +26470,44 @@ P._emit=function(type,data){
       if(type==='save'&&data.gk){ pede(this,data.gk,defesa(this,data.gk,data)); }
       else if(type==='gk_sweep'&&data.gk){ pede(this,data.gk,'gk_smother'); }
       else if(type==='dribble'&&data.by){
-        pede(this,data.by,(data.move&&MOVE[String(data.move).toLowerCase()])||'dribble_prepare');
+        /* §D43 · o corte agora vem da geometria, nao so do nome do move; e o
+           drible bem-sucedido termina em `dribble_success`, que existia sem
+           nunca ter sido pedido por ninguem. */
+        var _mv=data.move&&MOVE[String(data.move).toLowerCase()];
+        if(!_mv||_mv==='inside_cut')_mv=corteDe(data.by);
+        pede(this,data.by,_mv,'dribble_success');
+        /* o defensor passado se recompoe */
+        if(data.on)pede(this,data.on,'recover');
+      }
+      /* §D43 · O DRIBLADOR QUE FALHA NAO TINHA GESTO — e nao por falta de
+         evento, por falta de LEITURA. Toda a fiacao aqui le `data.by`, e nos
+         desfechos defensivos o `by` e o DEFENSOR: quem perdeu a bola esta em
+         `data.on` e nunca era consultado. */
+      else if(type==='loose_duel'){
+        if(data.by)pede(this,data.by,'body_duel');
+        if(data.on)pede(this,data.on,'dribble_failure');
+      }
+      else if(type==='containment'&&data.on){
+        /* recusar o duelo e o proprio gesto de preparo abortado; o drible que
+           falhou e desfecho */
+        pede(this,data.on,data.source==='dribble_declined'?'dribble_prepare'
+                        :data.source==='failed_dribble'?'dribble_failure'
+                        :'body_duel');
+      }
+      /* a tentativa de bote e 23x mais frequente que o drible e nao tinha pose:
+         so `tackle` e `tackle_missed` estavam fiados */
+      else if(type==='tackle_attempt'&&data.by){ pede(this,data.by,'standing_tackle'); }
+      /* §OS-207 · A FALTA ERA O EVENTO MAIS FREQUENTE SEM GESTO NENHUM.
+         ~15 por partida, e a fiacao inteira aqui ignorava `foul`. Quem sofria
+         seguia trotando enquanto o juiz apitava; quem cometia tambem nao
+         mostrava nada, porque `tackle_attempt` so nasce no ramo do bote e a
+         maior parte das faltas vem de outros ramos (:17240 do bundle, duelo de
+         drible, e o contato aereo da OS-201).
+         Nao ha informacao nova pedida ao motor: `by` e `on` ja vinham no
+         evento e ninguem os lia. */
+      else if(type==='foul'){
+        if(data.on)pede(this,data.on,'fouled','get_up');
+        if(data.by)pede(this,data.by,'standing_tackle','recover');
       }
       else if((type==='header_shot'||type==='header_clear')&&data.by){
         pede(this,data.by,'header');
@@ -25604,7 +26518,14 @@ P._emit=function(type,data){
       }
       else if(type==='blocked'&&data.by){ pede(this,data.by,'block'); }
       else if(type==='intercept'&&data.by){ pede(this,data.by,'intercept'); }
-      else if(type==='tackle_missed'&&data.by){ pede(this,data.by,'slide_tackle'); }
+      else if(type==='tackle_missed'&&data.by){
+        /* o motor ja marca `_beatenUntil` no defensor: o `recover` e a versao
+           visivel do atraso que a fisica dele ja paga */
+        pede(this,data.by,'slide_tackle','recover');
+      }
+      else if(type==='tackle'&&data.on&&data.source==='dribble'){
+        pede(this,data.on,'dribble_failure');
+      }
       else if(type==='bad_pass'&&data.by){ pede(this,data.by,'lose_control'); }
       else if(type==='miscontrol_out'&&data.by){ pede(this,data.by,'heavy_touch'); }
     }
@@ -25720,13 +26641,9 @@ root.CDS_OS51=Object.freeze({version:'OS-51',feature:'BEATEN_DEFENDER',janela:JA
 })(typeof window!=='undefined'?window:globalThis);
 </script>
 
-<script id="cds-os81-low-cross-contact-meta">
-(function(root){root.CDS_OS81_LOW_CROSS_CONTACT=Object.freeze({version:'R18.84',baseline:'R18.83',radius:1.7,rngAdded:false,teleport:false});root.CDS_BUILD_ID='R18.84';root.CDS_VERSION='5.73.0-R18.84';try{document.title='Copa dos Sonhos — R18.84';}catch(_){}})(typeof window!=='undefined'?window:globalThis);
-</script>
 
-<script id="cds-os82-intercept-control-meta">
-(function(root){root.CDS_OS82_INTERCEPT_CONTROL=Object.freeze({version:'R18.85',baseline:'R18.84',controlRadius:1.00,minimumPreparation:2/30,rngAdded:false,teleport:false});root.CDS_BUILD_ID='R18.85';root.CDS_VERSION='5.74.0-R18.85';try{document.title='Copa dos Sonhos — R18.85';}catch(_){}})(typeof window!=='undefined'?window:globalThis);
-</script>
+
+
 
 <script id="cds-os77-common-foul-restart">
 (function(root){'use strict';
@@ -26662,16 +27579,7 @@ root.CDS_OS113=Object.freeze({version:"OS-113",feature:"FOUL_CARD_LEGIBILITY_AND
   presentationOnly:true,rngConsumption:false,engineMutation:false});
 })(typeof window!=='undefined'?window:globalThis);
 </script>
-<script id="cds-r1886-build-meta">
-(function(root){'use strict';
-root.CDS_R1886=Object.freeze({version:'R18.86',baseline:'R18.85',features:Object.freeze([
-  'OS-74_CORNER_SIDE','OS-75_NO_LEGEND_RING','OS-76_CLASSIC_HIDES_GOLD',
-  'OS-77_COMMON_FOUL_RESTART','OS-78_DEFAULT_2X','OS-83_RESTART_WATCHDOG'
-])});
-root.CDS_BUILD_ID='R18.86';root.CDS_VERSION='5.75.0-R18.86';
-try{document.title='Copa dos Sonhos — R18.86';}catch(_){}
-})(typeof window!=='undefined'?window:globalThis);
-</script>
+
 <script id="cds-r1899-antiteleporte">
 (function(root){
 'use strict';
@@ -27276,7 +28184,11 @@ try { document.title = 'Copa dos Sonhos — R19.08'; } catch (_) {}
      partida. A escala abaixo e a razao medida entre gol realizado e pGoal
      acumulado, para a coluna de xG voltar a significar gols esperados.
      Refaça a medicao se mexer em ERRO_BASE, DEFESA_BASE ou FORCA_ESCALA. */
-  const XG_ESCALA = num(T.xgEscala, 0.70);
+  /* A2 · RE-DERIVADA depois que o modelo de defesa mudou, como o parágrafo
+     acima manda. Com o goleiro escolhendo a melhor folga em vez da primeira,
+     a razão gol/pGoal caiu: 300 partidas davam xG 3,15 para 2,93 gols, e a
+     coluna passou a superestimar de novo. 0,70 × 2,93/3,15 = 0,651. */
+  const XG_ESCALA = num(T.xgEscala, 0.651);
   P._os200EscalaXg = function () { return XG_ESCALA; };
 
   /* Ruido em forma de sino, somando dois uniformes. E limitado em [-1,1], o
@@ -27447,7 +28359,20 @@ try { document.title = 'Copa dos Sonhos — R19.08'; } catch (_) {}
      mantemos a saida rasteira e procuramos a velocidade que faz a bola chegar.
      Se a pedida nao chega (o arrasto e a rolagem comem muito numa bola batida
      longe), ela sobe, que e exatamente o que um jogador faz. */
-  const ELEV_RASTEIRA = 0.03; // ~1,7 graus: a bola sai rente, nao colada
+  /* OS-203 · A BOLA RASTEIRA NAO DECOLA.
+     A versao anterior saia a 0,03 rad (~1,7 graus) "rente, nao colada". Com
+     integracao real isso e um LANCAMENTO, nao um passe: medido numa partida de
+     verdade, todo passe rasteiro fazia um salto de 14 cm, quicava em 4 cm,
+     quicava em 1 cm — a razao entre os saltos e exatamente RESTITUICAO^2 =
+     0,3025, e o traco de tela mostrava o par (0,141 m / 0,043 m) se repetindo a
+     cada passe. Sao 54 subidas por minuto de jogo, 92% delas abaixo de 30 cm:
+     a bola atravessava o campo saltitando como pedra ricocheteando na agua.
+
+     Zero e o valor certo, nao um valor pequeno: com theta = 0 e z = 0 o
+     integrador entra no ramo de rolagem no primeiro passo e a bola nunca deixa
+     o gramado — ela rola, perde velocidade para o arrasto e para a resistencia
+     de rolagem, e chega viva do outro lado. Que e o que um passe rasteiro e. */
+  const ELEV_RASTEIRA = 0;
   const CHEGADA_MINIMA = num(T.chegadaMinima, 7.5); // m/s de bola viva na chegada
 
   function resolverRasteira(o, alvo, vel) {
@@ -27588,6 +28513,16 @@ try { document.title = 'Copa dos Sonhos — R19.08'; } catch (_) {}
       z: alvoZ,
     };
     const regime = regimeDe(kind, passKind, meta, alvoZ);
+    /* OS-203 · a origem do passe rasteiro e o gramado, e nao a altura decorativa
+       que o core deixa em `ball.z`. O core faz `b.z = 0,12` logo antes de nos
+       chamar (40-match-engine, "ARCO baixo no passe rasteiro"), um numero da
+       epoca em que `z` so servia para desenhar. Lido como altura de saida real,
+       ele e uma queda de 12 cm: sozinho responde por 0,12 dos 0,141 m de apice
+       medidos, e e ele que faz a bola quicar em todo passe. Um passe no chao
+       comeca no chao. Chute e bola alta continuam saindo da altura que o motor
+       informou — la os 12 cm sao a bola no pe, e a calibracao da mira depende
+       disso. */
+    if (regime === RASTEIRA) o.z = 0;
     const pedida = Math.max(8, finito(speed, 28));
     /* No chute a forca e do jogador e nao se negocia: se ele nao tem perna
        para pousar a bola onde mirou, ela cruza mais baixo do que ele queria —
@@ -27778,7 +28713,17 @@ try { document.title = 'Copa dos Sonhos — R19.08'; } catch (_) {}
     const q = qualidadeGk(gk);
     const reacao = 0.16 + (1 - q) * 0.14;   // 0,16 s a 0,30 s
     const vMergulho = 4.1 + q * 2.3;        // m/s de deslocamento com mergulho
-    const envergadura = 1.05 + q * 0.55;    // alcance de bracos e pernas
+    /* ENVERGADURA — alcance da ponta dos dedos ao centro de massa, mergulhando.
+       Estava em 1,05 a 1,60 m e isso e menos do que um goleiro alcanca parado:
+       a envergadura de braços de um profissional passa de 1,85 m, ou seja ~0,93 m
+       de cada lado do tronco, e o mergulho estende bem mais que isso.
+
+       Medido com 1,05-1,60: de 1.805 chutes que entraram na boca do gol, 613
+       (34%) ficaram FORA DE ALCANCE — gol sem o goleiro encostar. E dos que ele
+       alcancava, a folga media era de 0,24 m, ou seja ele chegava raspando.
+       A cobertura total (mergulho x tempo + envergadura) dava 3,76 m contra
+       3,66 m de meia-boca: nao fechava o canto. */
+    const envergadura = num(T.envergaduraBase, 1.05) + q * num(T.envergaduraQ, 0.55);
 
     /* Interceptacao ao longo da trajetoria, e nao so no plano do gol. A versao
        anterior media a distancia do goleiro ate o ponto onde a bola CRUZA a
@@ -27799,7 +28744,18 @@ try { document.title = 'Copa dos Sonhos — R19.08'; } catch (_) {}
       if (s.z > alcanceZ) continue;
       const preciso = Math.max(0, dist2d(gk.x, gk.y, s.x, s.y) - envergadura);
       const folga = vMergulho * disponivel - preciso;
-      if (folga >= 0) { achado = { ponto: s, folga, disponivel }; break; }
+      /* A MELHOR CHANCE, NAO A PRIMEIRA.
+         O laco parava no PRIMEIRO instante teoricamente alcancavel — e esse
+         instante tem folga proxima de zero por construcao, porque e exatamente
+         onde o alcance passa a existir. Com `p = DEFESA_BASE + folga*...`, todo
+         chute era resolvido no pior ponto possivel da defesa.
+
+         O sintoma que denunciou isso: aumentar a envergadura de 1,05 para 1,45
+         PIOROU o jogo (gols 3,27 -> 3,40). Mais alcance antecipava o encontro
+         para um ponto ainda mais apertado, em vez de dar conforto ao goleiro.
+         Um goleiro nao mergulha no primeiro milissegundo em que poderia
+         encostar: ele escolhe onde chega melhor. */
+      if (folga >= 0 && (!achado || folga > achado.folga)) achado = { ponto: s, folga, disponivel };
     }
 
     const d = this.__os200Diag || (this.__os200Diag = {});
@@ -28137,6 +29093,357 @@ try { document.title = 'Copa dos Sonhos — R19.08'; } catch (_) {}
   };
 
   root.CDS_OS202 = Object.freeze({ versao: 'OS-202', instalado: true, leadMax: LEAD_MAX });
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script id="cds-os206-plano-do-portador">
+
+/* ════════════════════════════════════════════════════════════════════════════
+   OS-206 · O PORTADOR PASSA A TER UM PLANO
+   ════════════════════════════════════════════════════════════════════════════
+
+   O QUE ESTAVA ERRADO, MEDIDO LENDO A PARTIDA
+   -------------------------------------------
+   `tools/fisica/narrar.js` mediu quanto tempo cada jogador fica com a bola no
+   pe, em 4 partidas:
+
+     posses individuais por partida   702
+     mediana                          0,43 s
+     73% das posses                   abaixo de meio segundo
+     MAXIMA DA PARTIDA INTEIRA        4,4 s      (futebol real: ~1,1 s de media)
+
+   E a bola passa 1,08 s VIAJANDO para cada 0,56 s num pe — o inverso do
+   futebol. Ela e batata quente.
+
+   A curva de sobrevivencia mostra que o problema nao e velocidade, e FORMA:
+
+     ja com a bola ha 0,28s  ->  segue com ela em 26%   <- 74% morrem aqui
+     ja com a bola ha 0,84s  ->  segue com ela em 67%
+     ja com a bola ha 1,68s  ->  segue com ela em 82%
+
+   Ha dois estados e nada entre eles: solta imediato, ou entra numa arrancada e
+   nao larga mais. Falta o regime do meio, que e onde o futebol de verdade
+   vive: recebe, da um toque, levanta a cabeca, espera o apoio, entao passa.
+
+   A ARITMETICA DO ORCAMENTO
+   -------------------------
+   A posse inteira do motor e `settle` + um `decideT`:
+
+     CAL.possession.firstTouchMin/Max   0,10 a 0,34 s   (controle da recepcao)
+     CAL.timing.decisionInterval        0,28 s          (intervalo de decisao)
+
+   0,2 + 0,28 = 0,48, que e a mediana medida de 0,43. Ou seja: nao existe
+   estado nenhum de "estou com a bola e vou fazer algo por dois segundos". O
+   jogador recebe, controla, e na PRIMEIRA decisao quase sempre passa.
+
+   POR QUE NAO BASTA SUBIR `decisionInterval`
+   ------------------------------------------
+   Porque 0,28 -> 0,60 da batata quente mais lenta, nao futebol: todo mundo
+   segura mais, inclusive quem esta com dois marcadores em cima. O que falta e
+   INTENCAO QUE DURA e que depende da situacao — e que a marcacao chegando
+   INTERROMPE, que e o que faz o jogador soltar de primeira quando tem de
+   soltar de primeira.
+
+   ONDE ISTO PODE MORAR (e por que nao no `decideT`)
+   -------------------------------------------------
+   O portao da decisao esta no core:
+
+       if (!ball.traveling && ball.owner && ball.owner.settle <= 0
+           && this.decideT <= 0) { ...decide... }
+
+   Sao duas travas. `decideT` NAO serve: a camada R13 reescreve ele todo quadro
+   por fase de jogo (`Math.min(sim.decideT, .20/.31/.44)`) e so o abaixa —
+   qualquer valor que eu escrevesse seria derrubado, e eu teria mais uma edicao
+   silenciosamente morta como as tres que ja custaram rodada de medicao neste
+   projeto.
+
+   `settle` ninguem mais toca depois da recepcao, e semanticamente e exatamente
+   o que eu quero dizer: "este jogador ainda esta resolvendo o que fazer". Ele
+   continua correndo e a bola continua colada nele (`_ballGlue`), entao o que
+   se ve e um jogador conduzindo — que e o objetivo.
+
+   CUIDADO REGISTRADO: `settle > 0 && settle < 0,45` e lido em dois lugares do
+   core como "finalizacao de primeira" (volley/firstTime). Por isso o plano
+   nunca escreve valores DENTRO dessa janela — usa 0,60, acima dela — senao um
+   passe normal viraria voleio.
+   ════════════════════════════════════════════════════════════════════════════ */
+(function (root) {
+  'use strict';
+  const M = root && root.MatchSim;
+  if (!M || !M.prototype || M.prototype.__OS206__) return;
+  const P = M.prototype;
+  P.__OS206__ = true;
+
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const finito = (v, d) => Number.isFinite(v) ? v : (d === undefined ? 0 : d);
+  const _getAttr = (typeof getAttr === 'function') ? getAttr : () => 60;
+  const FL = Number(root.FL) || 105, FW = Number(root.FW) || 68;
+
+  const T = (root && root.CDS_OS206_TUNE) || {};
+  const num = (v, padrao) => Number.isFinite(v) ? v : padrao;
+
+  /* Acima da janela de voleio (0,45) para nao transformar passe em finalizacao
+     de primeira. Ver o cuidado registrado no cabecalho. */
+  const SEGURA = 0.60;
+
+  /* Quanto tempo o plano dura, em segundos de simulacao. A mediana atual e
+     0,43 s e o alvo e a media do futebol real, ~1,1 s. */
+  const BASE_LIVRE = num(T.baseLivre, 1.30);   // sem ninguem por perto
+  const BASE_APERTO = num(T.baseAperto, 0.05); // com marcador colado
+  const RAIO_APERTO = num(T.raioAperto, 2.2);  // marcador a esta distancia: solta
+  const RAIO_LIVRE = num(T.raioLivre, 9.0);    // acima disto, espaco de sobra
+  const TETO = num(T.teto, 3.2);               // nenhum plano passa disto
+
+  /* ATE ONDE O PLANO VALE — medido, nao escolhido.
+     Segurar a bola em TODO o campo custou 20% dos chutes e 20% dos gols
+     (11/13 -> 6/13 no placar de design, e a varredura de duracao nao
+     recuperou: mesmo com plano curto os chutes ficaram em 18,2 contra 21,2).
+     O motivo e estrutural e vale registrar: este motor so gera chance com
+     CIRCULACAO RAPIDA. Ele nao tem construcao de jogada com posse — tirar
+     velocidade de circulacao no ultimo terco desmonta o ataque inteiro.
+
+     Entao o plano vale onde ele conserta a aparencia sem tocar na maquina de
+     criar chance: saida de bola e meio-campo. Do ultimo terco em diante o
+     motor volta a ser o que era.
+
+     Varrido em 120 partidas: com o plano valendo ate 62% do campo o jogo perde
+     chute (19,5, abaixo do minimo de 20). Valendo so ate a METADE do campo,
+     sobe para 22,1 e o placar de design vai a 12/13 — melhor que os 11/13 de
+     antes da camada, porque as faltas entram na faixa de brinde. */
+  const LIMITE_AVANCO = num(T.limiteAvanco, 0.50);
+
+  /* DEPOIS DE PASSAR PELO MARCADOR, CONDUZ.
+     A narracao acusou "drible parado": o mesmo jogador driblando 3 e 4 vezes
+     no mesmo pedaco de campo. A causa e que o drible bem-sucedido escreve um
+     destino 7 m adiante (`o._tx/_ty` no core) e a decisao seguinte chega em
+     0,28 s — antes de ele ter andado esses 7 m. Ele "supera" tres marcadores
+     no mesmo lugar em menos de um segundo.
+
+     Aqui o drible ganho estende o plano: ele conduz para o espaco que acabou
+     de abrir em vez de driblar de novo. E durante essa conducao a marcacao NAO
+     interrompe o plano — ele ja passou pelo homem, e quem ficou para tras
+     estar a dois metros e consequencia do drible, nao pressao nova. */
+  const CARREGA = num(T.carrega, 0.70);
+
+  /* Distancia do adversario de campo mais proximo do portador. */
+  function aperto(sim, o) {
+    const rivais = sim.teams[1 - o.team].players || [];
+    let d = Infinity;
+    for (const r of rivais) {
+      if (!r || r.red || r.isGK) continue;
+      const dd = Math.hypot(r.x - o.x, r.y - o.y);
+      if (dd < d) d = dd;
+    }
+    return d;
+  }
+
+  /* Quanto este jogador, nesta situacao, seguraria a bola.
+     Nao ha alvo numerico aqui: a forma e que importa — colado solta, livre
+     conduz, e quem tem tecnica e frieza segura mais que quem nao tem. */
+  function duracaoDoPlano(sim, o) {
+    const ap = aperto(sim, o);
+    /* 0 colado, 1 livre */
+    const folga = clamp((ap - RAIO_APERTO) / (RAIO_LIVRE - RAIO_APERTO), 0, 1);
+    let t = BASE_APERTO + (BASE_LIVRE - BASE_APERTO) * folga;
+
+    /* atributo: tecnica e frieza compram tempo; 60 e o jogador medio */
+    const tec = (finito(_getAttr(o, 'tecnica'), 60) + finito(_getAttr(o, 'frieza'), 60)) / 2;
+    t *= 0.75 + clamp(tec, 20, 99) / 100 * 0.55;
+
+    /* zona: saindo de tras se joga mais devagar. Do ultimo terco em diante o
+       plano nao vale (ver LIMITE_AVANCO) e o motor volta ao ritmo original. */
+    const dir = finito(sim.teams[o.team] && sim.teams[o.team].attackDir, 1) || 1;
+    const avanco = dir > 0 ? o.x : (FL - o.x);
+    if (avanco > FL * LIMITE_AVANCO) return 0;
+    if (avanco < FL * 0.33) t *= 1.25;                       // saida de bola
+
+    /* cansado pensa mais devagar, mas tambem aguenta menos a marcacao */
+    const st = clamp(finito(o.stamina, 100), 20, 100);
+    t *= 0.85 + st / 100 * 0.20;
+
+    return clamp(t, 0.05, TETO);
+  }
+
+  const oldStep = P.step;
+  P.step = function (dt) {
+    const b = this.ball;
+    const o = b && b.owner;
+
+    if (o && !b.traveling && this.dead <= 0) {
+      /* comecou uma posse nova: escolhe o plano uma vez */
+      if (o.__os206Dono !== b) {
+        o.__os206Dono = b;
+        o.__os206Ate = finito(this.t) + duracaoDoPlano(this, o);
+      }
+      const conduzindo = finito(this.t) < finito(o.__os206Carrega);
+      if (finito(this.t) < finito(o.__os206Ate) || conduzindo) {
+        /* A MARCACAO INTERROMPE O PLANO. Sem isto o jogador seguraria a bola
+           com dois em cima, que e o oposto do que se quer: e justamente a
+           chegada da pressao que produz o passe de primeira.
+           Excecao: logo depois de um drible ganho ele esta conduzindo para o
+           espaco que abriu — ver CARREGA. */
+        if (!conduzindo && aperto(this, o) <= RAIO_APERTO) o.__os206Ate = 0;
+        else if (finito(o.settle) <= 0) o.settle = SEGURA;
+      }
+    } else if (o && b && b.traveling) {
+      o.__os206Dono = null;
+    }
+
+    return oldStep.apply(this, arguments);
+  };
+
+  /* Solta a marca quando a posse acaba, para o proximo dono comecar limpo. */
+  const oldGive = P._giveBall;
+  if (typeof oldGive === 'function') {
+    P._giveBall = function (m) {
+      if (m) { m.__os206Dono = null; m.__os206Ate = 0; m.__os206Carrega = 0; }
+      return oldGive.apply(this, arguments);
+    };
+  }
+
+  /* O drible ganho vira conducao. Esta camada e a ultima, entao ve o evento
+     antes de todas as outras — e so precisa marcar o tempo. */
+  const oldEmit = P._emit;
+  P._emit = function (tipo, d) {
+    if (tipo === 'dribble' && d && d.ok && d.by) {
+      d.by.__os206Carrega = finito(this.t) + CARREGA;
+    }
+    return oldEmit.apply(this, arguments);
+  };
+
+  root.CDS_OS206 = Object.freeze({
+    versao: 'OS-206', instalado: true,
+    baseLivre: BASE_LIVRE, baseAperto: BASE_APERTO, teto: TETO,
+  });
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script id="cds-os207-cerimonia-sem-tremor">
+(function (root) {
+'use strict';
+/* OS-207 · A ANIMACAO PASSA A OLHAR O QUADRO INTEIRO
+   ===========================================================================
+   O dono reclamou de uma "bugadinha" na hora de bater falta, bater escanteio e
+   sofrer falta. Nao e uma: sao defeitos diferentes que se encontram no mesmo
+   instante do jogo — justamente o instante em que a bola esta parada, a camera
+   nao acompanha nada e o olho tem tempo de olhar.
+
+   Os outros estao corrigidos onde nascem, todos no desenho:
+     · a passada do batedor que saltava de volta      -> 70-game-runtime (OS-89)
+     · o tremor do #anti-cardume na bola parada       -> 70-game-runtime
+     · quem sofre a falta nao tinha gesto             -> 21-cds-ux-boot + OS-46
+
+   Esta camada corrige o que sobra, que e um problema de HORA, nao de conta.
+
+   -------------------------------------------------------------------------
+   A ANIMACAO LIA A VELOCIDADE ANTES DE A BOLA PARADA ESCREVER A POSICAO
+
+   Cada camada envolve `P.step` capturando a anterior, entao a ORDEM DO
+   DOCUMENTO decide quem roda por fora de quem. A ponte de animacao e o bloco
+   21. Depois dela ainda escrevem `p.x/p.y` — varias tambem `p.vx/p.vy` — a
+   OS-77 (falta comum), a OS-83 (impedimento), a OS-100 (lateral), a OS-107
+   (bloco de bola parada), a OS-112 e a R18.99.
+
+   Ou seja: TUDO que move gente durante a cerimonia escreve depois que a
+   animacao ja escolheu a pose do quadro. O desenhista pinta a posicao FINAL;
+   a maquina de estados escolheu a pose com a velocidade do meio do caminho.
+   O resultado e o atleta deslizando pelo gramado numa pose parada, ou
+   pedalando no lugar depois de ja ter chegado ao posto.
+
+   A R18.99/T7 diagnosticou exatamente este sintoma — o comentario dela diz,
+   com todas as letras, "o 'meio bugadinho' que se ve na hora da falta" — e a
+   conta dela esta certa: velocidade e deslocamento dividido pelo passo. So que
+   ela aplica isso QUATRO NIVEIS POR FORA da ponte. A velocidade corrigida
+   existe e a animacao nunca a ve, porque o quadro dela ja passou.
+
+   -------------------------------------------------------------------------
+   POR QUE ISTO NAO MEXE NO JOGO
+
+   A primeira versao desta camada tambem mexia no motor: freava a cerimonia e
+   fazia o batedor caminhar por aqui. A bateria reprovou — 48 partidas, 12/13
+   metricas de design cairam para 11/13, com `zeroZeroRate` indo de 0,062 para
+   0,146 (faixa 0,045-0,12). Bola parada e onde se fazem gols; mexer no passo
+   de quem se posiciona muda quantos saem. Aquilo foi revertido.
+
+   O que ficou nao escreve NADA que o motor leia. A velocidade honesta e
+   EMPRESTADA: a camada troca `p.vx/p.vy` pelo valor coerente com o
+   deslocamento, manda a ponte amostrar, e devolve os valores originais no
+   mesmo passo, antes de qualquer outra coisa rodar. O motor termina o quadro
+   com exatamente os numeros que teria sem esta camada — a bateria confirma,
+   agregado a agregado.
+
+   Nenhum sorteio, nenhum consumo de RNG, nenhuma decisao nova, nenhuma
+   posicao escrita. So a hora de olhar.
+   =========================================================================== */
+const M = root && root.MatchSim;
+if (!M || !M.prototype || M.prototype.__OS207__) return;
+const P = M.prototype; P.__OS207__ = true;
+
+/* Mesma saturacao que `commitMovement` e a R18.99 ja usam. Existe porque a
+   recolocacao administrativa (troca de campo, formacao inicial, reinicio apos
+   gol) desloca dezenas de metros num quadro, e nenhuma perna anima a 800 m/s:
+   a DIRECAO e verdadeira, o modulo satura no que o atleta corre. */
+const VEL_TETO = 1.05;
+
+function num(v, d) { return (typeof v === 'number' && isFinite(v)) ? v : (d || 0); }
+
+const oldStep = P.step;
+P.step = function (dt) {
+  const passo = Math.max(1 / 240, Math.min(0.15, num(dt, 1 / 30)));
+
+  /* posicao no fim do quadro anterior: e contra ela que o deslocamento deste
+     quadro e medido, depois que todo mundo ja escreveu */
+  const antes = new Map();
+  const teams0 = this.teams || [];
+  for (let i = 0; i < teams0.length; i++) {
+    const pl = teams0[i].players || [];
+    for (let j = 0; j < pl.length; j++) {
+      const p = pl[j];
+      if (p && !p.red) antes.set(p, [num(p.x), num(p.y)]);
+    }
+  }
+
+  const r = oldStep.apply(this, arguments);
+
+  /* A AMOSTRAGEM DA ANIMACAO POR ULTIMO. Depois desta linha nada mais move
+     ninguem neste quadro, entao a pose que a maquina de estados escolher e a
+     pose do que o desenhista vai de fato pintar. */
+  try {
+    const B = root.CDS_ANIM_BRIDGE;
+    if (B && typeof B.amostrar === 'function') {
+      if (!B.dono) B.dono = 'OS-207';
+      if (B.dono === 'OS-207') {
+        const guardado = [];
+        antes.forEach(function (p0, p) {
+          if (p.red) return;
+          guardado.push([p, p.vx, p.vy]);
+          let vx = (num(p.x) - p0[0]) / passo, vy = (num(p.y) - p0[1]) / passo;
+          const teto = num(p.maxSpd, 7) * VEL_TETO, v = Math.hypot(vx, vy);
+          if (v > teto && v > 0) { vx = vx / v * teto; vy = vy / v * teto; }
+          p.vx = vx; p.vy = vy;
+        });
+        try { B.amostrar.call(this, dt); }
+        finally {
+          /* devolve SEMPRE, mesmo se a amostragem estourar: o motor nao pode
+             terminar o quadro com um numero que a apresentacao emprestou */
+          for (let k = 0; k < guardado.length; k++) {
+            guardado[k][0].vx = guardado[k][1];
+            guardado[k][0].vy = guardado[k][2];
+          }
+        }
+      }
+    }
+  } catch (_) { /* apresentacao nunca derruba o motor */ }
+
+  return r;
+};
+
+root.CDS_OS207 = Object.freeze({
+  versao: 'OS-207', instalado: true,
+  feature: 'ANIM_SAMPLED_AFTER_EVERY_WRITER',
+  presentationOnly: true, engineMutation: false, rngConsumption: false
+});
+root.CDS_BUILD_ID = 'R19.10'; root.CDS_VERSION = '5.80.1-R19.10';
+try { document.title = 'Copa dos Sonhos — R19.10'; } catch (_) { }
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
 </body></html>

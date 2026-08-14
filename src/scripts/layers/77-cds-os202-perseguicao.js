@@ -99,3 +99,4 @@
 
   root.CDS_OS202 = Object.freeze({ versao: 'OS-202', instalado: true, leadMax: LEAD_MAX });
 })(typeof window !== 'undefined' ? window : globalThis);
+

@@ -580,6 +580,15 @@ const ENGINE_CALIBRATION = Object.freeze({
     transitionProtection: 0.42,
   }),
   passing: Object.freeze({
+    /* POTENCIA E VELOCIDADE DO PASSE — mesma historia da velocidade de chute:
+       `0.92 + pass/100*0.16` estava em `_startTravel`, na mira, e na copia da
+       camada 14 que estima interceptacao. As velocidades por tipo idem.
+       Valores inalterados. */
+    powerBase: 0.92,
+    powerRange: 0.16,
+    speedLaunch: 22.5,
+    speedThrough: 19.5,
+    speedShort: 16.2,
     baseError: 0.018,
     pressureError: 0.075,
     longPassError: 0.090,
@@ -597,11 +606,74 @@ const ENGINE_CALIBRATION = Object.freeze({
        Fica registrado como pendencia real. */
     foulBase: 0.29,
     foulComposure: 0.12,
-    yellowFirst: 0.18,
+    /* CARTAO POR FALTA (OS-206).
+       Estava em 0,18 e entregava 0,279 cartao por falta depois do multiplicador
+       de risco — contra 0,177 do futebol real (~3,9 amarelos para ~22 faltas).
+       A distorcao ficou invisivel enquanto o jogo tinha 15,5 faltas por
+       partida: o numero de cartoes saia certo por compensacao de dois erros.
+       Quando a OS-206 levou as faltas para 22 (dentro da faixa real de 19-26),
+       os cartoes estouraram e mostraram a taxa verdadeira. */
+    yellowFirst: 0.125,
     yellowSecond: 0.05,
     straightRed: 0.0008,
+
+    /* D20 · O COMPRIMENTO DO BLOCO NAO MORA AQUI — E ISSO ESTA MEDIDO.
+       -----------------------------------------------------------------
+       Fica escrito porque a proxima pessoa vai querer por o parametro aqui,
+       como eu quis, e vai gastar quatro baterias de 300 partidas.
+
+       O dono e a camada 60 (R18.43), com dois pisos de profundidade do
+       atacante: 32 m a frente da propria zaga DEFENDENDO e 33 m ATACANDO. Um
+       metro de diferenca — e o encurtamento do bloco ao perder a bola E essa
+       diferenca. Medido com forma.js: 41,0 m com a bola, 38,2 m sem, 2,8 m de
+       encurtamento contra 8 a 10 do futebol de elite.
+
+       O que NAO funcionou, tudo medido em 300 partidas:
+
+         piso defensivo 32 -> 24 (fixo)
+             forma: 41,0 -> 36,7 com bola e 38,2 -> 33,3 sem — os DOIS dentro
+             da faixa real pela primeira vez.
+             portao: REPROVADO. chutes -2,18, gols -0,374, escanteios -1,29,
+             zeroZeroRate 0,080 -> 0,127 (fora). Bloco compacto o tempo todo
+             mata o ataque: o atacante recuado tem chao demais na transicao.
+
+         piso que envelhece com a stamina do time (24 inteiro -> 33 exausto)
+             portao: REPROVADO. chutes -1,28 (2 SE = 1,18) e cartoes vermelhos
+             0,250 -> 0,310, fora da faixa por 0,01. Os gols quase voltaram
+             (-0,07), mas a distribuicao por faixa NAO melhorou: 76+ ficou em
+             14,7%, o mesmo de antes.
+
+         achatar a fadiga na velocidade (o D19, staminaF .7+.3 -> .75+.25)
+             portao: APROVADO nos dois criterios, gols 76+ de 14,7% para 16,1%.
+             forma: o encurtamento do bloco CAIU de 2,8 para 0,8 m.
+
+       A conclusao vale mais que qualquer um dos tres: forma e volume de
+       chances sao a MESMA alavanca puxada em sentidos opostos, e nenhum
+       parametro isolado paga as duas pontas. O caminho que sobra nao e
+       calibrar — e dar ao motor uma fase de transicao de verdade, em que o
+       time que perde a bola recompoe em vez de so mudar de alvo.
+
+       Laudo completo em reports/D19-D20-a-mesma-alavanca.md. */
   }),
   shooting: Object.freeze({
+    /* VELOCIDADE DO CHUTE, em m/s: base + faceta 'shot' de 0 a 100, com teto.
+       -------------------------------------------------------------------
+       Estava escrita QUATRO VEZES com os mesmos numeros: em `_startTravel`,
+       na falta, no penalti e — a pior — dentro da camada 14, que usa a copia
+       dela para ESTIMAR a interceptacao do chute. Achado por
+       `python3 tools/auditor.py --forma 1`, que procura exatamente isto.
+
+       Quatro copias de um numero nao sao quatro numeros: sao um numero e tres
+       chances de ele divergir. Se alguem mudasse a do motor, a camada 14
+       passaria a calcular a interceptacao de um chute que nao existe — o
+       defensor iria para o lugar errado e ninguem teria como ver, porque a
+       trajetoria continuaria plausivel.
+
+       Os valores nao mudaram: 34 + shot/100*16, preso entre 32 e 54. */
+    speedBase: 34,
+    speedRange: 16,
+    speedMin: 32,
+    speedMax: 54,
     distanceXg: Object.freeze([
       [6, 0.48], [11, 0.27], [16, 0.135], [22, 0.064], [30, 0.032], [Infinity, 0.015],
     ]),

@@ -25,6 +25,9 @@ const $ = s => document.querySelector(s);
    1.366 s de simulacao, entao 3X entrega ~7,6 min — perto dos ~8,2 min que o
    jogo tinha antes, e na faixa de "key highlights" do Football Manager. TURBO
    segue para quem quer varrer a Copa. */
+/* OS-203 · quanto a bola parada corre a mais que o jogo. */
+const ADIANTA_PARADA = 3.5;
+
 const SPEEDS = [
   { k: '1X',    v: 1.0 },   // ~22,8 min por partida
   { k: '2X',    v: 2.0 },   // ~11,4 min
@@ -1753,7 +1756,21 @@ function startLoop() {
     if (matchOver) fastForwardFullTime(now);
     if (!finished && !paused && !celebrating && !penActive) {
       if (!matchOver) {
-        acc += dt * (slowmo ? Math.min(G.speed, 1) * slowmo.f : G.speed);
+        /* OS-203 · A ESPERA ANDA MAIS RAPIDO QUE O JOGO.
+           Medido: 12,2% da partida (166 s de 1.361) e bola parada — tiro de
+           meta, lateral, arrumacao de escanteio, reinicio de falta. Nao e
+           futebol, e espera, e e o tipo de trecho em que quem assiste sente
+           que nada acontece.
+
+           Comemoracao de gol e minijogo de bola parada NAO entram aqui: o
+           bloco inteiro ja e barrado por `celebrating` e `penActive` acima,
+           entao o que sobra e so a espera burocratica. Camera lenta tambem
+           fica de fora — ela existe justamente para alguem olhar.
+
+           Isto e SO apresentacao: o simulador recebe os mesmos passos, na
+           mesma ordem. O resultado da partida nao muda em nada. */
+        const _espera = (sim && sim.dead > 0 && !slowmo) ? ADIANTA_PARADA : 1;
+        acc += dt * (slowmo ? Math.min(G.speed, 1) * slowmo.f : G.speed) * _espera;
         const h = 1/60; let g = 0;
         while (acc >= h && g++ < 500) {
           sim.step(h); acc -= h; minorCd = Math.max(0, minorCd - h);
@@ -3023,10 +3040,49 @@ function bindControls() {
 
 /* ─── CANVAS ──────────────────────────────────────────────────────────── */
 let _cdsChipFrame = 0; /* OS-62 · vira a cada quadro para zerar a ocupacao dos chips */
-const CW=1024, CH=500, M=14;
+/* D24 · A ALTURA DO MUNDO LOGICO ACOMPANHA O QUADRO.
+   ---------------------------------------------------
+   `CH` era 500 fixo. O canvas tinha proporcao 1024:500 = 2,048 e o quadro do
+   jogo fica entre 1,17 e 1,66 conforme a resolucao — sempre MAIS ALTO. A
+   sobra virava faixa preta, de 22% a 46% do quadro.
+
+   Nao da para resolver isso com outro valor fixo: com proporcao fixa o vazio e
+   `1 - min(A,Acaixa)/max(A,Acaixa)`, e as caixas vao de 1,174 a 1,655 (razao
+   0,709). Nenhum A fixo fica abaixo de 4% nas quatro; o melhor possivel deixa
+   15,8% nas pontas.
+
+   Entao `CH` passa a ser calculado a partir da caixa, em `syncCanvasResolution`.
+   Isso e seguro por causa de duas coisas medidas:
+
+     · A FORMA DO CAMPO NAO DEPENDE DE CH. A projecao do palco 2.5D faz
+       `vn = (fy - M) / fH` — normaliza a altura logica antes de projetar. Quem
+       decide o desenho e fW, topY, bottomY e R0.
+     · A FAIXA DA PROJECAO E FIXA (camada 21). Antes `bottomY = CH - 3` e
+       `topY = M + 34` faziam a faixa CRESCER com CH; foi isso que quebrou a
+       tela numa tentativa anterior, com o gramado virando um trapezio torto.
+
+   O que sobra de altura vira ceu e arquibancada, que o palco ja desenha de 0
+   ate standBot. Preto vira estadio.
+
+   `fH` deixa de ser const pelo mesmo motivo; `cy` ja le CH em tempo de
+   chamada. A chave do palco (`M + ':' + fW + 'x' + fH`) muda junto, entao a
+   camada 21 se reconstroi sozinha. */
+const CW=1024, M=14;
+let CH=500;
 const cx = x => M + x*(CW-M*2);
 const cy = y => M + y*(CH-M*2);
-const fW = CW-M*2, fH = CH-M*2;
+const fW = CW-M*2;
+let fH = CH-M*2;
+/* Faixa sa para CH: 1024/2,44 ate 1024/1,25. Fora dela o enquadramento deixa
+   de fazer sentido — janela extremamente larga nao precisa de arquibancada
+   ate o teto, e janela quase quadrada esticaria o ceu sem ganho. */
+const CH_MIN = 420, CH_MAX = 820;
+function definirCH(novo){
+  const v = Math.max(CH_MIN, Math.min(CH_MAX, Math.round(novo / 4) * 4));
+  if (v === CH) return false;
+  CH = v; fH = CH - M*2;
+  return true;
+}
 
 /* ============================================================================
    PONTO 3 · CANVAS EM TELAS DE ALTA DENSIDADE — syncCanvasResolution()
@@ -3053,10 +3109,15 @@ function syncCanvasResolution(cv){
   try{
     const rect = cv.getBoundingClientRect();
     const cssW = rect.width || CW;                       // 0 => usa o lógico
+    const cssH = rect.height || 0;
+    /* D24 · a altura lógica acompanha a CAIXA. Quantizada em passos de 4 para
+       não realocar o backing store a cada subpixel do layout, e só quando a
+       caixa tem altura real (durante a montagem ela pode vir 0). */
+    const mudouCH = (cssH > 8 && cssW > 8) ? definirCH(CW * cssH / cssW) : false;
     const dpr  = Math.min(window.devicePixelRatio || 1, 2.5);
     let k = clamp((cssW * dpr) / CW, .75, 2.5);
     k = Math.round(k * 20) / 20;                         // quantiza (passos .05)
-    if (cv._k === k) return;                             // nada mudou: não realoca
+    if (cv._k === k && !mudouCH) return;                 // nada mudou: não realoca
     cv._k = k;
     cv.width  = Math.max(1, Math.round(CW * k));
     cv.height = Math.max(1, Math.round(CH * k));
@@ -3138,7 +3199,25 @@ function paintField() {
     const z = zClose + (1 - zClose) * tEase;
     const vw = CW / z, vh = CH / z;
     const cpx = Math.max(vw / 2, Math.min(CW - vw / 2, camX));
-    const cpy = Math.max(vh / 2, Math.min(CH - vh / 2, camY));
+    /* D24 · A CAMERA SE ENQUADRA NA FAIXA DO GRAMADO, NAO NA CAIXA.
+       -------------------------------------------------------------
+       `camY` persegue a posicao PROJETADA da bola (ver o `project` logo
+       acima), que vive entre topY e bottomY. O limite, porem, era a altura do
+       canvas inteiro — e enquanto a faixa ocupava quase todo o canvas isso deu
+       na mesma. Quando o canvas fica mais alto que a faixa, o limite passa a
+       cortar o campo justamente embaixo, que foi o que a tentativa com CH=619
+       mostrou.
+       Agora o limite e a propria faixa. Se a vista for mais alta que ela, os
+       dois lados se cruzam e a camera assenta no CENTRO da faixa — o gramado
+       inteiro em quadro, e o que sobra acima e arquibancada. */
+    let cpy;
+    const _fx = window.CDS_F25D && window.CDS_F25D.faixa && window.CDS_F25D.faixa();
+    if (_fx && _fx.ready) {
+      const lo = _fx.topY + vh / 2, hi = _fx.bottomY - vh / 2;
+      cpy = lo > hi ? (_fx.topY + _fx.bottomY) / 2 : Math.max(lo, Math.min(hi, camY));
+    } else {
+      cpy = Math.max(vh / 2, Math.min(CH - vh / 2, camY));
+    }
     ctx.translate(CW / 2, CH / 2);
     ctx.scale(z, z);
     ctx.translate(-cpx, -cpy);
@@ -3223,6 +3302,20 @@ function paintField() {
     _all.sort((a, b) => a.y - b.y);
     groups = [{ color: null, players: _all }];
   }
+  /* §OS-207 · O TREMOR DA BOLA PARADA.
+     O balanco #anti-cardume abaixo foi calibrado para quem CORRE: amplitude
+     ate 2,2 px oscilando a 14-24 rad/s, proporcional ao deslocamento de tela
+     do quadro. Ele entra no desenho, e `CDS_F25D.body` deriva a passada do
+     deslocamento DESENHADO (`d.vms`, :20703 do bundle) — entao o balanco
+     realimenta a propria cadencia das pernas.
+     Correndo isso e ruido (a §D41 mediu 2% de `mv`). Na bola parada, que e
+     quando todo mundo CAMINHA a ~1 m/s ate o posto do escanteio ou da falta,
+     o deslocamento real por quadro cai para a mesma ordem de grandeza do
+     balanco — e ele deixa de ser tempero para virar a maior parte do sinal.
+     E o tremor que se ve enquanto o time se arma para a cobranca.
+     Bola parada nao tem cardume para quebrar: ninguem esta correndo em bloco.
+     O balanco desliga com a bola morta e volta com ela rolando. */
+  const _semCardume = !!(sim && (sim.dead > 0 || sim.waiting));
   for (const tmSt of groups) {
     const C = tmSt.color || (tmSt.players[0] && tmSt.players[0].color) || '#2e9bff';
     const perPlayerColor = !tmSt.color;   // no replay cada jogador traz sua cor
@@ -3238,19 +3331,30 @@ function paintField() {
       // "bloco andando junto": cada um oscila no seu tempo enquanto corre.
       let _rx = cx(p.x), _ry = cy(p.y);
       /* §OS-89 · passada do cobrador de falta, so no desenho */
+      /* §OS-207 · A PASSADA NAO VOLTAVA: ELA SUMIA.
+         `_k` subia ate 1 no primeiro terco e FICAVA em 1 pelos 66% restantes
+         (277 ms dos 420), e no quadro em que `_e` cruzava 1 o offset caia a
+         zero de uma vez. O desenho saltava de volta ate `_L` metros — o mesmo
+         vetor jogador->bola que armou a passada, ate 6 m — e isso acontece
+         embaixo do `slowmo` de 0,35x que a OS-88 liga justamente para o dono
+         OLHAR a cobranca. Era o pulo que ele via na hora de bater a falta.
+         Agora o pe avanca, encosta e o corpo volta ao eixo fisico de forma
+         continua: em `_e = 1` o offset ja E zero, entao nao ha quadro de
+         salto. Mesma licenca de antes — desenho, nunca fisica. */
       if (fkStep && p.ref && p.ref.id === fkStep.id) {
         const _e = (visualNow - fkStep.t0) / fkStep.dur;
         if (_e >= 1) fkStep = null;
         else if (_e >= 0) {
-          /* sobe rapido e assenta: o pe chega na bola no primeiro terco */
-          const _k = _e < .34 ? (_e / .34) : 1;
+          const _k = _e < .34 ? (_e / .34)              /* avanca sobre a bola */
+                   : _e < .52 ? 1                        /* contato */
+                   : 1 - (_e - .52) / .48;               /* recompoe, sem corte */
           _rx = cx(p.x + fkStep.dx * _k); _ry = cy(p.y + fkStep.dy * _k);
         }
       }
       const _pk = p.ref && p.ref.n;
       if (_pk) {
         const _pp = _prevScreen[_pk];
-        if (_pp) {
+        if (_pp && !_semCardume) {
           const _dx = _rx - _pp.x, _dy = _ry - _pp.y, _sp = Math.hypot(_dx, _dy);
           if (_sp > 0.06) {
             const _ang = Math.atan2(_dy, _dx) + Math.PI / 2, _mv = Math.min(1, _sp / 2.2), _tt = performance.now() / 1000;
@@ -3279,11 +3383,23 @@ function paintField() {
       else ctx.ellipse(groundX,groundY+5,r*(1+actionWave*.18),r*.72,0,0,Math.PI*2);
       ctx.fillStyle='#000'; ctx.fill(); ctx.restore();
 
-      // aura (dono da bola)
+      /* §D47 · A AURA DO PORTADOR ERA UM DISCO DE LAMA.
+         Era um circulo CHEIO de raio r+9 (quase o dobro do atleta), na cor do
+         time, a 28% de alfa, desenhado na altura do CORPO. Cor de time a 28%
+         sobre grama nao le como a cor do time: le como marrom sujo, e o disco
+         cobre o jogador que ele deveria destacar. Visto ampliando um quadro do
+         jogo — o boneco sumia dentro da propria marca.
+
+         Agora e um ANEL no CHAO, no mesmo plano e com a mesma proporcao da
+         sombra que ja existe logo acima. Marca quem tem a bola sem tapar
+         ninguem, e como esta no gramado ela nao compete com o corpo. */
       if (p.hasBall) {
-        ctx.save(); ctx.globalAlpha=.28;
-        ctx.beginPath(); ctx.arc(x,y,r+9,0,Math.PI*2);
-        ctx.fillStyle=pc; ctx.fill(); ctx.restore();
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(groundX, groundY + r * .98, r * 1.24, r * .50, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = pc; ctx.lineWidth = Math.max(1.5, r * .16);
+        ctx.globalAlpha = .85; ctx.stroke();
+        ctx.restore();
       }
 
       // aura de LENDA: anel dourado pulsante (r>=92); brilho forte se em chamas
@@ -3330,6 +3446,24 @@ function paintField() {
         if (motion.type === 'dive') { ctx.moveTo(x-10,y); ctx.lineTo(x+10,y); }
         else { ctx.moveTo(x-15,y-5); ctx.lineTo(x+15,y-5); }
         ctx.stroke(); ctx.restore();
+      }
+
+      /* §D47 · SETA DO PORTADOR, acima da cabeca.
+         O anel de chao que substituiu o disco de lama ficava debaixo da placa
+         de nome — que e desenhada justamente nos jogadores perto da bola, ou
+         seja, sempre no portador. Marca invisivel nao e marca. Acima da cabeca
+         nao ha nada que colida, e e onde todo jogo de futebol poe. */
+      if (p.hasBall) {
+        const _sy = y - r * 1.62, _sw = Math.max(3.2, r * .42);
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x, _sy + _sw);
+        ctx.lineTo(x - _sw, _sy - _sw * .5);
+        ctx.lineTo(x + _sw, _sy - _sw * .5);
+        ctx.closePath();
+        ctx.fillStyle = pc; ctx.fill();
+        ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.stroke();
+        ctx.restore();
       }
 
       // cartão amarelo (flag no ombro)

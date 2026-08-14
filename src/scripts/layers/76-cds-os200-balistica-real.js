@@ -156,7 +156,11 @@
      partida. A escala abaixo e a razao medida entre gol realizado e pGoal
      acumulado, para a coluna de xG voltar a significar gols esperados.
      Refaça a medicao se mexer em ERRO_BASE, DEFESA_BASE ou FORCA_ESCALA. */
-  const XG_ESCALA = num(T.xgEscala, 0.70);
+  /* A2 · RE-DERIVADA depois que o modelo de defesa mudou, como o parágrafo
+     acima manda. Com o goleiro escolhendo a melhor folga em vez da primeira,
+     a razão gol/pGoal caiu: 300 partidas davam xG 3,15 para 2,93 gols, e a
+     coluna passou a superestimar de novo. 0,70 × 2,93/3,15 = 0,651. */
+  const XG_ESCALA = num(T.xgEscala, 0.651);
   P._os200EscalaXg = function () { return XG_ESCALA; };
 
   /* Ruido em forma de sino, somando dois uniformes. E limitado em [-1,1], o
@@ -327,7 +331,20 @@
      mantemos a saida rasteira e procuramos a velocidade que faz a bola chegar.
      Se a pedida nao chega (o arrasto e a rolagem comem muito numa bola batida
      longe), ela sobe, que e exatamente o que um jogador faz. */
-  const ELEV_RASTEIRA = 0.03; // ~1,7 graus: a bola sai rente, nao colada
+  /* OS-203 · A BOLA RASTEIRA NAO DECOLA.
+     A versao anterior saia a 0,03 rad (~1,7 graus) "rente, nao colada". Com
+     integracao real isso e um LANCAMENTO, nao um passe: medido numa partida de
+     verdade, todo passe rasteiro fazia um salto de 14 cm, quicava em 4 cm,
+     quicava em 1 cm — a razao entre os saltos e exatamente RESTITUICAO^2 =
+     0,3025, e o traco de tela mostrava o par (0,141 m / 0,043 m) se repetindo a
+     cada passe. Sao 54 subidas por minuto de jogo, 92% delas abaixo de 30 cm:
+     a bola atravessava o campo saltitando como pedra ricocheteando na agua.
+
+     Zero e o valor certo, nao um valor pequeno: com theta = 0 e z = 0 o
+     integrador entra no ramo de rolagem no primeiro passo e a bola nunca deixa
+     o gramado — ela rola, perde velocidade para o arrasto e para a resistencia
+     de rolagem, e chega viva do outro lado. Que e o que um passe rasteiro e. */
+  const ELEV_RASTEIRA = 0;
   const CHEGADA_MINIMA = num(T.chegadaMinima, 7.5); // m/s de bola viva na chegada
 
   function resolverRasteira(o, alvo, vel) {
@@ -468,6 +485,16 @@
       z: alvoZ,
     };
     const regime = regimeDe(kind, passKind, meta, alvoZ);
+    /* OS-203 · a origem do passe rasteiro e o gramado, e nao a altura decorativa
+       que o core deixa em `ball.z`. O core faz `b.z = 0,12` logo antes de nos
+       chamar (40-match-engine, "ARCO baixo no passe rasteiro"), um numero da
+       epoca em que `z` so servia para desenhar. Lido como altura de saida real,
+       ele e uma queda de 12 cm: sozinho responde por 0,12 dos 0,141 m de apice
+       medidos, e e ele que faz a bola quicar em todo passe. Um passe no chao
+       comeca no chao. Chute e bola alta continuam saindo da altura que o motor
+       informou — la os 12 cm sao a bola no pe, e a calibracao da mira depende
+       disso. */
+    if (regime === RASTEIRA) o.z = 0;
     const pedida = Math.max(8, finito(speed, 28));
     /* No chute a forca e do jogador e nao se negocia: se ele nao tem perna
        para pousar a bola onde mirou, ela cruza mais baixo do que ele queria —
@@ -658,7 +685,17 @@
     const q = qualidadeGk(gk);
     const reacao = 0.16 + (1 - q) * 0.14;   // 0,16 s a 0,30 s
     const vMergulho = 4.1 + q * 2.3;        // m/s de deslocamento com mergulho
-    const envergadura = 1.05 + q * 0.55;    // alcance de bracos e pernas
+    /* ENVERGADURA — alcance da ponta dos dedos ao centro de massa, mergulhando.
+       Estava em 1,05 a 1,60 m e isso e menos do que um goleiro alcanca parado:
+       a envergadura de braços de um profissional passa de 1,85 m, ou seja ~0,93 m
+       de cada lado do tronco, e o mergulho estende bem mais que isso.
+
+       Medido com 1,05-1,60: de 1.805 chutes que entraram na boca do gol, 613
+       (34%) ficaram FORA DE ALCANCE — gol sem o goleiro encostar. E dos que ele
+       alcancava, a folga media era de 0,24 m, ou seja ele chegava raspando.
+       A cobertura total (mergulho x tempo + envergadura) dava 3,76 m contra
+       3,66 m de meia-boca: nao fechava o canto. */
+    const envergadura = num(T.envergaduraBase, 1.05) + q * num(T.envergaduraQ, 0.55);
 
     /* Interceptacao ao longo da trajetoria, e nao so no plano do gol. A versao
        anterior media a distancia do goleiro ate o ponto onde a bola CRUZA a
@@ -679,7 +716,18 @@
       if (s.z > alcanceZ) continue;
       const preciso = Math.max(0, dist2d(gk.x, gk.y, s.x, s.y) - envergadura);
       const folga = vMergulho * disponivel - preciso;
-      if (folga >= 0) { achado = { ponto: s, folga, disponivel }; break; }
+      /* A MELHOR CHANCE, NAO A PRIMEIRA.
+         O laco parava no PRIMEIRO instante teoricamente alcancavel — e esse
+         instante tem folga proxima de zero por construcao, porque e exatamente
+         onde o alcance passa a existir. Com `p = DEFESA_BASE + folga*...`, todo
+         chute era resolvido no pior ponto possivel da defesa.
+
+         O sintoma que denunciou isso: aumentar a envergadura de 1,05 para 1,45
+         PIOROU o jogo (gols 3,27 -> 3,40). Mais alcance antecipava o encontro
+         para um ponto ainda mais apertado, em vez de dar conforto ao goleiro.
+         Um goleiro nao mergulha no primeiro milissegundo em que poderia
+         encostar: ele escolhe onde chega melhor. */
+      if (folga >= 0 && (!achado || folga > achado.folga)) achado = { ponto: s, folga, disponivel };
     }
 
     const d = this.__os200Diag || (this.__os200Diag = {});
