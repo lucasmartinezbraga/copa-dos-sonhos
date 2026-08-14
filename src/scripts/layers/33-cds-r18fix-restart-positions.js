@@ -83,9 +83,33 @@
         if (_r1835rota === 'comum' && victim && !victim.red && this.pendingRestart) {
           var sx = clamp(num(victim.x), 1, FL - 1), sy = clamp(num(victim.y), 1, FW - 1);
           var tm = this.teams[victim.team];
-          var cand = tm.players.filter(function (p) { return p && !p.red && !p.isGK; })
-                       .sort(function (m, n2) { return dist(m.x, m.y, sx, sy) - dist(n2.x, n2.y, sx, sy); })[0] || victim;
-          armTaker(this, cand, sx, sy, 1, 3.4, true);
+          /* §D37 · QUEM SOFREU A FALTA NAO COBRA — era por isso que ninguem
+             caminhava. O filtro pegava o jogador MAIS PROXIMO do ponto da
+             falta, e o ponto da falta E a posicao da vitima: o mais proximo era
+             ela mesma, a 0,0 m. Com d=0 o armTaker calcula `need = 1 + 0/6,5`
+             e nao ha caminhada — o juiz apita e a bola sai quase junto. E o
+             mesmo defeito que a R18.35 foi escrita para consertar ("distancia
+             mediana 0,0 m"), reintroduzido pelo criterio de escolha.
+
+             Medido na tela (tools/fisica/tela/bolaparada.js):
+                 antes    dead 0,82 s   cobrador a 0,00 m, velocidade 0
+                 escanteio dead 4,75 s  cobrador anda 26,65 m e chega
+
+             DOSE: a primeira tentativa usou (1 , 3,4) e REPROVOU — dead media
+             ~2,4 s acrescenta ~1,6 s de bola morta x ~22 faltas por partida, e
+             o `blowoutRate` foi de 0,157 para 0,203 (faixa 0,09-0,19). As 14
+             metricas nao viram; a distribuicao de placares viu (armadilha B1).
+             Medicao em reports/falta-tentativa-reprovada.json.
+             Agora (0,5 , 1,8): a caminhada continua visivel e o custo em bola
+             morta cai para menos da metade. */
+          var elegiveis = tm.players.filter(function (p) {
+            return p && !p.red && !p.isGK && p !== victim;
+          });
+          if (!elegiveis.length) elegiveis = tm.players.filter(function (p) { return p && !p.red; });
+          var cand = elegiveis.sort(function (m, n2) {
+            return dist(m.x, m.y, sx, sy) - dist(n2.x, n2.y, sx, sy);
+          })[0] || victim;
+          armTaker(this, cand, sx, sy, 0.5, 1.8, true);
           var sim = this;
           this.pendingRestart = function () {
             sim._giveBall(cand);
