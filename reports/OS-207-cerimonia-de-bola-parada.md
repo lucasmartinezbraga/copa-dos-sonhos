@@ -176,3 +176,73 @@ caches do desenho ficaram por nome.
 Dois jogadores homônimos em campo dividem passada e balanço a partida inteira.
 Não é o defeito relatado (não é específico de bola parada) e a correção cruza
 quatro arquivos e um contrato entre camadas, então ficou de fora desta rodada.
+
+
+---
+
+# Verificacao independente (pedido: "verifique se arrumou mesmo")
+
+As tres correcoes de desenho nao tinham sido medidas na camada de desenho — so
+por raciocinio de codigo. Duas sondas novas fecham isso.
+
+## `tools/fisica/tela/gestos.js` — os gestos chegam ao desenho?
+
+Intercepta `CDS_F25D.body` numa partida real (`window.__quickMatch`, com rAF,
+canvas e `paintField` de verdade) e conta o estado entregue ao desenho.
+
+`fouled` e `get_up` aparecem: **33 e 34 amostras desenhadas** em 3 minutos de
+tela. O gesto que nao existia existe.
+
+Achado de brinde, medido: **8 estados declarados nunca chegam ao desenho** —
+`first_touch_pass`, `placed_shot`, `volley`, `body_feint`, `gk_punch`,
+`gk_smother`, `gk_throw`, `gk_kick`. Tres deles (`placed_shot`, `gk_kick`,
+`gk_throw`) chegam a ser PEDIDOS pela OS-46 e mesmo assim nunca sao vistos:
+sao atropelados no mesmo tier antes de virar quadro. Fica registrado.
+
+## `tools/fisica/tela/passada-parada.js` — o corpo salta ou anda?
+
+Le a posicao DESENHADA de cada atleta em cada quadro, na velocidade padrao do
+jogo. Duas armadilhas que a primeira versao caiu e o comentario do arquivo
+guarda: `CDS_F25D` e `Object.freeze` (trocar um metodo dentro dele falha em
+silencio) e o teto de salto tem de descontar `G.speed`, senao o avanco rapido
+vira "defeito".
+
+| bola morta, 3X | seu HTML | OS-207 | OS-208 |
+|---|---:|---:|---:|
+| tremor (reversao de direcao) | 7,69% | 5,32% | 5,72% |
+| salto de desenho | 58,23% | 62,30% | **34,52%** |
+| salto maximo | 4,59 m | 5,33 m | — |
+
+O tremor caiu como esperado (confirmado tambem a 6X: 15,72% -> 9,46%).
+
+**O salto NAO tinha caido** — a OS-207 nao mexia nele, e a sonda provou que era
+o maior defeito visivel que restava. Dai a OS-208.
+
+---
+
+# OS-208 · o corpo nao teletransporta, mesmo quando a ficha teletransporta
+
+`70-game-runtime-and-rendering.js`
+
+A causa dos 58% nao e bug de fisica: sao as **recolocacoes administrativas**.
+Troca de campo, formacao inicial, reinicio apos gol e o snap do batedor poem o
+atleta noutro lugar de uma vez, de proposito. A R18.99 catalogou isso e decidiu
+— com razao — nao tocar: `SALTO_ADMIN` existe para o motor poder recolocar quem
+precisa recolocar.
+
+O erro foi deixar essa decisao vazar para a TELA. O motor pode recolocar uma
+ficha; o corpo desenhado nao pode aparecer noutro lugar.
+
+O desenho passa a perseguir a posicao real com teto de passo. O teto e generoso
+de proposito — 15 m/s, o dobro do sprint — para que nenhuma corrida real fique
+devendo: no jogo normal o passo nunca chega ao teto, entao nao existe atraso.
+Quem dispara e so o que ja era impossivel. Acima de 34 m nao ha o que animar (o
+atleta trocou de metade do campo) e o corte e honesto.
+
+**Medido: 58,23% -> 34,52% de saltos, media 0,63 m.** Fisica intocada: e o laco
+de desenho, nao o motor.
+
+O residuo de 34,5% e a folga deliberada do teto — saltos entre o maximo fisico
+(~7 m/s) e os 15 m/s do teto ainda passam. Apertar o teto reduz o residuo e
+comeca a atrasar o corpo em relacao a bola; a folga foi escolhida para o lado
+de nunca dever corrida.

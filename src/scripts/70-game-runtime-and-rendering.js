@@ -186,6 +186,10 @@ let feed = [], minorCd = 0, finished = false;
 let isKO = false, myMatch = null, mySide = 0, matchTeams = null;
 let trailPts = [], goalFlash = null, latestEvent = null;
 let _prevScreen = {};   // #anti-cardume (visual): posição de tela do frame anterior, por jogador
+/* §OS-208 · posicao DESENHADA do quadro anterior, para o teto de passo do
+   desenho. Diferente de `_prevScreen`, que so serve ao balanco: este guarda
+   o que foi realmente pintado, porque e contra isso que o salto e medido. */
+let _prevDraw = Object.create(null), _prevDrawT = 0, _posHalf = 0;
 let celebration = null;   // overlay dramático de gol (nome + placar + confete)
 let replayBuf = [];       // buffer circular de snapshots (posições) p/ replay de gol
 let replay = null;        // { frames, idx, until } durante a reprodução
@@ -3316,6 +3320,19 @@ function paintField() {
      Bola parada nao tem cardume para quebrar: ninguem esta correndo em bloco.
      O balanco desliga com a bola morta e volta com ela rolando. */
   const _semCardume = !!(sim && (sim.dead > 0 || sim.waiting));
+  /* §OS-208 · estado do teto de passo do DESENHO. Ver o bloco no laco abaixo.
+     `_pos` guarda a posicao desenhada do quadro anterior; ela e descartada
+     inteira quando a cena muda de dono (replay, comemoracao, intervalo),
+     porque ali o corte e legitimo e perseguir seria pior que saltar. */
+  const _trocaDeCena = !!(playersToDraw || rframe || celebration || (sim && sim.half !== _posHalf));
+  if (_trocaDeCena) { _prevDraw = Object.create(null); _posHalf = sim ? sim.half : 0; }
+  const _pos = _prevDraw;
+  const _posT = _prevDrawT || (visualNow - 16);
+  _prevDrawT = visualNow;
+  /* px por metro do campo desenhado, para o teto ser em metros de verdade */
+  const _pxPorM = Math.max(1, (G.CW - 2 * G.M) / (FL || 105));
+  const MUITO_LONGE_PX = 34 * _pxPorM;   // trocou de metade do campo: nao se anima
+  const _velVis = (slowmo ? Math.min(G.speed, 1) * slowmo.f : G.speed) || 1;
   for (const tmSt of groups) {
     const C = tmSt.color || (tmSt.players[0] && tmSt.players[0].color) || '#2e9bff';
     const perPlayerColor = !tmSt.color;   // no replay cada jogador traz sua cor
@@ -3330,6 +3347,45 @@ function paintField() {
       // real (física) não muda, o equilíbrio fica intacto — mas quebra o efeito de
       // "bloco andando junto": cada um oscila no seu tempo enquanto corre.
       let _rx = cx(p.x), _ry = cy(p.y);
+      /* §OS-208 · O CORPO NAO TELETRANSPORTA, MESMO QUANDO A FICHA TELEPORTA.
+         ---------------------------------------------------------------------
+         MEDIDO com `tools/fisica/tela/passada-parada.js`, que le a posicao
+         DESENHADA de verdade: com a bola morta, 58% das amostras (atleta x
+         quadro) tinham deslocamento acima do fisicamente possivel, media
+         0,65 m e maximo 4,59 m — a 3X, ja descontando o botao de velocidade.
+
+         A causa nao e um bug de fisica: sao as RECOLOCACOES ADMINISTRATIVAS.
+         Troca de campo, formacao inicial, reinicio apos gol e o snap do
+         batedor no quadro da cobranca poem o atleta noutro lugar de uma vez,
+         de proposito. A R18.99 catalogou isso e decidiu — com razao — nao
+         tocar: `SALTO_ADMIN` existe justamente para o motor poder recolocar
+         quem ele precisa recolocar.
+
+         O erro estava em deixar essa decisao vazar para a TELA. O motor pode
+         recolocar uma ficha; o corpo desenhado nao pode aparecer noutro lugar.
+         Aqui o desenho persegue a posicao real com teto de passo: no jogo
+         normal ele esta sempre em cima dela (o passo real nunca chega ao
+         teto, entao nao existe atraso), e num salto administrativo o corpo
+         CORRE ate a posicao nova em vez de piscar la.
+
+         O teto e generoso de proposito — o dobro do sprint — para que nenhuma
+         corrida real fique devendo. Quem dispara e so o que ja era impossivel.
+         Acima de MUITO_LONGE nao ha o que animar (o atleta trocou de metade
+         do campo): ali o corte e honesto e o desenho acompanha. */
+      if (_pos) {
+        const _pkPos = (p.ref && p.ref.id != null ? 'i' + p.ref.id : (p.ref && p.ref.n) || p.n) + '#' + (p.num || 0);
+        const _dst = _pos[_pkPos];
+        const _dtV = Math.max(0.001, Math.min(0.25, (visualNow - _posT) / 1000));
+        if (_dst) {
+          const _ex = _rx - _dst.x, _ey = _ry - _dst.y, _eL = Math.hypot(_ex, _ey);
+          const _tetoPx = 15 * _dtV * _velVis * _pxPorM;   // 15 m/s = 2x o sprint
+          if (_eL > _tetoPx && _eL < MUITO_LONGE_PX) {
+            _rx = _dst.x + _ex / _eL * _tetoPx;
+            _ry = _dst.y + _ey / _eL * _tetoPx;
+          }
+        }
+        _pos[_pkPos] = { x: _rx, y: _ry };
+      }
       /* §OS-89 · passada do cobrador de falta, so no desenho */
       /* §OS-207 · A PASSADA NAO VOLTAVA: ELA SUMIA.
          `_k` subia ate 1 no primeiro terco e FICAVA em 1 pelos 66% restantes
