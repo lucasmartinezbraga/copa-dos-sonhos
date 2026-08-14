@@ -155,3 +155,31 @@ altura. A interseção é pequena, não vazia.
 
 > Sem essa coluna eu estava a um passo de relatar raridade como defeito — pela
 > segunda vez no mesmo dia.
+
+
+---
+
+## O portão que a §D42 nunca teve
+
+Eu havia escrito, na §D42, que a ponte de animação não instala no runner
+headless e que por isso as 14 métricas não podiam se mover *por construção*.
+**Está errado.** `tools/fisica/bateria.js` faz `define('window', global)`
+**antes** de carregar o bundle, então `(typeof window !== 'undefined' ? window
+: null)` devolve o global e a ponte instala — envolvendo `step` e `_emit`.
+Conferido rodando, não relido.
+
+Portanto §D42 + §D43 + §D45–§D48 passaram por um portão pareado de verdade,
+**300 partidas**, semente 4200000, contra o commit imediatamente anterior à
+§D42:
+
+| seção | chaves | diferenças |
+|---|---|---|
+| `agregado` (as 14 métricas) | 14 | **0** |
+| `eventosPorPartida` | 76 | **0** |
+| `fisica` | 15 | 3, todas de último bit |
+
+As três: `ramos.defSomaDistLinha`, `defSomaTempoBola` e `somaForca`, com desvio
+relativo de **0,00000%** — a mesma oscilação de ordem de soma da armadilha
+**D8**, presente também entre duas execuções do build não modificado.
+
+`bash tools/testes.sh` → **8/8**.

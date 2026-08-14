@@ -104,4 +104,16 @@ arquivo.
 `project`, `liftY` e `buildStage` são desenho puro e não são chamados pelo
 runner headless — mas **eu já errei essa afirmação uma vez** (a ponte de
 animação instala no headless, ao contrário do que escrevi na §D42), então desta
-vez está medido em vez de afirmado: bateria pareada contra o build anterior.
+vez está medido em vez de afirmado.
+
+Bateria pareada contra o build anterior, 24 partidas, semente 4200000:
+
+| seção | chaves | diferenças |
+|---|---|---|
+| `agregado` (as 14 métricas) | 14 | **0** |
+| `eventosPorPartida` | 73 | **0** |
+| `fisica` | 15 | **0** |
+
+Zero diferenças, inclusive nos somatórios de ponto flutuante.
+
+`bash tools/testes.sh` → **8/8**.
