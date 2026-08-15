@@ -181,9 +181,266 @@ LATERAL   L1..L5 todos 22/22   <- íntegro
    `NOTA_MIN` (hoje 2,80); depois `HABILIDADE` (82) e `PRESSAO` (3,8). A
    varredura inteira está no cabeçalho da camada.
 
+
 ---
 
-## 7. Como o dono trabalha
+## 8. Mapa do código
+
+### O core (`src/scripts/`, concatenados nesta ordem — bloco 6 do bundle)
+
+| arquivo | o que vive lá |
+|---|---|
+| `00-polyfills.js` | boot, guardas de ambiente |
+| `10-data.js` | banco de seleções e jogadores (o maior; ~410 KB) |
+| `20-core.js` | `ENGINE_CALIBRATION`, utilitários (`clamp`, `lerp`, `facet`, `getAttr`, `chance`, `R`, `FL`, `FW`) |
+| `25-data-integrity-v3.js` | validação do banco |
+| `30-tactics.js` | formações, estilos, papéis |
+| `40-match-engine-and-manager-ai.js` | **`MatchSim` inteiro** + IA de treinador |
+| `50-tournament.js` | chaveamento da Copa |
+| `60-ui-flow.js` | telas de draft/pré-jogo |
+| `70-game-runtime-and-rendering.js` | laço de rAF, `paintField`, todo o desenho |
+
+**`CAL` é local ao core.** Camadas leem a calibração por `ENGINE_CALIBRATION`
+(global). `facet`, `chance`, `R`, `clamp`, `FL`, `FW`, `getAttr` e `lerp` são
+globais e podem ser usados direto.
+
+### Pontos de entrada globais (úteis para sondar)
+
+```js
+window.MatchSim                 // o construtor; prototype é onde as camadas mexem
+window.GAME._sim()              // a partida em curso, quando há uma
+window.__quickMatch(40, 120)    // sobe partida com render de verdade, pulando o draft
+window.CDS_F25D                 // o desenhista 2.5D (CONGELADO — ver armadilha 1)
+window.CDS_ANIM                 // máquina de animação: STATES, SEQ, Controller, Machine
+window.CDS_ANIM_BRIDGE          // { amostrar, dono } — a ponte, adiável pela OS-207
+window.__CDS_ANIM_BY_KEY        // estado de animação por chave de desenho
+window.__CDS_SCREEN             // { p: {chave: {x,y,r,s}}, m: matriz } posição de tela
+window.G                        // { speed, CW, M, db, cup, screen, ... } estado da UI
+```
+
+### A cadeia de `P.step` (ordem do documento = quem roda por fora)
+
+Cada camada faz `const old = P.step; P.step = function(){ ... old.apply(...) ... }`.
+A **última do documento é a mais externa**, então ela vê o quadro já terminado.
+
+```
+core.step
+ └ 12 r7 · 14 r10 · 16 r12/r13 · 17 r13-cadence · 18 r14
+    └ 21 ux-boot            <- a ponte de ANIMAÇÃO amostra aqui
+       └ 33 · 36 · 39 · 41 · 42 · 43
+          └ 60 os46-anim · 63 os77-falta · 64 os83 · 67 os100-lateral
+             └ 68 os107-bloco · 69 os112 · 72 r1899-antiteleporte
+                └ 75 r1905 · 78 os206 · 79 OS-207 · 80 OS-212   <- mais externas
+```
+
+**Consequência que já causou defeito real:** a OS-77, OS-83, OS-100, OS-107,
+OS-112 e a R18.99 escrevem `p.x/p.y` **depois** que a ponte de animação (21) já
+escolheu a pose. Foi por isso que a OS-207 existiu: ela reamostra no fim.
+
+### Fluxo de um passo
+
+```
+step(dt)
+ ├ dead > 0 ?  ── sim → _movePlayers(dt, freeze) ; se dead<=0 dispara pendingRestart ; RETORNA
+ │                     (não avança o relógio: `minute` só cresce com dead <= 0)
+ ├ física da bola: _ballTravel | _ballGlue | _looseRoll
+ ├ decisão do portador  ← PORTÃO: owner.settle <= 0 && decideT <= 0  → _decide(o)
+ ├ _pressAndTackle / duelos
+ └ _movePlayers → _integrate (por jogador) → _resolveOverlaps → commitMovement
+```
+
+`commitMovement` é o **único** escritor legítimo de `p.x/p.y` durante o jogo
+vivo, e ele deriva `p.vx/p.vy` do deslocamento real. Qualquer camada que
+escreve posição sem escrever velocidade cria o "boneco deslizando".
+
+### Campos do jogador que importam
+
+```
+x, y            posição em metros (campo 105 × 68)
+vx, vy          velocidade — DEVE contar a mesma história que o deslocamento
+hx, hy          casa da formação;  dhx, dhy  casa defensiva;  ahx, ahy  ofensiva
+maxSpd, acc, turn   limites físicos
+settle          > 0 = ainda dominando a bola. BLOQUEIA a decisão.
+react           constante de tempo individual (0,062–0,27) usada na suavização
+stamina, yellow, red, rating
+isGK, slotPos, idx, ref     (ref = registro do banco: id, n, num, a8, attributesV3)
+_setPieceRole   'taker' | 'zone' | 'cover' | 'rebound' | 'counter' | 'rest_defence' | 'short_option'
+_beatenUntil    defensor passado, penalidade de tempo
+__spTarget      alvo de caminhada da bola parada (R15)  ← consumido no bloco 16
+```
+
+### Objeto bola
+
+```
+x, y, z, vx, vy, vz
+owner           jogador com a posse (null = solta)
+traveling       em voo
+lastTouch, receiver, target, kind ('pass'|'shot'|'cross'), from
+```
+
+### Estado da partida
+
+```
+sim.t           segundos de simulação
+sim.minute      minuto de jogo  (avança só com dead <= 0, a clockRate 0,085)
+sim.dead        > 0 = bola morta. NÃO consome relógio de jogo.
+sim.pendingRestart   callback que dispara quando dead chega a 0
+sim.waiting     pausa administrativa (intervalo, gol)
+sim.__cdsTakerWait   { taker, x, y, until } — o batedor armado (some cedo! ver armadilha 4)
+sim.__os36Guard      { wall: [...] } — a barreira de falta
+```
+
+---
+
+## 9. Calibração (`ENGINE_CALIBRATION`, em `20-core.js`)
+
+Mexer aqui muda placar. Sempre com bateria antes/depois.
+
+```
+timing      clockRate 0,085   (min de jogo por s de simulação — NÃO é velocidade de tela)
+            decisionInterval 0,28    deadBallRecovery 0,062    tackleCooldown 0,55
+possession  firstTouchMin 0,10   firstTouchMax 0,34   transitionProtection 0,42
+passing     speedShort 16,2  speedThrough 19,5  speedLaunch 22,5
+            baseError 0,018  pressureError 0,075  longPassError 0,090  maxError 0,24
+defending   foulBase 0,29  yellowFirst 0,125  yellowSecond 0,05  straightRed 0,0008
+            tackleAttemptRate 12,0  boxAttemptRate 4,2
+shooting    speedBase 34  speedMin 32  speedMax 54  conversionScale 2,25
+attributes  duelSpread 10,5  shotDuelSpread 13,5  traitEffect 0,55
+```
+
+**Armadilha de conceito:** `clockRate` decide *quanto futebol acontece* dentro
+dos 90 minutos. O botão de velocidade (`G.speed`, padrão 3X) decide *quão
+rápido você assiste*. São coisas diferentes — não conserte tempo de tela
+mexendo no `clockRate`.
+
+---
+
+## 10. Eventos do motor (`_emit`)
+
+A apresentação inteira se pendura aqui. `by` é quase sempre quem **fez**; em
+desfechos defensivos, quem **sofreu** está em `on` — ler só `by` já deixou
+gestos mudos.
+
+```
+posse/passe    pass{by,to,kind} · bad_pass{by,to,kind} · long_pass{to,progressM}
+               intercept{by,contact,through,controlled} · miscontrol_out{by}
+duelo          tackle{by,on,source} · tackle_attempt{by,on,distance}
+               tackle_missed{by,on,distance} · loose_duel{by,on} · containment{by,on,source}
+               dribble{by,on,ok,flair,move} · blocked{by,contact,y,distance}
+finalização    shot_taken{by} · header_shot{by,xg} · low_cross_shot{by,from,xg}
+               goal{by,golaco,minute} · miss{by,reason,porCima,larga} · post
+falta/cartão   foul{by,on} · yellow{p} · red{p,second} · injury{by,team}
+               freekick{by,direct,manual,result,pGoal} · falta_cobrada{by,x,y}
+bola parada    corner{team,by,x,y,routine,defStyle} · corner_delivery{team,by,swing}
+               throw_in{team,by,x,y,to} · goal_kick{team} · offside{by,on}
+               offside_restart{team,by,x,y} · kickoff{team}
+goleiro        save{gk,big,kind} · gk_claim{gk,by,kind} · gk_claim_miss{gk,by}
+               gk_punch{gk,by,corner,x,y} · gk_sweep{gk,by,contact,controlled}
+               gk_bad_distribution{by}
+contrato       action_prepare{by,action,actionId,prepareDuration}
+               action_contact{by,contract} · action_interrupted{by,actionId}
+treinador      ai_sub{team,why} · ai_shape{team,form,why} · manager_plan · manager_change
+tempo          halftime · extratime · et_halftime
+```
+
+---
+
+## 11. Máquina de animação (bloco 21, `cds-ux-boot`)
+
+64 estados em `CDS_ANIM.STATES`, cada um `{ tier, dur }` ou `{ tier, loop:true }`.
+
+```
+tiers   T_LOCO 0  <  T_BALL 1  <  T_DEF 2  <  T_ACTION 3  <  T_GK 4
+```
+
+Regras que já morderam:
+
+- `request(estado, now, {force, entao})` recusa tier menor sobre gesto em
+  curso. `force:true` passa por cima. `entao` encadeia UM desfecho.
+- **`beginAction` não passava pela regra** — entrava direto por `_enter`. A
+  OS-210 fez a sequência **adotar** a variante (`power_shot`, `first_touch_pass`,
+  `cross`…) como primeira fase, em vez de apagá-la.
+- O **piso** (locomoção, ou `goleiroFor` para o goleiro) reentra quando a
+  duração acaba. Estado com `dur > 0` segura o quadro até expirar.
+- `POSE[estado]` = `{esc, spr, inc, agacha, braco, estica}` modula o desenho.
+  Sem entrada em `POSE`, o estado desenha como corrida.
+- `animWave(estado, fase)` dá o envelope. **Estado sem envelope volta 0 e o
+  gesto não se move** — foi o defeito da interceptação (§D39).
+- A chave de desenho é `<time>:<ref.id ou nome>` (OS-209). Ponte e desenhista
+  **têm de casar**, senão a animação inteira para.
+
+---
+
+## 12. Receitas
+
+### Adicionar uma camada
+
+1. `src/scripts/layers/NN-nome.js` com o padrão IIFE + guarda de idempotência
+   (`if (P.__MINHA__) return;`).
+2. Marcador `/*__CDS_BLOCK_N__*/` em `src/index.template.html`, na posição
+   desejada (**mais no fim = roda por fora**).
+3. Entrada em `manifests/build-manifest.json` (`index`, `kind`, `id`, `file`).
+4. `build.py` → `verify.py` → `browser_smoke.js`.
+
+### Medir antes de mexer
+
+```bash
+# motor
+node tools/fisica/bateria.js --build=dist/index.html --matches=96 --workers=8 --out=reports/antes.json
+python3 tools/fisica/placar.py reports/antes.json
+# tela (o que a bateria não vê)
+node tools/fisica/tela/gestos.js dist/index.html --segundos=180
+node tools/fisica/tela/validar-lances.js dist/index.html --segundos=420
+```
+
+### Sondar sem sujar o jogo
+
+Envolver `P.step` ou `P._emit` numa `page.evaluate` **antes** de
+`__quickMatch`. Para o desenho, trocar o objeto `CDS_F25D` inteiro (é
+congelado). Nunca editar `dist/` — o próximo build apaga.
+
+### Reimportar um HTML que veio na frente do repo
+
+```bash
+python3 tools/import_build.py caminho/do/jogo.html   # reescreve src/ + manifesto
+python3 tools/build.py                               # confere sha256: "identico ao HTML importado"
+```
+
+---
+
+## 13. Glossário (o código é em português)
+
+```
+bola parada / bola morta  set piece / dead ball (sim.dead > 0)
+batedor        taker            barreira       wall
+cobrança       the kick itself  passada        the stride/gait
+lateral        throw-in         escanteio      corner
+falta          foul             roubada de bola  tackle/dispossession
+pontapé de saída  kickoff       tiro de meta   goal kick
+folego         stamina          portador       ball carrier
+marcador       marker           cabo-de-guerra tug-of-war (dois sistemas puxando o mesmo jogador)
+camada         layer            sonda          probe
+laudo          report           dose           the magnitude of a tuning change
+```
+
+---
+
+## 14. Convenções do projeto
+
+- **Comentário explica o PORQUÊ e traz o número medido.** O código aqui é
+  quase todo comentado assim, e é o que torna possível continuar — mantenha.
+- Commits em português, Conventional Commits, com a medição no corpo.
+- Camada nova ganha número `OS-NNN` e laudo em `reports/`.
+- Nunca reintroduzir teto de altura em `_physicalTargetZ` (era ele que impedia
+  chute por cima do travessão — ver `reports/OS-200-fisica-da-bola.md`).
+- O ramo `if (p === presser)` do core **não roda** — a camada R13 intercepta
+  antes.
+- `tools/fisica/calibrar.py` faz varredura de parâmetro sem rebuild, via
+  `CDS_OS200_TUNE`.
+
+---
+
+## 15. Como o dono trabalha
 
 Ele reporta por sensação — "bugadinha", "espalhado", "quero sentir fluidez" —
 e **está certo todas as vezes**. Traduza a sensação em invariante medível antes
