@@ -1532,11 +1532,21 @@ function onEvent(e) {
     }
     return;
   }
-  if (e.type === 'dribble' && e.by) { fxAt(e.by, 'ring', 0.7); fxAt(e.by, 'dust', 0.6);
+  /* §OS-218 · AS PARTICULAS DE ROTINA SAEM DE CENA.
+     Elas nasceram quando o boneco nao tinha gesto: a faisca era a unica coisa
+     que dizia "houve um bote aqui". Hoje o corpo diz -- `standing_tackle`,
+     `intercept`, `block`, `header`, `dribble_failure` e o resto sao desenhados
+     de verdade desde a OS-210/213, com pose e envelope proprios.
+     O que sobrou foi redundancia em cima de evento FREQUENTE: 46,6 botes,
+     ~20 interceptacoes, ~20 cruzamentos e 23 chutes por partida, cada um
+     cuspindo um brilho. Sao mais de cem estouros por partida sobre um campo
+     que ja mostra o lance. Ficam so os raros, que informam em vez de repetir:
+     gol, defesa, cartao, falta, lenda em chamas, chute para fora, escanteio. */
+  if (false && e.type === 'dribble' && e.by) { fxAt(e.by, 'ring', 0.7); fxAt(e.by, 'dust', 0.6);
     if (e.flair && e.move) { const nm = e.by.ref ? lastWord(e.by.ref.n, 12) : ''; latestEvent = { txt: `✨ <b>${esc(nm)}</b> — ${e.move}!`, min: Math.floor(sim.minute) }; }
   }
-  if (e.type === 'tackle' && e.by) { fxAt(e.by, 'star', 0.7); motionAt(e.by, 'tackle', 0.5); }
-  if (e.type === 'intercept' && e.by) fxAt(e.by, 'cut', 0.6);
+  if (e.type === 'tackle' && e.by) { motionAt(e.by, 'tackle', 0.5); }
+  /* §OS-218 · a pose de interceptacao ja e desenhada (§D39) */
   if (e.type === 'foul' && e.on) { fxAt(e.on, 'foul', 1.1); playUXSound('foul'); }
   if (e.type === 'save' && e.gk) {
     fxAt(e.gk, 'save', 0.9);
@@ -1546,10 +1556,10 @@ function onEvent(e) {
   if (e.type === 'gk_claim_miss' && e.gk) motionAt(e.gk, 'claim', 0.8);
   if (e.type === 'post') fxAt({ x: sim.ball.x, y: sim.ball.y }, 'post', 0.9);
   if (e.type === 'blocked') fxAt({ x: sim.ball.x, y: sim.ball.y }, 'block', 0.7);
-  if (e.type === 'cross' && e.by) { fxAt(e.by, 'arrow', 0.7); motionAt(e.by, 'kick', 0.42); }
-  if (e.type === 'shot_taken' && e.by) { fxAt(e.by, 'ring', 0.5); motionAt(e.by, 'kick', 0.42); }   // #impacto: anel + pose de chute
-  if (e.type === 'run_break' && e.by) fxAt(e.by, 'arrow', 0.5);   // infiltração: seta de movimento
-  if (e.type === 'header_clear' && e.by) { fxAt(e.by, 'head', 0.6); motionAt(e.by, 'jump', 0.68); }
+  if (e.type === 'cross' && e.by) { motionAt(e.by, 'kick', 0.42); }
+  if (e.type === 'shot_taken' && e.by) { motionAt(e.by, 'kick', 0.42); }   /* §OS-218 · a pose de chute basta */
+  /* §OS-218 · a infiltracao se le na corrida, nao numa seta */
+  if (e.type === 'header_clear' && e.by) { motionAt(e.by, 'jump', 0.68); }
   if (e.type === 'corner' && e.by) fxAt(e.by, 'corner', 1.15);
   /* §OS-84 · o marcador de 'fora' nascia no pé do CHUTADOR, a ~25 m do gol.
      Passa a nascer onde a bola cruzou a linha de fundo, e a bola passa a

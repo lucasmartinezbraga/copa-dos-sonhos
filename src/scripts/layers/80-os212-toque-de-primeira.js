@@ -91,7 +91,7 @@ const PRESSAO      = 3.8;    // m -- adversario mais perto que isto e pressao
 const CURTO        = 18.0;   // m -- ate aqui e tabelinha, nao lancamento
 const HABILIDADE   = 82;     // piso de (passe+visao)/2 para tentar de primeira
 const RISCO_MAX    = 0.20;   // eixo real medido: p50 -0,03, p90 0,66
-const NOTA_MIN     = 2.80;   // acima do p50 (1,63): so quando o passe e bom mesmo
+const NOTA_MIN     = 2.40;   /* §OS-218 · mais um degrau de fluidez, a pedido */   // acima do p50 (1,63): so quando o passe e bom mesmo
 
 function num(v, d) { return (typeof v === 'number' && isFinite(v)) ? v : (d || 0); }
 

@@ -302,9 +302,16 @@
      fixo, o que torna a bisecao segura. */
   function anguloDe(kind, passKind) {
     const pk = passKind || kind;
+    /* §OS-219 · OS ANGULOS ESTAVAM RASOS E O ARCO NAO EXISTIA.
+       Relato do dono: "o arco do cruzamento, lancamento, escanteio, bola
+       aerea ainda ta irreal". 27 graus e trajetoria de chute tenso, nao de
+       bola alcada -- ela sai reta, cruza o campo esticada e nao cai. No
+       futebol a bola alcada sai entre 35 e 45 graus, justamente para SUBIR,
+       parar no ar e DESCER sobre a cabeca de alguem.
+       O escanteio entra por aqui tambem: `_setCorner` cobra por `_cross`. */
     if (pk === 'throw') return 0.72;   // ~41 graus: arremesso lateral
-    if (pk === 'cross') return 0.48;   // ~27 graus: cruzamento tenso
-    return 0.58;                       // ~33 graus: lancamento
+    if (pk === 'cross') return 0.66;   // ~38 graus: cruzamento que cai na area
+    return 0.68;                       // ~39 graus: lancamento
   }
 
   function resolverAlta(o, alvo, theta) {
@@ -439,8 +446,19 @@
     if (target && Number.isFinite(target.z)) return clamp(target.z, 0, 8);
     if (meta && Number.isFinite(meta.targetZ)) return clamp(meta.targetZ, 0, 8);
     const pk = passKind || kind;
+    /* §OS-219 · O CRUZAMENTO NAO TINHA ALTURA DE CHEGADA, E ERA ESSA A RAIZ.
+       `cross` nao estava nesta tabela: caia no `return 0.05` do fim, entao a
+       bisecao de `resolverAlta` procurava a velocidade que faz a bola pousar a
+       CINCO CENTIMETROS do gramado. Um cruzamento resolvido para o chao nao
+       tem arco nenhum por construcao -- ele e um passe forte rasteiro com
+       nome de cruzamento, e nenhum ajuste de angulo consertaria isso sozinho.
+       Cruzamento e escanteio chegam na cabeca: 2,05 m e a altura de cabeceio
+       de um atleta de 1,80 m saltando pouco. O lancamento sobe de 0,35 para
+       1,25 -- ele tambem e bola alcada, e pousar no pe do receptor a 35 cm
+       obrigava trajetoria rasa. */
     if (pk === 'throw') return 1.05;
-    if (pk === 'launch') return 0.35;
+    if (pk === 'cross') return 2.05;
+    if (pk === 'launch') return 1.25;
     if (pk === 'through') return 0.05;
     if (kind === 'shot') return 0.9;
     return 0.05;
