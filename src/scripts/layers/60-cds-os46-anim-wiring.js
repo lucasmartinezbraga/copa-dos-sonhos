@@ -38,6 +38,22 @@ function pede(sim,p,estado,entao){
   }catch(_){}
 }
 
+/* §OS-213 · pedir SEM atropelar um gesto que ainda corre.
+   `pede` usa `force: true`, que passa por cima da regra de compromisso. Isso e
+   certo para uma defesa (ela interrompe tudo), mas errado para a reposicao do
+   goleiro: ela nasce logo depois do bloqueio de pe e apagava o `gk_smother`
+   antes de ele virar quadro. Aqui o gesto em curso termina primeiro. */
+function pedeSeLivre(sim,p,estado,entao){
+  try{
+    if(!p||!estado)return;
+    if(!sim.__anim)sim.__anim=A.create();
+    var c=sim.__anim.of(idOf(p));
+    if(!c||typeof c.request!=='function')return;
+    if(c.dur>0&&c.t<c.dur)return;      // ainda gesticulando: nao interrompe
+    pede(sim,p,estado,entao);
+  }catch(_){}
+}
+
 /* §D43 · CORTE PARA DENTRO OU PARA FORA — decidido pela geometria.
    `outside_cut` estava declarado, desenhado e sem nenhum mapeamento: a tabela
    MOVE so tinha 'corta pra dentro'. Os dois cortes nao precisam de nome novo do
@@ -106,7 +122,7 @@ if(typeof oldST==='function'){
       if(o&&o.isGK&&target){
         var _dx=(Number(target.x)||0)-(Number(o.x)||0);
         var _dy2=(Number(target.y)||0)-(Number(o.y)||0);
-        pede(this,o,Math.sqrt(_dx*_dx+_dy2*_dy2)>32?'gk_kick':'gk_throw');
+        pedeSeLivre(this,o,Math.sqrt(_dx*_dx+_dy2*_dy2)>32?'gk_kick':'gk_throw');
       }
       /* CHUTE: o contrato de acao da R14 cobre pouco (shot_ em 0,02% do
          tempo contra 18 chutes por partida). Todo voo de chute pede a pose. */
@@ -171,7 +187,12 @@ P._emit=function(type,data){
   try{
     if(data){
       if(type==='save'&&data.gk){ pede(this,data.gk,defesa(this,data.gk,data)); }
-      else if(type==='gk_sweep'&&data.gk){ pede(this,data.gk,'gk_smother'); }
+      /* §OS-213 · o bloqueio de pe do goleiro TERMINA em recomposicao, e o
+         encadeamento e o que o protege: sem `entao`, a reposicao que vem logo
+         depois (gk_throw/gk_kick, mesmo tier, com force) apagava o gesto antes
+         de ele virar quadro. Medido: entrava 3 a 5 vezes e era desenhado zero,
+         em tres rodadas seguidas. */
+      else if(type==='gk_sweep'&&data.gk){ pede(this,data.gk,'gk_smother','gk_ground_recover'); }
       else if(type==='dribble'&&data.by){
         /* §D43 · o corte agora vem da geometria, nao so do nome do move; e o
            drible bem-sucedido termina em `dribble_success`, que existia sem
@@ -226,7 +247,13 @@ P._emit=function(type,data){
            visivel do atraso que a fisica dele ja paga */
         pede(this,data.by,'slide_tackle','recover');
       }
-      else if(type==='tackle'&&data.on&&data.source==='dribble'){
+      /* §OS-213 · QUEM PERDE A BOLA PERDE EM QUALQUER RAMO.
+         O filtro exigia `source === 'dribble'`, e o desarme nasce em tres
+         ramos: `dribble`, `press_contact` e `press_poke`. Nos dois de pressao
+         o jogador era desarmado e continuava correndo como se nada tivesse
+         acontecido. Medido com validar-lances.js: 36 de 46 desarmados ganhavam
+         gesto de perda -- 24% saiam sem reacao nenhuma. */
+      else if(type==='tackle'&&data.on){
         pede(this,data.on,'dribble_failure');
       }
       else if(type==='bad_pass'&&data.by){ pede(this,data.by,'lose_control'); }

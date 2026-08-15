@@ -486,6 +486,12 @@
        agacha  quanto o corpo baixa, em raios
        braco   escala do balanco dos bracos
        estica  perna estendida a frente, em raios (alcance) */
+  /* §OS-215 · teto de cadencia em passos por segundo DE TELA. Acima de ~4,6
+     o olho perde a perna individual e le borrao -- e o borrao e o que o dono
+     chamou de poluicao. Abaixo disso a passada continua acompanhando a
+     velocidade de verdade. */
+  const CAD_MAX = 4.6;
+
   const POSE = {
     /* locomocao de transicao */
     accelerate: { esc: 0.80, spr: 0.00, inc:  0.28, agacha: 0.10, braco: 1.25, estica: 0.00 },
@@ -612,13 +618,59 @@
       if (_g && isFinite(+_g.speed) && +_g.speed > 0) _vel = Math.max(1, +_g.speed);
     } catch (_) {}
     var _dm = mv / Math.max(0.5, _pxM);                    // metros andados no quadro
+    /* §OS-215 · o relogio de parede DESTE atleta, medido. Precisa vir antes de
+       `vms`, porque a formula antiga (`_dm * 60`) assumia 60 fps cravados: num
+       quadro de 33 ms ela reportava METADE da velocidade real, e `vms` manda na
+       amplitude da perna e no comprimento do passo. Era a mesma raiz do tremor,
+       um degrau acima. */
+    var _agora = performance.now();
+    var _dtP = (d.t ? (_agora - d.t) : 16.7) / 1000;
+    d.t = _agora;
+    if (!(_dtP > 0) || _dtP > 0.25) _dtP = 1 / 60;        // aba em segundo plano
     /* velocidade FISICA do atleta: nao muda quando o jogador troca o 1X pelo 3X */
-    var _vms = Math.min(_dm * 60 / _vel, 12);
-    d.vms = (d.vms || 0) * .6 + _vms * .4;
+    var _vms = Math.min(_dm / Math.max(1e-3, _dtP * _vel), 12);
+    /* §OS-215 · suavizacao mais firme (era .6/.4). `vms` manda na amplitude da
+       perna e no comprimento do passo; com peso alto no quadro corrente, cada
+       tranco de deslocamento virava tranco de perna. */
+    d.vms = (d.vms || 0) * .82 + _vms * .18;
     var _passoM = 0.60 + 0.16 * d.vms;                     // comprimento do passo, em m
-    var _dfase = Math.PI * (_dm / _passoM) / Math.sqrt(_vel);
-    if (_dfase > 0.03) {                  // ~0,05 px de tela: o mesmo limiar de antes
-      d.gait += Math.min(_dfase, 0.30);   // teto: 5,7 passos/s, acima disso e tremor
+    /* §OS-215 · A PASSADA ANDAVA NO RELOGIO ERRADO.
+       -------------------------------------------------------------------
+       RELATO DO DONO: "o movimento dos bracos e das pernas polui o jogo, tem
+       hora que o framerate deles e estranho".
+
+       Ele descreveu o defeito com precisao. A fase da passada era avancada
+       pelo DESLOCAMENTO DE TELA DAQUELE QUADRO (`_dm`), e nao pelo tempo. Sao
+       tres fontes de tremor somadas, todas invisiveis no codigo antigo:
+
+         1. o rAF nao entrega quadros de duracao igual;
+         2. o runtime acumula `dt * G.speed` e roda um numero VARIAVEL de
+            passos de simulacao por quadro desenhado -- as vezes 1, as vezes 3;
+         3. o balanco #anti-cardume entra em `_dm` (ele mexe a posicao
+            desenhada), entao a perna respondia ao proprio tremor decorativo.
+
+       Com isso, um atleta correndo a velocidade CONSTANTE recebia incrementos
+       de fase irregulares: a perna acelerava e travava sem que nada no jogo
+       mudasse. E exatamente a leitura de "framerate estranho".
+
+       O `/ sqrt(_vel)` era o curativo: como a 3X o deslocamento por quadro
+       triplica, a passada triplicava junto e virava borrao, entao dividia-se
+       pela raiz da velocidade para segurar. Curativo em cima de sintoma.
+
+       AGORA A FASE ANDA NO TEMPO, que e o que ela sempre deveria ter feito.
+       Cadencia = velocidade / comprimento do passo, em passos por segundo; a
+       fase avanca `pi x cadencia x dt`, com `dt` medido em relogio de PAREDE
+       por atleta. Quadro irregular deixa de importar: dois quadros somando
+       33 ms produzem a mesma passada que um de 33 ms.
+
+       O teto passa a ser em passos por segundo DE TELA (`CAD_MAX`), que e a
+       unidade em que "borrao" faz sentido -- e nao um limite de radianos por
+       quadro, que muda de significado com o framerate. */
+    var _cadJogo = d.vms / Math.max(0.35, _passoM);      // passos por s de JOGO
+    var _cadTela = Math.min(_cadJogo * _vel, CAD_MAX);   // ... e de tela, com teto
+    var _dfase = Math.PI * _cadTela * _dtP;
+    if (d.vms > 0.12) {
+      d.gait += _dfase;
     } else if (d.gait !== 0) {
       /* parou: fecha as pernas pelo caminho mais curto até o próximo neutro */
       var _alvo = Math.round(d.gait / Math.PI) * Math.PI;
@@ -692,7 +744,11 @@
     /* §D42 · a postura do estado modula a corrida em vez de substitui-la */
     const P = POSE[st] || null;
     const swL = P ? sw * P.esc : sw;                    // tesoura das pernas
-    const swB = P ? sw * P.braco : sw;                  // balanco dos bracos
+    /* §OS-215 · o braco vinha com a MESMA amplitude da perna vezes `P.braco`,
+       que chega a 1,7 -- ou seja, mais que a perna. No futebol o braco
+       acompanha, nao lidera. 0,62 e o fator que o poe abaixo da perna sem
+       apagar o balanco, que e o que da vida ao boneco parado. */
+    const swB = (P ? sw * P.braco : sw) * 0.62;        // balanco dos bracos
     /* OS-58 · a subida do corpo a cada passada era quase imperceptivel. */
     /* §D38 · 0,09·r nao se lia. O corpo sobe DUAS vezes por ciclo (uma por
        perna de apoio), que e o que da a leitura de passo em vez de deslize. */
