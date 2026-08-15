@@ -2,21 +2,33 @@
 (function (root) {
 'use strict';
 /* ###########################################################################
-   CANDIDATA MEDIDA — FORA DO BUNDLE DE PROPOSITO
+   LIGADA. VARREDURA DE DOSE COMPLETA, COM CONTROLE PAREADO.
    Esta camada NAO esta no manifesto. Ela funciona, o diagnostico esta certo e
    o efeito e real; o que falta e a DOSE. Duas foram medidas em 48 partidas:
 
-     habilidade 62, nota 1,05, "pressao OU tabelinha"   ->   9/13
-        gols 3,31 (teto 3,2) · vermelhos 0,354 (teto 0,3) · goleadas 0,271
-     habilidade 76, nota 2,20, "pressao E curto"        ->  11/13
-        vermelhos 0,313 (teto 0,3) · 0 a 0 em 0,146 (teto 0,12)
-        -- e drawRate ENTROU na faixa (0,125 -> 0,312)
+     A  hab 62, nota 1,05, "pressao OU curto"   48 part.   9/13
+     B  hab 76, nota 2,20, "pressao E curto"    48 part.  11/13
+     B  a mesma dose                            96 part.   9/13   <- nao era ruido
+     C  B + devolucao do tempo adiantado        96 part.   9/13
+     D  hab 82, nota 2,80, pressao 3,8          96 part.  11/13   <- esta
+     -  CONTROLE, sem a camada                  96 part.  12/13
 
-   A linha de base e 12/13. A terceira dose e trabalho de varredura, nao de
-   palpite: `tools/fisica/calibrar.py` existe para isso. Os eixos que
-   importam, na ordem em que mordem: NOTA_MIN, HABILIDADE, JANELA_MIN.
+   O CONTROLE PAREADO mudou a leitura: a linha de base com 96 partidas tambem
+   nao e perfeita (drawRate 0,167, abaixo do piso 0,2) e `onTargetRate` esta em
+   0,344, a 0,004 do piso. A dose D TROCA quais metricas falham:
 
-   Para ligar: acrescentar o bloco ao manifesto e ao template.
+       entra na faixa   drawRate     0,167 -> 0,240
+                        zeroZero     0,062 -> 0,073 (no alvo)
+       sai da faixa     onTargetRate 0,344 -> 0,324
+                        vermelhos    0,250 -> 0,344
+
+   Pela regua do projeto e 12/13 -> 11/13, um a menos. O dono pediu a fluidez
+   duas vezes depois de o custo ser apresentado, e a decisao e dele: o jogo e
+   dele, e alvo de design e guia, nao lei.
+
+   O CUSTO EM UMA LINHA: mais cartao vermelho (0,25 -> 0,34 por partida) e
+   chute um pouco menos preciso, em troca de a bola andar de primeira.
+   Para desligar: remover o bloco do manifesto e do template.
    ########################################################################### */
 /* OS-212 · A BOLA VOLTA A ANDAR DE PRIMEIRA
    ===========================================================================
@@ -75,11 +87,11 @@ const P = M.prototype; P.__OS212__ = true;
    nao o padrao. Os numeros sao para serem varridos pela bateria, nao para
    serem defendidos. */
 const JANELA_MIN   = 0.06;   // s de settle restante: abaixo disto o toque ja acabou
-const PRESSAO      = 4.6;    // m -- adversario mais perto que isto e pressao
+const PRESSAO      = 3.8;    // m -- adversario mais perto que isto e pressao
 const CURTO        = 18.0;   // m -- ate aqui e tabelinha, nao lancamento
-const HABILIDADE   = 76;     // piso de (passe+visao)/2 para tentar de primeira
+const HABILIDADE   = 82;     // piso de (passe+visao)/2 para tentar de primeira
 const RISCO_MAX    = 0.20;   // eixo real medido: p50 -0,03, p90 0,66
-const NOTA_MIN     = 2.20;   // acima do p50 (1,63): so quando o passe e bom mesmo
+const NOTA_MIN     = 2.80;   // acima do p50 (1,63): so quando o passe e bom mesmo
 
 function num(v, d) { return (typeof v === 'number' && isFinite(v)) ? v : (d || 0); }
 
@@ -149,15 +161,34 @@ P.step = function (dt) {
   try {
     const o = this.ball && this.ball.owner;
     if (o && deprimeira(this, o)) {
-      /* ABRE O PORTAO. Nao decide nada: o proprio `_decide` do nucleo roda
-         neste mesmo passo, com a logica de sempre. */
+      /* ANTECIPA, NAO ACRESCENTA — e este era o erro da dose B.
+         `decideT` e do SIMULADOR, nao do jogador. Zera-lo nao liberava so
+         este passe: enfiava uma decisao A MAIS na partida inteira, e o
+         nucleo re-arma o intervalo depois de cada uma. Medido em 96
+         partidas: faltas de 21,27 para 23,36 e vermelhos de 0,208 para 0,323
+         -- mais acoes, mais contato, mais cartao. O jogo nao ficou fluido,
+         ficou AGITADO, que e outra coisa.
+         Agora o tempo poupado e DEVOLVIDO: o que se adianta aqui e cobrado
+         do proximo intervalo de decisao. O passe sai de primeira e a partida
+         segue com a mesma quantidade de decisoes que teria sem esta camada. */
+      const poupado = Math.max(0, num(o.settle)) + Math.max(0, num(this.decideT));
       o.settle = 0;
       this.decideT = 0;
+      this.__os212Devolver = num(this.__os212Devolver) + poupado;
       o.__os212Primeira = num(this.t);
       this.__os212Contagem = num(this.__os212Contagem) + 1;
     }
   } catch (_) { }
-  return oldStep.apply(this, arguments);
+  const r = oldStep.apply(this, arguments);
+  try {
+    /* devolve o tempo adiantado ao proximo intervalo, uma vez so */
+    const dev = num(this.__os212Devolver);
+    if (dev > 0 && num(this.decideT) > 0) {
+      this.decideT = num(this.decideT) + dev;
+      this.__os212Devolver = 0;
+    }
+  } catch (_) { }
+  return r;
 };
 
 P.getOS212Audit = function () {
