@@ -3382,6 +3382,18 @@ function paintField() {
      Fica `_semCardume` como interruptor, agora sempre ligado, para que a
      reversao seja de uma linha se algum dia a medicao pedir. */
   const _semCardume = true;
+  /* §OS-220 · posicao de TELA da bola, uma vez por quadro. E o unico dado que
+     faltava para o atleta poder olhar para ela: `CDS_F25D.body` recebe so o
+     proprio boneco e nao tem como saber onde o jogo esta acontecendo. */
+  let _bolaTelaX = null;
+  try {
+    const _bb = (shotFx ? { x: shotFx.x / 105, y: shotFx.y / 68 } : st.ball);
+    if (_bb) {
+      let _bxr = cx(_bb.x), _byr = cy(_bb.y);
+      if (window.CDS_F25D) { const _pj = window.CDS_F25D.project(_bxr, _byr); _bxr = _pj.x; }
+      _bolaTelaX = _bxr;
+    }
+  } catch (_) { }
   /* §OS-208 · estado do teto de passo do DESENHO. Ver o bloco no laco abaixo.
      `_pos` guarda a posicao desenhada do quadro anterior; ela e descartada
      inteira quando a cena muda de dono (replay, comemoracao, intervalo),
@@ -3552,7 +3564,7 @@ function paintField() {
         if(_mm){ _sc.m[0]=_mm.a;_sc.m[1]=_mm.b;_sc.m[2]=_mm.c;_sc.m[3]=_mm.d;_sc.m[4]=_mm.e;_sc.m[5]=_mm.f; }
         _sc.p[_chave] = { x:groundX, y:groundY, r:r, s:_ps };
       }catch(_){}
-      if (window.CDS_F25D) { window.CDS_F25D.body(ctx, { x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall, key: _chave, act: p._act||'', pose: (motion&&motion.type)||'', wave: actionWave }); } else {
+      if (window.CDS_F25D) { window.CDS_F25D.body(ctx, { x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall, key: _chave, act: p._act||'', pose: (motion&&motion.type)||'', wave: actionWave, ballX: _bolaTelaX }); } else {
       // corpo: no mergulho do goleiro vira uma elipse lateral, deixando o pulo
       // legível sem alterar a posição física usada pelo motor.
       ctx.beginPath();

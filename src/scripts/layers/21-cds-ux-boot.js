@@ -693,6 +693,19 @@
       const _c = Math.cos(d.ang);
       if (Math.abs(_c) > .12) d.face = _c >= 0 ? 1 : -1;
     }
+    /* §OS-220 · O ATLETA PASSA A OLHAR PARA A BOLA.
+       `face` so vinha do deslocamento LATERAL: um jogador parado, ou correndo
+       para frente, ficava virado para o lado em que andou por ultimo — de
+       costas para o jogo, com frequencia. E o detalhe que mais separa "onze
+       bonecos se deslocando" de "um time jogando": no futebol todo mundo
+       olha a bola, o tempo todo, tenha ela ou nao.
+       Quem corre de verdade continua virado para onde corre (o corpo lidera a
+       corrida); quem esta parado ou trotando vira para a bola. O portador nao
+       entra: ele olha para onde conduz. */
+    if (o.ballX != null && !o.hasBall && d.vms < 3.2) {
+      const _db = o.ballX - x;
+      if (Math.abs(_db) > r * .35) d.face = _db >= 0 ? 1 : -1;
+    }
     d.lean = lean; d.x = x; d.y = y;
     const face = d.face || 1;
     // R14 · a máquina de estados (Fase 3) manda quando existe: ela é dirigida
@@ -1034,10 +1047,12 @@
       const sp = Math.max(1, (window.G && window.G.speed) || 1);
       const pulse = 1 + Math.sin(performance.now() / (130 * sp)) * .18;
       ctx.save();
-      ctx.strokeStyle = 'rgba(255,214,64,.85)'; ctx.lineWidth = 2 * t.s;
+      /* §OS-220 · o anel de queda perde o segundo circulo e o amarelo forte:
+         ele diz onde a bola vai cair, e para isso basta uma marca discreta no
+         gramado. Dois aneis pulsando em amarelo saturado competiam com o
+         lance. */
+      ctx.strokeStyle = 'rgba(255,255,255,.34)'; ctx.lineWidth = 1.4 * t.s;
       ctx.beginPath(); ctx.ellipse(t.x, groundY(t.y, t.s), 8.5 * pulse * t.s, 3.9 * pulse * t.s, 0, 0, TAU); ctx.stroke();
-      ctx.strokeStyle = 'rgba(255,214,64,.35)'; ctx.lineWidth = 1 * t.s;
-      ctx.beginPath(); ctx.ellipse(t.x, groundY(t.y, t.s), 13 * pulse * t.s, 6 * pulse * t.s, 0, 0, TAU); ctx.stroke();
       ctx.restore();
     }
 
@@ -1048,30 +1063,68 @@
     ctx.fillStyle = '#000'; ctx.fill();
     ctx.restore();
 
-    // fio bola↔sombra
-    if (z > 0.5) {
-      ctx.save();
-      ctx.strokeStyle = 'rgba(255,230,120,.55)'; ctx.lineWidth = 1; ctx.setLineDash([3, 4]);
-      ctx.beginPath(); ctx.moveTo(bx, g0.y); ctx.lineTo(bx, by); ctx.stroke();
-      ctx.restore();
-    }
+    /* §OS-220 · O FIO BOLA-SOMBRA SAIU. Ele era uma muleta de leitura de
+       altura, de quando a sombra mal reagia ao z. Hoje a sombra ja encolhe e
+       clareia com a altura, e o arco de verdade (OS-219) faz o resto. Uma
+       linha tracejada amarela ligando bola e sombra le como overlay de
+       depuracao, nao como futebol. */
 
     // halo de leitura
     ctx.save();
     const halo = ctx.createRadialGradient(bx, by, 0, bx, by, 13 * s);
-    halo.addColorStop(0, 'rgba(255,238,140,.42)'); halo.addColorStop(1, 'rgba(255,238,140,0)');
+    /* §OS-220 · halo de leitura mais discreto: ele existe para o olho ACHAR a
+       bola no meio de 22 corpos, nao para brilhar. */
+    halo.addColorStop(0, 'rgba(255,244,200,.20)'); halo.addColorStop(1, 'rgba(255,244,200,0)');
     ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(bx, by, 13 * s, 0, TAU); ctx.fill();
     ctx.restore();
 
+    /* §OS-220 · O QUIQUE NAO TINHA PESO.
+       A bola bate no gramado ~100 vezes por partida (medido pelo smoke) e
+       atravessava o contato como uma esfera rigida. Achatar no impacto e o
+       jeito mais barato de vender massa: o olho le deformacao como peso, e
+       sem ela a bola parece um adesivo deslizando.
+       O gatilho e a propria fisica — z cruzando o chao vindo de cima — e nao
+       um evento novo. Dura 90 ms de relogio de parede, que e o tempo em que
+       um contato real se le. */
+    if (_e.zAnt != null && _e.zAnt > 0.10 && z <= 0.10) {
+      _e.quique = performance.now();
+      _e.forca = Math.min(1, (_e.zAnt - z) / 0.55);
+    }
+    _e.zAnt = z;
+    let _sq = 0;
+    if (_e.quique) {
+      const _f = (performance.now() - _e.quique) / 90;
+      if (_f >= 1) _e.quique = 0; else _sq = Math.sin(Math.PI * _f) * 0.34 * (_e.forca || 1);
+    }
     // corpo da bola
     const rb = (6.2 + air * 2.6) * s;
     const bg = ctx.createRadialGradient(bx - rb * .36, by - rb * .36, 0, bx, by, rb);
     bg.addColorStop(0, '#ffffff'); bg.addColorStop(.75, '#e9e9e9'); bg.addColorStop(1, '#b9bcc4');
-    ctx.beginPath(); ctx.arc(bx, by, rb, 0, TAU);
+    ctx.beginPath();
+    if (_sq > 0.01) {
+      /* achata na vertical e alarga na horizontal: volume constante */
+      ctx.ellipse(bx, by + rb * _sq * .5, rb * (1 + _sq * .55), rb * (1 - _sq), 0, 0, TAU);
+    } else ctx.arc(bx, by, rb, 0, TAU);
     ctx.fillStyle = bg; ctx.fill();
     ctx.strokeStyle = '#3d3f46'; ctx.lineWidth = .8; ctx.stroke();
-    // gomos girando com o deslocamento
-    const rot = (o.gx + o.gy) * 0.045;
+    /* §OS-220 · A BOLA NAO GIRAVA: ELA SE ORIENTAVA PELO LUGAR ONDE ESTAVA.
+       Era `rot = (gx + gy) * 0.045` — funcao da POSICAO, nao do caminho. As
+       consequencias sao todas visiveis depois que o arco passou a existir:
+       a bola gira ao CONTRARIO quando volta pelo mesmo caminho, e CONGELA
+       quando anda na diagonal em que `gx + gy` e constante — um passe de
+       canto a canto podia cruzar o campo inteiro com os gomos parados.
+       Rolar e girar proporcionalmente a DISTANCIA percorrida, dividida pelo
+       raio. E o mesmo motivo pelo qual uma roda maior gira menos: aqui o raio
+       vem em metros de campo, entao o giro nao muda com o zoom. */
+    if (!ball._est) ball._est = { rot: 0, x: null, y: null };
+    const _e = ball._est;
+    if (_e.x !== null) {
+      const _dx = o.gx - _e.x, _dy = o.gy - _e.y, _dd = Math.hypot(_dx, _dy);
+      /* teleporte (troca de campo, reposicao) nao e rolagem */
+      if (_dd < 24) _e.rot += _dd / 0.11;      // 0,11 m = raio da bola
+    }
+    _e.x = o.gx; _e.y = o.gy;
+    const rot = _e.rot;
     ctx.save();
     ctx.translate(bx, by); ctx.rotate(rot);
     ctx.fillStyle = 'rgba(40,44,52,.78)';
