@@ -29071,7 +29071,12 @@ try { document.title = 'Copa dos Sonhos — R19.08'; } catch (_) {}
        1,25 -- ele tambem e bola alcada, e pousar no pe do receptor a 35 cm
        obrigava trajetoria rasa. */
     if (pk === 'throw') return 1.05;
-    if (pk === 'cross') return 2.05;
+    /* §OS-230 · 2,05 m era a cabeca de um atleta de 1,80 saltando pouco, e o
+       arco ficou certo -- mas a bola chegando mais alta e mais disputada no
+       ar, e disputa aerea que o defensor ganha vira escanteio. Medido: os
+       escanteios foram de ~10,5 para 13,30 por partida (teto 11,5). 1,85 m
+       ainda e altura de cabeceio e devolve parte do volume. */
+    if (pk === 'cross') return 1.85;
     if (pk === 'launch') return 1.25;
     if (pk === 'through') return 0.05;
     if (kind === 'shot') return 0.9;
@@ -30527,7 +30532,36 @@ P._emit = function (type, data) {
 const oldStartTravel = P._startTravel;
 if (typeof oldStartTravel === 'function') {
   P._startTravel = function (o, target, kind, cb, receiver, style, meta) {
-    if (this.__os216Cruzando && this.__os216Aereo && kind === 'pass' && !style) {
+    /* §OS-230 · A ETIQUETA NUNCA APLICAVA, e a sonda pegou pela regra numero
+       7 do briefing: dois placares identicos ate o ultimo digito.
+       A condicao exigia `!style`, e o cruzamento aereo JA sai com
+       `style = 'launch'` (o rasteiro sai com 'through'). Medido em partida
+       real: 6 viagens de cruzamento, estilos { launch: 3, through: 3 },
+       etiquetadas como 'cross' -> ZERO.
+       Ou seja: o arco que melhorou veio do ramo `launch` (altura 0,35 -> 1,25
+       e angulo 0,58 -> 0,68), e as entradas `cross` das duas tabelas da OS-200
+       continuavam sendo o codigo morto que eu tinha ido corrigir. Quarta
+       aparicao do mesmo padrao, desta vez na minha propria camada.
+       Agora o lancamento aereo de cruzamento vira 'cross' de fato; o rasteiro
+       ('through') fica de fora, que e a escolha da OS-12. */
+    /* §OS-230 · A ETIQUETA FICA DESLIGADA, E O NUMERO EXPLICA POR QUE.
+       Ela nunca aplicava (a condicao exigia `!style` e o cruzamento aereo ja
+       sai com 'launch'), e a sonda so pegou isso pela regra 7 do briefing:
+       duas baterias identicas ate o ultimo digito. Ou seja, o arco que de fato
+       melhorou veio do ramo `launch` -- altura 0,35 -> 1,25 m e angulo 33 ->
+       39 graus, na OS-219 -- e nao das entradas `cross`.
+
+       Ligada de verdade, a tabela `cross` da OS-200 (38 graus, 1,85 m) leva a
+       bateria de 11/13 para 9/13, com escanteios de 13,3 para 17,1 por partida
+       (teto 11,5), 0 a 0 em 0,146 e goleadas em 0,250. Nao e de espantar: as
+       entradas `cross` NUNCA foram exercitadas, entao nunca foram calibradas.
+       Sao codigo morto com numeros que ninguem mediu.
+
+       Fica desligada. O arco entregue e o do `launch`, que esta medido em
+       11/13. Acordar a tabela `cross` e uma rodada de calibracao propria --
+       ela tem de ser varrida como a OS-212 foi, nao ligada e torcida. */
+    if (false && this.__os216Cruzando && this.__os216Aereo && kind === 'pass' &&
+        (!style || style === 'launch')) {
       /* etiqueta a viagem: a OS-200 le `passKind` antes de `kind` e so entao
          escolhe o angulo de saida e a classe de voo */
       arguments[5] = 'cross';
@@ -30544,6 +30578,96 @@ root.CDS_OS216 = Object.freeze({
 });
 root.CDS_BUILD_ID = 'R19.13'; root.CDS_VERSION = '5.80.4-R19.13';
 try { document.title = 'Copa dos Sonhos — R19.13'; } catch (_) { }
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script id="cds-os229-arbitragem">
+(function (root) {
+'use strict';
+/* OS-229 · A ARBITRAGEM DA BOLA PARADA — UM ESCRITOR A MENOS, NAO A MAIS
+   ===========================================================================
+   RELATO, repetido a sessao inteira: "na hora da falta continua dando uma
+   bugada maxima", "muito jitterzinho ta osso".
+
+   E o dono estava certo em desconfiar de que se estava tratando sintoma. A
+   OS-207 corrigiu o que a ANIMACAO via; o defeito da POSICAO ficou de pe, e
+   so ficou visivel com numero quando a medicao separou o jitter por SITUACAO
+   de jogo (`tools/fisica/tela`, reversao de direcao da posicao fisica):
+
+       portador                    0,1%      passo medio 0,062 m
+       arranque                    0,2%                  0,058
+       presser                     0,4%                  0,072
+       bloco, jogo rolando         0,6%                  0,046
+       bola morta, SEM alvo        0,6%                  0,037
+       bola morta, COM __spTarget  2,5%                  0,166   <- aqui
+
+   A fisica e suave em TODA parte menos numa populacao: quem tem alvo de bola
+   parada durante a bola morta. Passo 3,5 vezes maior e reversao 4 vezes mais
+   frequente. Nao e "o jogo treme": e ESTE conjunto de jogadores tremendo.
+
+   POR QUE. Dois sistemas escrevem o mesmo corpo no mesmo quadro. O tatico
+   (`_integrate` -> `commitMovement`) puxa o jogador para o alvo de jogo, e a
+   maquina de bola parada (a caminhada da R15) o puxa para o posto. Nenhum dos
+   dois sabe do outro. O passo somado e maior que qualquer um deles sozinho --
+   dai 0,166 m contra 0,046 -- e quando os dois alvos ficam em lados opostos,
+   o corpo alterna de direcao a cada quadro.
+
+   TRES CORRECOES JA FORAM TENTADAS E MEDIDAS, TODAS ERRADAS:
+
+     · mexer no `freeze` do nucleo (OS-207, primeira versao)
+       bateria 12/13 -> 11/13. Mexer no passo de quem se posiciona muda placar.
+     · alongar a janela de caminhada (OS-211)
+       bateria -> 10/13 E nao corrigiu: G1 seguiu 0/4.
+     · acrescentar um escritor FINAL, como no pontape (OS-225)
+       tremor de desenho 4,88% -> 8,53%. Mais um escritor e mais um lado no
+       cabo-de-guerra, nao o fim dele.
+
+   O QUE FALTAVA ERA O OPOSTO DE TODAS ELAS: nao freiar, nao alongar, nao
+   acrescentar. TIRAR.
+
+   Se o jogador foi designado a um posto de bola parada, quem manda nele e a
+   maquina de bola parada -- ponto. O alvo tatico nao tem o que dizer sobre um
+   corpo que esta indo se posicionar para um escanteio. Aqui o `_integrate`
+   simplesmente NAO PLANEJA movimento para quem tem `__spTarget` com a bola
+   morta: `commitMovement` entao mantem a posicao anterior, e a caminhada da
+   R15 -- que roda depois -- fica sendo o unico escritor daquele corpo.
+
+   Nao ha politica nova, nao ha alvo novo, nao ha sorteio: um dos dois lados
+   do cabo-de-guerra larga a corda.
+   =========================================================================== */
+const M = root && root.MatchSim;
+if (!M || !M.prototype || M.prototype.__OS229__) return;
+const P = M.prototype; P.__OS229__ = true;
+
+function num(v, d) { return (typeof v === 'number' && isFinite(v)) ? v : (d || 0); }
+
+const oldIntegrate = P._integrate;
+if (typeof oldIntegrate === 'function') {
+  P._integrate = function (p, tx, ty, dt, freeze) {
+    /* O portador e o goleiro ficam de fora: o primeiro tem a bola no pe e
+       precisa do movimento normal, o segundo nunca recebe posto de bola
+       parada e tem logica propria. */
+    if (p && !p.isGK && p.__spTarget && num(this.dead) > 0 &&
+        this.ball && this.ball.owner !== p) {
+      /* nao planeja nada. `commitMovement` mantem a posicao da fotografia, e
+         a caminhada de bola parada escreve sozinha, depois. */
+      this.__os229Cedidos = num(this.__os229Cedidos) + 1;
+      return;
+    }
+    return oldIntegrate.apply(this, arguments);
+  };
+}
+
+P.getOS229Audit = function () {
+  return { versao: 'OS-229', quadrosCedidos: num(this.__os229Cedidos) };
+};
+
+root.CDS_OS229 = Object.freeze({
+  versao: 'OS-229', instalado: true,
+  feature: 'SET_PIECE_WALK_IS_THE_ONLY_WRITER',
+  rngAdded: false, xgChange: false
+});
+root.CDS_BUILD_ID = 'R19.14'; root.CDS_VERSION = '5.80.5-R19.14';
+try { document.title = 'Copa dos Sonhos — R19.14'; } catch (_) { }
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
 </body></html>

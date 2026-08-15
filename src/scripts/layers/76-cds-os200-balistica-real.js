@@ -457,7 +457,12 @@
        1,25 -- ele tambem e bola alcada, e pousar no pe do receptor a 35 cm
        obrigava trajetoria rasa. */
     if (pk === 'throw') return 1.05;
-    if (pk === 'cross') return 2.05;
+    /* §OS-230 · 2,05 m era a cabeca de um atleta de 1,80 saltando pouco, e o
+       arco ficou certo -- mas a bola chegando mais alta e mais disputada no
+       ar, e disputa aerea que o defensor ganha vira escanteio. Medido: os
+       escanteios foram de ~10,5 para 13,30 por partida (teto 11,5). 1,85 m
+       ainda e altura de cabeceio e devolve parte do volume. */
+    if (pk === 'cross') return 1.85;
     if (pk === 'launch') return 1.25;
     if (pk === 'through') return 0.05;
     if (kind === 'shot') return 0.9;

@@ -69,7 +69,36 @@ P._emit = function (type, data) {
 const oldStartTravel = P._startTravel;
 if (typeof oldStartTravel === 'function') {
   P._startTravel = function (o, target, kind, cb, receiver, style, meta) {
-    if (this.__os216Cruzando && this.__os216Aereo && kind === 'pass' && !style) {
+    /* §OS-230 · A ETIQUETA NUNCA APLICAVA, e a sonda pegou pela regra numero
+       7 do briefing: dois placares identicos ate o ultimo digito.
+       A condicao exigia `!style`, e o cruzamento aereo JA sai com
+       `style = 'launch'` (o rasteiro sai com 'through'). Medido em partida
+       real: 6 viagens de cruzamento, estilos { launch: 3, through: 3 },
+       etiquetadas como 'cross' -> ZERO.
+       Ou seja: o arco que melhorou veio do ramo `launch` (altura 0,35 -> 1,25
+       e angulo 0,58 -> 0,68), e as entradas `cross` das duas tabelas da OS-200
+       continuavam sendo o codigo morto que eu tinha ido corrigir. Quarta
+       aparicao do mesmo padrao, desta vez na minha propria camada.
+       Agora o lancamento aereo de cruzamento vira 'cross' de fato; o rasteiro
+       ('through') fica de fora, que e a escolha da OS-12. */
+    /* §OS-230 · A ETIQUETA FICA DESLIGADA, E O NUMERO EXPLICA POR QUE.
+       Ela nunca aplicava (a condicao exigia `!style` e o cruzamento aereo ja
+       sai com 'launch'), e a sonda so pegou isso pela regra 7 do briefing:
+       duas baterias identicas ate o ultimo digito. Ou seja, o arco que de fato
+       melhorou veio do ramo `launch` -- altura 0,35 -> 1,25 m e angulo 33 ->
+       39 graus, na OS-219 -- e nao das entradas `cross`.
+
+       Ligada de verdade, a tabela `cross` da OS-200 (38 graus, 1,85 m) leva a
+       bateria de 11/13 para 9/13, com escanteios de 13,3 para 17,1 por partida
+       (teto 11,5), 0 a 0 em 0,146 e goleadas em 0,250. Nao e de espantar: as
+       entradas `cross` NUNCA foram exercitadas, entao nunca foram calibradas.
+       Sao codigo morto com numeros que ninguem mediu.
+
+       Fica desligada. O arco entregue e o do `launch`, que esta medido em
+       11/13. Acordar a tabela `cross` e uma rodada de calibracao propria --
+       ela tem de ser varrida como a OS-212 foi, nao ligada e torcida. */
+    if (false && this.__os216Cruzando && this.__os216Aereo && kind === 'pass' &&
+        (!style || style === 'launch')) {
       /* etiqueta a viagem: a OS-200 le `passKind` antes de `kind` e so entao
          escolhe o angulo de saida e a classe de voo */
       arguments[5] = 'cross';
