@@ -185,6 +185,8 @@ function _unlockAudio(ev) {
 let feed = [], minorCd = 0, finished = false;
 let isKO = false, myMatch = null, mySide = 0, matchTeams = null;
 let trailPts = [], goalFlash = null, latestEvent = null;
+/* §OS-222 · estufamento da rede no gol: { x, y, z, t0, dir } */
+let redeEstufa = null;
 let _prevScreen = {};   // #anti-cardume (visual): posição de tela do frame anterior, por jogador
 /* §OS-208 · posicao DESENHADA do quadro anterior, para o teto de passo do
    desenho. Diferente de `_prevScreen`, que so serve ao balanco: este guarda
@@ -468,7 +470,7 @@ window.__quickMatch = function (iA, iB) {
   const B = mkT(db.squads[iB == null ? 120 : iB], '#e84040', '🔥');
   myMatch = { h: 'QA', a: 'QB' }; isKO = false; mySide = 0; teamColors = [A.color, B.color];
   feed=[]; finished=false; tab='campo'; acc=0; lastT=0; paused=false;
-  trailPts=[]; goalFlash=null; shotFx=null; outMark=null; celebration=null; replay=null; replayBuf=[]; penScene=null; fkScene=null; setPieceRequest=null; shootoutState=null; breakOv=null; slowmo=null; latestEvent=null; minorCd=0; statsT=0; momHist=[]; momT=0; keyEvents=[]; playerMotions=[];
+  trailPts=[]; goalFlash=null; redeEstufa=null; shotFx=null; outMark=null; celebration=null; replay=null; replayBuf=[]; penScene=null; fkScene=null; setPieceRequest=null; shootoutState=null; breakOv=null; slowmo=null; latestEvent=null; minorCd=0; statsT=0; momHist=[]; momT=0; keyEvents=[]; playerMotions=[];
   endOfPlay._done = false; fastForwardFullTime._done = false; /* PONTO 4: novo jogo, nova janela de compressão */ camX = 320; camY = 207;
   sim = new MatchSim(A, B, { onEvent, onSetPiece: openSetPieceMinigame }); sim.setInteractive(0);
   G.screen = 'match'; render(A, B); startLoop();
@@ -1147,7 +1149,7 @@ function open() {
   matchTeams = [A, B];
 
   feed=[]; finished=false; tab='campo'; acc=0; lastT=0; paused=false;
-  trailPts=[]; goalFlash=null; shotFx=null; outMark=null; celebration=null; replay=null; replayBuf=[]; penScene=null; fkScene=null; setPieceRequest=null; shootoutState=null; breakOv=null; slowmo=null; latestEvent=null; minorCd=0; statsT=0; momHist=[]; momT=0; keyEvents=[]; playerMotions=[];
+  trailPts=[]; goalFlash=null; redeEstufa=null; shotFx=null; outMark=null; celebration=null; replay=null; replayBuf=[]; penScene=null; fkScene=null; setPieceRequest=null; shootoutState=null; breakOv=null; slowmo=null; latestEvent=null; minorCd=0; statsT=0; momHist=[]; momT=0; keyEvents=[]; playerMotions=[];
   endOfPlay._done = false;
   fastForwardFullTime._done = false;  /* PONTO 4: novo jogo, nova janela de compressão */
   camX = 320; camY = 207;
@@ -1604,6 +1606,17 @@ function onEvent(e) {
     const sc = G.cup.scorers;
     (sc[key] = sc[key] || { n: e.by.ref.n, sid, gols: 0 }).gols++;
     goalFlash = { team: e.by.team, alpha: 1.0 };
+    /* §OS-222 · A REDE ESTUFA. Ela e desenhada no palco PRE-RENDERIZADO
+       (`CDS_F25D.grass`), entao e estatica por construcao: a bola entrava e
+       nada acontecia. O gol e o momento que o dono mais olha, e a rede parada
+       tira o peso dele. O estufamento vai por cima, no canvas vivo, ancorado
+       onde a bola cruzou a linha. */
+    try {
+      const _gg = sim.teams[e.by.team].oppGoal;
+      redeEstufa = { x: _gg.x / 105, y: clamp(sim.ball.y / 68, .40, .60),
+                     z: Math.max(0, sim.ball.z || 0), t0: performance.now(),
+                     dir: _gg.x > 52.5 ? 1 : -1 };
+    } catch (_) { }
     armShotFx('goal', e.by);   /* §OS-84 · a bola entra na rede antes do overlay */
     // Comemoração: sempre exibida, independente da velocidade do jogo.
     // O replay só aparece se houver frames gravados; caso contrário vai direto para confete.
@@ -3769,6 +3782,33 @@ function paintField() {
   if (window.CDS_F25D) {
     const _tv = (!rframe && bT && bT.traveling && bT.target) ? { tx: cx(bT.target.x), ty: cy(bT.target.y), kind: bT.kind } : null;
     window.CDS_F25D.ball(ctx, { gx: cx(b.x), gy: cy(b.y), z: b.z || 0, tv: _tv });
+    /* §OS-222 · o estufamento entra DEPOIS da bola: ela empurra a rede, e nao
+       o contrario. Dura 620 ms -- o tempo de um impacto se ler -- e sai por si,
+       sem depender de ninguem limpar. */
+    if (redeEstufa) {
+      const _re = (visualNow - redeEstufa.t0) / 620;
+      if (_re >= 1) redeEstufa = null;
+      else {
+        /* sobe rapido e volta devagar, como pano tensionado */
+        const _k = _re < .18 ? (_re / .18) : Math.pow(1 - (_re - .18) / .82, 1.6);
+        const _pr = window.CDS_F25D.project(cx(redeEstufa.x), cy(redeEstufa.y));
+        const _rx = _pr.x, _ry = _pr.y;
+        const _amp = 13 * _k * _pr.s;
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.strokeStyle = 'rgba(225,240,255,' + (0.34 * _k).toFixed(3) + ')';
+        ctx.lineWidth = 1.1 * _pr.s;
+        for (let _i = -2; _i <= 2; _i++) {
+          const _o = _i * 5.5 * _pr.s;
+          ctx.beginPath();
+          ctx.moveTo(_rx, _ry + _o - 11 * _pr.s);
+          ctx.quadraticCurveTo(_rx + redeEstufa.dir * _amp, _ry + _o - 6 * _pr.s,
+                               _rx, _ry + _o);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+    }
   } else {
   // #brilho da bola — halo suave que facilita seguir a jogada
   ctx.save();

@@ -859,7 +859,25 @@
       /* §D42 · `estica` poe UMA perna a frente, na direcao que o atleta encara.
          E o que separa alcancar de correr: interceptar, dominar e tocar longo
          sao gestos de alcance, e sem isto os tres saiam com passada normal. */
-      const ext = P ? face * r * P.estica * (P.estica > .3 ? (0.35 + 0.65 * Math.sin(Math.max(0, Math.min(1, dphase)) * Math.PI)) : 1) : 0;
+      let ext = P ? face * r * P.estica * (P.estica > .3 ? (0.35 + 0.65 * Math.sin(Math.max(0, Math.min(1, dphase)) * Math.PI)) : 1) : 0;
+      /* §OS-221 · O PE PASSA A ENCOSTAR NA BOLA.
+         O gesto de chute e de passe ja existia e ja caia no quadro certo -- a
+         Fase 3 alinha o contato com a saida da bola. O que faltava era o
+         ALCANCE: a perna esticava por um valor FIXO da tabela POSE, na direcao
+         em que o atleta encara, sem nenhuma relacao com onde a bola esta. Num
+         jogo em que o corpo ja olha para ela (OS-220), o pe passar longe e o
+         que ainda le como "a bola saiu sozinha".
+         Agora, no instante do contato, a perna estende ATE a bola -- limitada
+         ao alcance de uma perna, porque esticar mais seria borracha. Fora do
+         contato nada muda. */
+      if (kicking && o.ballX != null) {
+        const _db = o.ballX - x;                        // px de tela ate a bola
+        const _alc = r * 1.15;                          // alcance de uma perna
+        const _mira = Math.max(-_alc, Math.min(_alc, _db));
+        /* no pico do gesto o pe esta na bola; nas bordas ele volta ao normal */
+        const _pico = Math.sin(Math.max(0, Math.min(1, dphase)) * Math.PI);
+        ext = ext * (1 - _pico) + _mira * _pico;
+      }
       const lsx = swL * r * .20 * face, rsx = -swL * r * .20 * face;
       ctx.fillRect(-r * .34 - spr + lsx, llY, r * .26, r * .46);
       ctx.fillRect(r * .08 + spr + rsx + ext, rlY, r * .26, r * .46);
@@ -1033,6 +1051,11 @@
 
   /* ── BOLA PRO (projetada, altura legível) ───────────────────────────── */
   function ball(ctx, o) {
+    /* §OS-220 · estado persistente da bola entre quadros: rotacao acumulada,
+       ultima posicao e o quique. Declarado no TOPO porque tanto o giro quanto
+       o achatamento o consultam, e o achatamento e desenhado ANTES. */
+    if (!ball._est) ball._est = { rot: 0, x: null, y: null, zAnt: null, quique: 0, forca: 1 };
+    const _e = ball._est;
     const g0 = project(o.gx, o.gy);
     const s = g0.s, z = o.z || 0, air = clamp(z / 3.2, 0, 1);
     const gy = groundY(g0.y, s);          // mesmo plano de chão dos atletas
@@ -1116,8 +1139,6 @@
        Rolar e girar proporcionalmente a DISTANCIA percorrida, dividida pelo
        raio. E o mesmo motivo pelo qual uma roda maior gira menos: aqui o raio
        vem em metros de campo, entao o giro nao muda com o zoom. */
-    if (!ball._est) ball._est = { rot: 0, x: null, y: null };
-    const _e = ball._est;
     if (_e.x !== null) {
       const _dx = o.gx - _e.x, _dy = o.gy - _e.y, _dd = Math.hypot(_dx, _dy);
       /* teleporte (troca de campo, reposicao) nao e rolagem */
