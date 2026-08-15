@@ -108,6 +108,13 @@ errado, e nenhuma dá erro — falham em silêncio.
 7. **Número idêntico à linha de base geralmente significa que sua camada não
    rodou.** Desconfie antes de comemorar.
 
+8. **`browser_smoke.js` prova que o jogo SOBE, não que ele DESENHA.** Ele
+   instancia `MatchSim` e roda `step`, mas nunca chama `paintField`. Um erro
+   no laço de desenho passa por ele intacto — aconteceu: um TDZ em
+   `CDS_F25D.ball` derrubava o primeiro quadro com bola em campo e o smoke
+   deu verde. Para código de desenho, a prova é uma sonda de render
+   (`__quickMatch` + `page.on('pageerror')`).
+
 ---
 
 ## 4. Padrão de defeito que se repete neste código
