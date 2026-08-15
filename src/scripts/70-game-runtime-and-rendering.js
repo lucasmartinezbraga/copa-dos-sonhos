@@ -3359,7 +3359,17 @@ function paintField() {
      E o tremor que se ve enquanto o time se arma para a cobranca.
      Bola parada nao tem cardume para quebrar: ninguem esta correndo em bloco.
      O balanco desliga com a bola morta e volta com ela rolando. */
-  const _semCardume = !!(sim && (sim.dead > 0 || sim.waiting));
+  /* §OS-216 · O BALANCO SAI DE CENA.
+     Ele nasceu para quebrar o "bloco andando junto" e naquele momento era a
+     unica coisa que fazia isso. Hoje cada atleta ja tem constante de reacao
+     propria (`p.react`), fator de deslize individual (`p._slideF`) e fase de
+     passada propria: o bloco se desfaz por fisica, nao por decoracao.
+     O que restava do balanco era ruido de alta frequencia em 22 corpos ao
+     mesmo tempo -- a OS-207 ja o desligara na bola parada (tremor 7,69% ->
+     5,32%) e a OS-215 mostrou que ele realimentava a propria passada.
+     Fica `_semCardume` como interruptor, agora sempre ligado, para que a
+     reversao seja de uma linha se algum dia a medicao pedir. */
+  const _semCardume = true;
   /* §OS-208 · estado do teto de passo do DESENHO. Ver o bloco no laco abaixo.
      `_pos` guarda a posicao desenhada do quadro anterior; ela e descartada
      inteira quando a cena muda de dono (replay, comemoracao, intervalo),
