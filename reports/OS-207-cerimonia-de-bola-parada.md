@@ -293,3 +293,120 @@ justifica.
 4. **O snap do batedor no reinicio**: 5,66% dos reinicios, media 0,95 m, maximo
    4,94 m. Escapa do orcamento da R18.99 por duas excecoes. A OS-208 disfarca no
    desenho; a fisica continua saltando.
+
+
+---
+
+# Validacao de lance — e as tres armadilhas de medicao
+
+`tools/fisica/tela/validar-lances.js`. Valida INVARIANTE POR OCORRENCIA em vez
+de media por partida: agregado dentro da faixa esconde lance individual
+quebrado, e lance quebrado e o que o dono ve.
+
+A primeira versao caiu em tres armadilhas, todas produzindo numero convincente
+e errado. Ficam escritas no arquivo:
+
+1. **A geometria nao pega a saida.** Observar `ball.y` na borda perde quase todo
+   lateral — o motor detecta e resolve a saida no MESMO passo. A sonda contou
+   1 lateral em 61 min; a bateria mede 15,98 por partida. O gatilho tem de ser
+   o evento (`throw_in`) e o envelope, `_ballOut`.
+
+2. **A marca do batedor morre antes da cobranca.** As camadas de espera limpam
+   `__cdsTakerWait` assim que ele chega, e so DEPOIS `dead` expira. Medir por
+   ela devolve ZERO amostra — nao "tudo certo", zero.
+
+3. **`_setPieceRole` nao identifica a barreira.** Ele marca zona, marcacao e
+   cobertura tambem. Pegar o adversario mais proximo entre todos que o carregam
+   mede o MARCADOR em cima da bola: acusou "barreira a 0,29 m" que nao existe.
+   E medir a barreira certa na hora errada tambem engana — desde a R18.99 ela
+   CAMINHA ate os 9,15 m, entao o que vale e onde ela esta na COBRANCA.
+   Corrigidas as duas coisas: **3/3 a 9,54 m**. A barreira sempre esteve certa.
+
+## Resultado com o instrumento consertado
+
+    FALTA (14-22 ocorrencias)
+      ok   F1 vira reinicio                          22/22
+      ok   F2 bola no ponto da falta                 22/22   pior 0,85 m
+      ATN  F3 batedor na bola na cobranca            21/22
+      ok   F4 barreira a 9,15 m                        3/3   menor 9,54 m
+      ok   F5 gesto de falta em quem sofreu          22/22
+      BAI  F6 batedor nao salta na cobranca          19/22
+
+    ROUBADA DE BOLA (52 desarmes, 14 errados)
+      ok   R1 desarme troca a posse                  52/52
+      ok   R2 bote errado: bola fica, defensor atrasa 14/14
+      BAI  R3 gesto de perda em quem foi desarmado   36/46   78,3%
+      ok   R4 bola nao teleporta na troca            10/10   pior 1,52 m
+
+    LATERAL (22 saidas, 22 reposicoes)
+      ok   L1 posse para o adversario do ultimo toque 22/22
+      ok   L2 bola reposta sobre a linha              22/22
+      ok   L3 cobrador na bola na reposicao           22/22   pior 0,54 m
+      ok   L4 a reposicao entra em campo              22/22
+      ok   L5 cobrador nao salta para a bola          22/22   pior 0,10 m
+
+**O lateral esta integro nos cinco invariantes.** Falta e roubada de bola
+passam no essencial, com tres pontas abertas: F3/F6 (um batedor em 22 chega
+longe e tres saltam) e R3 (24% de quem e desarmado nao ganha gesto de perda).
+
+---
+
+# O pontape apos o gol — relatado, confirmado, NAO corrigido
+
+RELATO: *"depois que rola o gol o jogo comeca do nada com os jogadores
+espalhados no campo"*.
+
+CONFIRMADO, e e grave:
+
+    SAIDA DE BOLA APOS GOL (5 ocorrencias)
+      G1  os dois times na propria metade     0 de 5
+          pior invasao 31,5 m; 4,2 jogadores do lado errado, em media
+      G2  time armado (<= 6 m do posto)       0 de 5
+          distancia media ao posto 19,27 m; pior caso 69,1 m
+      G3  circulo central so com quem deve    3 de 5
+
+## O que tentei, e por que nao ficou
+
+Hipotese: `_resetPositions` poe os 22 na formacao, a R15 converte isso em
+caminhada (certo, para o corpo nao piscar) mas fecha a janela em `DEAD_CAP`
+2,2 s — e voltar da area adversaria sao 40-70 m, uns 11 s. O pontape sairia com
+o time no meio do caminho.
+
+Escrevi a OS-211 abrindo a janela na medida de quem esta mais longe, e o
+runtime passou a simular durante a comemoracao enquanto a bola esta morta (a
+comemoracao ja e uma pausa de >= 2,8 s em que nada acontece no gramado — seria
+tempo de graca).
+
+**Reprovado duas vezes, e a hipotese estava errada:**
+
+- A bateria caiu de 12/13 para 10/13 (`zeroZeroRate` 0,042 contra o piso
+  0,045; `blowoutRate` 0,208 contra o teto 0,190). Congelar o folego durante a
+  janela — porque `deadBallRecovery` transformava 30 s a mais de bola morta em
+  descanso gratis — nao mudou nada, o que ja indicava que a causa era outra.
+- E, decisivo: **a correcao nao corrigiu**. G1 continuou 0 de 4 e a distancia
+  media ao posto foi de 19,27 m para 19,68 m. O pior caso melhorou (69,1 ->
+  37,8 m) e so.
+
+Revertida. A bateria voltou a 12/13 com `averageEndingStamina` em 64,40,
+identico a linha de base — o que confirma que a camada era mesmo a causa da
+queda, e que a reversao esta limpa.
+
+## A causa provavel, para a proxima rodada
+
+Se alongar a caminhada nao resolve, quem desfaz a volta para casa nao e o
+tempo: e o **sistema tatico**, que roda a 100% durante a bola morta e puxa cada
+jogador de volta para a bola enquanto a maquina de bola parada o puxa para o
+posto. E o MESMO cabo-de-guerra diagnosticado na OS-207 — o `freeze` e um
+degrau em `dead = 0.4` e as camadas de espera o mantem desligado segurando
+`dead = 0.12`.
+
+Ou seja: a "bugadinha" da falta e o "time espalhado" no pontape sao o mesmo
+defeito, visto de dois lugares. A correcao dele ja foi tentada e reprovada uma
+vez (OS-207, primeira versao) porque mexe no passo de quem se posiciona e isso
+muda placar. **Nao e trabalho de uma tacada: e uma rodada de calibracao
+propria, com dose medida como a R18.35 fez.**
+
+O que ficou no jogo desta tentativa: durante a comemoracao a simulacao continua
+enquanto a bola esta morta, entao a caminhada que JA existia (os 2,2 s) acontece
+debaixo do confete em vez de virar pausa depois dele. E apresentacao pura e nao
+aparece na bateria — mas nao resolve o relato, e nao vou dizer que resolve.

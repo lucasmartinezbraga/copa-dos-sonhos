@@ -23,6 +23,12 @@
      R3  quem perdeu a bola ganha o gesto de perda na tela
      R4  a bola nao teleporta no desarme
 
+   SAIDA DE BOLA APOS GOL  (relato do dono: "depois que rola o gol o jogo
+   comeca do nada com os jogadores espalhados no campo")
+     G1  no pontape, cada time esta na PROPRIA metade
+     G2  no pontape, cada atleta esta perto do seu posto de formacao
+     G3  no pontape, o circulo central so tem quem tem de estar
+
    LATERAL
      L1  bola na linha lateral vira lateral do time adversario ao ultimo toque
      L2  a bola e reposta SOBRE a linha
@@ -30,25 +36,25 @@
      L4  a reposicao entra em campo (nao sai de novo no mesmo lance)
      L5  o cobrador nao salta para a bola
 
-   LIMITES CONHECIDOS DESTA VERSAO — leia antes de acreditar num numero baixo.
-   Tres invariantes ainda nao sao medidos de forma confiavel, e a saida marca
-   isso com "(0)" em vez de fingir aprovacao:
+   TRES ARMADILHAS DE MEDICAO, que a primeira versao desta sonda caiu em todas.
+   Ficam escritas porque cada uma produziu um numero convincente e ERRADO:
 
-     · F2/F3/F6 e L3/L5 (o quadro da cobranca). As camadas de espera limpam
-       `__cdsTakerWait` assim que o batedor chega, e so DEPOIS `dead` expira:
-       no quadro do reinicio a marca ja nao existe. Tem de lembrar o ultimo
-       batedor, como `passada-parada.js` faz.
+     · A GEOMETRIA NAO PEGA A SAIDA. Observar `ball.y` na borda antes e depois
+       do passo perde quase todo lateral, porque o motor detecta E resolve a
+       saida dentro do MESMO passo. A primeira versao contou 1 lateral em 61
+       minutos; a bateria mede 15,98 por partida. O gatilho e o evento
+       (`throw_in`) e o envelope e `_ballOut`, nao a posicao da bola.
 
-     · A CONTAGEM DE LATERAL esta errada, e sei porque conferi contra a
-       bateria: ela mede 15,98 lateral por partida e esta sonda pegou 1 em
-       61 minutos. O motor detecta e resolve a saida DENTRO do mesmo passo,
-       entao observar `ball.y` na borda antes e depois do passo perde quase
-       todas. O gatilho tem de ser o evento, nao a geometria.
+     · A MARCA DO BATEDOR MORRE ANTES DA COBRANCA. As camadas de espera limpam
+       `__cdsTakerWait` assim que ele chega, e so DEPOIS `dead` expira: no
+       quadro do reinicio ela ja nao existe. Medir por ela devolve ZERO
+       amostra -- nao "tudo certo", zero. O batedor tem de ser lembrado.
 
-     · F4 (barreira) seleciona todo adversario com `_setPieceRole`, e esse
-       campo marca marcador e zona tambem, nao so a barreira. A distancia
-       minima que ela reporta pode ser um marcador em cima da bola, nao a
-       barreira mal posicionada. Precisa distinguir o papel.
+     · `_setPieceRole` NAO IDENTIFICA A BARREIRA. Ele marca zona, marcacao,
+       cobertura e contra-ataque tambem. Pegar o adversario mais proximo entre
+       todos que o carregam mede o MARCADOR em cima da bola e acusa "barreira
+       a 0,60 m" que nao existe. A barreira de verdade esta em
+       `__os36Guard.wall`, e so ela vale.
 
    Uso: node tools/fisica/tela/validar-lances.js [bundle.html] [--segundos=N]
 */
@@ -91,9 +97,13 @@ const SEGUNDOS = Number(argv.segundos || 240);
                piorF2: 0, piorF3: 0, piorF6: 0, barreiraDist: [] },
       roubada: { tackles: 0, R1: [0, 0], R2: [0, 0], R3: [0, 0], R4: [0, 0],
                  missed: 0, piorR4: 0 },
-      lateral: { n: 0, L1: [0, 0], L2: [0, 0], L3: [0, 0], L4: [0, 0], L5: [0, 0],
-                 piorL2: 0, piorL3: 0, piorL5: 0 },
+      lateral: { n: 0, execucoes: 0, L1: [0, 0], L2: [0, 0], L3: [0, 0], L4: [0, 0], L5: [0, 0],
+                 piorL2: 0, piorL3: 0, piorL5: 0, pendenteL4: null },
       gestoVisto: Object.create(null),
+      ultBatedor: null,
+      saida: { n: 0, G1: [0, 0], G2: [0, 0], G3: [0, 0],
+               piorG1: 0, piorG2: 0, foraDeCasa: [], distCasa: [] },
+      golPendente: null,
     };
     const ok = (par, cond) => { par[1]++; if (cond) par[0]++; };
     const dist = (a, b, c, d) => Math.hypot(a - c, b - d);
@@ -131,6 +141,7 @@ const SEGUNDOS = Number(argv.segundos || 240);
           faltaAberta = { vitima: data.on, autor: data.by,
                           x: data.on.x, y: data.on.y, t: this.t, checadoF5: false };
         }
+        if (type === 'goal') { V.golPendente = { t: this.t }; }
         if (type === 'tackle' && data && data.by) {
           V.roubada.tackles++;
           /* R1: a posse tem de ficar com o time de quem desarmou. Vale tanto
@@ -142,6 +153,12 @@ const SEGUNDOS = Number(argv.segundos || 240);
           if (data.on) {
             V.roubada.pendenteR3 = { p: data.on, t: performance.now() };
           }
+        }
+        /* L4: `throw_in` e a reposicao SAINDO. Checa 1,2 s depois se a bola
+           entrou em campo em vez de sair de novo no mesmo lance. */
+        if (type === 'throw_in') {
+          V.lateral.execucoes++;
+          V.lateral.pendenteL4 = { t: this.t };
         }
         if (type === 'tackle_missed' && data && data.by) {
           V.roubada.missed++;
@@ -155,37 +172,109 @@ const SEGUNDOS = Number(argv.segundos || 240);
       return r;
     };
 
-    /* ------------------------------------------------- LATERAL + passo ---- */
-    let lateralAberto = null, ultimoToqueAntes = null;
+    /* --------------------------------------------------------- LATERAL ---- */
+    /* O envelope da saida e `_ballOut`: e a unica hora em que o ultimo toque
+       ainda e o de quem colocou a bola fora. Depois disso o motor ja resolveu. */
+    let lateralAberto = null;
+    const oldBallOut = P._ballOut;
+    if (typeof oldBallOut === 'function') {
+      P._ballOut = function () {
+        const b = this.ball;
+        const ehLateral = b && b.x > 0 && b.x < FLv && (b.y <= 0.05 || b.y >= FWv - 0.05);
+        const toque = b ? b.lastTouch : null;
+        const r = oldBallOut.apply(this, arguments);
+        try {
+          if (ehLateral && toque) {
+            V.lateral.n++;
+            const bat = this.__cdsTakerWait && this.__cdsTakerWait.taker;
+            ok(V.lateral.L1, !!bat && bat.team !== toque.team);
+            const naLinha = Math.min(this.ball.y, FWv - this.ball.y);
+            ok(V.lateral.L2, naLinha <= 1.2);
+            V.lateral.piorL2 = Math.max(V.lateral.piorL2, naLinha);
+            lateralAberto = { t: this.t };
+          }
+        } catch (_) { }
+        return r;
+      };
+    }
+
     const oldStep = P.step;
     P.step = function (dt) {
       const b = this.ball;
       const antesDead = this.dead > 0;
       const bxA = b ? b.x : 0, byA = b ? b.y : 0;
       const donoA = b ? b.owner : null;
+      /* O BATEDOR TEM DE SER LEMBRADO. As camadas de espera limpam
+         `__cdsTakerWait` assim que ele chega e so DEPOIS `dead` expira: no
+         quadro da cobranca a marca ja nao existe, e medir por ela devolve
+         zero amostra. Guarda-se o ultimo conhecido enquanto a bola esta morta. */
       const w = this.__cdsTakerWait;
-      const batAntes = w && w.taker ? { p: w.taker, x: w.taker.x, y: w.taker.y, ax: w.x, ay: w.y } : null;
-      const ultToque = b ? b.lastTouch : null;
-      /* fora pela lateral? guarda o ultimo toque ANTES de o motor resolver */
-      const foraLat = b && !antesDead && (b.y <= 0.02 || b.y >= FWv - 0.02) && b.x > 0 && b.x < FLv;
-      if (foraLat && ultToque) ultimoToqueAntes = { p: ultToque, x: b.x, y: b.y, t: this.t };
+      if (w && w.taker) V.ultBatedor = { p: w.taker, ax: w.x, ay: w.y };
+      const _ub = V.ultBatedor;
+      const batAntes = (_ub && antesDead) ? { p: _ub.p, x: _ub.p.x, y: _ub.p.y, ax: _ub.ax, ay: _ub.ay } : null;
 
       const r = oldStep.apply(this, arguments);
 
       try {
+        /* --- G1/G2/G3: o pontape depois do gol --- */
+        if (V.golPendente && antesDead && !(this.dead > 0)) {
+          const gp = V.golPendente; V.golPendente = null;
+          if (this.t - gp.t < 60) {
+            V.saida.n++;
+            let foraDeMetade = 0, piorMetade = 0, somaCasa = 0, nCasa = 0, piorCasa = 0, noCirculo = 0;
+            for (const tm of this.teams) {
+              /* `attackDir > 0` ataca para x crescente, entao a propria metade
+                 e a de x menor. E a mesma convencao de `_kickoff`. */
+              const paraDireita = (tm.attackDir || 1) > 0;
+              for (const q of tm.players) {
+                if (!q || q.red) continue;
+                const naPropria = paraDireita ? q.x <= FLv / 2 + 0.5 : q.x >= FLv / 2 - 0.5;
+                if (!naPropria) {
+                  foraDeMetade++;
+                  const excesso = paraDireita ? q.x - FLv / 2 : FLv / 2 - q.x;
+                  piorMetade = Math.max(piorMetade, excesso);
+                }
+                /* posto de formacao: `dhx/dhy` e a casa defensiva que o motor
+                   ja calcula; `hx/hy` e a queda quando ela nao existe */
+                const hx = Number.isFinite(q.dhx) ? q.dhx : q.hx;
+                const hy = Number.isFinite(q.dhy) ? q.dhy : q.hy;
+                if (Number.isFinite(hx) && Number.isFinite(hy)) {
+                  const d = dist(q.x, q.y, hx, hy);
+                  somaCasa += d; nCasa++; piorCasa = Math.max(piorCasa, d);
+                }
+                if (dist(q.x, q.y, FLv / 2, FWv / 2) < 9.15) noCirculo++;
+              }
+            }
+            ok(V.saida.G1, foraDeMetade === 0);
+            V.saida.piorG1 = Math.max(V.saida.piorG1, piorMetade);
+            V.saida.foraDeCasa.push(foraDeMetade);
+            /* G2: "perto do posto" = 6 m. Acima disso o time nao esta armado,
+               esta espalhado -- que e exatamente o relato. */
+            ok(V.saida.G2, nCasa > 0 && piorCasa <= 6);
+            V.saida.piorG2 = Math.max(V.saida.piorG2, piorCasa);
+            if (nCasa) V.saida.distCasa.push(+(somaCasa / nCasa).toFixed(2));
+            /* G3: o circulo e do time que bate; 2 e o maximo tolerado */
+            ok(V.saida.G3, noCirculo <= 2);
+          }
+        }
+        if (V.golPendente && this.t - V.golPendente.t > 60) V.golPendente = null;
         /* --- F1: a falta abriu reinicio? --- */
         if (faltaAberta && !faltaAberta.f1) {
           faltaAberta.f1 = true;
           ok(V.falta.F1, this.dead > 0 || !!this.pendingRestart);
-          /* F4: se armou barreira, a que distancia da bola ela ficou? */
-          const adv = this.teams[1 - faltaAberta.vitima.team].players
-            .filter(p => p && !p.red && !p.isGK && p._setPieceRole);
-          if (adv.length) {
-            const d = adv.map(p => dist(p.x, p.y, this.ball.x, this.ball.y))
-              .sort((a, c) => a - c)[0];
-            V.falta.barreiraDist.push(+d.toFixed(2));
-            ok(V.falta.F4, d >= 8.6);   // 9,15 com folga de execucao
-          }
+          /* F4: a barreira e a lista que a OS-36 montou, e so ela. Adiada
+             para quando ela existir: ela e armada depois, com o jogo parado. */
+          faltaAberta.esperaBarreira = true;
+        }
+        /* --- F4: guarda a barreira; ela e MEDIDA na cobranca, nao aqui.
+           Desde a R18.99 a barreira CAMINHA ate os 9,15 m em vez de ser
+           teleportada. Medir no instante em que `__os36Guard` nasce le a
+           posicao de ONDE ELES ESTAVAM -- foi assim que a versao anterior
+           acusou "barreira a 0,29 m" que nao existe. O que importa e onde ela
+           esta quando a bola sai. --- */
+        if (faltaAberta && !faltaAberta.wall) {
+          const g = this.__os36Guard;
+          if (g && g.wall && g.wall.length) faltaAberta.wall = g.wall;
         }
         /* --- F5: o gesto de falta apareceu para quem sofreu? --- */
         if (faltaAberta && !faltaAberta.checadoF5 && this.t - faltaAberta.t > 0.25) {
@@ -199,37 +288,32 @@ const SEGUNDOS = Number(argv.segundos || 240);
           const teto = (bat.maxSpd || 7) * 1.18 * Math.max(1 / 240, Math.min(0.15, dt)) + 0.12;
           const naBola = dist(bat.x, bat.y, this.ball.x, this.ball.y);
           if (faltaAberta) {
+            if (faltaAberta.wall && faltaAberta.wall.length) {
+              const d = faltaAberta.wall.map(q => dist(q.x, q.y, this.ball.x, this.ball.y))
+                .sort((a, c) => a - c)[0];
+              V.falta.barreiraDist.push(+d.toFixed(2));
+              ok(V.falta.F4, d >= 8.6);   // 9,15 m com folga de execucao
+            }
             ok(V.falta.F2, dist(this.ball.x, this.ball.y, faltaAberta.x, faltaAberta.y) <= 2.0);
             V.falta.piorF2 = Math.max(V.falta.piorF2, dist(this.ball.x, this.ball.y, faltaAberta.x, faltaAberta.y));
             ok(V.falta.F3, naBola <= 1.5); V.falta.piorF3 = Math.max(V.falta.piorF3, naBola);
             ok(V.falta.F6, salto <= teto); V.falta.piorF6 = Math.max(V.falta.piorF6, salto);
-            faltaAberta = null;
+            faltaAberta = null; V.ultBatedor = null;
           } else if (lateralAberto) {
             ok(V.lateral.L3, naBola <= 1.5); V.lateral.piorL3 = Math.max(V.lateral.piorL3, naBola);
             ok(V.lateral.L5, salto <= teto); V.lateral.piorL5 = Math.max(V.lateral.piorL5, salto);
-            lateralAberto.cobrou = this.t;
-          }
+            lateralAberto = null; V.ultBatedor = null;
+          } else V.ultBatedor = null;
         }
-        /* --- L1/L2: nasceu um lateral? --- */
-        if (ultimoToqueAntes && !lateralAberto && this.dead > 0 && this.__cdsTakerWait) {
-          const t = ultimoToqueAntes; ultimoToqueAntes = null;
-          const bat = this.__cdsTakerWait.taker;
-          V.lateral.n++;
-          ok(V.lateral.L1, !!bat && bat.team !== t.p.team);
-          const naLinha = Math.min(this.ball.y, FWv - this.ball.y);
-          ok(V.lateral.L2, naLinha <= 1.2); V.lateral.piorL2 = Math.max(V.lateral.piorL2, naLinha);
-          lateralAberto = { y: this.ball.y, t: this.t, cobrou: 0 };
-        }
-        if (ultimoToqueAntes && this.t - ultimoToqueAntes.t > 3) ultimoToqueAntes = null;
         /* --- L4: a reposicao entrou em campo? --- */
-        if (lateralAberto && lateralAberto.cobrou && this.t - lateralAberto.cobrou > 1.2) {
-          const dentro = this.ball.y > 0.05 && this.ball.y < FWv - 0.05;
-          ok(V.lateral.L4, dentro);
-          lateralAberto = null;
+        const pl4 = V.lateral.pendenteL4;
+        if (pl4 && this.t - pl4.t > 1.2) {
+          ok(V.lateral.L4, this.ball.y > 0.05 && this.ball.y < FWv - 0.05);
+          V.lateral.pendenteL4 = null;
         }
         /* --- R3: o gesto de perda apareceu para quem foi desarmado? --- */
         const pr3 = V.roubada.pendenteR3;
-        if (pr3 && performance.now() - pr3.t > 400) {
+        if (pr3 && performance.now() - pr3.t > 700) {
           ok(V.roubada.R3, viu(pr3.p, 'dribble_failure') || viu(pr3.p, 'lose_control') ||
                            viu(pr3.p, 'body_duel'));
           V.roubada.pendenteR3 = null;
@@ -277,7 +361,15 @@ const SEGUNDOS = Number(argv.segundos || 240);
   linha('R3 gesto de perda em quem foi desarmado', v.roubada.R3);
   linha('R4 bola nao teleporta na troca (<=3,0 m)', v.roubada.R4, 'pior ' + v.roubada.piorR4.toFixed(2) + ' m');
 
-  console.log('\nLATERAL  (' + v.lateral.n + ' ocorrencias)');
+  const media = a => a.length ? (a.reduce((x, y) => x + y, 0) / a.length).toFixed(2) : '—';
+  console.log('\nSAIDA DE BOLA APOS GOL  (' + v.saida.n + ' ocorrencias)');
+  linha('G1 cada time na propria metade', v.saida.G1,
+    'pior invasao ' + v.saida.piorG1.toFixed(1) + ' m | fora de metade, media ' + media(v.saida.foraDeCasa) + ' jogadores');
+  linha('G2 todos perto do posto de formacao (<=6 m)', v.saida.G2,
+    'pior ' + v.saida.piorG2.toFixed(1) + ' m | distancia media ao posto ' + media(v.saida.distCasa) + ' m');
+  linha('G3 circulo central so com quem deve', v.saida.G3);
+
+  console.log('\nLATERAL  (' + v.lateral.n + ' saidas, ' + v.lateral.execucoes + ' reposicoes executadas)');
   linha('L1 posse para o adversario do ultimo toque', v.lateral.L1);
   linha('L2 bola reposta sobre a linha (<=1,2 m)', v.lateral.L2, 'pior ' + v.lateral.piorL2.toFixed(2) + ' m');
   linha('L3 cobrador na bola na reposicao (<=1,5 m)', v.lateral.L3, 'pior ' + v.lateral.piorL3.toFixed(2) + ' m');

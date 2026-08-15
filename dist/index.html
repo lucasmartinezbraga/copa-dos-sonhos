@@ -12880,6 +12880,42 @@ function startLoop() {
        no último lance segurava o cartão de resultado por 6–9 segundos. */
     const matchOver = !finished && sim && sim.isOver();
     if (matchOver) fastForwardFullTime(now);
+    /* §OS-211 · O TIME VOLTA PARA CASA DEBAIXO DO CONFETE.
+       ------------------------------------------------------------------
+       RELATO: "depois que rola o gol o jogo comeca do nada com os jogadores
+       espalhados no campo". MEDIDO com tools/fisica/tela/validar-lances.js,
+       em 5 pontapes de saida: NENHUM tinha os dois times na propria metade
+       (pior invasao 31,5 m, media de 4,2 jogadores do lado errado) e nenhum
+       tinha o time armado (distancia media ao posto de formacao 19,27 m,
+       pior caso 69,1 m).
+
+       A causa nao e o `_resetPositions`: ele poe todo mundo na formacao. E a
+       R15, que — com razao — converteu esse teletransporte em CAMINHADA, mas
+       com teto de 2,2 s. Depois de um gol o time inteiro esta na area
+       adversaria, e voltar sao 40-70 m: a 6,4 m/s isso pede uns 11 s. O
+       pontape saia no segundo 2,2, com o time no meio do caminho.
+
+       Subir o teto e a tentacao errada — a propria R15 mediu que alongar
+       bola morta desloca a proporcao entre jogo corrido e bola parada dentro
+       dos mesmos 90 minutos, e os gols cairam 14,6%.
+
+       Mas a comemoracao ja E uma pausa: o laco a bloqueia por >= 2,8 s e
+       nesse tempo `sim.step` nao roda. Sao segundos de relogio de parede em
+       que o jogador esta vendo confete e NADA acontece no gramado. E o
+       tempo exato de que a caminhada precisa, e ele e de graca: bola morta
+       nao move o relogio da partida (`dead > 0` nao incrementa `minute`).
+
+       Entao: durante a comemoracao, a simulacao continua enquanto a bola
+       estiver MORTA — e so enquanto. No instante em que `dead` zera, o passo
+       para e o jogo espera o overlay como antes. Nenhum passo de jogo vivo
+       acontece atras do confete. */
+    if (!finished && !paused && celebrating && !penActive && !matchOver &&
+        sim && sim.dead > 0) {
+      const h = 1 / 60; let g = 0;
+      acc += dt * G.speed * ADIANTA_PARADA;
+      while (acc >= h && g++ < 500 && sim.dead > 0) { sim.step(h); acc -= h; }
+      if (!(sim.dead > 0)) acc = 0;   // acabou a pausa: nada de vazar passo vivo
+    }
     if (!finished && !paused && !celebrating && !penActive) {
       if (!matchOver) {
         /* OS-203 · A ESPERA ANDA MAIS RAPIDO QUE O JOGO.
