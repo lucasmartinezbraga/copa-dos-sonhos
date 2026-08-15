@@ -2,6 +2,12 @@
 
 Escrito para ser colado inteiro num modelo novo. Não presume nada da sessão
 anterior.
+**Índice** — 1 o projeto · 2 a regra de medição · 3 armadilhas que falham em
+silêncio · 4 o padrão de defeito que se repete · 5 estado atual · 6 fila aberta ·
+7 mapa do código · 8 calibração · 9 eventos · 10 máquina de animação ·
+11 receitas · 12 glossário · 13 convenções · 14 como o dono trabalha
+
+Se você só tem tempo para duas seções, leia a **2** e a **3**.
 
 ---
 
@@ -184,7 +190,7 @@ LATERAL   L1..L5 todos 22/22   <- íntegro
 
 ---
 
-## 8. Mapa do código
+## 7. Mapa do código
 
 ### O core (`src/scripts/`, concatenados nesta ordem — bloco 6 do bundle)
 
@@ -292,7 +298,7 @@ sim.__os36Guard      { wall: [...] } — a barreira de falta
 
 ---
 
-## 9. Calibração (`ENGINE_CALIBRATION`, em `20-core.js`)
+## 8. Calibração (`ENGINE_CALIBRATION`, em `20-core.js`)
 
 Mexer aqui muda placar. Sempre com bateria antes/depois.
 
@@ -315,7 +321,7 @@ mexendo no `clockRate`.
 
 ---
 
-## 10. Eventos do motor (`_emit`)
+## 9. Eventos do motor (`_emit`)
 
 A apresentação inteira se pendura aqui. `by` é quase sempre quem **fez**; em
 desfechos defensivos, quem **sofreu** está em `on` — ler só `by` já deixou
@@ -345,7 +351,7 @@ tempo          halftime · extratime · et_halftime
 
 ---
 
-## 11. Máquina de animação (bloco 21, `cds-ux-boot`)
+## 10. Máquina de animação (bloco 21, `cds-ux-boot`)
 
 64 estados em `CDS_ANIM.STATES`, cada um `{ tier, dur }` ou `{ tier, loop:true }`.
 
@@ -371,7 +377,7 @@ Regras que já morderam:
 
 ---
 
-## 12. Receitas
+## 11. Receitas
 
 ### Adicionar uma camada
 
@@ -408,7 +414,7 @@ python3 tools/build.py                               # confere sha256: "identico
 
 ---
 
-## 13. Glossário (o código é em português)
+## 12. Glossário (o código é em português)
 
 ```
 bola parada / bola morta  set piece / dead ball (sim.dead > 0)
@@ -425,7 +431,7 @@ laudo          report           dose           the magnitude of a tuning change
 
 ---
 
-## 14. Convenções do projeto
+## 13. Convenções do projeto
 
 - **Comentário explica o PORQUÊ e traz o número medido.** O código aqui é
   quase todo comentado assim, e é o que torna possível continuar — mantenha.
@@ -440,7 +446,7 @@ laudo          report           dose           the magnitude of a tuning change
 
 ---
 
-## 15. Como o dono trabalha
+## 14. Como o dono trabalha
 
 Ele reporta por sensação — "bugadinha", "espalhado", "quero sentir fluidez" —
 e **está certo todas as vezes**. Traduza a sensação em invariante medível antes
