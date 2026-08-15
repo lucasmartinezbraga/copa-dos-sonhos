@@ -69,8 +69,18 @@ function cl(v, a, b) { return v < a ? a : (v > b ? b : v); }
 
 /* O posto de cada um: o alvo que a R15 ja montou vale; sem ele, a casa da
    formacao, que e o que `_resetPositions` teria escrito. */
-function posto(p) {
+function posto(p, voltarParaCasa) {
   if (p.__spTarget) return { x: num(p.__spTarget.x), y: num(p.__spTarget.y) };
+  /* §OS-225 · A QUEDA PARA A FORMACAO SO VALE NO PONTAPE.
+     Ela existe porque `_resetPositions` manda todo mundo para casa depois do
+     gol. Numa FALTA nao: ali cada um tem posto de bola parada, e quem nao tem
+     alvo simplesmente nao esta sendo reposicionado -- arrasta-lo para a casa
+     da formacao inventa uma corrida que o futebol nao pediu.
+     Foi o que a primeira versao desta extensao fez, e a sonda mediu na hora:
+     o tremor de desenho subiu de 4,88% para 8,53% e o salto de ~35% para
+     66,5%. O numero apareceu porque 22 jogadores passaram a atravessar o campo
+     em toda falta. */
+  if (!voltarParaCasa) return null;
   const hx = Number.isFinite(p.dhx) ? p.dhx : p.hx;
   const hy = Number.isFinite(p.dhy) ? p.dhy : p.hy;
   if (Number.isFinite(hx) && Number.isFinite(hy)) return { x: hx, y: hy };
@@ -85,11 +95,36 @@ if (typeof oldKickoff === 'function') {
       if (!start && num(this.t) > 0.5) {
         this.__os214Ate = num(this.t) + JANELA;
         this.__os214Batedor = this.ball && this.ball.owner;
+        this.__os214Casa = true;      // pontape: a formacao inteira volta
       }
     } catch (_) { }
     return r;
   };
 }
+
+/* §OS-225 · TENTATIVA REVERTIDA, E O NUMERO ESTA AQUI PARA NAO SE REPETIR.
+   Relato: "na hora da falta continua dando uma bugada maxima". Verdade -- a
+   OS-207 corrigiu o que a ANIMACAO via, e o cabo-de-guerra da POSICAO ficou
+   de pe. Como o escritor unico resolveu o pontape sem custar metrica, tentei
+   estende-lo a toda cerimonia de bola parada.
+
+   NAO FUNCIONA AQUI, e a sonda de desenho mediu duas vezes:
+
+     primeira versao, com queda para a formacao   tremor 4,88% -> 8,53%
+                                                  salto  ~35%  -> 66,5%
+     com a queda limitada ao pontape              tremor        -> 5,42%
+                                                  salto         -> 50,7%
+
+   Ou seja: mesmo corrigido o erro obvio (arrastar 22 jogadores para a
+   formacao em toda falta), o escritor unico PIORA a falta em vez de melhorar.
+   A diferenca para o pontape e que ali existe um destino unico e legitimo para
+   todo mundo -- a formacao -- e aqui nao: durante a falta cada um tem dono
+   diferente (OS-107 contem o bloco, OS-36 arma a barreira, a R15 caminha quem
+   foi reposicionado), e acrescentar mais um escritor final e trocar um
+   cabo-de-guerra por outro, nao dissolve-lo.
+
+   O que a falta pede e ARBITRAGEM entre os escritores que ja existem, nao um
+   escritor a mais. Isso e rodada propria, com a bateria junto. */
 
 const oldStep = P.step;
 P.step = function (dt) {
@@ -122,9 +157,15 @@ P.step = function (dt) {
       for (let k = 0; k < folego.length; k++) folego[k][0].stamina = folego[k][1];
 
       let faltando = 0;
+      const _w = this.__cdsTakerWait, _bat = _w && _w.taker;
+      const _g36 = this.__os36Guard, _muro = (_g36 && _g36.wall) || null;
       antes.forEach((p0, p) => {
         if (p === this.__os214Batedor) return;          // o batedor fica na bola
-        const alvo = posto(p);
+        /* §OS-225 · quem ja tem escritor final proprio nao entra aqui */
+        if (p === _bat) return;                          // batedor: OS-77/OS-83/R18.15
+        if (_muro && _muro.indexOf(p) >= 0) return;      // barreira: OS-36
+        if (p === (this.ball && this.ball.owner)) return;
+        const alvo = posto(p, this.__os214Casa);
         if (!alvo) return;
         const dx = alvo.x - p0[0], dy = alvo.y - p0[1], L = Math.hypot(dx, dy);
         if (L <= CHEGOU) { p.vx = 0; p.vy = 0; return; }
@@ -142,7 +183,7 @@ P.step = function (dt) {
       if (!faltando) this.__os214Ate = 0;
       else if (num(this.dead) <= 0.05) this.dead = 0.12;
     }
-    if (!(num(this.dead) > 0)) { this.__os214Ate = 0; this.__os214Batedor = null; }
+    if (!(num(this.dead) > 0)) { this.__os214Ate = 0; this.__os214Batedor = null; this.__os214Casa = false; }
   } catch (_) { }
   return r;
 };

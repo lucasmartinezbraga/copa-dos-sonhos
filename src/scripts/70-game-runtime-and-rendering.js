@@ -222,6 +222,36 @@ let vfx = [], passNarrCd = 0;
 let playerMotions = [];  // saltos, cabeceios e mergulhos puramente visuais
 let camX = 320, camY = 207;                       // câmera suave (§17)
 let _camT = 0;                                    // §OS-223 · relógio da câmera
+/* §OS-227 · interpolacao de passo fixo: estado anterior + fracao pendente */
+let interpPrev = null, interpAlpha = 0;
+function capturaInterp(sim) {
+  try {
+    /* guarda NORMALIZADO e por CHAVE: `getState()` entrega copias novas a cada
+       quadro, entao identidade de objeto nao serve para reencontrar ninguem */
+    const m = interpPrev || (interpPrev = { p: Object.create(null), b: { x: 0, y: 0, z: 0 } });
+    for (const k in m.p) delete m.p[k];
+    for (const tm of sim.teams) for (const q of tm.players) {
+      if (!q || q.red) continue;
+      const k = (q.team != null ? q.team : '?') + ':' +
+                ((q.ref && (q.ref.id != null ? 'i' + q.ref.id : q.ref.n)) || q.idx);
+      m.p[k] = [q.x / 105, q.y / 68];
+    }
+    const b = sim.ball; m.b.x = b.x / 105; m.b.y = b.y / 68; m.b.z = b.z || 0;
+  } catch (_) { interpPrev = null; }
+}
+/* Mistura para o DESENHO. Devolve a posicao do objeto na fracao pendente do
+   passo. Sem estado anterior (primeiro quadro, replay) devolve o atual. */
+function interpXY(chave, x, y) {
+  if (!interpPrev || interpAlpha <= 0) return [x, y];
+  const a = interpPrev.p[chave];
+  if (!a) return [x, y];
+  const dx = x - a[0], dy = y - a[1];
+  /* recolocacao administrativa (0,057 normalizado = 6 m) nao se interpola:
+     misturar os dois lados de um teletransporte poe o corpo no nada */
+  if (Math.hypot(dx * 105, dy * 68) > 6) return [x, y];
+  return [a[0] + dx * interpAlpha, a[1] + dy * interpAlpha];
+}
+let _camLX = 0, _camLY = 0;                       // §OS-226 · antecipação com inércia
 
 /* ==========================================================================
    FASE 13A · P0-3 · PONTE ÚNICA DE APRESENTAÇÃO PELA TIMELINE FÍSICA
@@ -472,7 +502,7 @@ window.__quickMatch = function (iA, iB) {
   myMatch = { h: 'QA', a: 'QB' }; isKO = false; mySide = 0; teamColors = [A.color, B.color];
   feed=[]; finished=false; tab='campo'; acc=0; lastT=0; paused=false;
   trailPts=[]; goalFlash=null; redeEstufa=null; shotFx=null; outMark=null; celebration=null; replay=null; replayBuf=[]; penScene=null; fkScene=null; setPieceRequest=null; shootoutState=null; breakOv=null; slowmo=null; latestEvent=null; minorCd=0; statsT=0; momHist=[]; momT=0; keyEvents=[]; playerMotions=[];
-  endOfPlay._done = false; fastForwardFullTime._done = false; /* PONTO 4: novo jogo, nova janela de compressão */ camX = 320; camY = 207;
+  endOfPlay._done = false; fastForwardFullTime._done = false; /* PONTO 4: novo jogo, nova janela de compressão */ camX = 320; camY = 207; _camLX = 0; _camLY = 0;
   sim = new MatchSim(A, B, { onEvent, onSetPiece: openSetPieceMinigame }); sim.setInteractive(0);
   G.screen = 'match'; render(A, B); startLoop();
   return A.name + ' x ' + B.name;
@@ -1153,7 +1183,7 @@ function open() {
   trailPts=[]; goalFlash=null; redeEstufa=null; shotFx=null; outMark=null; celebration=null; replay=null; replayBuf=[]; penScene=null; fkScene=null; setPieceRequest=null; shootoutState=null; breakOv=null; slowmo=null; latestEvent=null; minorCd=0; statsT=0; momHist=[]; momT=0; keyEvents=[]; playerMotions=[];
   endOfPlay._done = false;
   fastForwardFullTime._done = false;  /* PONTO 4: novo jogo, nova janela de compressão */
-  camX = 320; camY = 207;
+  camX = 320; camY = 207; _camLX = 0; _camLY = 0;
 
   sim = new MatchSim(A, B, { onEvent, onSetPiece: openSetPieceMinigame });
   sim.setInteractive(mySide);
@@ -1843,9 +1873,43 @@ function startLoop() {
         const _espera = (sim && sim.dead > 0 && !slowmo) ? ADIANTA_PARADA : 1;
         acc += dt * (slowmo ? Math.min(G.speed, 1) * slowmo.f : G.speed) * _espera;
         const h = 1/60; let g = 0;
+        /* §OS-227 · O JOGO DESENHAVA O ESTADO DISCRETO DA SIMULACAO.
+           O laco e de passo FIXO: `acc += dt*speed` e depois roda quantos
+           passos de 1/60 couberem. O numero de passos por quadro DESENHADO
+           varia -- as vezes 1, as vezes 2, as vezes 3 -- e o que sobra em
+           `acc` e simplesmente ignorado ate o quadro seguinte.
+           Consequencia: um atleta a velocidade CONSTANTE avanca 1 ou 2 passos
+           por quadro na tela, alternando. Isso e jitter de quantizacao, e ele
+           esta em TUDO que se move -- corpo, bola, camera -- o tempo todo. Nao
+           e um bug de nenhuma camada: e a falta da interpolacao que todo laco
+           de passo fixo precisa ter.
+           A correcao e a classica: guarda o estado ANTES dos passos, e o
+           desenho mostra a mistura entre ele e o estado depois, na fracao que
+           `acc` deixou pendente. A simulacao nao muda em nada -- os mesmos
+           passos, na mesma ordem. Muda o que se ve entre eles. */
+        /* §OS-228 · ONDE CAPTURAR O ESTADO ANTERIOR — TRES VARIANTES MEDIDAS.
+           A escolha aqui e EMPIRICA, e o registro existe para ninguem refazer
+           a varredura. Sonda `tools/fisica/tela/passada-parada.js`, 150 s:
+
+             antes da RAJADA (esta)         tremor 4,16%   salto 32,7%
+             antes de CADA passo            tremor 7,75%   salto 55,0%
+             antes do ULTIMO passo          tremor 6,35%   salto 44,8%
+
+           A segunda e a terceira sao a formula de livro (o estado guardado
+           fica exatamente um passo atras, que e o que `alpha` cobre) e as duas
+           mediram PIOR que a primeira. Duas explicacoes possiveis, nenhuma
+           verificada: o custo da captura extra vira variacao de tempo de
+           quadro, e/ou a sonda -- que conta reversao de deslocamento
+           DESENHADO -- premia o desenho mais lento, porque menos deslocamento
+           por quadro e menos chance de reverter.
+           Fica a que mede melhor, com a ressalva escrita. Quem for mexer aqui
+           precisa de uma sonda que separe SUAVIDADE de ATRASO; a atual nao
+           separa. */
+        if (g === 0 && acc >= h) capturaInterp(sim);
         while (acc >= h && g++ < 500) {
           sim.step(h); acc -= h; minorCd = Math.max(0, minorCd - h);
         }
+        if (g > 0) interpAlpha = Math.max(0, Math.min(1, acc / h));
       } else {
         /* Jogo encerrado: zera o acumulador para o relógio não "vazar" passos
            extras de simulação enquanto os overlays finais se despedem. */
@@ -3273,11 +3337,24 @@ function paintField() {
         if (_bb && !shotFx) {
           const _vx = Number(_bb.vx) || 0, _vy = Number(_bb.vy) || 0;
           const _v = Math.hypot(_vx, _vy);
+          let _lx = 0, _ly = 0;
           if (_v > 1) {
-            const _lead = Math.min(9, _v * 0.42) / Math.max(1e-6, _v);
-            _ax = clamp((_bb.x + _vx * _lead) / 105, 0, 1);
-            _ay = clamp((_bb.y + _vy * _lead) / 68, 0, 1);
+            const _lead = Math.min(9, _v * 0.42) / _v;
+            _lx = _vx * _lead; _ly = _vy * _lead;
           }
+          /* §OS-226 · A ANTECIPACAO TEM DE NASCER, NAO APARECER.
+             A primeira versao aplicava o vetor de lead cru. Com a bola parada
+             o lead e ZERO, e no quadro em que ela sai ele vira 9 m de uma vez:
+             a camera dava um tranco no instante exato da cobranca -- que e o
+             momento mais olhado da partida, ainda por cima debaixo da camera
+             lenta da OS-88. Bug meu, introduzido junto com a melhoria.
+             O lead agora tem inercia propria, mais lenta que a da camera:
+             ele cresce e some sem degrau, e a camera nunca recebe um alvo
+             que saltou. */
+          _camLX += (_lx - _camLX) * _ganho(0.06);
+          _camLY += (_ly - _camLY) * _ganho(0.06);
+          _ax = clamp((_bb.x + _camLX) / 105, 0, 1);
+          _ay = clamp((_bb.y + _camLY) / 68, 0, 1);
         }
       } catch (_) { }
       let tx = cx(_ax), ty = cy(_ay);
@@ -3473,7 +3550,23 @@ function paintField() {
       // com ritmo próprio por jogador (fase pelo número). Só no DESENHO — a posição
       // real (física) não muda, o equilíbrio fica intacto — mas quebra o efeito de
       // "bloco andando junto": cada um oscila no seu tempo enquanto corre.
-      let _rx = cx(p.x), _ry = cy(p.y);
+      /* §OS-209 · A CHAVE DE DESENHO ERA SO O NOME.
+         Tres caches do desenho indexavam o atleta pelo nome: `_prevScreen`
+         (balanco), `dirCache` (a passada, dentro de `CDS_F25D.body`) e
+         `__CDS_SCREEN.p` (posicao de tela, lida pela OS-21). Dois homonimos em
+         campo -- e o banco tem homonimos -- dividiam passada, balanco e
+         posicao a partida INTEIRA: as pernas de um andavam com a velocidade do
+         outro, e a marca de tela de um saia em cima do outro.
+         A ponte de animacao ja tinha achado e corrigido esta mesma colisao
+         para os ids DELA ("22 jogadores viravam 17 estados"), mas os tres
+         caches do desenho ficaram por nome. Agora todos usam a mesma chave
+         qualificada por time, e a ponte publica com ela. */
+      const _pkBase = (p.ref && (p.ref.id != null ? 'i' + p.ref.id : p.ref.n)) || p.n || ('#' + (p.num || 0));
+      const _chave = (p.__lado != null ? p.__lado : (p.team != null ? p.team : '?')) + ':' + _pkBase;
+      /* §OS-227 · o corpo e desenhado na fracao pendente do passo, nao no
+         ultimo passo fechado. E o que tira o jitter de quantizacao. */
+      const _ip = interpXY(_chave, p.x, p.y);
+      let _rx = cx(_ip[0]), _ry = cy(_ip[1]);
       /* §OS-208 · O CORPO NAO TELETRANSPORTA, MESMO QUANDO A FICHA TELEPORTA.
          ---------------------------------------------------------------------
          MEDIDO com `tools/fisica/tela/passada-parada.js`, que le a posicao
@@ -3534,19 +3627,6 @@ function paintField() {
           _rx = cx(p.x + fkStep.dx * _k); _ry = cy(p.y + fkStep.dy * _k);
         }
       }
-      /* §OS-209 · A CHAVE DE DESENHO ERA SO O NOME.
-         Tres caches do desenho indexavam o atleta pelo nome: `_prevScreen`
-         (balanco), `dirCache` (a passada, dentro de `CDS_F25D.body`) e
-         `__CDS_SCREEN.p` (posicao de tela, lida pela OS-21). Dois homonimos em
-         campo -- e o banco tem homonimos -- dividiam passada, balanco e
-         posicao a partida INTEIRA: as pernas de um andavam com a velocidade do
-         outro, e a marca de tela de um saia em cima do outro.
-         A ponte de animacao ja tinha achado e corrigido esta mesma colisao
-         para os ids DELA ("22 jogadores viravam 17 estados"), mas os tres
-         caches do desenho ficaram por nome. Agora todos usam a mesma chave
-         qualificada por time, e a ponte publica com ela. */
-      const _pkBase = (p.ref && (p.ref.id != null ? 'i' + p.ref.id : p.ref.n)) || p.n || ('#' + (p.num || 0));
-      const _chave = (p.__lado != null ? p.__lado : (p.team != null ? p.team : '?')) + ':' + _pkBase;
       const _pk = _chave;
       if (_pk) {
         const _pp = _prevScreen[_pk];
@@ -3821,7 +3901,17 @@ function paintField() {
   const bx=cx(b.x), by=cy(b.y)-_zVis*22;
   if (window.CDS_F25D) {
     const _tv = (!rframe && bT && bT.traveling && bT.target) ? { tx: cx(bT.target.x), ty: cy(bT.target.y), kind: bT.kind } : null;
-    window.CDS_F25D.ball(ctx, { gx: cx(b.x), gy: cy(b.y), z: b.z || 0, tv: _tv });
+    /* §OS-227 · a bola e o objeto que mais anda por quadro, entao o jitter de
+       quantizacao aparece nela primeiro. */
+    let _bix = b.x, _biy = b.y;
+    if (interpPrev && interpAlpha > 0) {
+      const _dbx = b.x - interpPrev.b.x, _dby = b.y - interpPrev.b.y;
+      if (Math.hypot(_dbx * 105, _dby * 68) < 12) {
+        _bix = interpPrev.b.x + _dbx * interpAlpha;
+        _biy = interpPrev.b.y + _dby * interpAlpha;
+      }
+    }
+    window.CDS_F25D.ball(ctx, { gx: cx(_bix), gy: cy(_biy), z: b.z || 0, tv: _tv });
     /* §OS-222 · o estufamento entra DEPOIS da bola: ela empurra a rede, e nao
        o contrario. Dura 620 ms -- o tempo de um impacto se ler -- e sai por si,
        sem depender de ninguem limpar. */
