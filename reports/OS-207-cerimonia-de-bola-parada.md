@@ -410,3 +410,61 @@ O que ficou no jogo desta tentativa: durante a comemoracao a simulacao continua
 enquanto a bola esta morta, entao a caminhada que JA existia (os 2,2 s) acontece
 debaixo do confete em vez de virar pausa depois dele. E apresentacao pura e nao
 aparece na bateria — mas nao resolve o relato, e nao vou dizer que resolve.
+
+
+---
+
+# OS-212 · "quero sentir fluidez dos toques igual futebol"
+
+## O defeito, medido
+
+    tempo entre GANHAR a bola e SOLTA-LA (161 passes de partida real)
+      p10  0,433 s     p25  0,467 s     p50  0,950 s
+      abaixo de 0,35 s: 2 passes em 161  (1,2%)
+
+Nao existe tabelinha. Toda bola para no pe e so depois anda. E por isso que o
+jogo nao "flui": sao passes deliberados, um de cada vez.
+
+**Nao e acidente, e um portao.** O nucleo so decide quando
+`owner.settle <= 0 && decideT <= 0` (40-match-engine:478), e a recepcao atribui
+os dois — `settle` (0,10–0,34 dividido pela execucao) e `decideT = 0,28`.
+
+E a prova de que o motor JA QUERIA isto: `_evaluateShotDecision` calcula
+`const firstTime = o.settle > 0 && o.settle < .45` (:954) e decide com esse
+valor. So que essa funcao so roda dentro de `_decide`, que so e chamado com
+`settle <= 0`. **`firstTime` e sempre falso.** O conceito esta escrito, e lido,
+e nao pode acontecer — o mesmo padrao dos gestos que entravam e nunca viravam
+quadro, um andar abaixo.
+
+## A correcao, e por que ela ainda nao entrou
+
+A camada nao inventa passe nenhum: abre o portao mais cedo quando o passe de
+primeira esta na mesa, e deixa o proprio `_decide` escolher, com a mesma
+logica e o mesmo sorteio. Nenhum RNG novo.
+
+Funciona. O que falta e a DOSE — e o caminho ate aqui tem uma licao:
+
+**Primeira medicao: numeros identicos a linha de base.** Parecia "sem efeito
+colateral". Era "sem efeito nenhum": eu testava `best.target`, e `_bestPass`
+devolve `{m, score, proj, dist, progressM, risk, intoBox, ...}` — o companheiro
+e `m` e `target` nao existe. A camada rejeitava 100% das ocasioes em silencio.
+Escala real, medida depois: score p10 0,46 / p50 1,63 / p90 3,05; risk p10
+-0,08 / p50 -0,03 / p90 0,66.
+
+Com a forma certa, duas doses em 48 partidas cada:
+
+| dose | resultado |
+|---|---|
+| habilidade 62, nota 1,05, "pressao **OU** tabelinha" | **9/13** — gols 3,31 (teto 3,2), vermelhos 0,354 (teto 0,3), goleadas 0,271 (teto 0,19) |
+| habilidade 76, nota 2,20, "pressao **E** curto" | **11/13** — vermelhos 0,313, 0 a 0 em 0,146; e `drawRate` ENTROU na faixa (0,125 → 0,312) |
+
+Linha de base: 12/13. A segunda dose troca um defeito por outros dois — nao e
+claramente pior *em especie*, mas e pior pela regua do projeto.
+
+**A camada fica no repo, fora do bundle** (`src/scripts/layers/80-os212-…`,
+sem entrada no manifesto), com as duas medicoes no cabecalho. A terceira dose e
+varredura, nao palpite: `tools/fisica/calibrar.py` existe exatamente para isso,
+e os eixos na ordem em que mordem sao `NOTA_MIN`, `HABILIDADE`, `JANELA_MIN`.
+
+O que eu nao vou fazer e ligar no seu jogo uma mudanca que derruba duas
+metricas de design para entregar uma sensacao que eu nao medi.
