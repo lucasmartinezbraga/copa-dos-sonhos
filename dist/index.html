@@ -11343,6 +11343,7 @@ let momHist = [], momT = 0, keyEvents = [];
 let vfx = [], passNarrCd = 0;
 let playerMotions = [];  // saltos, cabeceios e mergulhos puramente visuais
 let camX = 320, camY = 207;                       // câmera suave (§17)
+let _camT = 0;                                    // §OS-223 · relógio da câmera
 
 /* ==========================================================================
    FASE 13A · P0-3 · PONTE ÚNICA DE APRESENTAÇÃO PELA TIMELINE FÍSICA
@@ -12684,6 +12685,13 @@ function onEvent(e) {
   if (e.type === 'shot_taken' && e.by) { motionAt(e.by, 'kick', 0.42); }   /* §OS-218 · a pose de chute basta */
   /* §OS-218 · a infiltracao se le na corrida, nao numa seta */
   if (e.type === 'header_clear' && e.by) { motionAt(e.by, 'jump', 0.68); }
+  /* §OS-224 · O CABECEIO AO GOL NAO PULAVA. `header_clear` (o corte) tinha o
+     salto de sempre; `header_shot` -- que e o lance mais alto do jogo, a
+     cabecada na area -- tinha so a pose, sem tirar o corpo do chao. Com o arco
+     de verdade da OS-219 a bola agora CAI na area, e um cabeceio sem salto
+     debaixo dela fica gritante. Salta um pouco mais que o corte, porque
+     atacar a bola exige mais que afastar. */
+  if (e.type === 'header_shot' && e.by) { motionAt(e.by, 'jump', 0.74); }
   if (e.type === 'corner' && e.by) fxAt(e.by, 'corner', 1.15);
   /* §OS-84 · o marcador de 'fora' nascia no pé do CHUTADOR, a ~25 m do gol.
      Passa a nascer onde a bola cruzou a linha de fundo, e a bola passa a
@@ -14351,6 +14359,17 @@ function paintField() {
      gramado continua abrindo a panoramica. */
   const desktopFullField = false;
   const visualNow = performance.now();
+  /* §OS-223 · A CAMERA ANDAVA NO RELOGIO ERRADO, COMO A PASSADA ANDAVA.
+     `camX += (tx - camX) * 0.055` e um ganho POR QUADRO: a 30 fps a camera
+     persegue metade do que persegue a 60, e num quadro longo ela simplesmente
+     fica para tras. E a mesma familia de defeito que a OS-215 corrigiu na
+     passada -- o que muda e que aqui o resultado nao e perna tremendo, e a
+     bola escapando do enquadramento.
+     Agora o ganho e convertido para o tempo REAL do quadro: 0,055 por quadro
+     a 60 fps vira a mesma constante de tempo em qualquer framerate. */
+  const _dtCam = Math.max(1 / 240, Math.min(0.25, (visualNow - (_camT || visualNow - 16.7)) / 1000));
+  _camT = visualNow;
+  const _ganho = k => 1 - Math.pow(1 - k, _dtCam * 60);
   const rframe = (replay && celebration && visualNow >= (celebration.start || 0) && visualNow < celebration.replayUntil)
     ? replay.frames[Math.min(Math.floor(replay.idx), replay.frames.length - 1)] : null;
   ctx.save();
@@ -14358,15 +14377,36 @@ function paintField() {
     if (rframe) {
       let tx = cx(rframe.ball.x), ty = cy(rframe.ball.y);
       if (window.CDS_F25D) { const _pj = window.CDS_F25D.project(tx, ty); tx = _pj.x; ty = _pj.y; }
-      camX += (tx - camX) * 0.12; camY += (ty - camY) * 0.12;
+      const _g12 = _ganho(0.12);
+      camX += (tx - camX) * _g12; camY += (ty - camY) * _g12;
     } else if (sim) {
       /* §OS-84 · com a bola do motor congelada, a câmera parava e a bola saía
          do quadro. Enquanto o fantasma vive, ele é o alvo da câmera. */
       const sb = shotFx ? { x: shotFx.x / 105, y: shotFx.y / 68 } : sim.getState().ball;
-      let tx = cx(sb.x), ty = cy(sb.y);
+      /* §OS-223 · A CAMERA PASSA A ANTECIPAR, COMO CAMERA DE TRANSMISSAO.
+         Perseguir a posicao ATUAL da bola significa, por definicao, estar
+         sempre atras dela: quanto mais rapido o lance, mais a bola vive na
+         borda do quadro. Cameraman nenhum faz isso -- ele aponta para onde a
+         bola VAI. A projecao usa a velocidade que o motor ja publica, limitada
+         a 9 m para nao enquadrar campo vazio num chutao. */
+      let _ax = sb.x, _ay = sb.y;
+      try {
+        const _bb = sim.ball;
+        if (_bb && !shotFx) {
+          const _vx = Number(_bb.vx) || 0, _vy = Number(_bb.vy) || 0;
+          const _v = Math.hypot(_vx, _vy);
+          if (_v > 1) {
+            const _lead = Math.min(9, _v * 0.42) / Math.max(1e-6, _v);
+            _ax = clamp((_bb.x + _vx * _lead) / 105, 0, 1);
+            _ay = clamp((_bb.y + _vy * _lead) / 68, 0, 1);
+          }
+        }
+      } catch (_) { }
+      let tx = cx(_ax), ty = cy(_ay);
       if (window.CDS_F25D) { const _pj = window.CDS_F25D.project(tx, ty); tx = _pj.x; ty = _pj.y; }
-      camX += (tx - camX) * 0.055;
-      camY += (ty - camY) * 0.055;
+      const _g55 = _ganho(0.055);
+      camX += (tx - camX) * _g55;
+      camY += (ty - camY) * _g55;
     }
     /* PONTO 2 · MISTURA FECHADA↔PANORÂMICA:
        1. camOverviewT persegue o alvo (camHold ? 1 : 0) com ganho .16/frame —
@@ -21354,7 +21394,7 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
     /* §OS-220 · estado persistente da bola entre quadros: rotacao acumulada,
        ultima posicao e o quique. Declarado no TOPO porque tanto o giro quanto
        o achatamento o consultam, e o achatamento e desenhado ANTES. */
-    if (!ball._est) ball._est = { rot: 0, x: null, y: null, zAnt: null, quique: 0, forca: 1 };
+    if (!ball._est) ball._est = { rot: 0, x: null, y: null, zAnt: null, quique: 0, forca: 1, pxAnt: 0, pyAnt: 0 };
     const _e = ball._est;
     const g0 = project(o.gx, o.gy);
     const s = g0.s, z = o.z || 0, air = clamp(z / 3.2, 0, 1);
@@ -21423,13 +21463,36 @@ try{root.CDS_BUILD_VERSION=VERSION;if(typeof document!=='undefined')document.tit
     const rb = (6.2 + air * 2.6) * s;
     const bg = ctx.createRadialGradient(bx - rb * .36, by - rb * .36, 0, bx, by, rb);
     bg.addColorStop(0, '#ffffff'); bg.addColorStop(.75, '#e9e9e9'); bg.addColorStop(1, '#b9bcc4');
+    /* §OS-224 · BOLA RAPIDA SE ALONGA NA DIRECAO DO VOO.
+       A esfera perfeita a 40 m/s le como adesivo deslizando; o olho espera
+       borrao. O alongamento sai do deslocamento REAL entre quadros (o mesmo
+       vetor que ja alimenta a rotacao), entao ele aponta para onde a bola vai
+       sem precisar de nada novo do motor, e some sozinho quando ela desacelera.
+       Volume constante: o que estica num eixo encolhe no outro. */
+    let _stX = 1, _stY = 1, _stAng = 0;
+    if (_e.x !== null && _sq < 0.01) {
+      const _mdx = o.gx - _e.pxAnt, _mdy = o.gy - _e.pyAnt;
+      const _md = Math.hypot(_mdx, _mdy);
+      if (_md > 0.35 && _md < 24) {
+        const _f = Math.min(0.42, (_md - 0.35) * 0.10);
+        _stAng = Math.atan2(_mdy, _mdx);
+        _stX = 1 + _f; _stY = 1 - _f * 0.62;
+      }
+    }
+    _e.pxAnt = o.gx; _e.pyAnt = o.gy;
+    /* tres formas possiveis, uma so por quadro: alongada no voo rapido,
+       achatada no quique, redonda no resto. */
+    const _alongada = _stX !== 1;
+    if (_alongada) { ctx.save(); ctx.translate(bx, by); ctx.rotate(_stAng); ctx.scale(_stX, _stY); }
     ctx.beginPath();
-    if (_sq > 0.01) {
+    if (_alongada) ctx.arc(0, 0, rb, 0, TAU);
+    else if (_sq > 0.01) {
       /* achata na vertical e alarga na horizontal: volume constante */
       ctx.ellipse(bx, by + rb * _sq * .5, rb * (1 + _sq * .55), rb * (1 - _sq), 0, 0, TAU);
     } else ctx.arc(bx, by, rb, 0, TAU);
     ctx.fillStyle = bg; ctx.fill();
     ctx.strokeStyle = '#3d3f46'; ctx.lineWidth = .8; ctx.stroke();
+    if (_alongada) ctx.restore();
     /* §OS-220 · A BOLA NAO GIRAVA: ELA SE ORIENTAVA PELO LUGAR ONDE ESTAVA.
        Era `rot = (gx + gy) * 0.045` — funcao da POSICAO, nao do caminho. As
        consequencias sao todas visiveis depois que o arco passou a existir:

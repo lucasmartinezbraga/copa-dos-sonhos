@@ -1054,7 +1054,7 @@
     /* §OS-220 · estado persistente da bola entre quadros: rotacao acumulada,
        ultima posicao e o quique. Declarado no TOPO porque tanto o giro quanto
        o achatamento o consultam, e o achatamento e desenhado ANTES. */
-    if (!ball._est) ball._est = { rot: 0, x: null, y: null, zAnt: null, quique: 0, forca: 1 };
+    if (!ball._est) ball._est = { rot: 0, x: null, y: null, zAnt: null, quique: 0, forca: 1, pxAnt: 0, pyAnt: 0 };
     const _e = ball._est;
     const g0 = project(o.gx, o.gy);
     const s = g0.s, z = o.z || 0, air = clamp(z / 3.2, 0, 1);
@@ -1123,13 +1123,36 @@
     const rb = (6.2 + air * 2.6) * s;
     const bg = ctx.createRadialGradient(bx - rb * .36, by - rb * .36, 0, bx, by, rb);
     bg.addColorStop(0, '#ffffff'); bg.addColorStop(.75, '#e9e9e9'); bg.addColorStop(1, '#b9bcc4');
+    /* §OS-224 · BOLA RAPIDA SE ALONGA NA DIRECAO DO VOO.
+       A esfera perfeita a 40 m/s le como adesivo deslizando; o olho espera
+       borrao. O alongamento sai do deslocamento REAL entre quadros (o mesmo
+       vetor que ja alimenta a rotacao), entao ele aponta para onde a bola vai
+       sem precisar de nada novo do motor, e some sozinho quando ela desacelera.
+       Volume constante: o que estica num eixo encolhe no outro. */
+    let _stX = 1, _stY = 1, _stAng = 0;
+    if (_e.x !== null && _sq < 0.01) {
+      const _mdx = o.gx - _e.pxAnt, _mdy = o.gy - _e.pyAnt;
+      const _md = Math.hypot(_mdx, _mdy);
+      if (_md > 0.35 && _md < 24) {
+        const _f = Math.min(0.42, (_md - 0.35) * 0.10);
+        _stAng = Math.atan2(_mdy, _mdx);
+        _stX = 1 + _f; _stY = 1 - _f * 0.62;
+      }
+    }
+    _e.pxAnt = o.gx; _e.pyAnt = o.gy;
+    /* tres formas possiveis, uma so por quadro: alongada no voo rapido,
+       achatada no quique, redonda no resto. */
+    const _alongada = _stX !== 1;
+    if (_alongada) { ctx.save(); ctx.translate(bx, by); ctx.rotate(_stAng); ctx.scale(_stX, _stY); }
     ctx.beginPath();
-    if (_sq > 0.01) {
+    if (_alongada) ctx.arc(0, 0, rb, 0, TAU);
+    else if (_sq > 0.01) {
       /* achata na vertical e alarga na horizontal: volume constante */
       ctx.ellipse(bx, by + rb * _sq * .5, rb * (1 + _sq * .55), rb * (1 - _sq), 0, 0, TAU);
     } else ctx.arc(bx, by, rb, 0, TAU);
     ctx.fillStyle = bg; ctx.fill();
     ctx.strokeStyle = '#3d3f46'; ctx.lineWidth = .8; ctx.stroke();
+    if (_alongada) ctx.restore();
     /* §OS-220 · A BOLA NAO GIRAVA: ELA SE ORIENTAVA PELO LUGAR ONDE ESTAVA.
        Era `rot = (gx + gy) * 0.045` — funcao da POSICAO, nao do caminho. As
        consequencias sao todas visiveis depois que o arco passou a existir:
