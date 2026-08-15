@@ -14443,8 +14443,10 @@ function paintField() {
     ? rframe.p.map(pl => ({ x: pl.x, y: pl.y, color: pl.c, num: pl.num, slot: pl.gk ? 'GK' : '', hasBall: pl.ball, n: pl.n||'', timelineId:replay&&replay.timelineId, yellow: 0, red: false }))
     : null;
 
-  /* rastro da bola (só ao vivo) — mais visível, com brilho */
-  if (!rframe) { if (window.CDS_F25D) { window.CDS_F25D.trail(ctx, trailPts, cx, cy); } else { ctx.save(); ctx.shadowColor = 'rgba(255,215,50,.9)';
+  /* §OS-217 · RASTRO REMOVIDO a pedido do dono. `trailPts` continua sendo
+     alimentado (`trackTrail`) porque o replay e outras camadas o consultam;
+     o que sai e o DESENHO dele. */
+  if (false) { if (window.CDS_F25D) { window.CDS_F25D.trail(ctx, trailPts, cx, cy); } else { ctx.save(); ctx.shadowColor = 'rgba(255,215,50,.9)';
     trailPts.forEach((tp, i) => {
       const f = 1 - i / trailPts.length;
       ctx.shadowBlur = 9 * f;
@@ -14634,14 +14636,8 @@ function paintField() {
          Agora e um ANEL no CHAO, no mesmo plano e com a mesma proporcao da
          sombra que ja existe logo acima. Marca quem tem a bola sem tapar
          ninguem, e como esta no gramado ela nao compete com o corpo. */
-      if (p.hasBall) {
-        ctx.save();
-        ctx.beginPath();
-        ctx.ellipse(groundX, groundY + r * .98, r * 1.24, r * .50, 0, 0, Math.PI * 2);
-        ctx.strokeStyle = pc; ctx.lineWidth = Math.max(1.5, r * .16);
-        ctx.globalAlpha = .85; ctx.stroke();
-        ctx.restore();
-      }
+      /* §OS-217 · ANEL DO PORTADOR REMOVIDO a pedido do dono. A seta acima da
+         cabeca segue marcando quem tem a bola. */
 
       // aura de LENDA: anel dourado pulsante (r>=92); brilho forte se em chamas
       const isLegend = p.ref && p.ref.legend;
