@@ -166,6 +166,52 @@ LATERAL   L1..L5 todos 22/22   <- íntegro
 
 ---
 
+## 5b. Onde o jitter realmente mora (medido por situação de jogo)
+
+`tools/fisica/tela` — reversão de direção da posição FÍSICA, por quadro:
+
+| situação | reversão | passo médio |
+|---|---:|---:|
+| portador | 0,1% | 0,062 m |
+| arranque | 0,2% | 0,058 m |
+| presser | 0,4% | 0,072 m |
+| bloco (jogo rolando) | 0,6% | 0,046 m |
+| bola morta, sem alvo | 0,6% | 0,037 m |
+| **bola morta, COM `__spTarget`** | **2,5%** | **0,166 m** |
+
+A física é suave em toda parte **menos** numa população: quem tem alvo de bola
+parada durante a bola morta — passo 3,5× maior e reversão 4× mais frequente.
+É o cabo-de-guerra da OS-207, isolado e com número.
+
+**Consequência prática:** atacar a falta pelo desenho é paliativo. A raiz é
+arbitragem entre escritores (R15 caminha, OS-107 contém, OS-36 arma a barreira,
+o tático puxa), e acrescentar mais um escritor final **piora** — foi medido:
+estender o escritor único do pontapé à falta levou o tremor de 4,88% para 8,53%.
+
+---
+
+## 5c. A interpolação de passo fixo, e a armadilha da própria sonda
+
+O laço é de passo fixo e o número de passos por quadro desenhado **varia**
+(1, 2, 3). Sem interpolação, um atleta a velocidade constante avança quantidades
+diferentes por quadro — jitter de quantização em tudo que se move. Corrigido
+(OS-227): salto 53,5% → 32,7%, tremor 6,09% → 4,16%.
+
+**Mas atenção ao escolher onde capturar o estado anterior.** Três variantes:
+
+| captura | tremor | salto |
+|---|---:|---:|
+| antes da rajada (a que ficou) | 4,16% | 32,7% |
+| antes de cada passo | 7,75% | 55,0% |
+| antes do último passo | 6,35% | 44,8% |
+
+As duas últimas são a fórmula de livro e mediram **pior**. Ficou a empírica,
+com a ressalva: a sonda conta reversão do deslocamento **desenhado**, então ela
+pode estar premiando o desenho mais lento. **Quem mexer aqui precisa de uma
+sonda que separe suavidade de atraso — a atual não separa.**
+
+---
+
 ## 6. Fila aberta, por ordem de evidência
 
 1. **Time espalhado no pontapé após o gol** — relatado pelo dono e confirmado:
