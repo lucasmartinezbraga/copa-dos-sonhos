@@ -69,18 +69,6 @@ P._emit = function (type, data) {
 const oldStartTravel = P._startTravel;
 if (typeof oldStartTravel === 'function') {
   P._startTravel = function (o, target, kind, cb, receiver, style, meta) {
-    /* §OS-230 · A ETIQUETA NUNCA APLICAVA, e a sonda pegou pela regra numero
-       7 do briefing: dois placares identicos ate o ultimo digito.
-       A condicao exigia `!style`, e o cruzamento aereo JA sai com
-       `style = 'launch'` (o rasteiro sai com 'through'). Medido em partida
-       real: 6 viagens de cruzamento, estilos { launch: 3, through: 3 },
-       etiquetadas como 'cross' -> ZERO.
-       Ou seja: o arco que melhorou veio do ramo `launch` (altura 0,35 -> 1,25
-       e angulo 0,58 -> 0,68), e as entradas `cross` das duas tabelas da OS-200
-       continuavam sendo o codigo morto que eu tinha ido corrigir. Quarta
-       aparicao do mesmo padrao, desta vez na minha propria camada.
-       Agora o lancamento aereo de cruzamento vira 'cross' de fato; o rasteiro
-       ('through') fica de fora, que e a escolha da OS-12. */
     /* §OS-230 · A ETIQUETA FICA DESLIGADA, E O NUMERO EXPLICA POR QUE.
        Ela nunca aplicava (a condicao exigia `!style` e o cruzamento aereo ja
        sai com 'launch'), e a sonda so pegou isso pela regra 7 do briefing:

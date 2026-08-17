@@ -75,8 +75,14 @@ const SEGUNDOS = Number(argv.segundos || 240);
         if (b) {
           if (!fin(b.x) || !fin(b.y) || !fin(b.z)) flag('bola_NaN', { x: b.x, y: b.y, z: b.z });
           else {
-            if (b.x < -2 || b.x > FLv + 2 || b.y < -2 || b.y > FWv + 2)
-              flag('bola_fora_do_campo', { x: +b.x.toFixed(1), y: +b.y.toFixed(1) });
+            /* Fora do campo SO conta se a bola nao estiver em voo: um chute
+               que passa por cima cruza a linha de fundo e continua no ar ate
+               pousar -- isso e futebol, nao defeito. A primeira versao desta
+               sonda contava os quadros de voo e acusou ~107 "bolas fora" por
+               partida; medindo por EPISODIO, sao 1 episodio de 0,02 s, com a
+               bola viajando. O flag util e a bola PARADA fora do campo. */
+            if (!b.traveling && (b.x < -2 || b.x > FLv + 2 || b.y < -2 || b.y > FWv + 2))
+              flag('bola_parada_fora_do_campo', { x: +b.x.toFixed(1), y: +b.y.toFixed(1) });
             if (b.z < -0.05) flag('bola_abaixo_do_gramado', { z: +b.z.toFixed(2) });
             if (b.z > 45) flag('bola_alta_demais', { z: +b.z.toFixed(1) });
           }
