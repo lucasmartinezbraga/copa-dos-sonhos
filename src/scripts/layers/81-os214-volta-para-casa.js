@@ -58,10 +58,43 @@ if (!M || !M.prototype || M.prototype.__OS214__) return;
 const P = M.prototype; P.__OS214__ = true;
 
 const FLv = Number(root.FL) || 105, FWv = Number(root.FW) || 68;
+/* §OS-232 · A JANELA NUNCA PAGOU A VOLTA, E A REPROVACAO DE 4,0 s ERA RUIDO.
+   ===========================================================================
+   O escritor unico estava certo e resolveu o cabo-de-guerra -- mas o defeito
+   que o dono relatou continuou de pe, porque sobrou o outro gargalo. Medido
+   com tools/fisica/tela/volta-para-casa.js:
+
+       precisava     media 19,7 m   pior 59,7 m
+       ficou         media 13,3 m   pior 37,0 m
+       fora de casa  11 de 22 no instante do pontape
+       janela        2,85 s
+
+   A 6,44 m/s, 2,8 s pagam 18 m. Voltar da area adversaria sao 60. Nao ha
+   dissolucao de disputa que faca um corpo andar 60 m em 18 m de orcamento:
+   e o MESMO gargalo da OS-231 no escanteio, visto no pontape.
+
+   E o motivo de a janela nunca ter crescido: 4,0 s foi reprovada por
+   `blowoutRate 0,198` contra teto de 0,19 -- medido a 96 partidas. Só que o
+   PROPRIO CONTROLE, sem alteracao nenhuma, mede `blowoutRate` 0,156 a 96
+   partidas e **0,198 a 288**. A reprovacao era o ruido da amostra pequena
+   (briefing, armadilha 9). O numero que barrou a correcao era o numero da
+   linha de base.
+
+   Entao as duas pontas cedem, como no escanteio:
+     · quem volta CORRE (VOLTA), em vez de andar -- um time que acabou de
+       sofrer gol trota de volta, nao passeia;
+     · a janela e dimensionada pela volta mais longa, com teto.
+
+   O folego continua congelado enquanto ela dura, entao mais janela nao vira
+   descanso de graca -- que foi como a OS-211 mexeu no placar sem mexer no
+   futebol. E `dead` nao avanca `sim.minute`: a pausa maior nao tira futebol
+   nenhum da partida, so da tempo de o time chegar. */
 const CAMINHA = 0.92;   // a mesma fracao de maxSpd da R15, da OS-77 e da OS-83
-const JANELA  = 2.8;    /* s de fisica. Com escritor unico a janela rende o dobro,
-                           entao ela nao precisa ser longa: 4,0 custava
-                           blowoutRate 0,198 (teto 0,19). */
+const VOLTA   = 1.38;   /* fracao de maxSpd na volta para casa: 1,5x a caminhada.
+                           Teto de seguranca: a sanidade acusa acima de 1,6x. */
+const JANELA  = 2.8;    // s -- piso da janela, o que a OS-214 ja usava
+const TETO    = 7.0;    // s -- teto: 60 m a 9,66 m/s sao 6,2 s
+const BASE    = 0.5;    // s -- respiro antes de a bola rolar
 const CHEGOU  = 0.30;   // m
 
 function num(v, d) { return (typeof v === 'number' && isFinite(v)) ? v : (d || 0); }
@@ -70,6 +103,24 @@ function cl(v, a, b) { return v < a ? a : (v > b ? b : v); }
 /* O posto de cada um: o alvo que a R15 ja montou vale; sem ele, a casa da
    formacao, que e o que `_resetPositions` teria escrito. */
 function posto(p, voltarParaCasa) {
+  /* §OS-232b · NO PONTAPE, A CASA GANHA DE `__spTarget`.
+     Preferir `__spTarget` esta certo na bola parada, onde ele e o posto do
+     lance. No pontape depois do gol ele e LIXO DO LANCE ANTERIOR: a barreira
+     da falta, o poste do escanteio, o apoio do lateral. Quem carrega um alvo
+     velho era levado para ele em vez de para casa, e ficava plantado la o
+     resto da partida.
+
+     Medido, com a janela ja dimensionada: nos pontapes em que o alvo mais
+     longe era a CASA, a volta funcionou -- ficou 3,4 m de media, 2 de 22 fora
+     de posicao. Nos que tinham `__spTarget` velho, a janela pedida caiu para
+     2,8-3,6 s (porque media a distancia ao alvo ERRADO, que era perto) e 11
+     de 22 comecaram a partida espalhados. Mesmo pontape, dois resultados,
+     e a diferenca era de que alvo se estava falando. */
+  if (voltarParaCasa) {
+    const hx0 = Number.isFinite(p.dhx) ? p.dhx : p.hx;
+    const hy0 = Number.isFinite(p.dhy) ? p.dhy : p.hy;
+    if (Number.isFinite(hx0) && Number.isFinite(hy0)) return { x: hx0, y: hy0 };
+  }
   if (p.__spTarget) return { x: num(p.__spTarget.x), y: num(p.__spTarget.y) };
   /* §OS-225 · A QUEDA PARA A FORMACAO SO VALE NO PONTAPE.
      Ela existe porque `_resetPositions` manda todo mundo para casa depois do
@@ -93,9 +144,24 @@ if (typeof oldKickoff === 'function') {
     const r = oldKickoff.apply(this, arguments);
     try {
       if (!start && num(this.t) > 0.5) {
-        this.__os214Ate = num(this.t) + JANELA;
         this.__os214Batedor = this.ball && this.ball.owner;
         this.__os214Casa = true;      // pontape: a formacao inteira volta
+        /* a janela e do time, entao quem manda e a volta mais longa */
+        let pior = 0, corre = 7 * VOLTA;
+        const teams = this.teams || [];
+        for (let i = 0; i < teams.length; i++) {
+          const pl = teams[i].players || [];
+          for (let j = 0; j < pl.length; j++) {
+            const p = pl[j];
+            if (!p || p.red || p === this.__os214Batedor) continue;
+            const a = posto(p, true);
+            if (!a) continue;
+            const d = Math.hypot(a.x - num(p.x), a.y - num(p.y));
+            if (d > pior) { pior = d; corre = num(p.maxSpd, 7) * VOLTA; }
+          }
+        }
+        this.__os214Ate = num(this.t) +
+          Math.max(JANELA, Math.min(TETO, BASE + pior / (corre || 9.66)));
       }
     } catch (_) { }
     return r;
@@ -170,7 +236,7 @@ P.step = function (dt) {
         const dx = alvo.x - p0[0], dy = alvo.y - p0[1], L = Math.hypot(dx, dy);
         if (L <= CHEGOU) { p.vx = 0; p.vy = 0; return; }
         faltando++;
-        const max = num(p.maxSpd, 7) * CAMINHA * passo;
+        const max = num(p.maxSpd, 7) * VOLTA * passo;
         if (L <= max) {
           p.x = cl(alvo.x, 0, FLv); p.y = cl(alvo.y, 0, FWv); p.vx = 0; p.vy = 0;
         } else {
@@ -193,6 +259,6 @@ root.CDS_OS214 = Object.freeze({
   feature: 'KICKOFF_SINGLE_WRITER_WALK_HOME',
   janela: JANELA, rngAdded: false, xgChange: false
 });
-root.CDS_BUILD_ID = 'R19.12'; root.CDS_VERSION = '5.80.3-R19.12';
+root.CDS_BUILD_ID = "R19.12"; root.CDS_VERSION = "5.80.3-R19.12";
 try { document.title = 'Copa dos Sonhos — R19.12'; } catch (_) { }
 })(typeof window !== 'undefined' ? window : globalThis);
