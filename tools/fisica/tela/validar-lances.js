@@ -99,6 +99,15 @@ const SEGUNDOS = Number(argv.segundos || 240);
                  missed: 0, piorR4: 0 },
       lateral: { n: 0, execucoes: 0, L1: [0, 0], L2: [0, 0], L3: [0, 0], L4: [0, 0], L5: [0, 0],
                  piorL2: 0, piorL3: 0, piorL5: 0, pendenteL4: null },
+      /* §3a rodada · O ESCANTEIO PASSA A TER SECAO PROPRIA. Sem ela, o salto
+         do batedor de escanteio era contado contra a falta aberta pouco antes
+         -- media pela marca `__cdsTakerWait` sem perguntar de QUE lance ela
+         era. Era por isso que o F6 acusava "salto de 16,83 m na falta" quando
+         a falta estava perfeita e quem saltava era o escanteio. */
+      /* E2 mede contra o passo fisico (~0,4 m) e por isso reprova saltos de
+         0,42 m que ninguem enxerga. E4 mede o que o dono ve: 2 m de corpo
+         aparecendo noutro lugar. Os dois juntos separam rigor de relevancia. */
+      escanteio: { n: 0, E1: [0, 0], E2: [0, 0], E3: [0, 0], E4: [0, 0], piorE1: 0, piorE2: 0 },
       gestoVisto: Object.create(null),
       ultBatedor: null,
       saida: { n: 0, G1: [0, 0], G2: [0, 0], G3: [0, 0],
@@ -130,8 +139,41 @@ const SEGUNDOS = Number(argv.segundos || 240);
       return !!(m && m[est] && performance.now() - m[est] < 2500);
     };
 
-    /* ---------------------------------------------------------- FALTA ---- */
     let faltaAberta = null;
+    /* ---- DE QUE LANCE E ESTA ESPERA? -------------------------------------
+       `__cdsTakerWait` nasce em quatro rotas com tetos diferentes (falta 1,8 s
+       · lateral 3,2 · falta direta 4,0 · escanteio 5,0) e o objeto nao diz de
+       qual veio. Marca-se a rota ativa durante a chamada que cria a espera. */
+    /* A etiqueta e cravada DENTRO da chamada que cria a espera. Ler uma
+       variavel "rota atual" depois do passo devolveria sempre null: o `finally`
+       ja a restaurou muito antes de o passo terminar -- a mesma armadilha que
+       ja custou uma rodada de medicao nesta sessao. */
+    for (const [nome, tag] of [['_awardFoul', 'falta'], ['_freeKick', 'falta'],
+                               ['_ballOut', 'lateral'], ['_setCorner', 'escanteio']]) {
+      const f = P[nome];
+      if (typeof f !== 'function') continue;
+      P[nome] = function () {
+        const antes = this.__cdsTakerWait;
+        const r = f.apply(this, arguments);
+        try {
+          const w = this.__cdsTakerWait;
+          if (w && w !== antes && w.__rota == null) {
+            w.__rota = tag;
+            /* §3a rodada, 3o erro · A FALTA E AMARRADA A SUA PROPRIA ESPERA.
+               Casar "a falta aberta" com "o ultimo batedor" por estado ambiente
+               erra sempre que o juiz da vantagem: a falta velha sobrevive e e
+               medida contra o reinicio da falta SEGUINTE -- F2 acusou 18,97 m e
+               F3 15,72 m de defeito inexistente. Expirar por tempo (30 s) so
+               reduz a frequencia do erro. A espera criada DENTRO de _awardFoul
+               e, por construcao, a espera daquela falta: amarra-se aqui. */
+            if (tag === 'falta') w.__faltaRef = faltaAberta;
+          }
+        } catch (_) { }
+        return r;
+      };
+    }
+
+    /* ---------------------------------------------------------- FALTA ---- */
     const oldEmit = P._emit;
     P._emit = function (type, data) {
       const r = oldEmit.apply(this, arguments);
@@ -139,7 +181,14 @@ const SEGUNDOS = Number(argv.segundos || 240);
         if (type === 'foul' && data && data.on) {
           V.falta.n++;
           faltaAberta = { vitima: data.on, autor: data.by,
-                          x: data.on.x, y: data.on.y, t: this.t, checadoF5: false };
+                          x: data.on.x, y: data.on.y, t: this.t, checadoF5: false,
+                          /* §2a rodada · o TEMPO em que a falta nasceu. Se a
+                             cobranca sair depois da troca de lado, o campo
+                             inteiro esta espelhado e a distancia ao ponto vira
+                             34 m de mentira. Foi o que a primeira medicao de
+                             90 minutos acusou -- os runs curtos nunca cruzavam
+                             o intervalo e por isso nunca mostraram isso. */
+                          half: this.half };
         }
         if (type === 'goal') { V.golPendente = { t: this.t }; }
         if (type === 'tackle' && data && data.by) {
@@ -208,10 +257,25 @@ const SEGUNDOS = Number(argv.segundos || 240);
          `__cdsTakerWait` assim que ele chega e so DEPOIS `dead` expira: no
          quadro da cobranca a marca ja nao existe, e medir por ela devolve
          zero amostra. Guarda-se o ultimo conhecido enquanto a bola esta morta. */
+      /* §2a rodada · A IDENTIDADE DA ESPERA IMPORTA.
+         `ultBatedor` era guardado sem amarra: se a falta nao gerava reinicio
+         (vantagem), a marca sobrevivia e o PROXIMO reinicio -- de outro lance
+         qualquer -- era medido contra a falta velha. Dai "batedor saltou
+         15,5 m": nao saltou, sao dois lances diferentes somados.
+         Agora a marca guarda o OBJETO da espera; se o motor armar outra, a
+         anterior e descartada em vez de contaminar. */
       const w = this.__cdsTakerWait;
-      if (w && w.taker) V.ultBatedor = { p: w.taker, ax: w.x, ay: w.y };
+      if (w && w.taker) {
+        if (!V.ultBatedor || V.ultBatedor.w !== w) {
+          V.ultBatedor = { p: w.taker, ax: w.x, ay: w.y, half: this.half, w: w, t0: this.t,
+                           rota: w.__rota || '?', falta: w.__faltaRef || null };
+          if (w.__rota === 'escanteio') V.escanteio.n++;
+        }
+      }
       const _ub = V.ultBatedor;
-      const batAntes = (_ub && antesDead) ? { p: _ub.p, x: _ub.p.x, y: _ub.p.y, ax: _ub.ax, ay: _ub.ay } : null;
+      const batAntes = (_ub && antesDead)
+        ? { p: _ub.p, x: _ub.p.x, y: _ub.p.y, ax: _ub.ax, ay: _ub.ay, rota: _ub.rota,
+            falta: _ub.falta } : null;
 
       const r = oldStep.apply(this, arguments);
 
@@ -276,33 +340,65 @@ const SEGUNDOS = Number(argv.segundos || 240);
           const g = this.__os36Guard;
           if (g && g.wall && g.wall.length) faltaAberta.wall = g.wall;
         }
+        /* uma falta que nao virou reinicio em 30 s de jogo foi vantagem, e nao
+           pode ficar esperando para contaminar o proximo lance */
+        if (faltaAberta && this.t - faltaAberta.t > 30) faltaAberta = null;
         /* --- F5: o gesto de falta apareceu para quem sofreu? --- */
         if (faltaAberta && !faltaAberta.checadoF5 && this.t - faltaAberta.t > 0.25) {
           faltaAberta.checadoF5 = true;
           ok(V.falta.F5, viu(faltaAberta.vitima, 'fouled') || viu(faltaAberta.vitima, 'get_up'));
         }
         /* --- F2/F3/F6 no quadro da cobranca --- */
-        if (antesDead && !(this.dead > 0) && batAntes) {
+        /* descarta o que atravessou a troca de lado: nao e defeito do lance,
+           e o campo espelhado entre a marcacao e a cobranca */
+        const _mesmoTempo = !V.ultBatedor || V.ultBatedor.half === this.half;
+        /* a espera tem de ter nascido DEPOIS da falta que estamos medindo */
+        const _daFalta = !faltaAberta || !V.ultBatedor ||
+                         V.ultBatedor.t0 >= faltaAberta.t - 0.01;
+        if (antesDead && !(this.dead > 0) && batAntes && _mesmoTempo && _daFalta &&
+            (!faltaAberta || faltaAberta.half === this.half)) {
           const bat = batAntes.p;
           const salto = dist(bat.x, bat.y, batAntes.x, batAntes.y);
           const teto = (bat.maxSpd || 7) * 1.18 * Math.max(1 / 240, Math.min(0.15, dt)) + 0.12;
           const naBola = dist(bat.x, bat.y, this.ball.x, this.ball.y);
-          if (faltaAberta) {
-            if (faltaAberta.wall && faltaAberta.wall.length) {
-              const d = faltaAberta.wall.map(q => dist(q.x, q.y, this.ball.x, this.ball.y))
+          const _rota = batAntes.rota;
+          if (_rota === 'escanteio') {
+            /* E1 batedor NA bandeirinha · E2 nao salta · E3 bola na quina */
+            ok(V.escanteio.E1, naBola <= 1.5);
+            V.escanteio.piorE1 = Math.max(V.escanteio.piorE1, naBola);
+            ok(V.escanteio.E2, salto <= teto);
+            ok(V.escanteio.E4, salto <= 2.0);
+            V.escanteio.piorE2 = Math.max(V.escanteio.piorE2, salto);
+            const _qx = Math.min(this.ball.x, FLv - this.ball.x);
+            const _qy = Math.min(this.ball.y, FWv - this.ball.y);
+            ok(V.escanteio.E3, _qx <= 2.5 && _qy <= 2.5);
+            V.ultBatedor = null;
+            /* §3a rodada, 2o erro · UMA FALTA ABERTA TEM DE MORRER AQUI.
+               Se o lance que reiniciou foi um escanteio, a falta anterior nao
+               gerou reinicio (o juiz deu vantagem) e nao vai gerar mais. Antes
+               da separacao por rota isso passava despercebido porque o
+               escanteio era contado COMO a falta e a limpava. Com a rota
+               separada, a falta velha sobrevivia e era casada com o reinicio
+               da falta SEGUINTE — medindo a bola nova contra o ponto velho:
+               F2 acusou 14,45 m e F3 15,49 m de "defeito" que nao existe. */
+            faltaAberta = null;
+          } else if (batAntes.falta && _rota === 'falta') {
+            if (batAntes.falta.wall && batAntes.falta.wall.length) {
+              const d = batAntes.falta.wall.map(q => dist(q.x, q.y, this.ball.x, this.ball.y))
                 .sort((a, c) => a - c)[0];
               V.falta.barreiraDist.push(+d.toFixed(2));
               ok(V.falta.F4, d >= 8.6);   // 9,15 m com folga de execucao
             }
-            ok(V.falta.F2, dist(this.ball.x, this.ball.y, faltaAberta.x, faltaAberta.y) <= 2.0);
-            V.falta.piorF2 = Math.max(V.falta.piorF2, dist(this.ball.x, this.ball.y, faltaAberta.x, faltaAberta.y));
+            const _fa = batAntes.falta;
+            ok(V.falta.F2, dist(this.ball.x, this.ball.y, _fa.x, _fa.y) <= 2.0);
+            V.falta.piorF2 = Math.max(V.falta.piorF2, dist(this.ball.x, this.ball.y, _fa.x, _fa.y));
             ok(V.falta.F3, naBola <= 1.5); V.falta.piorF3 = Math.max(V.falta.piorF3, naBola);
             ok(V.falta.F6, salto <= teto); V.falta.piorF6 = Math.max(V.falta.piorF6, salto);
             faltaAberta = null; V.ultBatedor = null;
-          } else if (lateralAberto) {
+          } else if (lateralAberto && _rota === 'lateral') {
             ok(V.lateral.L3, naBola <= 1.5); V.lateral.piorL3 = Math.max(V.lateral.piorL3, naBola);
             ok(V.lateral.L5, salto <= teto); V.lateral.piorL5 = Math.max(V.lateral.piorL5, salto);
-            lateralAberto = null; V.ultBatedor = null;
+            lateralAberto = null; V.ultBatedor = null; faltaAberta = null;
           } else V.ultBatedor = null;
         }
         /* --- L4: a reposicao entrou em campo? --- */
@@ -375,6 +471,12 @@ const SEGUNDOS = Number(argv.segundos || 240);
   linha('L3 cobrador na bola na reposicao (<=1,5 m)', v.lateral.L3, 'pior ' + v.lateral.piorL3.toFixed(2) + ' m');
   linha('L4 a reposicao entra em campo', v.lateral.L4);
   linha('L5 cobrador nao salta para a bola', v.lateral.L5, 'pior ' + v.lateral.piorL5.toFixed(2) + ' m');
+
+  console.log('\nESCANTEIO  (' + v.escanteio.n + ' ocorrencias)');
+  linha('E1 batedor na bandeirinha (<=1,5 m)', v.escanteio.E1, 'pior ' + v.escanteio.piorE1.toFixed(2) + ' m');
+  linha('E2 batedor nao salta na cobranca', v.escanteio.E2, 'pior ' + v.escanteio.piorE2.toFixed(2) + ' m');
+  linha('E3 bola na quina do campo (<=2,5 m)', v.escanteio.E3);
+  linha('E4 nenhum salto VISIVEL (<=2,0 m)', v.escanteio.E4);
 
   console.log('');
   if (erros.length) { console.log('ERROS DE PAGINA:'); erros.slice(0, 5).forEach(e => console.log('  ', e)); }

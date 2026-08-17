@@ -62,6 +62,13 @@ const SEGUNDOS = Number(argv.segundos || 240);
     const P = window.MatchSim.prototype;
     const old = P.step;
     let tAnt = -1, deadDesde = -1, soltaDesde = -1;
+    /* §2a rodada · a primeira versao so vigiava ESTADO IMPOSSIVEL (NaN, fora
+       do campo, velocidade absurda) e deu limpo. Mas "limpo" so cobre o que a
+       sonda olha: o dono relatou defeitos que se REPETEM por partida, e nenhum
+       deles e estado invalido -- sao padroes de comportamento. Estes sao. */
+    let donoAnt = null, trocas = 0, janelaTroca = -1;
+    const paradoDesde = new Map();
+    const gkForaDesde = new Map();
 
     P.step = function (dt) {
       const r = old.apply(this, arguments);
@@ -101,9 +108,51 @@ const SEGUNDOS = Number(argv.segundos || 240);
         if (this.dead > 0) { if (deadDesde < 0) deadDesde = t; else if (t - deadDesde > 25) { flag('bola_morta_25s', { dead: +this.dead.toFixed(2) }); deadDesde = t; } }
         else deadDesde = -1;
 
+        /* PING-PONG DE POSSE: a bola trocando de dono muitas vezes num
+           intervalo curto nao e disputa, e indecisao do motor. */
+        if (b && b.owner && b.owner !== donoAnt) {
+          if (donoAnt && b.owner.team !== donoAnt.team) trocas++;
+          donoAnt = b.owner;
+        }
+        if (janelaTroca < 0) janelaTroca = t;
+        else if (t - janelaTroca >= 5) {
+          if (trocas >= 10) flag('posse_ping_pong_5s', { trocas });
+          trocas = 0; janelaTroca = t;
+        }
+
         for (const tm of this.teams || []) {
+          /* GOLEIRO LONGE DA PROPRIA AREA por muito tempo. Sair para cortar e
+             futebol; ficar 12 s no meio do campo nao e. */
+          const gk = (tm.players || []).find(q => q && q.isGK && !q.red);
+          if (gk) {
+            const dirGk = (tm.attackDir || 1) > 0;
+            const distGol = dirGk ? gk.x : FLv - gk.x;
+            if (distGol > 25) {
+              const d0 = gkForaDesde.get(gk);
+              if (d0 == null) gkForaDesde.set(gk, t);
+              else if (t - d0 > 12) { flag('goleiro_longe_12s', { n: gk.ref && gk.ref.n, dist: +distGol.toFixed(1) }); gkForaDesde.set(gk, t); }
+            } else gkForaDesde.delete(gk);
+          }
           for (const p of tm.players || []) {
             if (!p || p.red) continue;
+            /* ATLETA CONGELADO: parado no mesmo ponto com a bola rolando.
+               Um jogador de futebol se reposiciona sempre. */
+            if (!(this.dead > 0)) {
+              const reg = paradoDesde.get(p);
+              const mexeu = !reg || Math.hypot(p.x - reg.x, p.y - reg.y) > 1.5;
+              if (mexeu) paradoDesde.set(p, { x: p.x, y: p.y, t: t });
+              else if (t - reg.t > 20) { flag('atleta_congelado_20s', { n: p.ref && p.ref.n }); paradoDesde.set(p, { x: p.x, y: p.y, t: t }); }
+            }
+            /* EMPILHAMENTO: dois corpos no mesmo lugar, fora de disputa da
+               bola. `_resolveOverlaps` existe justamente para impedir. */
+            for (const q of tm.players || []) {
+              if (q === p || !q || q.red) continue;
+              if (Math.hypot(p.x - q.x, p.y - q.y) < 0.45 &&
+                  (!b || Math.hypot(p.x - b.x, p.y - b.y) > 3)) {
+                flag('atletas_empilhados', { a: p.ref && p.ref.n, b: q.ref && q.ref.n });
+                break;
+              }
+            }
             if (!fin(p.x) || !fin(p.y)) { flag('jogador_NaN', { n: p.ref && p.ref.n }); continue; }
             if (p.x < -1 || p.x > FLv + 1 || p.y < -1 || p.y > FWv + 1)
               flag('jogador_fora_do_campo', { n: p.ref && p.ref.n, x: +p.x.toFixed(1), y: +p.y.toFixed(1) });
