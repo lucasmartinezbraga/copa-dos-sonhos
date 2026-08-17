@@ -176,13 +176,24 @@ nº 9 do briefing.
 `onTargetRate` (0,31) e `cornersPerMatch` (12,8) seguem fora da faixa nos dois —
 são o custo declarado da OS-212 e um item aberto anterior, não desta ordem.
 
-### Tela
+### Tela — mesma sonda corrigida, 780 s em cada bundle
 
 | invariante | controle | OS-231 |
 |---|---|---|
-| FALTA `F6` pior salto | 0,39 m | 0,42 m |
-| ESCANTEIO `E2` pior salto | **15,63 m** | **0,32 m** |
+| FALTA `F6` pior salto | 12,91 m | **0,54 m** |
+| FALTA `F2` pior erro da bola | 22,04 m | 4,01 m |
+| FALTA `F3` pior distância à bola | 18,54 m | 4,83 m |
+| ESCANTEIO `E2` pior salto | **31,29 m** | **0,38 m** |
+| ESCANTEIO `E4` sem salto visível | 9/14 · 64,3% | **9/9 · 100%** |
 | LATERAL `L5` pior salto | 0,05 m | 0,06 m |
+
+Todo "pior salto" caiu para **abaixo de um passo humano**. A corrida também
+resolveu a falta direta (rota `_freeKick`, janela 4,0 s), que tinha o mesmo
+snap e o mesmo aperto de janela — 12,91 m viraram 0,54 m.
+
+O resíduo de `F2`/`F3` em ~4 m é da própria sonda: `_freeKick` também é chamado
+fora da cadeia de `_awardFoul` e ali a amarra cai numa falta antiga. É uma ordem
+de grandeza menor que os 22 m do controle e não é defeito do motor.
 
 ---
 

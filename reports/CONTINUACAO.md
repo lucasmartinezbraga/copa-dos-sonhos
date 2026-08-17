@@ -115,6 +115,32 @@ errado, e nenhuma dá erro — falham em silêncio.
    deu verde. Para código de desenho, a prova é uma sonda de render
    (`__quickMatch` + `page.on('pageerror')`).
 
+9. **O placar a 96 partidas é ruído na borda da faixa. Dose só se compara a
+   288+.** Descoberto na OS-231: duas doses do mesmo parâmetro (fator 1,55 e
+   1,45 da corrida do batedor) mediram 11/13 e 8/13 — e a velocidade de trote
+   de um jogador não pode mexer nisso. A verificação que fecha o assunto:
+
+   > **o controle, sem nenhuma alteração, mede 11/13 a 96 partidas e 10/13 a 288.**
+
+   `blowoutRate`, `redsPerMatch` e `goalsPerMatch` são de contagem baixa e
+   ficam encostadas no limite da faixa; a 96 partidas o placar oscila 1–3
+   pontos sozinho. Rode 288 (≈15 min com `--workers=8`) antes de aceitar ou
+   reprovar uma dose — e compare **métrica a métrica contra o controle no mesmo
+   N**, nunca só o "X/13".
+
+   Cuidado extra: **`--semente` não chega aos workers.** Passá-la não muda nada
+   e devolve exatamente os mesmos números, o que parece confirmação e é o
+   mesmo bundle rodando de novo. Para variar a amostra, use `--matches`.
+
+10. **Sonda que casa dois lances por estado ambiente mede o lance errado.**
+   A `validar-lances.js` casava "a falta aberta" com "o último batedor" sem
+   perguntar de que rota a espera era: o salto do escanteio era cobrado da
+   falta (`F6` acusando 16,83 m numa falta perfeita), e uma falta em que o juiz
+   deu vantagem sobrevivia para ser medida contra o reinício da falta seguinte
+   (`F2` 22,04 m, `F3` 18,54 m de defeito inexistente). A amarra tem de ser
+   por construção — a espera criada dentro de `_awardFoul` é a espera daquela
+   falta — e não por proximidade no tempo.
+
 ---
 
 ## 4. Padrão de defeito que se repete neste código
