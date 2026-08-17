@@ -138,30 +138,48 @@ efeito) antes de propor conserto. Foi assim que descobri que minha hipótese de
 
 ## 5. Estado atual
 
-Branch `claude/falta-escanteio-animation-bug-97xwj4`. Bateria **11/13** com a
-OS-212 ligada; **12/13** sem ela.
+Branch `claude/falta-escanteio-animation-bug-97xwj4`. Bateria **11/13** com 96
+partidas. Fora da faixa: `onTargetRate` (0,316; piso 0,34) e
+`redsPerMatch` — os dois são custo do toque de primeira (OS-212), ligado por
+decisão do dono depois de o preço ser apresentado.
 
-Entregue e medido:
+`verify`, `browser_smoke` e a varredura de sanidade passam; zero erro de página
+em 30.181 quadros.
 
-- **OS-207** — animação amostrada depois de todos os escritores de posição.
-  "Desenhado parado e deslizando" 316 → 0; "correndo e parado" 10.617 → 0.
-  Física idêntica campo a campo.
-- **OS-208** — o corpo não teletransporta no desenho. Salto na bola morta
-  58,2% → 34,5%.
-- **OS-209** — chave de desenho qualificada por time (homônimos dividiam
-  passada e balanço).
-- **OS-210** — gestos que entravam e não viravam quadro: `gk_kick`,
-  `gk_throw`, `first_touch_pass`, `placed_shot`.
-- **OS-212** — toque de primeira, **ligado por decisão do dono**. Custa
-  `onTargetRate` (0,344 → 0,324) e vermelhos (0,25 → 0,34); devolve `drawRate`
-  e `zeroZeroRate` à faixa.
+### Motor
 
-Validação por invariante (não por média — média esconde lance quebrado):
+| | o que era | o que é |
+|---|---|---|
+| **OS-207** | animação amostrada no meio da cadeia de `step` | amostra depois de todos os escritores |
+| **OS-210** | `gk_kick`/`gk_throw`/`first_touch_pass`/`placed_shot` entravam e nunca viravam quadro | desenhados |
+| **OS-212** | `firstTime` era código morto — a bola nunca andava de primeira | tabelinha sob pressão (dose D de uma varredura de 5) |
+| **OS-213** | 24% de quem era desarmado não reagia | 61/61 |
+| **OS-214** | pontapé após gol com o time a 19,27 m do posto | 11,60 m |
+| **OS-219** | bola alçada saía a 33° e pousava a 0,35 m | 39° e 1,25 m |
+| **OS-229** | tático e bola parada disputavam o mesmo corpo | um escritor a menos |
+
+### Desenho
+
+| | o que era | o que é |
+|---|---|---|
+| **OS-208** | corpo teletransportava junto com a ficha | teto de passo no desenho |
+| **OS-209** | 3 caches indexados por nome (homônimos colidiam) | chave por time |
+| **OS-215** | fase da passada avançada por deslocamento de quadro | avança no tempo, com teto de cadência |
+| **OS-216/218** | balanço decorativo e >100 partículas de rotina por partida | removidos |
+| **OS-217** | rastro da bola e anel do portador | removidos (pedido) |
+| **OS-220** | bola girava pela posição; ninguém olhava o jogo; quique sem peso | rolagem real, corpo virado para a bola, achatamento |
+| **OS-221/222** | pé passava longe da bola; rede estática | contato no alcance; rede estufa |
+| **OS-223/226** | câmera com ganho por quadro, sem antecipação | independente de framerate, com lead amortecido |
+| **OS-227** | desenhava o estado discreto da simulação | interpolação de passo fixo |
+
+Jitter medido na tela: tremor **6,09% → 4,16%**, salto **53,5% → 32,7%**.
+
+### Validação por invariante (não por média)
 
 ```
-FALTA     F1 22/22 · F2 22/22 · F4 3/3 (9,54 m) · F5 22/22 · F3 21/22 · F6 19/22
-ROUBADA   R1 52/52 · R2 14/14 · R4 10/10 · R3 36/46 (78,3%)
-LATERAL   L1..L5 todos 22/22   <- íntegro
+FALTA     F1 22/22 · F2 22/22 · F4 3/3 (9,54 m) · F5 22/22 · F3 21/22 · F6 19/20
+ROUBADA   R1 52/52 · R2 14/14 · R4 10/10 · R3 61/61
+LATERAL   L1..L5 todos 22/22
 ```
 
 ---
