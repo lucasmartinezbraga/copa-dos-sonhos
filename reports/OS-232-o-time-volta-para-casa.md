@@ -145,3 +145,39 @@ antes de dar tempo — porque tempo de bola morta muda futebol e velocidade não
 * `atleta_congelado_20s` aparece de forma intermitente na varredura de sanidade
   (9–13 ocorrências em algumas partidas, zero em outras, no controle também).
   Próximo alvo.
+
+---
+
+## 7. Anexo — tentativa OS-233 reprovada (escanteios), e o que ela provou
+
+`cornersPerMatch` 13,0 contra alvo 8,0 é o maior desvio de design que resta.
+Sonda nova (`tools/fisica/tela/fonte-do-escanteio.js`) atribuiu cada escanteio
+à sua fonte, e o motor tem oito constantes de calibração que transformam
+desvio/bloqueio/espalmada em escanteio — `shotBlockCorner` 0,66,
+`shotSaveCorner` 0,68, e mais seis, todas entre 0,55 e 0,76. O comentário delas
+diz "~10/jogo, validado por bateria de 100 partidas".
+
+Um chute bloqueado virar escanteio em 2 de cada 3 vezes não é futebol. Escalei
+as oito por 0,62 e medi a 288 partidas:
+
+| | controle | oito constantes × 0,62 |
+|---|---|---|
+| `cornersPerMatch` | 13,29 | **13,36** |
+| `redsPerMatch` | 0,306 | 0,319 |
+| `zeroZeroRate` | 0,083 | 0,115 |
+| `blowoutRate` | 0,184 | 0,201 |
+| placar | 10/13 | **9/13** |
+
+**Escanteio não se moveu.** Cortar 38% de oito probabilidades mudou o resto do
+jogo e não mudou o alvo — custo puro. **Revertida.**
+
+E o resultado nulo é a informação: os escanteios **não saem dessas constantes**.
+O evento `blocked` aparece antes da saída porque o bloqueio manda a bola para
+fora **fisicamente**, e quem dá o escanteio é o `_ballOut` (`40-…:2818`) ao
+detectar a bola cruzando a linha de fundo — a constante nem chega a ser
+consultada nesse caminho. A sonda também estava rotulando mal: o balde padrão
+não é "bola na linha de fundo", é "nenhuma das quatro fontes marcadas".
+
+O próximo passo é onde a bola **fica** depois do bloqueio: `_looseBall` a deixa
+no ponto do contato, que é dentro da área, e dali ela sai. Medição em
+`reports/os233-reprovada-288.json`.
