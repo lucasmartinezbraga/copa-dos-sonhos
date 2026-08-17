@@ -60,7 +60,32 @@ function blockVector(sim,q){
  else if(kind==='header'){vx=attackDir*.68+inc.x*.34;vy=side*.62+inc.y*.18;}
  else{vx=attackDir*.78+inc.x*.30;vy=side*.54+inc.y*.16;}
  const n=normalize(vx,vy),hit=rayBoundary(x,y,n.x,n.y),danger=Math.abs(x-finite(goal.x));
- const endLimit=kind==='cross'?19.5:kind==='header'?20.5:22.5,touchLimit=kind==='cross'?10.5:8.8;
+ /* §OS-234 · O RAMO "FICA VIVO" ERA INALCANCAVEL.
+    ------------------------------------------------------------------------
+    Os contadores desta camada mostram o defeito sozinhos, sem sonda nenhuma
+    (tools/fisica/tela/ecologia-do-escanteio.js, partida completa):
+
+        blockResolutions   14  ->  blockCorners  14  ->  blockLive  0
+        saveParriesResolved 3  ->  saveParryCorners 3 ->  saveParryLive 0
+
+    TODO bloqueio virava escanteio. Toda espalmada virava escanteio. Os ramos
+    `blockLive` e `saveParryLive` estao escritos, sao contados e NUNCA rodam --
+    o mesmo padrao "escrito, lido, e impossivel" que ja apareceu seis vezes
+    nesta base.
+
+    A causa e geometrica: o vetor do desvio aponta sempre para a frente
+    (`vx = attackDir*.78`), e o teste de saida aceitava um percurso de ate
+    22,5 m ate a linha. A area inteira mais seis metros. Como o bloqueio
+    acontece quase sempre dentro dessa faixa, o ramo de saida engolia 100%.
+
+    E por isso a tentativa OS-233 nao mexeu em nada: ela baixou as oito
+    constantes `chance()` da calibracao, que esta camada NAO consulta -- ela
+    resolve por geometria. Baixar probabilidade de um caminho que nao e o
+    usado e o retrato da armadilha 7.
+
+    Agora o percurso ate a linha tem de ser curto de verdade: um bloqueio a
+    22 m da linha de fundo nao manda a bola para escanteio, ele sobra. */
+ const endLimit=kind==='cross'?12.5:kind==='header'?13.5:14.0,touchLimit=kind==='cross'?10.5:8.8;
  return{x,y,goal,attackDir,kind,n,hit,danger,endLimit,touchLimit,def,attTeam};
 }
 function resolveBlock(sim,q,channel){
@@ -91,7 +116,10 @@ function resolveSaveParry(sim,target,channel){
  let side=Math.sign(saveY-finite(g.y,CY));if(!side)side=Math.sign(finite(b.vy))||(((gk&&gk.idx)||0)%2?1:-1);
  const score=hard*.47+off*.34+(1-sec)*.25+(ctx.oneOnOne?.05:0),endDist=Math.abs(finite(b.x)-finite(g.x));
  const s=st(sim);s.saveParriesResolved++;sim.__r18183SaveCtx=null;
- if(score>=.56&&endDist<=9.6){
+ /* §OS-234 · mesma correcao da espalmada: 3 de 3 viravam escanteio e
+    `saveParryLive` nunca rodava. Espalmar para fora e o desfecho de uma bola
+    dificil e angulada, nao de toda defesa. */
+ if(score>=.60&&endDist<=8.4){
    const edge=finite(g.x)<FL/2?'endline_left':'endline_right',p=outPoint(edge,finite(g.x),clamp(finite(b.y)+side*(2.4+score*2.3),1,FW-1));
    b.owner=null;if(gk)b.lastTouch=gk;markCause(sim,'save',gk,q.shooter&&q.shooter.team,edge,'gk_parry');s.saveParryCorners++;
    log(sim,'save_parry_corner',{channel,gk:gk&&gk.idx,score:+score.toFixed(3),hard:+hard.toFixed(3),security:+sec.toFixed(3),offset:+off.toFixed(3)});
@@ -132,7 +160,9 @@ function emergencyHeaderClear(sim,p){
  const tm=sim.teams&&sim.teams[p.team],goal=tm&&tm.goal;if(!goal)return false;
  const b=sim.ball||{},danger=dist(p,goal),pressure=(()=>{let z=99;for(const a of sim.teams[1-p.team].players||[])if(a&&!a.red)z=Math.min(z,dist(p,a));return z;})();
  const control=(facetOf(p,'def_position',65)+facetOf(p,'head_def',65)+facetOf(p,'compostura',65))/3,central=1-clamp(Math.abs(finite(b.y)-CY)/22,0,1),score=clamp((24.5-danger)/12,0,1)*.42+clamp((6.4-pressure)/6.4,0,1)*.28+central*.18+clamp((78-control)/28,0,1)*.12;
- if(danger>24.5||pressure>6.4||Math.abs(finite(b.y)-CY)>22||score<.31)return false;
+ /* §OS-234 · o alivio de emergencia mandava 4,6 bolas por partida para a
+    linha de fundo. Continua existindo, mas so quando e de fato emergencia. */
+ if(danger>22.0||pressure>5.8||Math.abs(finite(b.y)-CY)>21||score<.42)return false;
  let side=Math.sign(finite(b.y)-CY);if(!side)side=((p.idx||0)%2?1:-1);const edge=finite(goal.x)<FL/2?'endline_left':'endline_right',pt=outPoint(edge,finite(goal.x),clamp(finite(b.y)+side*(5.2+clamp((6.4-pressure),0,2.8)),1,FW-1));
  sim.__r18182RecentClear=null;b.owner=null;b.lastTouch=p;markCause(sim,'clearance',p,1-p.team,edge,'emergency_header_clear');st(sim).emergencyClearCorners++;
  log(sim,'emergency_header_clear_corner',{by:p.idx,danger:+danger.toFixed(2),pressure:+pressure.toFixed(2),edge});travelDeflect(sim,pt,10.5);return true;

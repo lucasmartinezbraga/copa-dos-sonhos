@@ -1,19 +1,20 @@
 #!/usr/bin/env node
 'use strict';
-/* DE ONDE VEM CADA ESCANTEIO
+/* DE ONDE VEM CADA ESCANTEIO — POR PILHA DE CHAMADA, NAO POR PROXIMIDADE
    -------------------------------------------------------------------------
-   `cornersPerMatch` mede 13,3 contra alvo de 8,0 (teto 11,5) -- o maior desvio
-   de design que sobrou, e presente em toda partida. Antes de mexer em
-   qualquer probabilidade, e preciso saber QUAL das cinco fontes domina.
+   `cornersPerMatch` mede 13,0 contra alvo 8,0 (teto 11,5): o maior desvio de
+   design que restou.
 
-   As cinco chamadas de `_setCorner` no motor, cada uma com um evento proprio
-   imediatamente antes -- e por isso da para atribuir sem ler pilha:
+   A PRIMEIRA VERSAO DESTA SONDA ERRAVA, e o erro custou uma rodada inteira.
+   Ela atribuia cada escanteio a "ultima acao emitida nos 4 s anteriores" e
+   concluiu `blocked 54,5%`. Em 4 segundos de futebol acontece de tudo: aquilo
+   media CORRELACAO, nao causa. Agindo sobre ela, escalei por 0,62 as oito
+   constantes de escanteio da calibracao e `cornersPerMatch` foi de 13,29 para
+   13,36 -- nao se moveu -- enquanto zeroZeroRate ia de 0,083 para 0,115.
 
-     :1044  bloqueio de cruzamento   `blocked` {kind:'cross'}     chance(.42)
-     :1274  corte afobado            `clear_behind`               chance(.16)
-     :2090  espalmada do goleiro     `save` {kind:'deflect_corner'}
-     :2818  bola na linha de fundo   (sem evento; via `_ballOut`)
-     :2946  soco do goleiro          `gk_punch` {corner:true}     chance(.30)
+   Agora a atribuicao e pela PILHA: `_setCorner` guarda o quadro de quem o
+   chamou. Cada chamada no motor tem linha propria, entao o resultado e a fonte
+   de verdade, sem janela de tempo nenhuma.
 
    Uso: node tools/fisica/tela/fonte-do-escanteio.js [bundle.html] [--segundos=N]
 */
@@ -42,51 +43,61 @@ const alvo = path.resolve(process.argv.slice(2).find(a => !a.startsWith('--')) |
   await pg.waitForTimeout(1200);
 
   await pg.evaluate(() => {
-    const S = window.__fe = { fontes: Object.create(null), total: 0,
-                              antes: Object.create(null), toques: Object.create(null) };
-    /* 95% dos escanteios vem da bola cruzando a linha de fundo. Entao o que
-       importa nao e a probabilidade, e QUAL JOGADA manda a bola para la:
-       guarda-se a ultima acao emitida antes da saida, e quem a fez. */
-    const hist = [];
+    const S = window.__fe = { pilhas: Object.create(null), total: 0,
+                              viaBallOut: 0, direto: 0, saidaPor: Object.create(null) };
     const P = window.MatchSim.prototype;
-    let ultimo = null;
-    const oldEmit = P._emit;
-    P._emit = function (type, data) {
-      try {
-        /* `match_phase` e afins sao tique periodico e atropelavam o historico:
-           66,7% das saidas apareciam atribuidas a ele, que nao e acao nenhuma.
-           So entram eventos que representam uma JOGADA. */
-        if (!/^(match_phase|tick|clock|minute|momentum|stat|possession)/.test(type)) {
-          hist.push({ tipo: type, kind: (data && (data.kind || data.passKind)) || '', t: this.t });
-        }
-        if (hist.length > 8) hist.shift();
-        if (type === 'blocked' && data && data.kind === 'cross') ultimo = { f: 'bloqueio_de_cruzamento', t: this.t };
-        else if (type === 'clear_behind') ultimo = { f: 'corte_afobado', t: this.t };
-        else if (type === 'save' && data && data.kind === 'deflect_corner') ultimo = { f: 'espalmada_do_goleiro', t: this.t };
-        else if (type === 'gk_punch' && data && data.corner) ultimo = { f: 'soco_do_goleiro', t: this.t };
-      } catch (_) { }
-      return oldEmit.apply(this, arguments);
-    };
+
+    /* `_ballOut` e o unico caminho fisico: a bola cruzou a linha. Marca-se a
+       janela dele para separar "escanteio porque a bola saiu" de "escanteio
+       porque uma rotina decidiu". */
+    let dentroBallOut = false, ultSaida = null;
+    const oldOut = P._ballOut;
+    if (typeof oldOut === 'function') {
+      P._ballOut = function () {
+        const b = this.ball;
+        ultSaida = b ? { x: +b.x.toFixed(1), y: +b.y.toFixed(1),
+                         v: +Math.hypot(b.vx || 0, b.vy || 0).toFixed(1),
+                         z: +(b.z || 0).toFixed(1),
+                         toque: b.lastTouch ? (b.lastTouch.isGK ? 'GK' : (b.lastTouch.pos || '?')) : '?',
+                         viajando: !!b.traveling,
+                         kind: (b.meta && (b.meta.outcome || b.meta.kind)) || b.passKind || '?' } : null;
+        dentroBallOut = true;
+        try { return oldOut.apply(this, arguments); } finally { dentroBallOut = false; }
+      };
+    }
+
     const oldCorner = P._setCorner;
     P._setCorner = function () {
       try {
         S.total++;
-        const perto = ultimo && Math.abs(Number(this.t) - Number(ultimo.t)) < 0.001;
-        const f = perto ? ultimo.f : 'bola_na_linha_de_fundo';
-        S.fontes[f] = (S.fontes[f] || 0) + 1;
-        if (f === 'bola_na_linha_de_fundo') {
-          const rec = hist.slice(-4).reverse()
-            .filter(h => Number(this.t) - h.t < 4.0)
-            .map(h => h.tipo + (h.kind ? ':' + h.kind : ''));
-          const chave = rec.length ? rec[0] : '(nada emitido)';
-          S.antes[chave] = (S.antes[chave] || 0) + 1;
-          const lt = this.ball && this.ball.lastTouch;
-          const k = lt ? (lt.isGK ? 'GK' : (lt.pos || lt.role || '?')) : 'sem toque';
-          S.toques[k] = (S.toques[k] || 0) + 1;
-        }
-        ultimo = null;
+        /* a pilha: [0] Error, [1] este wrapper, [2] quem chamou de verdade.
+           Pula quadros de wrapper de camada, que aparecem como a propria
+           _setCorner reenvolvida. */
+        const linhas = String(new Error().stack || '').split('\n').slice(2);
+        const quadro = (linhas.find(l => !/_setCorner|<anonymous>:0/.test(l)) || linhas[0] || '?')
+          .trim().replace(/^at\s+/, '').replace(/\s*\(.*?(\d+:\d+)\)\s*$/, ' @$1');
+        S.pilhas[quadro] = (S.pilhas[quadro] || 0) + 1;
+        if (dentroBallOut) {
+          S.viaBallOut++;
+          if (ultSaida) {
+            const k = ultSaida.toque + ' | ' + (ultSaida.viajando ? 'em voo' : 'rolando') +
+                      ' | ' + ultSaida.kind;
+            S.saidaPor[k] = (S.saidaPor[k] || 0) + 1;
+          }
+        } else S.direto++;
       } catch (_) { }
       return oldCorner.apply(this, arguments);
+    };
+    /* pendingRestart do _ballOut dispara DEPOIS: reconta como fisico */
+    const oldStep = P.step;
+    P.step = function () {
+      const pr = this.pendingRestart;
+      if (pr && !pr.__fe) {
+        const sim = this, orig = pr;
+        const env = function () { dentroBallOut = true; try { return orig.apply(this, arguments); } finally { dentroBallOut = false; } };
+        env.__fe = true; this.pendingRestart = env;
+      }
+      return oldStep.apply(this, arguments);
     };
   });
 
@@ -96,26 +107,23 @@ const alvo = path.resolve(process.argv.slice(2).find(a => !a.startsWith('--')) |
   const r = await pg.evaluate(() => ({ s: window.__fe, m: window.GAME._sim().minute }));
   await nav.close();
 
-  const porPartida = r.m > 0 ? 90 / r.m : 1;
-  console.log('\n=== FONTE DE CADA ESCANTEIO ===  minuto', r.m.toFixed(1), '\n');
-  console.log('  total', r.s.total, ' -> ', (r.s.total * porPartida).toFixed(1), 'por partida (alvo 8,0 · teto 11,5)\n');
-  const ks = Object.keys(r.s.fontes).sort((a, b) => r.s.fontes[b] - r.s.fontes[a]);
-  for (const k of ks) {
-    const n = r.s.fontes[k];
-    console.log('  ' + k.padEnd(26), String(n).padStart(4),
-                (100 * n / Math.max(1, r.s.total)).toFixed(1).padStart(6) + '%',
-                ' -> ' + (n * porPartida).toFixed(1).padStart(5) + ' por partida');
-  }
-  const secao = (titulo, obj) => {
-    const ks = Object.keys(obj).sort((a, b) => obj[b] - obj[a]);
+  const pp = r.m > 0 ? 90 / r.m : 1;
+  console.log('\n=== FONTE DE CADA ESCANTEIO (por pilha) ===  minuto', r.m.toFixed(1), '\n');
+  console.log('  total', r.s.total, '->', (r.s.total * pp).toFixed(1), 'por partida (alvo 8,0 · teto 11,5)');
+  console.log('  a bola SAIU de campo:', r.s.viaBallOut, ' | rotina decidiu sem sair:', r.s.direto, '\n');
+  const sec = (t, o) => {
+    const ks = Object.keys(o).sort((a, b) => o[b] - o[a]);
     if (!ks.length) return;
-    console.log('\n  ' + titulo);
+    const tot = ks.reduce((n, q) => n + o[q], 0);
+    console.log('  ' + t);
     for (const k of ks.slice(0, 12)) {
-      console.log('    ' + k.padEnd(30), String(obj[k]).padStart(4),
-                  (100 * obj[k] / ks.reduce((n, q) => n + obj[q], 0)).toFixed(1).padStart(6) + '%');
+      console.log('    ' + k.slice(0, 62).padEnd(64), String(o[k]).padStart(3),
+                  (100 * o[k] / tot).toFixed(1).padStart(6) + '%',
+                  '->' + (o[k] * pp).toFixed(1).padStart(5) + '/partida');
     }
+    console.log('');
   };
-  secao('ultima acao antes da bola sair pela linha de fundo:', r.s.antes);
-  secao('quem deu o ultimo toque:', r.s.toques);
+  sec('quem chamou _setCorner:', r.s.pilhas);
+  sec('quando a bola saiu — ultimo toque | estado | tipo:', r.s.saidaPor);
   process.exit(0);
 })();
