@@ -100,12 +100,22 @@ sempre aparece "fora".
 Paridade com o controle: troca `blowoutRate` (que entrou na faixa) por
 `redsPerMatch` (que saiu por 0,006).
 
-**Esse cruzamento é ruído, não efeito.** Faltas (+0,9%) e amarelos (−0,5%) estão
-parados; só o vermelho anda, e 26%. Uma alteração que deixasse o jogo mais
-violento moveria os três juntos. Vermelho é contagem baixa — 88 casos em 288
-partidas contra 70 — e a faixa de design (0,06–0,3) é estreita demais para a
-incerteza da amostra. Confirmação a 576 partidas anexada em
-`reports/os232-576.json`.
+**Esse cruzamento é ruído, e a confirmação a 576 partidas fecha o assunto:**
+
+| métrica | controle 576 | OS-232 576 |
+|---|---|---|
+| `redsPerMatch` | 0,269 | **0,267** |
+| `goalsPerMatch` | 3,04 | 3,08 |
+| `foulsPerMatch` | 22,35 | 22,16 |
+| `yellowsPerMatch` | 4,53 | 4,39 |
+| `zeroZeroRate` | 0,083 | 0,073 |
+| `blowoutRate` | 0,193 | 0,198 |
+| **placar** | **10/13** | **10/13** |
+
+Vermelho fica **idêntico** (0,269 contra 0,267). O 0,306 de 288 era amostra: o
+próprio controle vai de 0,243 (288) para 0,269 (576) sem que nada mude no
+código. Faltas e amarelos seguem parados nos dois. Medições em
+`reports/controle-576.json` e `reports/os232-576.json`.
 
 O fôlego continua **congelado** durante a janela, então a pausa maior não vira
 descanso de graça — foi assim que a OS-211 mexeu no placar sem mexer no futebol.
