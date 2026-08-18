@@ -18,9 +18,12 @@ on:
     branches:
       - main
     # o passo de publicacao commita docs/ de volta na main; revalidar por causa
-    # disso so gastaria runner
+    # disso so gastaria runner. o monitor da ABECMED commita state.json a cada
+    # mudanca de catalogo — mesmo caso, e o codigo do monitor continua validado
+    # (so o arquivo de estado esta de fora).
     paths-ignore:
       - 'docs/**'
+      - 'abecmed-monitor/state.json'
   workflow_dispatch:
 
 permissions:
@@ -40,6 +43,10 @@ jobs:
 
       - name: Módulos, manifesto, build e balística
         run: python3 tools/verify.py
+
+      - name: Parser e comparação do monitor da ABECMED
+        # nao acessa a rede: roda sobre o texto real capturado do site
+        run: python3 abecmed-monitor/test_monitor.py
 
       - name: Conferir que dist/ está em dia com src/
         run: |

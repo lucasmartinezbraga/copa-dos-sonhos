@@ -1,0 +1,182 @@
+#!/usr/bin/env python3
+"""Testes do monitor da ABECMED.
+
+Os textos abaixo são cópias literais do que a API do Typebot devolveu em
+18/08/2026 — inclusive o "Extrato Água e Gelo Indoor #3", que saiu do ar entre
+duas consultas feitas com minutos de diferença. É por isso que ele está aqui:
+o parser precisa continuar enxergando nome com "#", preço com ponto decimal e
+o agrupamento por categoria, senão o monitor avisa mudança que não houve (ou
+pior, deixa de avisar a que houve).
+
+Rodar:  python3 abecmed-monitor/test_monitor.py
+"""
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+import monitor as M  # noqa: E402
+
+FLORES = """🌿 Seu limite mensal para flores é de 15 gramas.
+
+Esse total pode ser distribuído entre produtos com THC.
+
+📋 Lista de flores e preços: 🌿
+
+THC:
+Velvet Runtz (indoor) - R$ 85.00
+Papaya (indoor) - R$ 85.00
+Chemdawg (indoor) - R$ 85.00
+Rainbow Mints (indoor) - R$ 90.00
+Double Stack (indoor) - R$ 90.00
+
+Você deseja adquirir inflorescências de THC, CBD ou CBG?
+"""
+
+CONCENTRADOS = """⚠️ Aviso importante
+
+Identificamos um erro de impressão no ano da data de empacotamento da etiqueta.
+
+🌿 Seu limite mensal para concentrados é de 5 gramas.
+
+Esse total pode ser distribuído entre produtos com THC.
+
+💧 Lista de concentrados e preços (valores para 1g):
+
+THC:
+Extrato Água e Gelo Indoor - R$ 120.00
+Extrato Água e Gelo Indoor #3 - R$ 130.00
+Extrato Live Rosin - R$ 350.00
+
+⚖️ Os valores são referente a 1g de concentrado.
+
+🌿 Selecione o tipo de concentrado que deseja adquirir. 💚
+"""
+
+falhas = []
+
+
+def checar(condicao, descricao):
+    if condicao:
+        print(f"  ok   {descricao}")
+    else:
+        print(f"  FALHA {descricao}")
+        falhas.append(descricao)
+
+
+print("preços em formatos diferentes")
+checar(M.para_reais("85.00") == 85.0, "'85.00' -> 85.0")
+checar(M.para_reais("90,00") == 90.0, "'90,00' -> 90.0")
+checar(M.para_reais("1.234,56") == 1234.56, "'1.234,56' -> 1234.56")
+checar(M.para_reais("1,234.56") == 1234.56, "'1,234.56' -> 1234.56")
+checar(M.reais(85.0) == "R$ 85,00", "formata 85.0 como R$ 85,00")
+checar(M.reais(1234.5) == "R$ 1.234,50", "formata milhar com ponto")
+
+print("\nlista de flores")
+flores = M.extrair_produtos(FLORES)
+checar(len(flores) == 5, f"5 produtos (achou {len(flores)})")
+checar(all(p["categoria"] == "THC" for p in flores), "todos marcados como THC")
+nomes = [p["nome"] for p in flores]
+checar("Velvet Runtz (indoor)" in nomes, "pegou Velvet Runtz")
+checar("Double Stack (indoor)" in nomes, "pegou Double Stack")
+precos = {p["nome"]: p["preco"] for p in flores}
+checar(precos.get("Rainbow Mints (indoor)") == 90.0, "Rainbow Mints custa 90.00")
+checar(
+    not any("limite mensal" in n.lower() or "deseja adquirir" in n.lower() for n in nomes),
+    "não confundiu linha de aviso com produto",
+)
+checar(M.extrair_limite(FLORES, M.SECOES["flores"]["limite_rx"]).endswith("15 gramas"), "leu o limite mensal")
+
+print("\nlista de concentrados")
+conc = M.extrair_produtos(CONCENTRADOS)
+checar(len(conc) == 3, f"3 produtos (achou {len(conc)})")
+checar(
+    any(p["nome"] == "Extrato Água e Gelo Indoor #3" and p["preco"] == 130.0 for p in conc),
+    "nome com '#' e preço 130.00 preservados",
+)
+checar(
+    any(p["nome"] == "Extrato Live Rosin" and p["preco"] == 350.0 for p in conc),
+    "pegou Live Rosin a 350.00",
+)
+
+print("\ncomparação entre duas consultas")
+antes = {
+    "flores": {"disponivel": True, "limite": None, "produtos": M.extrair_produtos(FLORES)},
+    "concentrados": {"disponivel": True, "limite": None, "produtos": conc},
+}
+# O que de fato aconteceu no site: o #3 sumiu. Somamos um produto novo, uma
+# mudança de preço e uma seção que esvaziou para cobrir os quatro casos.
+depois = {
+    "flores": {
+        "disponivel": True,
+        "limite": None,
+        "produtos": M.extrair_produtos(
+            FLORES.replace("Papaya (indoor) - R$ 85.00", "Papaya (indoor) - R$ 95.00")
+            + "\nTHC:\nGelato (indoor) - R$ 100.00\n"
+        ),
+    },
+    "concentrados": {"disponivel": True, "limite": None, "produtos": [p for p in conc if "#3" not in p["nome"]]},
+}
+mudancas = M.comparar(antes, depois)
+texto = "\n".join(mudancas)
+print("  ---")
+for m in mudancas:
+    print(f"  {m}")
+print("  ---")
+checar(any(m.startswith("🆕") and "Gelato" in m for m in mudancas), "detectou produto adicionado")
+checar(any(m.startswith("❌") and "#3" in m for m in mudancas), "detectou produto removido")
+checar(
+    any(m.startswith("💰") and "Papaya" in m and "85,00" in m and "95,00" in m for m in mudancas),
+    "detectou alteração de preço com valor antigo e novo",
+)
+checar(len(mudancas) == 3, f"exatamente 3 mudanças (achou {len(mudancas)})")
+
+print("\nseção que fica sem estoque")
+vazio = {
+    "flores": {"disponivel": False, "limite": None, "produtos": []},
+    "concentrados": antes["concentrados"],
+}
+m2 = M.comparar(antes, vazio)
+checar(any("ficou indisponível" in m for m in m2), "avisa quando a seção esvazia")
+checar(any(m.startswith("❌") for m in m2), "lista os produtos que saíram")
+m3 = M.comparar(vazio, antes)
+checar(any("voltou a ter disponibilidade" in m for m in m3), "avisa quando a seção volta")
+
+print("\nconsulta igual não gera alerta")
+checar(M.comparar(antes, antes) == [], "catálogo idêntico -> nenhuma mudança")
+
+print("\nmensagem enviada ao celular")
+import datetime  # noqa: E402
+
+agora = datetime.datetime(2026, 8, 18, 19, 30, tzinfo=M.TZ)
+msg = M.render_mensagem(mudancas, depois, agora)
+print("  ---")
+print("\n".join("  " + l for l in msg.splitlines()))
+print("  ---")
+for exigido in ["🆕", "❌", "💰", "🌿 Flores", "🍯 Concentrados", "🕐", "18/08/2026 19:30"]:
+    checar(exigido in msg, f"a notificação mostra {exigido!r}")
+checar("Gelato" in msg and "Extrato Live Rosin" in msg, "traz o catálogo completo junto")
+checar(len(msg) <= 4000, "cabe no limite do Telegram")
+
+vazia = M.render_mensagem([], vazio, agora)
+checar("sem disponibilidade no momento" in vazia, "diz quando não há nada disponível")
+
+print("\nsegurança da navegação")
+checar(
+    set(M.INTENCOES_PERMITIDAS) == {"paciente", "ciente", "flores", "concentrados", "voltar"},
+    "a allowlist não cresceu para além de navegar e voltar",
+)
+fake = {"input": {"type": "choice input", "items": [{"content": "Confirmar pedido"}, {"content": "Finalizar compra"}]}}
+checar(
+    all(M.achar_botao(fake, i) is None for i in M.INTENCOES_PERMITIDAS),
+    "nenhuma intenção casa com botão de confirmar/finalizar pedido",
+)
+
+print()
+if falhas:
+    print(f"{len(falhas)} teste(s) falharam:")
+    for f in falhas:
+        print(f"  - {f}")
+    sys.exit(1)
+print("todos os testes passaram")
