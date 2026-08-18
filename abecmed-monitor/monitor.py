@@ -498,12 +498,15 @@ def main():
     try:
         catalogo = consultar(cpf)
     except ErroDeFluxo as e:
-        # Falha transitória não vira alerta: só depois de várias seguidas.
-        falhas = int(estado.get("falhas_seguidas", 0)) + 1
+        # Falha transitória não vira alerta: só depois de várias seguidas. O
+        # contador satura em 6 (o limiar do aviso) e a falha é gravada sem
+        # horário, senão o state.json mudaria a cada tentativa e o workflow
+        # ficaria commitando de 5 em 5 minutos enquanto o site estivesse fora.
+        falhas = min(int(estado.get("falhas_seguidas", 0)) + 1, 6)
         print(f"FALHA ({falhas}x seguidas): {e}", file=sys.stderr)
         if not args.sem_estado:
             estado["falhas_seguidas"] = falhas
-            estado["ultima_falha"] = {"quando": agora.isoformat(timespec="seconds"), "erro": str(e)}
+            estado["ultima_falha"] = str(e)
             if falhas == 6 and not estado.get("falha_avisada"):
                 estado["falha_avisada"] = True
                 notificar(
@@ -523,8 +526,12 @@ def main():
     mudancas = comparar(anterior, catalogo) if anterior else []
     recuperou = bool(estado.get("falha_avisada"))
 
-    estado["verificado_em"] = agora.isoformat(timespec="seconds")
-    estado["verificado_dia"] = agora.strftime("%Y-%m-%d")  # garante commit diário
+    # De propósito não gravamos o horário exato da verificação: ele mudaria a
+    # cada 5 minutos e o workflow commitaria o state.json 288 vezes por dia. Só
+    # o dia entra — muda uma vez por dia, o que mantém o repositório ativo (o
+    # GitHub desliga agendamentos após 60 dias parados) sem poluir o histórico.
+    # A hora exata vai na notificação e fica no log da execução.
+    estado["verificado_dia"] = agora.strftime("%Y-%m-%d")
     estado["catalogo"] = catalogo
     estado["falhas_seguidas"] = 0
     estado.pop("falha_avisada", None)

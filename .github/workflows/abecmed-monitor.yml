@@ -36,6 +36,19 @@ jobs:
     steps:
       - name: Baixar repositório
         uses: actions/checkout@v4
+        with:
+          # O passo seguinte empurra o state.json de volta, e o servidor recusa
+          # push vindo de clone raso ("shallow update not allowed") — foi o que
+          # aconteceu com o workflow de publicação. Daí fetch-depth: 0.
+          #
+          # Só que um clone completo aqui traria o histórico de builds do jogo
+          # (bundles de MBs) a cada 5 minutos. `filter: blob:none` baixa o
+          # histórico sem os arquivos, e o sparse-checkout traz para o disco
+          # apenas a pasta do monitor.
+          fetch-depth: 0
+          filter: blob:none
+          sparse-checkout: abecmed-monitor
+          sparse-checkout-cone-mode: true
 
       - name: Consultar o catálogo e comparar com a consulta anterior
         id: consulta
