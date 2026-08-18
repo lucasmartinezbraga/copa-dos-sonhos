@@ -111,13 +111,14 @@ de partidas diferentes.
 ## Um item aberto que essa medição revelou de graça
 
 O controle a 288 partidas dá `redsPerMatch` **0,368** contra teto de 0,30. Não
-é da OS-246, nem da 247, nem da 248 — é o valor da própria linha principal
-hoje. Rodadas anteriores dispensaram 0,318 como ruído; 0,368 em 288 partidas
-é ~106 expulsões contra as ~70 do controle antigo (`controle-288.json`, anterior
-à OS-234), e isso não se explica por amostra.
+é da OS-246, nem da 247, nem da 248 — é o valor da própria linha principal hoje.
 
-Fica anotado como próxima medição: **o que subiu as expulsões entre a OS-234 e
-hoje.** A comparação certa é a bateria commit a commit nesse intervalo.
+> **CORRIGIDO na OS-249.** Eu escrevi aqui que "isso não se explica por
+> amostra". Explica. As 288 partidas são subconjunto estrito das 576, e a
+> segunda metade do **mesmo build** mede 0,268 contra os 0,368 da primeira —
+> dispersão interna de 0,100, o dobro da diferença entre os builds (0,049, que
+> a 576 partidas é 1,5 σ). O 0,368 foi a primeira metade sendo alta por acaso.
+> Ver `reports/OS-249-o-vermelho-nao-e-taxa.md`.
 
 ## A lição de método
 

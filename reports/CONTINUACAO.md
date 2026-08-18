@@ -169,6 +169,19 @@ errado, e nenhuma dá erro — falham em silêncio.
    partidas) é 11/13, com `onTargetRate` 0,324 e `redsPerMatch` 0,368 fora.
    **Antes de comparar, confira de quando é o controle.**
 
+14. **`redsPerMatch` não é decidível em 288 nem em 576 partidas.** Ele é 94-96%
+   *segundo amarelo* — uma estatística de CONCENTRAÇÃO ("o mesmo jogador foi
+   advertido duas vezes?"), de segunda ordem na taxa de cartão, com desvio de
+   Poisson. Medido: as duas metades de 288 do **mesmo build** dão 0,368 e
+   0,268 — dispersão interna de 0,100, o dobro da diferença entre builds
+   (0,049). Resolver essa diferença a 3 σ pede **~2270 partidas por braço**.
+   Vermelho direto é 0,014/jogo e não se move nunca.
+   Corolário para toda a bateria: **a semente é `i = 0..n-1`, então uma
+   corrida de 288 é subconjunto estrito de uma de 576** — dá para tirar a
+   segunda metade por subtração (`2·x576 − x288`) e checar se o próprio build
+   concorda consigo mesmo antes de acreditar em qualquer diferença.
+   Laudo em `reports/OS-249-o-vermelho-nao-e-taxa.md`.
+
 ---
 
 ## 4. Padrão de defeito que se repete neste código
