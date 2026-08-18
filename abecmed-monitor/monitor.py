@@ -1126,12 +1126,20 @@ def escutar(estado, catalogo, cpf, segundos):
     O estado é gravado a cada resposta: se o runner for interrompido no meio, o
     offset já está no disco e a mensagem não é respondida duas vezes.
     """
+    # Sem canal configurado o long polling nem sai: o laço giraria em vazio
+    # queimando CPU do runner até a janela acabar.
+    if not (os.environ.get("TELEGRAM_BOT_TOKEN") or "").strip():
+        return 0
+    if not (estado.get("telegram_chat_id") or os.environ.get("TELEGRAM_CHAT_ID", "").strip()):
+        return 0
+
     fim = time.time() + segundos
     total = 0
     while True:
         restante = fim - time.time()
         if restante <= 1:
             break
+        inicio = time.time()
         n = atender_comandos(
             estado,
             catalogo,
@@ -1143,6 +1151,10 @@ def escutar(estado, catalogo, cpf, segundos):
         if n:
             total += n
             gravar_estado(estado)
+        # Quando o Telegram está fora do ar a chamada volta na hora, com erro.
+        # Sem esta pausa o laço viraria uma tempestade de tentativas.
+        if time.time() - inicio < 1:
+            time.sleep(2)
     return total
 
 
