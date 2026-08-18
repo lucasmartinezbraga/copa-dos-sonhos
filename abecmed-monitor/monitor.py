@@ -476,7 +476,9 @@ def responder_comando(texto, catalogo, estado, agora, ao_vivo):
             "👋 <b>Pronto, estou de olho!</b>\n\n"
             "A partir de agora eu te aviso sozinho quando o catálogo da ABECMED "
             "mudar — flores, concentrados, preços e disponibilidade.\n\n"
-            "Use os botões aqui embaixo quando quiser consultar na hora."
+            "Os botões aqui embaixo pedem o catálogo fora de hora. Eles não são "
+            "instantâneos: como não há servidor ligado 24h só para me ouvir, "
+            "respondo na verificação seguinte — <b>até ~5 minutos</b>."
         )
 
     if t.startswith(("ajuda", "help")):
@@ -610,15 +612,21 @@ def main():
     ap.add_argument("--sem-estado", action="store_true", help="só consulta e imprime, não grava nada")
     args = ap.parse_args()
 
+    agora = datetime.now(TZ)
+    estado = ler_estado()
+    anterior = estado.get("catalogo") or {}
+
     cpf = re.sub(r"\D", "", os.environ.get("ABECMED_CPF", ""))
     if len(cpf) != 11:
         print("ERRO: ABECMED_CPF ausente ou inválido (esperado 11 dígitos).", file=sys.stderr)
         print("      Configure o Secret ABECMED_CPF no repositório.", file=sys.stderr)
+        # Sem CPF não dá para consultar, mas os botões continuam respondendo com
+        # o último catálogo guardado. Ficar mudo aqui foi o que fez o bot
+        # parecer quebrado quando os Secrets ainda não existiam.
+        if not args.sem_estado:
+            atender_comandos(estado, anterior, agora, ao_vivo=False)
+            gravar_estado(estado)
         return 2
-
-    agora = datetime.now(TZ)
-    estado = ler_estado()
-    anterior = estado.get("catalogo") or {}
 
     try:
         catalogo = consultar(cpf)
