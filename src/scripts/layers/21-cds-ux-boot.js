@@ -782,6 +782,36 @@
   }
 
   function body(ctx, o) {
+    /* §OS-242 · CADA ATLETA TEM O PORTE DELE
+       ---------------------------------------------------------------------
+       Os 22 em campo eram desenhados com EXATAMENTE o mesmo corpo: `r = 13*s`
+       para todo mundo. Um time de futebol nao e assim, e o dado para corrigir
+       ja existe e ja e calculado -- `ref.profileV3.heightCmSim`, estimado dos
+       atributos em `25-data-integrity-v3.js`, com `bodyType` junto.
+
+       Nao e enfeite: e o que faz o campo ler como onze pessoas em vez de onze
+       copias. O zagueiro de 1,93 m tem de aparecer maior que o ponta de 1,70,
+       ainda mais agora que o cabeceio tem pulo -- disputa aerea entre corpos
+       iguais nao diz quem ganha.
+
+       A faixa e estreita de proposito (0,90 a 1,10 sobre a altura media de
+       180 cm): o boneco tem 26 px, entao 10% ja e um pixel e meio de diferenca
+       visivel, e mais que isso desmontaria a escala do gramado.
+
+       O PONTO DE APOIO NAO PODE MUDAR. O atleta e desenhado centrado no ponto
+       projetado e os pes caem em `y + r*0,98`; crescer `r` sem compensar
+       enterraria o jogador alto no gramado. Por isso a origem sobe pela mesma
+       diferenca. */
+    if (o.alturaCm != null) {
+      const _cm = Number(o.alturaCm);
+      if (isFinite(_cm) && _cm > 120) {
+        const _e = clamp(_cm / 180, 0.90, 1.10);
+        if (Math.abs(_e - 1) > 0.005) {
+          const _rn = o.r * _e;
+          o = Object.assign({}, o, { r: _rn, y: o.y - (_rn - o.r) * 0.98 });
+        }
+      }
+    }
     const { x, y, r } = o;
     const jersey = o.isGK ? o.gkC : o.pc;
     const dark = shade(jersey, -0.36), lite = shade(jersey, 0.26);

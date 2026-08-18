@@ -3697,7 +3697,10 @@ function paintField() {
         if(_mm){ _sc.m[0]=_mm.a;_sc.m[1]=_mm.b;_sc.m[2]=_mm.c;_sc.m[3]=_mm.d;_sc.m[4]=_mm.e;_sc.m[5]=_mm.f; }
         _sc.p[_chave] = { x:groundX, y:groundY, r:r, s:_ps };
       }catch(_){}
-      if (window.CDS_F25D) { window.CDS_F25D.body(ctx, { x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall, key: _chave, act: p._act||'', pose: (motion&&motion.type)||'', wave: actionWave, ballX: _bolaTelaX }); } else {
+      if (window.CDS_F25D) { /* §OS-242 · a altura estimada do atleta ja existe no perfil e nunca chegava
+         ao desenho; agora chega, e o campo passa a ter onze portes. */
+      const _altCm = p.ref && p.ref.profileV3 && p.ref.profileV3.heightCmSim;
+      window.CDS_F25D.body(ctx, { x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall, key: _chave, act: p._act||'', pose: (motion&&motion.type)||'', wave: actionWave, ballX: _bolaTelaX, alturaCm: _altCm }); } else {
       // corpo: no mergulho do goleiro vira uma elipse lateral, deixando o pulo
       // legível sem alterar a posição física usada pelo motor.
       ctx.beginPath();
