@@ -35,7 +35,7 @@ desconhecido. Um clique errado aqui viraria um pedido real.
 | --- | --- |
 | `monitor.py` | consulta, compara e notifica |
 | `test_monitor.py` | testes do parser e da comparação, sobre texto real do site |
-| `state.json` | catálogo da última consulta — é com ele que a próxima compara |
+| `state.json` | catálogo da última consulta, fichas dos produtos e histórico de preços |
 | `../.github/workflows/abecmed-monitor.yml` | o agendamento |
 
 O `state.json` é commitado pelo próprio workflow quando o catálogo muda, então
@@ -66,10 +66,31 @@ THC
 
 Toda notificação leva o catálogo completo junto, não só o que mudou.
 
+## Fichas: THC, genética, terpenos e foto
+
+Um nível abaixo da listagem, cada produto tem ficha com foto, teor de THC e
+(nas flores) genética e terpenos. O monitor lê essa ficha **uma vez por
+produto** e guarda: em regime normal a verificação de 5 em 5 minutos continua
+custando as mesmas requisições de antes, porque ficha só é buscada quando
+aparece produto que ainda não tem.
+
+Ler uma ficha custa três idas ao servidor, então há teto de 6 por rodada — o
+resto entra nas rodadas seguintes.
+
+A URL da foto que a ABECMED entrega é assinada e expira em ~40 minutos, então
+ela não é guardada. O que fica no estado é o `file_id` que o Telegram devolve
+no primeiro envio, e esse não expira: da segunda vez em diante a foto sai sem
+tocar no servidor deles.
+
+O caminho da ficha é o único lugar do fluxo onde existe um botão **Continuar**,
+que leva a montar pedido. A saída é sempre pelo **Voltar**, e se o Voltar não
+estiver lá a consulta aborta em vez de improvisar.
+
 ## Botões no Telegram
 
-A conversa tem um teclado fixo com **🌿 Ver catálogo agora** e **📊 Status**, e o
-menu de comandos traz `/catalogo`, `/status` e `/ajuda`.
+A conversa tem um teclado fixo com **🌿 Ver catálogo agora**, **📸 Fotos e THC**
+e **📊 Status**, e o menu de comandos traz `/catalogo`, `/fotos`, `/status` e
+`/ajuda`.
 
 Não existe servidor ouvindo o Telegram — isso custaria dinheiro e o combinado é
 não gastar nada. Quem escuta é a própria execução agendada: cada rodada lê o

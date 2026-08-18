@@ -11,6 +11,7 @@ pior, deixa de avisar a que houve).
 Rodar:  python3 abecmed-monitor/test_monitor.py
 """
 
+import json
 import sys
 from pathlib import Path
 
@@ -172,6 +173,48 @@ checar(
     all(M.achar_botao(fake, i) is None for i in M.INTENCOES_PERMITIDAS),
     "nenhuma intenção casa com botão de confirmar/finalizar pedido",
 )
+
+print("\nficha do produto (THC, genética, terpenos)")
+# Cópias literais das fichas do site. A flor traz o THC embutido na linha de
+# genética; o concentrado traz sozinho. O mesmo parser tem de servir aos dois.
+FICHA_FLOR = """Papaya (indoor)
+
+Genética: Citral #13 × Ice #2 Híbrida com predominância índica (20% sativa / 80% indica) - THC: até 15%
+Terpenos predominantes: Mirceno - Limoneno
+"""
+FICHA_CONC = """Extrato Live Rosin
+THC: 74%
+"""
+ff = M.extrair_ficha(FICHA_FLOR, "https://exemplo/foto.jpeg")
+checar(ff["thc"] == "até 15%", f"THC da flor sai da linha de genética (achou {ff['thc']!r})")
+checar(len(ff["detalhes"]) == 2, "guarda genética e terpenos")
+checar(any("Mirceno" in d for d in ff["detalhes"]), "terpenos preservados")
+checar(ff["foto_url"] == "https://exemplo/foto.jpeg", "guarda a URL da foto")
+fc = M.extrair_ficha(FICHA_CONC, None)
+checar(fc["thc"] == "74%", f"THC do concentrado (achou {fc['thc']!r})")
+checar(fc["detalhes"] == [], "concentrado não inventa genética")
+checar(M.extrair_ficha("sem nada aqui", None)["thc"] is None, "ficha sem THC não quebra")
+
+cat_thc = {
+    "flores": {"disponivel": True, "limite": None, "produtos": M.extrair_produtos(FLORES)},
+    "concentrados": {"disponivel": True, "limite": None, "produtos": conc},
+}
+saida = M.render_catalogo(cat_thc, {"papaya (indoor)": {"thc": "até 15%"}})
+checar("THC até 15%" in saida, "o catálogo mostra o THC de quem tem ficha")
+checar("Chemdawg (indoor) — R$ 85,00" in saida, "quem não tem ficha aparece igual, sem THC")
+
+print("\nhistórico de preços (matéria-prima do gráfico)")
+est = {}
+M.registrar_historico(est, cat_thc, agora)
+n1 = len(est["historico"])
+checar(n1 == 8, f"primeira consulta registra os 8 produtos (achou {n1})")
+M.registrar_historico(est, cat_thc, agora)
+checar(len(est["historico"]) == n1, "preço repetido não vira registro novo")
+caro = json.loads(json.dumps(cat_thc))
+caro["flores"]["produtos"][0]["preco"] = 99.0
+M.registrar_historico(est, caro, agora)
+checar(len(est["historico"]) == n1 + 1, "mudança de preço vira um registro")
+checar(est["historico"][-1]["preco"] == 99.0, "o registro guarda o preço novo")
 
 print("\nbotões e comandos do bot")
 estado_ex = {"falhas_seguidas": 0, "ultima_mudanca_em": "2026-08-18T19:30:00-03:00"}

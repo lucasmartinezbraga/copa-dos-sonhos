@@ -135,6 +135,17 @@ def texto_das_mensagens(data):
     return "\n".join(partes)
 
 
+def foto_das_mensagens(data):
+    """URL da imagem da ficha. Flores vêm como 'image', concentrados como
+    'embed' — o mesmo dado em dois tipos de bloco."""
+    for m in data.get("messages", []) or []:
+        if m.get("type") in ("image", "embed", "video"):
+            url = (m.get("content") or {}).get("url")
+            if url:
+                return url
+    return None
+
+
 def botoes(data):
     inp = data.get("input") or {}
     return [str(i.get("content", "")) for i in (inp.get("items") or [])]
@@ -229,6 +240,29 @@ def extrair_produtos(texto):
     return produtos
 
 
+RX_THC = re.compile(r"THC\s*:\s*([^\n]+)", re.I)
+RX_CATEGORIA_BOTAO = re.compile(r"^\s*(THC|CBD|CBG)\s*$", re.I)
+
+
+def extrair_ficha(texto, foto):
+    """Lê a ficha do produto.
+
+    Flores trazem 'Genética: ... - THC: até 15%' e uma linha de terpenos;
+    concentrados trazem só 'THC: 74%'. O mesmo regex serve para os dois porque
+    o THC aparece rotulado nos dois formatos.
+    """
+    thc = None
+    m = RX_THC.search(texto)
+    if m:
+        thc = re.sub(r"\s+", " ", m.group(1)).strip(" -–—.")
+    detalhes = [
+        re.sub(r"\s+", " ", l).strip()
+        for l in texto.splitlines()
+        if re.match(r"\s*(gen[ée]tica|terpenos)", l, re.I)
+    ]
+    return {"thc": thc, "detalhes": detalhes, "foto_url": foto}
+
+
 def extrair_limite(texto, rx):
     m = re.search(rx, texto, re.I)
     if not m:
@@ -313,7 +347,112 @@ def consultar(cpf):
     return {"flores": flores, "concentrados": concentrados}
 
 
+def ler_ficha(sessao, data, categoria, nome):
+    """Da lista ([CATEGORIA, VOLTAR]) abre a ficha do produto e volta para a lista.
+
+    A ficha é o único ponto de todo o fluxo onde aparece um botão "Continuar" —
+    o caminho que leva a montar pedido. A saída daqui é sempre pelo "Voltar", e
+    se o "Voltar" não estiver lá a consulta aborta em vez de improvisar.
+    """
+    if not RX_CATEGORIA_BOTAO.match(categoria or "") or categoria not in botoes(data):
+        return data, None
+
+    data = sessao.responder(categoria)
+    disponiveis = botoes(data)
+    if not disponiveis:
+        raise ErroDeFluxo(f"a categoria {categoria!r} não listou produtos")
+
+    if nome not in disponiveis:
+        # O produto saiu do ar entre a listagem e agora. Aqui não existe botão
+        # de voltar: abrir uma ficha qualquer (que é só leitura) é o jeito de
+        # recuperar o "Voltar" e seguir sem derrubar a sessão.
+        data = sessao.responder(disponiveis[0])
+        if achar_botao(data, "voltar"):
+            data = sessao.clicar(data, "voltar")
+        return data, None
+
+    data = sessao.responder(nome)
+    ficha = extrair_ficha(sessao.ultimo_texto, foto_das_mensagens(data))
+    if not achar_botao(data, "voltar"):
+        raise ErroDeFluxo(f"a ficha de {nome!r} não ofereceu 'Voltar' (botões: {botoes(data)})")
+    data = sessao.clicar(data, "voltar")
+    return data, ficha
+
+
+def enriquecer(cpf, pedidos, limite=6):
+    """Busca THC, genética, terpenos e foto dos produtos indicados.
+
+    Roda em sessão própria e depois da listagem, de propósito: o catálogo já
+    está capturado quando isto começa, então qualquer problema aqui não derruba
+    a verificação — no pior caso o produto fica sem ficha e tenta de novo
+    depois.
+
+    Cada ficha custa três idas ao servidor, então isto só roda para produto que
+    ainda não está em cache, com teto por rodada. Em regime normal não roda.
+    """
+    fichas = {}
+    if not any(pedidos.values()):
+        return fichas
+
+    sessao = Sessao()
+    data = ir_ate_o_menu(sessao, cpf)
+    restantes = limite
+
+    for chave in ("flores", "concentrados"):
+        alvos = pedidos.get(chave) or []
+        if not alvos or restantes <= 0:
+            continue
+        data, _ = ler_secao(sessao, data, chave)
+        for categoria, nome in alvos:
+            if restantes <= 0:
+                break
+            data, ficha = ler_ficha(sessao, data, categoria, nome)
+            restantes -= 1
+            if ficha:
+                fichas[nome.lower()] = ficha
+        if chave == "flores" and achar_botao(data, "voltar"):
+            data = sessao.clicar(data, "voltar")
+
+    return fichas
+
+
+def fichas_faltando(catalogo, cache):
+    """Produtos do catálogo que ainda não têm ficha guardada."""
+    pedidos = {"flores": [], "concentrados": []}
+    for chave in pedidos:
+        for p in (catalogo.get(chave) or {}).get("produtos") or []:
+            if p["nome"].lower() not in cache:
+                pedidos[chave].append((p.get("categoria") or "THC", p["nome"]))
+    return pedidos
+
+
 # ---------------------------------------------------------------- comparação
+
+
+def registrar_historico(estado, catalogo, agora, teto=800):
+    """Anota o preço de cada produto sempre que ele muda.
+
+    Só o preço novo entra: repetir a cada 5 minutos o mesmo valor encheria o
+    arquivo e faria o workflow commitar sem parar. Isto é a matéria-prima do
+    gráfico de preços — sem registrar agora, o passado não volta.
+    """
+    hist = estado.setdefault("historico", [])
+    ultimo = {}
+    for e in hist:
+        ultimo[e["produto"]] = e["preco"]
+    for chave in ("flores", "concentrados"):
+        for p in (catalogo.get(chave) or {}).get("produtos") or []:
+            if ultimo.get(p["nome"]) != p["preco"]:
+                hist.append(
+                    {
+                        "quando": agora.strftime("%Y-%m-%d %H:%M"),
+                        "produto": p["nome"],
+                        "preco": p["preco"],
+                    }
+                )
+    if len(hist) > teto:
+        del hist[:-teto]
+    return hist
 
 
 def _mapa(secao):
@@ -359,7 +498,8 @@ def escapar(s):
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-def render_catalogo(catalogo):
+def render_catalogo(catalogo, fichas=None):
+    fichas = fichas or {}
     linhas = []
     for chave in ("flores", "concentrados"):
         sec = catalogo.get(chave) or {}
@@ -376,19 +516,21 @@ def render_catalogo(catalogo):
                     atual = p.get("categoria")
                     if atual:
                         linhas.append(f"<i>{escapar(atual)}</i>")
-                linhas.append(f"• {escapar(p['nome'])} — {reais(p['preco'])}")
+                thc = (fichas.get(p["nome"].lower()) or {}).get("thc")
+                selo = f"  <i>THC {escapar(thc)}</i>" if thc else ""
+                linhas.append(f"• {escapar(p['nome'])} — {reais(p['preco'])}{selo}")
         linhas.append("")
     return "\n".join(linhas).strip()
 
 
-def render_mensagem(mudancas, catalogo, agora):
+def render_mensagem(mudancas, catalogo, agora, fichas=None):
     cab = "🚨 <b>ABECMED — o catálogo mudou</b>" if mudancas else "✅ <b>ABECMED — sem mudanças</b>"
     partes = [cab, f"🕐 {agora.strftime('%d/%m/%Y %H:%M')} (Brasília)", ""]
     if mudancas:
         partes.append("<b>O que mudou</b>")
         partes += [escapar(m) for m in mudancas]
         partes.append("")
-    partes.append(render_catalogo(catalogo))
+    partes.append(render_catalogo(catalogo, fichas))
     texto = "\n".join(partes)
     return texto[:4000]  # limite do Telegram, com folga
 
@@ -397,13 +539,14 @@ def render_mensagem(mudancas, catalogo, agora):
 
 
 BOTAO_CATALOGO = "🌿 Ver catálogo agora"
+BOTAO_FOTOS = "📸 Fotos e THC"
 BOTAO_STATUS = "📊 Status"
 
 # Teclado fixo na conversa: os botões só mandam esse texto de volta, e a
 # execução seguinte responde. É o mais perto de "rodar sob demanda" que dá para
 # fazer sem manter um servidor ligado ouvindo o Telegram.
 TECLADO = {
-    "keyboard": [[{"text": BOTAO_CATALOGO}, {"text": BOTAO_STATUS}]],
+    "keyboard": [[{"text": BOTAO_CATALOGO}], [{"text": BOTAO_FOTOS}, {"text": BOTAO_STATUS}]],
     "resize_keyboard": True,
     "is_persistent": True,
 }
@@ -436,6 +579,97 @@ def enviar_telegram(token, chat, texto):
     )
 
 
+def enviar_foto(token, chat, foto, legenda):
+    """Envia a foto do produto e devolve o file_id do Telegram.
+
+    A URL que a ABECMED entrega é assinada e expira em ~40 minutos, então ela
+    não serve para guardar. O Telegram, ao receber a foto, devolve um file_id
+    permanente: é ele que fica no estado, e a partir do segundo envio a foto
+    sai sem tocar no servidor deles.
+    """
+    r = _post(
+        f"https://api.telegram.org/bot{token}/sendPhoto",
+        {"chat_id": chat, "photo": foto, "caption": legenda[:1024], "parse_mode": "HTML"},
+    )
+    tamanhos = ((r.get("result") or {}).get("photo") or [])
+    return tamanhos[-1].get("file_id") if tamanhos else None
+
+
+def legenda_produto(nome, preco, ficha):
+    linhas = [f"<b>{escapar(nome)}</b>", reais(preco) if preco is not None else ""]
+    if ficha.get("thc"):
+        linhas.append(f"🧪 THC: {escapar(ficha['thc'])}")
+    for d in ficha.get("detalhes") or []:
+        linhas.append(escapar(d))
+    return "\n".join(l for l in linhas if l)
+
+
+def achar_produto(catalogo, nome):
+    for chave in ("flores", "concentrados"):
+        for p in (catalogo.get(chave) or {}).get("produtos") or []:
+            if p["nome"].lower() == nome.lower():
+                return p
+    return None
+
+
+def enviar_fotos(estado, catalogo, nomes):
+    """Manda a foto de cada produto pedido. Falha de uma não impede as outras."""
+    token = (os.environ.get("TELEGRAM_BOT_TOKEN") or "").strip()
+    chat = estado.get("telegram_chat_id") or os.environ.get("TELEGRAM_CHAT_ID", "").strip()
+    if not token or not chat:
+        return 0
+    fichas = estado.get("fichas") or {}
+    enviadas = 0
+    for nome in nomes:
+        ficha = fichas.get(nome.lower())
+        if not ficha:
+            continue
+        foto = ficha.get("foto_id") or ficha.get("foto_url")
+        if not foto:
+            continue
+        produto = achar_produto(catalogo, nome)
+        try:
+            fid = enviar_foto(token, chat, foto, legenda_produto(nome, (produto or {}).get("preco"), ficha))
+            if fid:
+                ficha["foto_id"] = fid
+            enviadas += 1
+        except Exception as e:
+            print(f"AVISO: foto de {nome!r} não saiu: {e}", file=sys.stderr)
+    return enviadas
+
+
+def garantir_fotos(cpf, estado, catalogo, nomes):
+    """Rebusca a ficha de quem ainda não tem file_id, para haver o que enviar."""
+    if not cpf:
+        return
+    fichas = estado.setdefault("fichas", {})
+    pedidos = {"flores": [], "concentrados": []}
+    alvo = {n.lower() for n in nomes}
+    for chave in pedidos:
+        for p in (catalogo.get(chave) or {}).get("produtos") or []:
+            f = fichas.get(p["nome"].lower()) or {}
+            if p["nome"].lower() in alvo and not f.get("foto_id") and not f.get("foto_url"):
+                pedidos[chave].append((p.get("categoria") or "THC", p["nome"]))
+    if not any(pedidos.values()):
+        return
+    try:
+        for nome, ficha in enriquecer(cpf, pedidos, limite=12).items():
+            fichas.setdefault(nome, {}).update(ficha)
+    except ErroDeFluxo as e:
+        print(f"AVISO: não consegui buscar fotos: {e}", file=sys.stderr)
+
+
+def produtos_novos(antigo, novo):
+    """Nomes que passaram a existir entre duas consultas."""
+    novos = []
+    for chave in ("flores", "concentrados"):
+        antes = {p["nome"].lower() for p in (antigo.get(chave) or {}).get("produtos") or []}
+        for p in (novo.get(chave) or {}).get("produtos") or []:
+            if p["nome"].lower() not in antes:
+                novos.append(p["nome"])
+    return novos
+
+
 def responder_comando(texto, catalogo, estado, agora, ao_vivo):
     """Traduz o que a pessoa mandou na resposta correspondente."""
     t = texto.strip().lower().lstrip("/")
@@ -447,7 +681,7 @@ def responder_comando(texto, catalogo, estado, agora, ao_vivo):
         return (
             f"🌿 <b>Catálogo da ABECMED</b>\n"
             f"🕐 {agora.strftime('%d/%m/%Y %H:%M')} (Brasília) — {quando}\n\n"
-            + render_catalogo(catalogo)
+            + render_catalogo(catalogo, estado.get("fichas"))
         )
 
     if t.startswith("status") or texto.strip() == BOTAO_STATUS:
@@ -487,7 +721,7 @@ def responder_comando(texto, catalogo, estado, agora, ao_vivo):
     return None  # mensagem solta: não responde nada
 
 
-def atender_comandos(estado, catalogo, agora, ao_vivo):
+def atender_comandos(estado, catalogo, agora, ao_vivo, cpf=None):
     """Lê o que chegou no bot desde a última execução e responde.
 
     Sem servidor ouvindo, quem "escuta" o Telegram é esta execução, que já roda
@@ -520,6 +754,29 @@ def atender_comandos(estado, catalogo, agora, ao_vivo):
         # dono recebe resposta — os outros são consumidos e ignorados.
         if not texto or chat != str(dono):
             continue
+
+        pediu_fotos = texto.strip() == BOTAO_FOTOS or texto.strip().lower().lstrip("/").startswith("fotos")
+        if pediu_fotos:
+            nomes = [
+                p["nome"]
+                for chave in ("flores", "concentrados")
+                for p in ((catalogo or {}).get(chave) or {}).get("produtos") or []
+            ]
+            # A URL da foto expira e não é guardada; o que dura é o file_id, que
+            # só existe depois do primeiro envio. Para quem ainda não tem, a
+            # ficha é buscada agora — é um toque explícito, não custo de rotina.
+            garantir_fotos(cpf, estado, catalogo or {}, nomes)
+            n = enviar_fotos(estado, catalogo or {}, nomes)
+            enviar_telegram(
+                token,
+                chat,
+                f"📸 {n} foto(s) enviada(s)." if n else
+                "📸 Ainda não tenho as fichas guardadas. Elas são buscadas quando um "
+                "produto aparece no catálogo — tente de novo na próxima verificação.",
+            )
+            atendidos += 1
+            continue
+
         resposta = responder_comando(texto, catalogo, estado, agora, ao_vivo)
         if not resposta:
             continue
@@ -600,7 +857,16 @@ def ler_estado():
 
 
 def gravar_estado(estado):
-    ESTADO.write_text(json.dumps(estado, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    # A URL da foto é assinada e expira em ~40 minutos: guardá-la só encheria o
+    # arquivo de lixo que não funciona depois. O que fica é o file_id do
+    # Telegram, que não expira.
+    limpo = dict(estado)
+    if estado.get("fichas"):
+        limpo["fichas"] = {
+            nome: {k: v for k, v in ficha.items() if k != "foto_url"}
+            for nome, ficha in estado["fichas"].items()
+        }
+    ESTADO.write_text(json.dumps(limpo, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 # ---------------------------------------------------------------- principal
@@ -651,7 +917,7 @@ def main():
                 )
             # Mesmo sem conseguir consultar, os botões continuam respondendo —
             # com o último catálogo bom e o aviso de que ele não é de agora.
-            atender_comandos(estado, estado.get("catalogo"), agora, ao_vivo=False)
+            atender_comandos(estado, estado.get("catalogo"), agora, ao_vivo=False, cpf=cpf)
             gravar_estado(estado)
         return 1
 
@@ -660,7 +926,19 @@ def main():
         return 0
 
     mudancas = comparar(anterior, catalogo) if anterior else []
+    novos = produtos_novos(anterior, catalogo) if anterior else []
     recuperou = bool(estado.get("falha_avisada"))
+
+    # Fichas (THC, genética, terpenos, foto) só para quem ainda não tem. Em
+    # regime normal isto não faz nenhuma requisição extra.
+    cache = estado.setdefault("fichas", {})
+    pedidos = fichas_faltando(catalogo, cache)
+    if any(pedidos.values()):
+        try:
+            cache.update(enriquecer(cpf, pedidos))
+        except ErroDeFluxo as e:
+            # Ficha é enfeite: o catálogo e o alerta valem mais do que ela.
+            print(f"AVISO: não consegui ler fichas: {e}", file=sys.stderr)
 
     # De propósito não gravamos o horário exato da verificação: ele mudaria a
     # cada 5 minutos e o workflow commitaria o state.json 288 vezes por dia. Só
@@ -670,13 +948,14 @@ def main():
     estado["verificado_dia"] = agora.strftime("%Y-%m-%d")
     estado["catalogo"] = catalogo
     estado["falhas_seguidas"] = 0
+    registrar_historico(estado, catalogo, agora)
     estado.pop("falha_avisada", None)
     estado.pop("ultima_falha", None)
     if mudancas:
         estado["ultima_mudanca_em"] = agora.isoformat(timespec="seconds")
 
     if mudancas or args.forcar or recuperou:
-        texto = render_mensagem(mudancas, catalogo, agora)
+        texto = render_mensagem(mudancas, catalogo, agora, cache)
         if recuperou and not mudancas:
             texto = "✅ <b>ABECMED — monitor normalizado</b>\n" + texto.split("\n", 1)[1]
         enviados, erros = notificar(texto, estado)
@@ -687,7 +966,12 @@ def main():
             gravar_estado(estado)
             return 3  # houve o que avisar e não saiu — o job deve falhar
 
-    atendidos = atender_comandos(estado, catalogo, agora, ao_vivo=True)
+        # Foto só de quem entrou agora. Mandar o álbum inteiro a cada mudança
+        # de preço encheria a conversa — para ver tudo existe o botão de fotos.
+        if novos:
+            print(f"FOTOS={enviar_fotos(estado, catalogo, novos)}")
+
+    atendidos = atender_comandos(estado, catalogo, agora, ao_vivo=True, cpf=cpf)
     gravar_estado(estado)
     if atendidos:
         print(f"COMANDOS_ATENDIDOS={atendidos}")
