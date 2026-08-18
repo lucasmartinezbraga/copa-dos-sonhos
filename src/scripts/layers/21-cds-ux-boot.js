@@ -1531,7 +1531,53 @@
     /* `CDS_ZSUAVE = false` devolve o comportamento antigo, para a sonda medir
        antes e depois na MESMA partida */
     if (root.CDS_ZSUAVE === false) _e.zDes = _zFis;
-    o = Object.assign({}, o, { z: _e.zDes });
+
+    /* §OS-245 · A BOLA TAMBEM TELEPORTA NO PLANO, E NINGUEM TINHA MEDIDO.
+       ---------------------------------------------------------------------
+       RELATO: "sem teletransporte da bola, sem bug na hora do passe".
+
+       O passe esta limpo -- medido, a bola sai a 0,54 m do pe de quem bateu,
+       maximo 1,61 m, e salta 0,33 m no quadro em que parte. A fisica do passe
+       nao tem defeito.
+
+       O que tem e o DESENHO. A interpolacao da OS-227 tem um portao:
+       `if (deslocamento < 12 m)`. Acima disso ela e PULADA -- e e exatamente o
+       caso da bola recolocada para escanteio, lateral ou tiro de meta. O
+       desenho recebe o salto inteiro num quadro:
+
+           saltos desenhados > 18 px   179 por partida
+           saltos desenhados > 60 px    60 por partida
+           pico 501 px, num canvas de 1024
+
+       A 9,75 px/m sao pulos de 7 a 48 metros, sessenta vezes por partida. E a
+       2,00 de zoom cada um vale o dobro em tela.
+
+       O corpo do atleta ganhou teto de passo na OS-208 e a ALTURA da bola na
+       OS-239. Faltava o plano. Mesma forma: o desenho persegue a fisica com
+       teto de velocidade, e o teto sai de uma media movel do proprio
+       deslocamento observado -- que rejeita o quadro do salto como outlier --,
+       nunca abaixo de um piso generoso.
+
+       ACIMA DE `CORTE` NAO SE ANIMA. Uma bola que atravessa o campo inteiro
+       nao pode "voar" ate la: isso inventaria um lance que nao houve. Ali o
+       corte e honesto, exatamente como a R18.99 decidiu para o atleta. */
+    if (_e.xDes == null) { _e.xDes = o.gx; _e.yDes = o.gy; _e.taxaXY = 0; }
+    const _dxF = o.gx - _e.xDes, _dyF = o.gy - _e.yDes;
+    const _dF = Math.hypot(_dxF, _dyF);
+    const CORTE = 300;                       // px de canvas ~ 30 m: recolocacao
+    const PISO  = 20 * (_dtB * 60);          // px por quadro ~ 2 m
+    const _andou = Math.hypot(o.gx - (_e.gxAnt == null ? o.gx : _e.gxAnt),
+                              o.gy - (_e.gyAnt == null ? o.gy : _e.gyAnt));
+    if (_andou <= _e.taxaXY * 1.8 + 3) _e.taxaXY = _e.taxaXY * 0.75 + _andou * 0.25;
+    _e.gxAnt = o.gx; _e.gyAnt = o.gy;
+    if (root.CDS_XYSUAVE === false || _dF >= CORTE || _dF < 0.01) {
+      _e.xDes = o.gx; _e.yDes = o.gy;
+    } else {
+      const _teto = Math.max(_e.taxaXY * 1.8 + 3, PISO);
+      if (_dF <= _teto) { _e.xDes = o.gx; _e.yDes = o.gy; }
+      else { _e.xDes += _dxF / _dF * _teto; _e.yDes += _dyF / _dF * _teto; }
+    }
+    o = Object.assign({}, o, { z: _e.zDes, gx: _e.xDes, gy: _e.yDes });
 
     const g0 = project(o.gx, o.gy);
     /* §OS-236 · `air` governa tamanho da bola e encolhimento da sombra, as

@@ -221,6 +221,32 @@ let momHist = [], momT = 0, keyEvents = [];
 let vfx = [], passNarrCd = 0;
 let playerMotions = [];  // saltos, cabeceios e mergulhos puramente visuais
 let camX = 320, camY = 207;                       // câmera suave (§17)
+/* §OS-244 · TENTATIVA REVERTIDA — LIMITE DE ACELERACAO DA CAMERA.
+   -------------------------------------------------------------------------
+   Fechar a camera (OS-243) triplicou o movimento dela na tela: velocidade
+   media 1,10 -> 3,91 px/quadro e solavanco 0,219 -> 0,663, medido alternando
+   o zoom na MESMA partida. A hipotese era que o seguidor exponencial puro
+   (`camX += (alvo - camX) * 0,055`), sem teto de aceleracao, dava um puxao
+   sempre que a bola era RECOLOCADA e o alvo saltava.
+
+   Implementei o teto e ele reprovou por falta de evidencia:
+
+     · com teto nos dois sentidos, o tranco caiu (pico 77 -> 9,6) mas a bola
+       passou a sair do quadro em 1,02% dos quadros contra 0,12% -- inercia
+       adicionada a um sistema de primeira ordem produz overshoot;
+     · isentando a FREADA, o overshoot sumiu (bola fora 0,03%) e o teto passou
+       a nao reduzir mais o tranco de forma consistente;
+     · medindo por CONTAGEM em vez de maximo -- porque o pico de uma janela e
+       evento unico e oscila demais --, duas janelas pareadas discordaram mais
+       entre si do que os tratamentos discordaram entre si:
+
+           sem teto:  147 e 137 quadros com tranco >3px
+           com teto:  122 e 182
+
+   Sem efeito demonstravel, nao entra. Fica o metodo registrado: a camera se
+   mede pela matriz publicada em `__CDS_SCREEN.m` (`_camView` e local ao
+   modulo), e o par de metricas que importa e tranco CONTRA bola fora do
+   quadro -- otimizar um sozinho troca um defeito por outro. */
 let _camT = 0;                                    // §OS-223 · relógio da câmera
 /* §OS-227 · interpolacao de passo fixo: estado anterior + fracao pendente */
 let interpPrev = null, interpAlpha = 0;
