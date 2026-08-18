@@ -1755,10 +1755,33 @@
   const VERSION = '1.0.0-R14';
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const finite = (v, d = 0) => (Number.isFinite(v) ? v : d);
+  /* Esta fabrica roda tambem em Node (`module.exports`), entao NAO ha `root`
+     aqui dentro -- e `window` pode nao existir. Quem precisar de interruptor
+     de tempo de execucao le por aqui. */
+  const GLOBAL = (typeof globalThis !== 'undefined') ? globalThis
+               : (typeof window !== 'undefined') ? window : null;
+  const ajuste = (nome, padrao) => {
+    const v = GLOBAL && GLOBAL[nome];
+    return (typeof v === 'number' && isFinite(v)) ? v : padrao;
+  };
 
   /* ── TIERS ────────────────────────────────────────────────────────────────
      0 locomoção · 1 com bola · 2 defesa · 3 ação comprometida · 4 goleiro    */
   const T_LOCO = 0, T_BALL = 1, T_DEF = 2, T_ACTION = 3, T_GK = 4;
+
+  /* §OS-246 · permanencia minima do estado de PISO, em ms de RELOGIO DE
+     PAREDE — e nao de simulacao. A unidade importa e ja me custou uma
+     medicao: `now` chega aqui em segundos de simulacao, e a 3X um gesto de
+     0,25 s de simulacao dura 83 ms na tela. Quem julga tremor e o olho, que
+     conta em milissegundo de parede, e a mistura de pose da OS-235 tambem
+     roda em parede. Entao o piso e de parede.
+
+     Gesto de ACAO nao passa por aqui: ele vem de evento do motor e continua
+     entrando no quadro exato, que e o que faz o pe bater na bola na hora.
+     Interruptor de tempo de execucao: `CDS_DWELL` (em ms; 0 desliga). */
+  const PERMANENCIA_MS = 150;
+  const parede = () => ((GLOBAL && GLOBAL.performance && GLOBAL.performance.now)
+    ? GLOBAL.performance.now() : Date.now());
 
   /* Cada estado: tier, duração padrão (s) e se é cíclico (locomoção não termina).
      As durações de AÇÃO são substituídas pelo contrato quando ele existe. */
@@ -1855,10 +1878,38 @@
   /* limiares de locomoção em m/s */
   const LOCO = [[0.25, 'idle'], [1.6, 'walk'], [3.6, 'jog'], [5.8, 'run'], [Infinity, 'sprint']];
 
+  /* §OS-246 · A HISTERESE ESTAVA DECLARADA E NUNCA ACONTECIA.
+     `locoFor(speed, prev)` recebia `prev` desde sempre — e nunca o lia; o
+     unico chamador nem o passava. Resultado: limiar puro sobre grandeza
+     continua, e quem corre com a velocidade encostada em 3,6 m/s alterna
+     jog/run a cada quadro. MEDIDO: 9,03 trocas de gesto por atleta por
+     segundo, 87% delas durando menos de 0,12 s — menos que os 0,11 s que a
+     mistura de pose da OS-235 leva para completar. O gesto trocava antes de a
+     silhueta chegar, sempre.
+
+     A folga e assimetrica de proposito: sair da faixa exige ultrapassar o
+     limiar por FOLGA, entrar nao exige nada. Uma banda morta em torno de cada
+     limiar custa 0,45 m/s de atraso na troca — invisivel — e mata a alternancia
+     na fronteira, que e o que se ve. */
+  const LOCO_FOLGA = 0.45;
+  /* multiplicador global da histerese, para medir o efeito dela separado do
+     efeito da permanencia: `CDS_HISTERESE = 0` devolve o limiar puro de antes */
+  const hist = () => ajuste('CDS_HISTERESE', 1);
+
   function locoFor(speed, prev) {
     let s = 'idle';
     for (const [lim, name] of LOCO) { if (speed < lim) { s = name; break; } }
-    return s;
+    if (!prev || s === prev) return s;
+    const FOLGA = LOCO_FOLGA * hist();
+    let iP = -1, iS = -1;
+    for (let i = 0; i < LOCO.length; i++) {
+      if (LOCO[i][1] === prev) iP = i;
+      if (LOCO[i][1] === s) iS = i;
+    }
+    if (iP < 0 || iS < 0) return s;             // vinha de estado nao-ciclico
+    if (iS > iP) return speed >= LOCO[iP][0] + FOLGA ? s : prev;        // acelerando
+    const piso = iP > 0 ? LOCO[iP - 1][0] : 0;                          // desacelerando
+    return speed <= piso - FOLGA ? s : prev;
   }
 
   /* §D42 · O PISO SO SABIA ANDAR PARA A FRENTE.
@@ -1877,20 +1928,25 @@
      Nenhuma delas precisa de informacao nova do MOTOR — todas saem da
      velocidade, da sua derivada e da relacao com a bola, que a ponte ja podia
      calcular e nao calculava. Segue sendo observacao pura. */
-  function posturaFor(ctx) {
+  function posturaFor(ctx, prev) {
     const v = finite(ctx.speed);
     const dot = finite(ctx.dotBola, 1);          // +1 corre para a bola, -1 recua dela
+    /* §OS-246 · a mesma banda morta dos limiares de locomocao, aqui aplicada a
+       cada faixa: quem JA esta no gesto sai dele com folga; quem esta fora
+       entra pelo limiar de sempre. Sem isto, `jockey` alterna com `walk` toda
+       vez que o marcador oscila em torno de 2,4 m/s — e isso e o normal dele. */
+    const larga = (est, lim, folga) => (prev === est ? lim + folga * hist() : lim);
     /* a bola esta a caminho DELE: o corpo se prepara antes de ela chegar */
     if (ctx.recebendo && !ctx.hasBall) return 'receive_prepare';
     /* parado marcando: agachado, de lado, base larga */
-    if (ctx.marcando && v < 2.4) return 'jockey';
-    if (v < 0.25) return 'idle';
+    if (ctx.marcando && v < larga('jockey', 2.4, 0.5)) return 'jockey';
+    if (v < larga('idle', 0.25, 0.20)) return 'idle';
     /* de frente para a bola e recuando: nao e correr, e recuar */
-    if (ctx.temRefBola && dot < -0.55 && v > 1.2 && v < 5.2) return 'backpedal';
+    if (ctx.temRefBola && dot < larga('backpedal', -0.55, 0.18) && v > 1.2 && v < 5.2) return 'backpedal';
     /* atravessado em relacao a bola: deslocamento lateral */
-    if (ctx.temRefBola && Math.abs(dot) < 0.40 && v > 1.8 && v < 5.6) return 'strafe';
+    if (ctx.temRefBola && Math.abs(dot) < larga('strafe', 0.40, 0.12) && v > 1.8 && v < 5.6) return 'strafe';
     if (ctx.pressionando) return 'press';
-    return locoFor(v);
+    return locoFor(v, prev);
   }
 
   /* §D43 · QUEM ESTA COM A BOLA SO SABIA DUAS COISAS.
@@ -1938,12 +1994,18 @@
   }
 
   /* transicoes curtas: disparam UMA vez por gesto, a partir de estado ciclico */
-  function transicaoFor(ctx) {
+  function transicaoFor(ctx, atual) {
     const dv = finite(ctx.dSpeed);               // m/s por segundo
     const gir = Math.abs(finite(ctx.giro));      // rad/s da direcao de corrida
-    if (gir > 3.2 && finite(ctx.speed) > 2.2) return 'turn';
-    if (dv > 4.5) return 'accelerate';
-    if (dv < -5.0) return 'decelerate';
+    /* §OS-246 · `dSpeed` e `giro` sao DERIVADAS medidas quadro a quadro: sao as
+       grandezas mais ruidosas do contexto inteiro. Limiar puro sobre elas fazia
+       `accelerate` piscar contra o piso de locomocao varias vezes por segundo —
+       e este ramo devolve cedo, entao escapava de qualquer permanencia imposta
+       la embaixo. Sai com metade do que entrou. */
+    const sai = (est, entra, saida) => (atual === est ? entra + (saida - entra) * hist() : entra);
+    if (gir > sai('turn', 3.2, 1.9) && finite(ctx.speed) > 2.2) return 'turn';
+    if (dv > sai('accelerate', 4.5, 2.4)) return 'accelerate';
+    if (dv < -sai('decelerate', 5.0, 2.8)) return 'decelerate';
     return null;
   }
 
@@ -2107,9 +2169,19 @@
     } else if (this.dur === 0) {
       /* §D42 · transicao curta antes do piso: so a partir de estado ciclico e
          so uma vez por gesto, senao ela reinicia a cada quadro e nada se le */
-      const tr = ctx.isGK ? null : transicaoFor(ctx);
-      if (tr && tr !== this._ultTr) {
+      /* §OS-246 · a permanencia e cobrada UMA VEZ, aqui, e vale para os dois
+         caminhos de piso: o de transicao (que devolve cedo) e o ciclico la
+         embaixo. Cobrar so no de baixo foi a primeira versao, e ela derrubou o
+         tremor em apenas 17% — porque a maioria das trocas nasce justamente
+         neste ramo, que escapava. */
+      const _perm = ajuste('CDS_DWELL', PERMANENCIA_MS);
+      const _agora = parede();
+      const _podeTrocarPiso = !this._pisoDesde || (_agora - this._pisoDesde) >= _perm;
+
+      const tr = ctx.isGK ? null : transicaoFor(ctx, this.state);
+      if (tr && tr !== this._ultTr && _podeTrocarPiso) {
         this._ultTr = tr;
+        this._pisoDesde = _agora;
         this._enter(tr, null, now);
         this.tier = T_LOCO;
         return this.snapshot();
@@ -2118,8 +2190,33 @@
       // estado cíclico acompanha a velocidade sem reiniciar a fase à toa
       const base = ctx.isGK ? goleiroFor(ctx)
                  : ctx.hasBall ? comBolaFor(ctx)
-                 : posturaFor(ctx);
-      if (base !== this.state && this.tier <= T_DEF) {
+                 : posturaFor(ctx, this.state);
+      /* §OS-246 · O ESTADO BASE PRECISA DURAR ALGUMA COISA.
+         ------------------------------------------------------------------
+         MEDIDO (tools/fisica/tela/permanencia-do-gesto.js, janelas pareadas
+         de 15 s alternando `CDS_DWELL` na MESMA partida, 22 atletas):
+
+             trocas de gesto            9,03 por atleta por segundo
+             duracao mediana do gesto     83 ms
+             gestos com menos de 0,12 s   87% de todas as trocas
+
+         Isso nao e animacao, e tremor. E anula a mistura de pose da OS-235,
+         que leva 0,11 s para completar: o estado troca antes de a silhueta
+         terminar de chegar, quase sempre.
+
+         Duas causas, e as duas estao consertadas — a histerese nos seletores
+         (LOCO_FOLGA, `larga`, `sai`) e a permanencia minima aqui. A histerese
+         sozinha nao basta porque o contexto tem grandezas de naturezas
+         diferentes; a permanencia sozinha tambem nao, porque o ramo de
+         transicao devolve cedo e escaparia dela. */
+      /* A permanencia existe para amortecer LIMIAR sobre grandeza continua.
+         `receive_prepare` nao e limiar: nasce de `ctx.recebendo`, que e uma
+         condicao discreta (a bola esta viajando para ele). Condicao discreta
+         nao treme, entao segurar ela so atrasa a antecipacao — e antecipar a
+         chegada da bola e justamente o que esse gesto faz. Fica de fora. */
+      const _isento = (base === 'receive_prepare');
+      if (base !== this.state && this.tier <= T_DEF && (_podeTrocarPiso || _isento)) {
+        this._pisoDesde = _agora;
         this._enter(base, null, now);
         /* so estado CICLICO volta a valer como piso; rebaixar o tier de um
            gesto com duracao (burst_touch, protect_turn) deixaria ele ser
@@ -2340,7 +2437,20 @@
           }
           root.__CDS_ANIM_BY_KEY = byKey;
         }
-      } catch (_) { }
+      } catch (e) {
+        /* §OS-247 · CATCH MUDO E BUG INVISIVEL. Este `catch` engoliu, por uma
+           rodada inteira, um erro que desligava a maquina de estados de
+           animacao INTEIRA: `__animState` nunca era escrito, `__CDS_ANIM_BY_KEY`
+           nunca existia, e o desenhista caia no atalho de sempre para os 22.
+           Nada no console, nada no verify, nada no smoke. Continua sem derrubar
+           o motor -- apresentacao nao pode quebrar partida --, mas agora deixa
+           rastro para quem for medir. */
+        try {
+          const R = root.__CDS_ANIM_ERRO || (root.__CDS_ANIM_ERRO = { n: 0, primeiro: null });
+          R.n++;
+          if (!R.primeiro) R.primeiro = String((e && e.stack) || e).slice(0, 800);
+        } catch (_) { }
+      }
     };
 
     /* §OS-207 · a amostragem fica publicada para que a camada final possa

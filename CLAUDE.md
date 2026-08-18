@@ -17,10 +17,17 @@ src/
   styles/layers/    blocos <style> do bundle
   index.template.html  esqueleto com um marcador por bloco
 tools/
+  mesa.py           O RITUAL INTEIRO num comando, com veredito
   build.py          remonta dist/index.html a partir do manifesto
   split_build.py    divide um HTML monolítico em template + blocos
   import_build.py   importa um bundle novo para dentro de src/
   verify.py         presença, sintaxe e reprodutibilidade
+  fisica/tela/      sondas que medem o que vai para a TELA
+    arbitro.js         o lance é futebol? confronta camadas, dá veredito
+    sanidade.js        o que nunca pode acontecer
+    validar-lances.js  falta, desarme, lateral, escanteio, saída de bola
+    fluidez.js         continuidade quadro a quadro
+    permanencia-do-gesto.js  A/B em janelas pareadas do tremor de estado
   fisica/bateria.js    bateria paralela com sondas de física
   fisica/calibrar.py   varredura de calibração
   fisica/placar.py     pontua a medição contra calibration/targets.json
@@ -146,13 +153,34 @@ Permanece no módulo MatchSim por enquanto porque usa estado privado (IIFE).
 
 ## Validação
 
-Cada commit deve passar:
+Um comando só, e é ele que decide:
+
 ```bash
-python3 tools/verify.py
-python3 tests/browser_smoke.py
+python3 tools/mesa.py            # build → verify → smoke → sanidade → árbitro → lances
+python3 tools/mesa.py --rapido   # só build + verify + smoke, para iteração
 ```
 
-Se falhar, não faça commit.
+Se a Mesa reprovar, **não faça commit**. Ela nomeia a etapa e o defeito.
+
+**Por que a Mesa existe (OS-247).** Por uma rodada inteira a máquina de estados
+de animação esteve *desligada* — um `ReferenceError` por quadro, engolido por um
+`catch` mudo — e `verify.py`, `browser_smoke.js` e a bateria **passaram todos**.
+Cada um media coisas que continuavam certas. As sondas que teriam pego o erro
+existiam e não foram rodadas.
+
+Duas regras que saíram disso:
+
+* **Zero observação não é zero defeito.** Toda sonda tem de provar que estava
+  olhando antes de dizer "nenhum problema". A seção 0 do Árbitro é isso, e
+  "sem amostra" conta como reprovação.
+* **`catch` mudo é bug invisível.** Se a apresentação não pode derrubar o
+  motor, tudo bem engolir o erro — mas deixe rastro (`__CDS_ANIM_ERRO`) e
+  reprove por ele.
+
+O Árbitro (`tools/fisica/tela/arbitro.js`) é a sonda que julga se o lance é
+futebol: confronta camadas que precisam concordar — evento do motor × gesto
+publicado × cinemática do corpo × comportamento da bola — em vez de medir
+média ou suavidade.
 
 ## Como eu (Claude) trabalho aqui
 

@@ -190,5 +190,9 @@ const SEGUNDOS = Number(argv.segundos || 240);
   console.log('');
   if (erros.length) { console.log('ERROS DE PAGINA (' + erros.length + '):'); [...new Set(erros)].slice(0, 8).forEach(e => console.log('  ', e.slice(0, 200))); }
   else console.log('nenhum erro de pagina.');
-  process.exit(0);
+  /* §OS-247 · a sonda passa a DIZER se reprovou pelo codigo de saida, e nao so
+     imprimir. Sonda que sempre sai 0 nao serve de portao, e portao e o que
+     faltava: o erro que desligou a animacao inteira sobreviveu porque nenhuma
+     validacao automatica reprovava por ele. */
+  process.exit((ks.length || erros.length) ? 1 : 0);
 })();

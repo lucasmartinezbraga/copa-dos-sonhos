@@ -141,6 +141,26 @@ errado, e nenhuma dá erro — falham em silêncio.
    por construção — a espera criada dentro de `_awardFoul` é a espera daquela
    falta — e não por proximidade no tempo.
 
+11. **`catch` mudo transforma pane total em "tudo certo".** A ponte de
+   amostragem da animação tinha `catch (_) { }`. Um `ReferenceError` por quadro
+   dentro de `Controller.update` desligou a **máquina de estados inteira** — 22
+   atletas sem gesto, `__animState` nunca escrito, `__CDS_ANIM_BY_KEY` nunca
+   publicado — e passaram: `verify.py`, `browser_smoke.js`, a bateria e as
+   sondas de tela. O console ficou limpo. Só uma contradição entre duas
+   medições (48417 trocas contra 75) forçou a olhar.
+   Regras que saíram daí: **zero observação não é zero defeito** (toda sonda
+   prova que estava olhando antes de aprovar — é a seção 0 do Árbitro), e
+   `catch` que engole erro tem de deixar rastro (`__CDS_ANIM_ERRO`).
+   O portão único é `python3 tools/mesa.py`, e ele inclui `--autoteste`:
+   injeta essa mesma pane e exige que o Árbitro reprove.
+
+12. **`_emit('pass')` é a CHEGADA da bola, não a saída do pé.** Ele está dentro
+   do `onArrive` de `_startTravel`. Ancorar a sonda nele mostra o gesto de
+   passe completo "1,3 s antes do evento" — que é o tempo de voo — e faz a
+   sonda reprovar 55% dos passes que estavam perfeitos. A saída é o próprio
+   `_startTravel(o, alvo, 'pass', …)`. Vale para qualquer medição que amarre
+   gesto a evento: **pergunte se o evento marca o começo ou o fim do lance.**
+
 ---
 
 ## 4. Padrão de defeito que se repete neste código

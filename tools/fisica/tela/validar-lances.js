@@ -432,12 +432,31 @@ const SEGUNDOS = Number(argv.segundos || 240);
   await navegador.close();
 
   const v = V.v;
+  /* §OS-247 · o placar de reprovacao vira CODIGO DE SAIDA. Sonda que sempre
+     sai 0 nao serve de portao — e portao e exatamente o que faltava.
+
+     MAS: limiar de 90% sobre denominador 2 nao mede nada. A primeira versao
+     deste portao reprovou o build por "F4 barreira a 9,15 m: 50,0%", que era
+     UMA barreira de DUAS numa janela de 120 s. Numero de aparencia grave,
+     conteudo nenhum.
+
+     Entao ha um piso de amostra. Abaixo dele o invariante fica INCONCLUSIVO —
+     e, pela regra da OS-247, inconclusivo NAO e aprovacao: se metade ou mais
+     dos invariantes ficar sem amostra, a sonda reprova assim mesmo, pedindo
+     uma janela maior em vez de fingir que olhou. */
+  const MIN_AMOSTRA = 8;
+  const reprovas = [], inconclusivos = [];
+  let avaliados = 0;   // TODOS os invariantes, nao so os que falharam
   const linha = (nome, par, extra) => {
     const [a, b] = par;
     const pc = b ? (100 * a / b) : 0;
-    const marca = !b ? ' --' : (a === b ? ' ok' : (pc >= 90 ? 'ATN' : 'BAI'));
+    const pouco = b > 0 && b < MIN_AMOSTRA;
+    const marca = !b ? ' --' : pouco ? 'ins' : (a === b ? ' ok' : (pc >= 90 ? 'ATN' : 'BAI'));
     console.log('   ' + marca + '  ' + nome.padEnd(52), b ? (a + '/' + b).padStart(9) : '    (0)',
       b ? (pc.toFixed(1) + '%').padStart(7) : '', extra || '');
+    avaliados++;
+    if (!b || pouco) inconclusivos.push(nome + ' (' + b + ' amostra' + (b === 1 ? '' : 's') + ')');
+    else if (pc < 90) reprovas.push(nome + ' ' + pc.toFixed(1) + '%  (' + a + '/' + b + ')');
   };
   console.log('\n=== VALIDACAO DE LANCE ===\n');
   console.log('bundle:', alvo, '| minuto de jogo:', V.minuto.toFixed(1));
@@ -479,6 +498,24 @@ const SEGUNDOS = Number(argv.segundos || 240);
   linha('E4 nenhum salto VISIVEL (<=2,0 m)', v.escanteio.E4);
 
   console.log('');
+  /* o denominador e o painel INTEIRO. A primeira versao somava so reprovados e
+     inconclusivos e anunciava "9 de 10 sem amostra" num painel de 22 — numero
+     que soa catastrofico e nao quer dizer nada. */
+  const total = avaliados;
+  if (reprovas.length) {
+    console.log('REPROVADO em ' + reprovas.length + ' invariante(s) com amostra suficiente:');
+    for (const m of reprovas) console.log('   · ' + m);
+  } else console.log('nenhum invariante com amostra suficiente ficou abaixo de 90%.');
+  if (inconclusivos.length) {
+    console.log('\nsem amostra suficiente (minimo ' + MIN_AMOSTRA + ') — NAO conta como aprovacao:');
+    for (const m of inconclusivos) console.log('   · ' + m);
+    console.log('   rode com --segundos maior para julgar estes.');
+  }
   if (erros.length) { console.log('ERROS DE PAGINA:'); erros.slice(0, 5).forEach(e => console.log('  ', e)); }
-  process.exit(0);
+  /* metade ou mais do painel sem amostra = a janela foi curta demais para
+     julgar; reprova pedindo mais tempo, em vez de aprovar sem ter olhado */
+  const cego = inconclusivos.length >= Math.ceil(total / 2) && inconclusivos.length > 0;
+  if (cego) console.log('\nJANELA CURTA DEMAIS: ' + inconclusivos.length + ' de ' + total +
+                        ' invariantes sem amostra. Isso reprova.');
+  process.exit((reprovas.length || erros.length || cego) ? 1 : 0);
 })();
