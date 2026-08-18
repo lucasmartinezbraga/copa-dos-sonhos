@@ -122,6 +122,7 @@ function medir(n) {
   };
 
   const R = {};
+  const CAUDA = [];   // os piores F2, com contexto
   const inv = (k) => R[k] || (R[k] = { ok: 0, n: 0, pior: 0, valores: [] });
   const conta = (k, passou, valor) => {
     const I = inv(k); I.n++; if (passou) I.ok++;
@@ -155,7 +156,17 @@ function medir(n) {
     let faltaPt = null;
     const oEmit = sim._emit;
     sim._emit = function (t, d) {
-      if (t === 'foul' && d && d.on) faltaPt = { x: Number(d.on.x) || 0, y: Number(d.on.y) || 0, half: this.half };
+      /* §ARMADILHA 10, e eu cai nela de novo. Marcar o ponto da falta e casar
+         com "o proximo reinicio de rota falta" e casar por ESTADO AMBIENTE.
+         Quando o juiz da vantagem, a falta nao vira reinicio -- e a marca
+         sobrevive para ser cobrada da falta SEGUINTE, ou pior, de um lance
+         que so por acaso tambem e rota 'falta'. Foi o que produziu o pior
+         F2 medido: falta em (14,9 20,6) e bola em (68,4 67,5), lado oposto do
+         campo e em cima da linha lateral -- 71,21 m de defeito que nao existe.
+         A amarra tem de ser por TEMPO E CONSTRUCAO: o ponto so vale para o
+         reinicio que sai logo depois dele. */
+      if (t === 'foul' && d && d.on) faltaPt = { x: Number(d.on.x) || 0, y: Number(d.on.y) || 0,
+                                                 half: this.half, t: Number(this.t) || 0 };
       return oEmit.apply(this, arguments);
     };
 
@@ -175,10 +186,23 @@ function medir(n) {
         const teto = antes.maxSpd * 1.18 * Math.max(1 / 240, Math.min(0.15, dt)) + 0.12;
         const naBola = D(Number(p.x) || 0, Number(p.y) || 0, Number(b.x) || 0, Number(b.y) || 0);
         if (antes.rota === 'falta' && antes.half === this.half) {
-          if (faltaPt && faltaPt.half === this.half) {
-            conta('F2 bola no ponto da falta (<=2,0 m)',
-                  D(Number(b.x) || 0, Number(b.y) || 0, faltaPt.x, faltaPt.y) <= 2.0,
-                  D(Number(b.x) || 0, Number(b.y) || 0, faltaPt.x, faltaPt.y));
+          const faltaFresca = faltaPt && faltaPt.half === this.half &&
+                              (Number(this.t) || 0) - faltaPt.t <= 20;
+          if (faltaFresca) {
+            const dF2 = D(Number(b.x) || 0, Number(b.y) || 0, faltaPt.x, faltaPt.y);
+            conta('F2 bola no ponto da falta (<=2,0 m)', dF2 <= 2.0, dF2);
+            /* A CAUDA DO F2 E O QUE SE VE. 0,8% das cobrancas terminam com a
+               bola LONGE do ponto -- pior caso medido, 71,21 m. Uma media de
+               99,2% esconde isso; a cauda, nao. Guarda os piores com contexto
+               para que a proxima rodada nao precise adivinhar. */
+            if (dF2 > 2.0 && CAUDA.length < 40) {
+              CAUDA.push({ d: +dF2.toFixed(2), minuto: +(Number(this.minute) || 0).toFixed(1),
+                           half: this.half, partida: i,
+                           falta: { x: +faltaPt.x.toFixed(1), y: +faltaPt.y.toFixed(1) },
+                           bola: { x: +(Number(b.x) || 0).toFixed(1), y: +(Number(b.y) || 0).toFixed(1) },
+                           batedor: { x: +(Number(p.x) || 0).toFixed(1), y: +(Number(p.y) || 0).toFixed(1) },
+                           naBola: +naBola.toFixed(2), salto: +salto.toFixed(2) });
+            }
           }
           conta('F3 batedor NA bola (<=1,5 m)', naBola <= 1.5, naBola);
           conta('F6 batedor nao salta na cobranca', salto <= teto, salto);
@@ -191,14 +215,18 @@ function medir(n) {
           conta('L3 cobrador na bola (<=1,5 m)', naBola <= 1.5, naBola);
           conta('L5 cobrador nao salta', salto <= teto, salto);
         }
-        antes = null; faltaPt = null;
+        antes = null;
       }
+      /* o ponto morre em TODO reinicio, nao so nos que a sonda mediu: se a
+         bola voltou a viver, aquela falta acabou de um jeito ou de outro */
+      if (mortaAntes && !mortaDepois) faltaPt = null;
       if (!mortaDepois) antes = null;
       return r;
     };
 
     let s = 0; while (!sim.isOver() && s++ < 500000) sim.step(DT);
   }
+  R.__cauda = CAUDA;
   return R;
 }
 
@@ -216,6 +244,7 @@ console.log('   ' + 'invariante'.padEnd(38) + 'passou'.padStart(12) + '        %
 
 const saida = { build: BUILD, sha, partidas: PARTIDAS, invariantes: {} };
 for (const k of Object.keys(R).sort()) {
+  if (k === '__cauda') continue;
   const I = R[k];
   const p = I.ok / Math.max(1, I.n);
   /* IC de Wilson: honesto perto de 0% e de 100%, ao contrario do normal */
@@ -230,6 +259,15 @@ for (const k of Object.keys(R).sort()) {
               (I.pior ? I.pior.toFixed(2) + ' m' : '').padStart(12));
   saida.invariantes[k] = { ok: I.ok, n: I.n, pct: +(100 * p).toFixed(2),
                            ic: [+(100 * lo).toFixed(2), +(100 * hi).toFixed(2)], pior: I.pior };
+}
+if (R.__cauda && R.__cauda.length) {
+  console.log('\n   CAUDA DO F2 — as cobrancas que sairam LONGE do ponto da falta:');
+  for (const c of R.__cauda.slice().sort((a, b) => b.d - a.d).slice(0, 10)) {
+    console.log('      ' + String(c.d).padStart(7) + ' m   min ' + String(c.minuto).padStart(5) +
+                '  tempo ' + c.half +
+                '   falta (' + c.falta.x + ',' + c.falta.y + ')  bola (' + c.bola.x + ',' + c.bola.y + ')' +
+                '   batedor a ' + c.naBola + ' m da bola');
+  }
 }
 console.log('\nO IC de 95% esta aqui porque a licao da OS-249 foi essa: numero sem');
 console.log('erro padrao nao decide nada. Dois builds so DIFEREM quando os');
