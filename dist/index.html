@@ -11550,11 +11550,30 @@ function isPortraitPhone(){
     && window.matchMedia('(orientation: portrait)').matches
     && !window.matchMedia('(min-width: 900px)').matches;
 }
+/* §OS-243 · O ZOOM DA CAMERA PASSA A SER AJUSTAVEL EM EXECUCAO.
+   -------------------------------------------------------------------------
+   Pedido do dono: "fecha a camera e me mostra".
+
+   O atleta e desenhado com `r = 13 * s`: 26 px de altura. Depois de dar
+   articulacao, proporcao e pulo ao boneco, ficou claro que o maior limitador
+   de percepcao que restava nao era detalhe nenhum -- era o TAMANHO. Nenhuma
+   animacao aparece num corpo de 26 px.
+
+   `CDS_ZOOM` substitui o zoom-base em qualquer orientacao, o que permite
+   fotografar o MESMO lance em varios enquadramentos e comparar, em vez de
+   escolher um numero no escuro. Sem ela, o comportamento e o de antes. */
 function camBaseZoom(){
+  const _ov = Number(window.CDS_ZOOM);
+  if (isFinite(_ov) && _ov >= 1 && _ov <= 4) return _ov;
   if (isPortraitPhone()) return 1.22;    // retrato: ação maior; a interface fica abaixo por rolagem
   /* OS-57 · tela larga: um pouco mais aberta que o paisagem de celular, porque
      o contexto tatico cabe e importa. */
-  try{ if (window.matchMedia('(min-width: 900px)').matches) return 1.30; }catch(_){}
+  /* §OS-243 · o desktop fechou de 1,30 para 2,00. A 1,30 o atleta tem 30 px
+     de altura e nenhuma animacao se ve; a 2,00 sao ~47 px, com o quadro ainda
+     indo do circulo central a linha de fundo. Medido na escada de zoom:
+     1,30 -> 30 px · 1,70 -> 40 · 2,10 -> 49 · 2,60 -> 61, e a partir de 2,4
+     o contexto tatico comeca a sair do quadro. */
+  try{ if (window.matchMedia('(min-width: 900px)').matches) return 2.00; }catch(_){}
   return 1.35;                           // paisagem: câmera de TV
 }
 /* PONTO 3 · flag de ressincronização do canvas em telas de alta densidade —
@@ -14883,28 +14902,35 @@ function paintField() {
          ocupacao: desce em degraus e, se nao couber, omite — melhor um nome a
          menos do que dois ilegiveis. */
       const nm = lastWord(p.n, 9);
-      ctx.font = `bold 7.5px Arial,sans-serif`;
+      /* §OS-243 · A PLACA NAO PODE CRESCER COM A LENTE.
+         O chip e desenhado DENTRO da transformacao da camera, entao ele
+         escalava junto com o zoom: fechando a camera de 1,30 para 2,10 o nome
+         quase dobrava de corpo e passava a competir com o jogador que ele
+         identifica. Texto de interface tem de ter tamanho constante em TELA.
+         Dividir por `z` cancela exatamente a escala aplicada acima. */
+      const _cz = (_camView && _camView.z) || 1;
+      ctx.font = `bold ${(7.5 / _cz).toFixed(2)}px Arial,sans-serif`;
       const tw = ctx.measureText(nm).width;
-      const pw = tw + 8, ph2 = 11, pxc = Math.max(M + pw/2 + 2, Math.min(CW - M - pw/2 - 2, x));
+      const pw = tw + 8 / _cz, ph2 = 11 / _cz, pxc = Math.max(M + pw/2 + 2, Math.min(CW - M - pw/2 - 2, x));
       if (!window.__cdsChips || window.__cdsChips.n !== _cdsChipFrame) {
         window.__cdsChips = { n: _cdsChipFrame, r: [] };
       }
       const _oc = window.__cdsChips.r;
       const _bate = (ax, ay) => _oc.some(q =>
         Math.abs(ax - q.x) < (pw + q.w) / 2 - 1 && Math.abs(ay - q.y) < (ph2 + q.h) / 2 - 1);
-      let py2 = y + r + 2, _ok = !_bate(pxc, py2 + ph2 / 2);
+      let py2 = y + r + 2 / _cz, _ok = !_bate(pxc, py2 + ph2 / 2);
       for (let _t = 0; !_ok && _t < 3; _t++) {
-        py2 += 12;
+        py2 += 12 / _cz;
         _ok = !_bate(pxc, py2 + ph2 / 2);
       }
       if (_ok) {
         _oc.push({ x: pxc, y: py2 + ph2 / 2, w: pw, h: ph2 });
         ctx.fillStyle = 'rgba(4,8,18,.78)';
         ctx.beginPath();
-        ctx.roundRect(pxc - pw/2, py2, pw, ph2, 6);
+        ctx.roundRect(pxc - pw/2, py2, pw, ph2, 6 / _cz);
         ctx.fill();
         ctx.fillStyle = '#fff';
-        ctx.fillText(nm, pxc, py2 + ph2/2 + 0.5);
+        ctx.fillText(nm, pxc, py2 + ph2/2 + 0.5 / _cz);
       }
       }
     }
