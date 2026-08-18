@@ -88,9 +88,9 @@ estiver lá a consulta aborta em vez de improvisar.
 
 ## Botões no Telegram
 
-A conversa tem um teclado fixo com **🌿 Ver catálogo agora**, **📸 Fotos e THC**
-e **📊 Status**, e o menu de comandos traz `/catalogo`, `/fotos`, `/status` e
-`/ajuda`.
+A conversa tem um teclado fixo com **💡 O que usar hoje?**, **🌿 Ver catálogo
+agora**, **📸 Fotos e THC** e **📊 Status**, e o menu de comandos traz `/guia`,
+`/catalogo`, `/fotos`, `/status` e `/ajuda`.
 
 Não existe servidor ouvindo o Telegram — isso custaria dinheiro e o combinado é
 não gastar nada. Quem escuta é a própria execução agendada: cada rodada lê o
@@ -101,6 +101,27 @@ responde. Na prática o toque no botão é atendido em até ~5 minutos, média d
 Só o dono recebe resposta. O bot é público — qualquer um acha `@abecmed_bot` e
 pode mandar mensagem —, então as mensagens de outros chats são consumidas e
 ignoradas.
+
+## Sugestão por atividade
+
+O botão **💡 O que usar hoje?** responde qual produto combina com dormir,
+trabalhar, treinar, criar, aliviar o corpo ou acalmar — e aceita texto livre
+(*"vou treinar"*, *"preciso dormir"*, *"dor nas costas"*).
+
+Não é um modelo de linguagem. É um casamento entre a atividade e o que a
+própria ABECMED publica na ficha: terpenos, proporção índica/sativa e teor de
+THC. A vantagem de não usar LLM aqui não é só o custo — a resposta sai sempre
+do dado real da ficha, então não há como inventar um terpeno que o produto não
+tem, nem recomendar produto fora de estoque.
+
+Os pesos estão em `PERFIS`, no `monitor.py`. O eixo índica/sativa pesa mais que
+os terpenos porque é o sinal mais forte para dia/noite; os terpenos afinam.
+Sem esse ajuste, uma flor 55% índica ganhava de uma 80% índica na sugestão de
+dormir.
+
+As associações entre terpeno e efeito são as descritas na literatura de
+cannabis e são **gerais**. Toda resposta diz, junto, que isso não é orientação
+médica e que quem decide é o prescritor.
 
 ## Secrets
 

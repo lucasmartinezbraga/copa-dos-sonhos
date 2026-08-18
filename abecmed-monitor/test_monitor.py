@@ -216,6 +216,73 @@ M.registrar_historico(est, caro, agora)
 checar(len(est["historico"]) == n1 + 1, "mudança de preço vira um registro")
 checar(est["historico"][-1]["preco"] == 99.0, "o registro guarda o preço novo")
 
+print("\nrecomendação por atividade")
+FICHAS = {
+    "papaya (indoor)": {
+        "thc": "até 15%",
+        "detalhes": [
+            "Genética: Citral #13 × Ice #2 Híbrida com predominância índica (20% sativa / 80% indica)",
+            "Terpenos predominantes: Mirceno - Limoneno",
+        ],
+    },
+    "double stack (indoor)": {
+        "thc": "19%",
+        "detalhes": [
+            "Genética: híbrida (40% sativa / 60% indica)",
+            "Terpenos predominantes: Limoneno - Cariofileno",
+        ],
+    },
+    "chemdawg (indoor)": {
+        "thc": "20%",
+        "detalhes": [
+            "Genética: híbrida (45% sativa / 55% indica)",
+            "Terpenos predominantes: Mirceno - Cariofileno",
+        ],
+    },
+    "extrato live rosin": {"thc": "74%", "detalhes": []},
+}
+perf = M.perfil_do_produto(FICHAS["papaya (indoor)"])
+checar(perf["indica"] == 0.8 and perf["sativa"] == 0.2, f"lê 80/20 da genética (achou {perf['indica']}/{perf['sativa']})")
+checar(perf["terpenos"] == ["mirceno", "limoneno"], f"lê os terpenos (achou {perf['terpenos']})")
+checar(perf["thc"] == 15.0, "converte 'até 15%' em 15.0")
+checar(M.thc_numero("44,9%") == 44.9, "converte '44,9%' com vírgula")
+checar(M.thc_numero(None) is None, "ficha sem THC não quebra o perfil")
+
+checar(M.atividade_do_texto("preciso dormir") == "dormir", "'preciso dormir' -> dormir")
+checar(M.atividade_do_texto("vou treinar hoje") == "disposicao", "'vou treinar' -> disposição")
+checar(M.atividade_do_texto("tenho que trabalhar") == "foco", "'trabalhar' -> foco")
+checar(M.atividade_do_texto("dor nas costas") == "corpo", "'dor nas costas' -> corpo")
+checar(M.atividade_do_texto("estou com ansiedade") == "calma", "'ansiedade' -> calma")
+# 'dor' é pedaço de 'dormir': a ordem dos perfis tem de resolver isso
+checar(M.atividade_do_texto("quero dormir cedo") == "dormir", "'dormir' não cai em 'dor'")
+checar(M.atividade_do_texto("bom dia") is None, "conversa solta não vira recomendação")
+
+cat_rec = {
+    "flores": {"disponivel": True, "limite": None, "produtos": [
+        {"nome": "Papaya (indoor)", "preco": 85.0, "categoria": "THC"},
+        {"nome": "Double Stack (indoor)", "preco": 90.0, "categoria": "THC"},
+        {"nome": "Chemdawg (indoor)", "preco": 85.0, "categoria": "THC"},
+    ]},
+    "concentrados": {"disponivel": True, "limite": None, "produtos": [
+        {"nome": "Extrato Live Rosin", "preco": 350.0, "categoria": "THC"},
+    ]},
+}
+topo = lambda a: M.recomendar(cat_rec, FICHAS, a, quantos=1)[0][1]["nome"]
+checar(topo("dormir") == "Papaya (indoor)", f"dormir -> a mais índica com mirceno (achou {topo('dormir')})")
+checar(topo("foco") == "Double Stack (indoor)", f"foco -> limoneno e THC mais leve (achou {topo('foco')})")
+checar(topo("corpo") == "Chemdawg (indoor)", f"corpo -> mirceno + cariofileno (achou {topo('corpo')})")
+
+guia = M.render_guia(cat_rec, FICHAS, agora)
+checar("Papaya" in guia and "Double Stack" in guia, "o guia cobre atividades diferentes com produtos diferentes")
+checar("orientação médica" in guia and "prescritor" in guia, "o guia deixa claro que não é orientação médica")
+rec = M.render_recomendacao(cat_rec, FICHAS, "dormir", agora)
+checar("orientação médica" in rec and "prescritor" in rec, "a recomendação avulsa também avisa")
+vazia_rec = M.render_recomendacao({"flores": {"produtos": []}}, {}, "dormir", agora)
+checar("Ainda não tenho ficha" in vazia_rec, "sem ficha, não inventa recomendação")
+
+r_livre = M.responder_comando("vou treinar", cat_rec, {"fichas": FICHAS}, agora, True)
+checar(r_livre is not None and "Exercício" in r_livre, "texto livre no Telegram vira recomendação")
+
 print("\nbotões e comandos do bot")
 estado_ex = {"falhas_seguidas": 0, "ultima_mudanca_em": "2026-08-18T19:30:00-03:00"}
 cat = {
@@ -235,10 +302,14 @@ checar("4 falha(s)" in r_ruim, "status mostra as falhas acumuladas")
 checar(M.responder_comando("/ajuda", cat, estado_ex, agora, True).startswith("❓"), "responde /ajuda")
 checar(M.responder_comando("/start", cat, estado_ex, agora, True).startswith("👋"), "responde /start")
 checar(M.responder_comando("bom dia", cat, estado_ex, agora, True) is None, "ignora conversa solta")
+# Por posição não: o teclado ganha linha quando entra botão novo, e o teste
+# quebrava por layout em vez de por comportamento.
+rotulos = {b["text"] for linha in M.TECLADO["keyboard"] for b in linha}
 checar(
-    M.TECLADO["keyboard"][0][0]["text"] == M.BOTAO_CATALOGO and M.TECLADO.get("is_persistent") is True,
-    "o teclado fixo tem o botão de catálogo",
+    {M.BOTAO_GUIA, M.BOTAO_CATALOGO, M.BOTAO_FOTOS, M.BOTAO_STATUS} <= rotulos,
+    f"o teclado fixo traz os quatro botões (achou {len(rotulos)})",
 )
+checar(M.TECLADO.get("is_persistent") is True, "o teclado não some depois de usar")
 
 print()
 if falhas:

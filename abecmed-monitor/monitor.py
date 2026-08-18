@@ -540,13 +540,14 @@ def render_mensagem(mudancas, catalogo, agora, fichas=None):
 
 BOTAO_CATALOGO = "🌿 Ver catálogo agora"
 BOTAO_FOTOS = "📸 Fotos e THC"
+BOTAO_GUIA = "💡 O que usar hoje?"
 BOTAO_STATUS = "📊 Status"
 
 # Teclado fixo na conversa: os botões só mandam esse texto de volta, e a
 # execução seguinte responde. É o mais perto de "rodar sob demanda" que dá para
 # fazer sem manter um servidor ligado ouvindo o Telegram.
 TECLADO = {
-    "keyboard": [[{"text": BOTAO_CATALOGO}], [{"text": BOTAO_FOTOS}, {"text": BOTAO_STATUS}]],
+    "keyboard": [[{"text": BOTAO_GUIA}], [{"text": BOTAO_CATALOGO}], [{"text": BOTAO_FOTOS}, {"text": BOTAO_STATUS}]],
     "resize_keyboard": True,
     "is_persistent": True,
 }
@@ -557,8 +558,12 @@ AJUDA = (
     "anterior e só te chamo quando alguma coisa muda: produto novo, produto que "
     "saiu, preço alterado ou seção que ficou sem estoque.\n\n"
     "Roda no GitHub Actions — seu celular e seu computador podem ficar desligados.\n\n"
-    f"<b>{BOTAO_CATALOGO}</b> — manda o catálogo atual.\n"
+    f"<b>{BOTAO_GUIA}</b> — sugere o que combina com cada atividade.\n"
+    f"<b>{BOTAO_CATALOGO}</b> — manda o catálogo atual, com o THC de cada um.\n"
+    f"<b>{BOTAO_FOTOS}</b> — manda a foto e a ficha de cada produto.\n"
     f"<b>{BOTAO_STATUS}</b> — diz se está tudo funcionando.\n\n"
+    "Pode escrever o que vai fazer — <i>“vou treinar”</i>, <i>“preciso dormir”</i>, "
+    "<i>“dor nas costas”</i> — que eu comparo com os terpenos da ficha e respondo.\n\n"
     "Não existe um servidor ouvindo o tempo todo (isso custaria dinheiro), então "
     "o toque no botão é atendido na próxima verificação: até ~5 minutos.\n"
     "Para uma consulta na hora, use <b>Run workflow</b> em\n"
@@ -577,6 +582,208 @@ def enviar_telegram(token, chat, texto):
             "reply_markup": TECLADO,
         },
     )
+
+
+# ------------------------------------------------- recomendação por atividade
+#
+# Isto não é um modelo de linguagem: é um casamento entre o que a pessoa quer
+# fazer e o que a própria ABECMED publica na ficha de cada produto — terpenos,
+# proporção índica/sativa e teor de THC. A vantagem de não usar LLM aqui não é
+# só o custo: a resposta sai sempre do dado real da ficha, então não tem como
+# inventar um terpeno que o produto não tem.
+#
+# As associações entre terpeno e efeito são as descritas na literatura de
+# cannabis e são GERAIS. Não é orientação médica, e toda resposta diz isso.
+
+PERFIS = {
+    "dormir": {
+        "rotulo": "🛏️ Dormir e descansar",
+        "chaves": ("dormir", "sono", "insonia", "insônia", "noite", "descansar", "relaxar"),
+        "terpenos": {"mirceno": 3, "linalol": 3, "cariofileno": 1, "humuleno": 1},
+        "indica": 5.0,
+        "thc": "alto",
+    },
+    "foco": {
+        "rotulo": "💼 Trabalhar e concentrar",
+        "chaves": ("trabalh", "foco", "concentr", "estudar", "estudo", "produtiv", "reunião", "reuniao"),
+        "terpenos": {"pineno": 3, "limoneno": 2, "terpinoleno": 1},
+        "sativa": 5.0,
+        "thc": "baixo",
+    },
+    "disposicao": {
+        "rotulo": "🏃 Exercício e disposição",
+        "chaves": ("exerc", "treino", "treinar", "corr", "academia", "esporte", "caminhada", "disposi", "energia"),
+        "terpenos": {"limoneno": 3, "pineno": 2, "ocimeno": 2},
+        "sativa": 5.0,
+        "thc": "baixo",
+    },
+    "criatividade": {
+        "rotulo": "🎨 Criatividade e lazer",
+        "chaves": ("criativ", "criar", "arte", "música", "musica", "escrever", "lazer", "passear", "diversão", "diversao"),
+        "terpenos": {"terpinoleno": 3, "limoneno": 3, "pineno": 1},
+        "sativa": 3.0,
+        "thc": None,
+    },
+    "corpo": {
+        "rotulo": "🌿 Alívio no corpo",
+        "chaves": ("dor", "corpo", "muscul", "inflama", "tensão", "tensao", "cólica", "colica"),
+        "terpenos": {"cariofileno": 3, "mirceno": 3, "humuleno": 2},
+        "indica": 3.0,
+        "thc": "alto",
+    },
+    "calma": {
+        "rotulo": "😌 Acalmar a cabeça",
+        "chaves": ("ansiedade", "ansios", "acalmar", "calma", "estresse", "estress", "nervos"),
+        "terpenos": {"linalol": 3, "cariofileno": 3, "mirceno": 1},
+        "indica": 2.5,
+        "thc": "baixo",
+    },
+}
+
+RX_PROPORCAO = re.compile(r"(\d{1,3})\s*%\s*(sativa|[íi]ndica)\s*/\s*(\d{1,3})\s*%\s*(sativa|[íi]ndica)", re.I)
+
+
+def thc_numero(thc):
+    """'até 26%' -> 26.0 ; '44,9%' -> 44.9 ; None quando não dá para ler."""
+    if not thc:
+        return None
+    m = re.search(r"(\d+(?:[.,]\d+)?)", str(thc))
+    return float(m.group(1).replace(",", ".")) if m else None
+
+
+def perfil_do_produto(ficha):
+    """Extrai da ficha o que serve para recomendar."""
+    texto = " ".join(ficha.get("detalhes") or [])
+    indica = sativa = None
+    m = RX_PROPORCAO.search(texto)
+    if m:
+        a, ta, b, tb = m.group(1), m.group(2).lower(), m.group(3), m.group(4).lower()
+        valores = {("sativa" if t.startswith("sativa") else "indica"): int(v) / 100 for v, t in ((a, ta), (b, tb))}
+        indica, sativa = valores.get("indica"), valores.get("sativa")
+    elif re.search(r"predomin\w*\s+[íi]ndica", texto, re.I):
+        indica, sativa = 0.7, 0.3
+    elif re.search(r"predomin\w*\s+sativa", texto, re.I):
+        indica, sativa = 0.3, 0.7
+
+    achados = [t for t in ("mirceno", "limoneno", "pineno", "cariofileno", "linalol",
+                           "terpinoleno", "humuleno", "ocimeno")
+               if re.search(t, texto, re.I)]
+    return {"terpenos": achados, "indica": indica, "sativa": sativa, "thc": thc_numero(ficha.get("thc"))}
+
+
+def pontuar(perfil, alvo):
+    """Nota do produto para uma atividade, mais o porquê em texto."""
+    nota, motivos = 0.0, []
+
+    casados = [t for t in perfil["terpenos"] if t in alvo["terpenos"]]
+    for t in casados:
+        nota += alvo["terpenos"][t]
+    if casados:
+        motivos.append(", ".join(t.capitalize() for t in casados))
+
+    if alvo.get("indica") and perfil.get("indica"):
+        nota += alvo["indica"] * perfil["indica"]
+        if perfil["indica"] >= 0.6:
+            motivos.append(f"{round(perfil['indica'] * 100)}% índica")
+    if alvo.get("sativa") and perfil.get("sativa"):
+        nota += alvo["sativa"] * perfil["sativa"]
+        if perfil["sativa"] >= 0.6:
+            motivos.append(f"{round(perfil['sativa'] * 100)}% sativa")
+
+    thc = perfil.get("thc")
+    if thc is not None and alvo.get("thc"):
+        # Concentrado passa de 40%: comparar com flor pela mesma régua não faz
+        # sentido, então a régua é relativa à faixa de cada um.
+        forte = thc >= 40 or (thc >= 22 and thc < 40)
+        if alvo["thc"] == "alto" and forte:
+            nota += 1.5
+            motivos.append(f"THC {thc:g}%")
+        elif alvo["thc"] == "baixo" and not forte:
+            nota += 1.5
+            motivos.append(f"THC mais leve ({thc:g}%)")
+    return nota, motivos
+
+
+def recomendar(catalogo, fichas, atividade, quantos=2):
+    alvo = PERFIS[atividade]
+    ranking = []
+    for chave in ("flores", "concentrados"):
+        for p in (catalogo.get(chave) or {}).get("produtos") or []:
+            ficha = (fichas or {}).get(p["nome"].lower())
+            if not ficha:
+                continue
+            nota, motivos = pontuar(perfil_do_produto(ficha), alvo)
+            if nota > 0:
+                ranking.append((nota, p, motivos, chave))
+    ranking.sort(key=lambda x: (-x[0], x[1]["nome"]))
+    return ranking[:quantos]
+
+
+def atividade_do_texto(texto):
+    t = texto.strip().lower()
+    for nome, perfil in PERFIS.items():
+        if any(c in t for c in perfil["chaves"]):
+            return nome
+    return None
+
+
+AVISO_MEDICO = (
+    "<i>Isto compara os terpenos e a proporção que a própria ABECMED publica na "
+    "ficha. É informação geral, não orientação médica — quem decide o que e "
+    "quanto usar é o seu prescritor.</i>"
+)
+
+
+def render_recomendacao(catalogo, fichas, atividade, agora):
+    alvo = PERFIS[atividade]
+    itens = recomendar(catalogo, fichas, atividade)
+    linhas = [f"<b>{escapar(alvo['rotulo'])}</b>", f"🕐 {agora.strftime('%d/%m %H:%M')}", ""]
+    if not itens:
+        linhas.append(
+            "Ainda não tenho ficha suficiente dos produtos para sugerir. "
+            "As fichas são lidas quando o produto aparece no catálogo."
+        )
+    else:
+        for i, (_, p, motivos, _c) in enumerate(itens, 1):
+            marca = "🥇" if i == 1 else "🥈"
+            linhas.append(f"{marca} <b>{escapar(p['nome'])}</b> — {reais(p['preco'])}")
+            if motivos:
+                linhas.append(f"    {escapar(' · '.join(motivos))}")
+        linhas.append("")
+    linhas.append(AVISO_MEDICO)
+    return "\n".join(linhas)
+
+
+def render_guia(catalogo, fichas, agora):
+    """Uma sugestão para cada atividade, de uma vez só.
+
+    De propósito tudo numa mensagem: cada ida e volta no Telegram custa até 5
+    minutos aqui, então perguntar "para qual atividade?" e esperar a resposta
+    levaria dez.
+    """
+    linhas = ["💡 <b>O que combina com cada atividade</b>", f"🕐 {agora.strftime('%d/%m/%Y %H:%M')}", ""]
+    algum = False
+    for nome, alvo in PERFIS.items():
+        itens = recomendar(catalogo, fichas, nome, quantos=1)
+        if not itens:
+            continue
+        algum = True
+        _, p, motivos, _c = itens[0]
+        linhas.append(f"{escapar(alvo['rotulo'])}")
+        linhas.append(f"→ <b>{escapar(p['nome'])}</b> — {reais(p['preco'])}")
+        if motivos:
+            linhas.append(f"   <i>{escapar(' · '.join(motivos))}</i>")
+        linhas.append("")
+    if not algum:
+        return (
+            "💡 Ainda não tenho as fichas dos produtos para sugerir nada.\n"
+            "Elas são lidas quando o produto aparece no catálogo — tente de novo mais tarde."
+        )
+    linhas.append("Pode também escrever o que vai fazer — <i>“vou treinar”</i>, "
+                  "<i>“preciso dormir”</i>, <i>“trabalhar”</i> — que eu respondo com o que combina.")
+    linhas.append("")
+    linhas.append(AVISO_MEDICO)
+    return "\n".join(linhas)
 
 
 def enviar_foto(token, chat, foto, legenda):
@@ -717,6 +924,14 @@ def responder_comando(texto, catalogo, estado, agora, ao_vivo):
 
     if t.startswith(("ajuda", "help")):
         return AJUDA
+
+    if texto.strip() == BOTAO_GUIA or t.startswith(("guia", "sugest", "recomend", "o que usar")):
+        return render_guia(catalogo or {}, estado.get("fichas"), agora)
+
+    # Texto livre: "vou treinar", "preciso dormir", "dor nas costas".
+    atividade = atividade_do_texto(texto)
+    if atividade:
+        return render_recomendacao(catalogo or {}, estado.get("fichas"), atividade, agora)
 
     return None  # mensagem solta: não responde nada
 
