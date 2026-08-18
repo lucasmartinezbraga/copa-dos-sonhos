@@ -173,6 +173,30 @@ checar(
     "nenhuma intenção casa com botão de confirmar/finalizar pedido",
 )
 
+print("\nbotões e comandos do bot")
+estado_ex = {"falhas_seguidas": 0, "ultima_mudanca_em": "2026-08-18T19:30:00-03:00"}
+cat = {
+    "flores": antes["flores"],
+    "concentrados": antes["concentrados"],
+}
+r = M.responder_comando(M.BOTAO_CATALOGO, cat, estado_ex, agora, True)
+checar(r is not None and "Extrato Live Rosin" in r, "o botão de catálogo devolve a lista")
+checar("consultado agora" in r, "diz que o dado é da consulta ao vivo")
+r_off = M.responder_comando("/catalogo", cat, estado_ex, agora, False)
+checar("última consulta que deu certo" in r_off, "avisa quando o dado não é ao vivo")
+r_st = M.responder_comando(M.BOTAO_STATUS, cat, estado_ex, agora, True)
+checar("✅ funcionando" in r_st, "status diz que está funcionando quando não há falha")
+checar("5 produto(s)" in r_st and "3 produto(s)" in r_st, "status conta os produtos das duas seções")
+r_ruim = M.responder_comando("/status", cat, {"falhas_seguidas": 4}, agora, True)
+checar("4 falha(s)" in r_ruim, "status mostra as falhas acumuladas")
+checar(M.responder_comando("/ajuda", cat, estado_ex, agora, True).startswith("❓"), "responde /ajuda")
+checar(M.responder_comando("/start", cat, estado_ex, agora, True).startswith("👋"), "responde /start")
+checar(M.responder_comando("bom dia", cat, estado_ex, agora, True) is None, "ignora conversa solta")
+checar(
+    M.TECLADO["keyboard"][0][0]["text"] == M.BOTAO_CATALOGO and M.TECLADO.get("is_persistent") is True,
+    "o teclado fixo tem o botão de catálogo",
+)
+
 print()
 if falhas:
     print(f"{len(falhas)} teste(s) falharam:")

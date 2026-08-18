@@ -66,6 +66,21 @@ THC
 
 Toda notificação leva o catálogo completo junto, não só o que mudou.
 
+## Botões no Telegram
+
+A conversa tem um teclado fixo com **🌿 Ver catálogo agora** e **📊 Status**, e o
+menu de comandos traz `/catalogo`, `/status` e `/ajuda`.
+
+Não existe servidor ouvindo o Telegram — isso custaria dinheiro e o combinado é
+não gastar nada. Quem escuta é a própria execução agendada: cada rodada lê o
+que chegou desde a anterior (`getUpdates` com o offset guardado no estado) e
+responde. Na prática o toque no botão é atendido em até ~5 minutos, média de
+~2,5. Para resposta imediata existe **Run workflow** na aba Actions.
+
+Só o dono recebe resposta. O bot é público — qualquer um acha `@abecmed_bot` e
+pode mandar mensagem —, então as mensagens de outros chats são consumidas e
+ignoradas.
+
 ## Secrets
 
 Configurados em **Settings → Secrets and variables → Actions**:

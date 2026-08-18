@@ -396,6 +396,139 @@ def render_mensagem(mudancas, catalogo, agora):
 # ---------------------------------------------------------------- notificação
 
 
+BOTAO_CATALOGO = "🌿 Ver catálogo agora"
+BOTAO_STATUS = "📊 Status"
+
+# Teclado fixo na conversa: os botões só mandam esse texto de volta, e a
+# execução seguinte responde. É o mais perto de "rodar sob demanda" que dá para
+# fazer sem manter um servidor ligado ouvindo o Telegram.
+TECLADO = {
+    "keyboard": [[{"text": BOTAO_CATALOGO}, {"text": BOTAO_STATUS}]],
+    "resize_keyboard": True,
+    "is_persistent": True,
+}
+
+AJUDA = (
+    "❓ <b>Como isto funciona</b>\n\n"
+    "Eu consulto o catálogo da ABECMED de 5 em 5 minutos, comparo com a consulta "
+    "anterior e só te chamo quando alguma coisa muda: produto novo, produto que "
+    "saiu, preço alterado ou seção que ficou sem estoque.\n\n"
+    "Roda no GitHub Actions — seu celular e seu computador podem ficar desligados.\n\n"
+    f"<b>{BOTAO_CATALOGO}</b> — manda o catálogo atual.\n"
+    f"<b>{BOTAO_STATUS}</b> — diz se está tudo funcionando.\n\n"
+    "Não existe um servidor ouvindo o tempo todo (isso custaria dinheiro), então "
+    "o toque no botão é atendido na próxima verificação: até ~5 minutos.\n"
+    "Para uma consulta na hora, use <b>Run workflow</b> em\n"
+    "github.com/lucasmartinezbraga/copa-dos-sonhos/actions"
+)
+
+
+def enviar_telegram(token, chat, texto):
+    _post(
+        f"https://api.telegram.org/bot{token}/sendMessage",
+        {
+            "chat_id": chat,
+            "text": texto,
+            "parse_mode": "HTML",
+            "disable_web_page_preview": True,
+            "reply_markup": TECLADO,
+        },
+    )
+
+
+def responder_comando(texto, catalogo, estado, agora, ao_vivo):
+    """Traduz o que a pessoa mandou na resposta correspondente."""
+    t = texto.strip().lower().lstrip("/")
+
+    if t.startswith(("catalogo", "catálogo")) or texto.strip() == BOTAO_CATALOGO:
+        if not catalogo:
+            return "⚠️ Ainda não tenho um catálogo guardado. Tente de novo no próximo ciclo."
+        quando = "consultado agora" if ao_vivo else "última consulta que deu certo"
+        return (
+            f"🌿 <b>Catálogo da ABECMED</b>\n"
+            f"🕐 {agora.strftime('%d/%m/%Y %H:%M')} (Brasília) — {quando}\n\n"
+            + render_catalogo(catalogo)
+        )
+
+    if t.startswith("status") or texto.strip() == BOTAO_STATUS:
+        falhas = int(estado.get("falhas_seguidas", 0))
+        saude = "✅ funcionando" if falhas == 0 else f"⚠️ {falhas} falha(s) seguida(s)"
+        cat = catalogo or {}
+        nf = len((cat.get("flores") or {}).get("produtos") or [])
+        nc = len((cat.get("concentrados") or {}).get("produtos") or [])
+        linhas = [
+            "📊 <b>Status do monitor</b>",
+            f"🕐 {agora.strftime('%d/%m/%Y %H:%M')} (Brasília)",
+            "",
+            f"Estado: {saude}",
+            f"Verificação: a cada 5 minutos, 24h por dia",
+            f"🌿 Flores: {nf} produto(s)",
+            f"🍯 Concentrados: {nc} produto(s)",
+        ]
+        if estado.get("ultima_mudanca_em"):
+            linhas.append(f"Última mudança detectada: {estado['ultima_mudanca_em'][:16].replace('T', ' ')}")
+        if estado.get("ultima_falha"):
+            linhas.append(f"Último erro: {escapar(str(estado['ultima_falha'])[:150])}")
+        return "\n".join(linhas)
+
+    if t.startswith("start"):
+        return (
+            "👋 <b>Pronto, estou de olho!</b>\n\n"
+            "A partir de agora eu te aviso sozinho quando o catálogo da ABECMED "
+            "mudar — flores, concentrados, preços e disponibilidade.\n\n"
+            "Use os botões aqui embaixo quando quiser consultar na hora."
+        )
+
+    if t.startswith(("ajuda", "help")):
+        return AJUDA
+
+    return None  # mensagem solta: não responde nada
+
+
+def atender_comandos(estado, catalogo, agora, ao_vivo):
+    """Lê o que chegou no bot desde a última execução e responde.
+
+    Sem servidor ouvindo, quem "escuta" o Telegram é esta execução, que já roda
+    de 5 em 5 minutos por causa do monitoramento. O offset guardado no estado
+    marca o que já foi atendido, senão responderíamos a mesma mensagem para
+    sempre.
+    """
+    token = (os.environ.get("TELEGRAM_BOT_TOKEN") or "").strip()
+    dono = estado.get("telegram_chat_id") or os.environ.get("TELEGRAM_CHAT_ID", "").strip()
+    if not token or not dono:
+        return 0
+
+    url = f"https://api.telegram.org/bot{token}/getUpdates?timeout=0&limit=20"
+    if estado.get("telegram_offset"):
+        url += f"&offset={int(estado['telegram_offset'])}"
+    try:
+        with urllib.request.urlopen(url, timeout=30) as r:
+            data = json.loads(r.read().decode())
+    except Exception as e:
+        print(f"AVISO: não consegui ler mensagens do Telegram: {e}", file=sys.stderr)
+        return 0
+
+    atendidos = 0
+    for upd in data.get("result") or []:
+        estado["telegram_offset"] = int(upd["update_id"]) + 1
+        msg = upd.get("message") or {}
+        texto = msg.get("text") or ""
+        chat = str((msg.get("chat") or {}).get("id") or "")
+        # O bot é público: qualquer pessoa pode achá-lo e mandar mensagem. Só o
+        # dono recebe resposta — os outros são consumidos e ignorados.
+        if not texto or chat != str(dono):
+            continue
+        resposta = responder_comando(texto, catalogo, estado, agora, ao_vivo)
+        if not resposta:
+            continue
+        try:
+            enviar_telegram(token, chat, resposta)
+            atendidos += 1
+        except Exception as e:
+            print(f"AVISO: falha ao responder '{texto[:20]}': {e}", file=sys.stderr)
+    return atendidos
+
+
 def telegram_chat_id(token, cacheado):
     """Descobre o chat pelo /start que o usuário mandou ao bot."""
     if os.environ.get("TELEGRAM_CHAT_ID"):
@@ -428,15 +561,7 @@ def notificar(texto, estado):
     if token:
         try:
             chat = telegram_chat_id(token, estado.get("telegram_chat_id"))
-            _post(
-                f"https://api.telegram.org/bot{token}/sendMessage",
-                {
-                    "chat_id": chat,
-                    "text": texto,
-                    "parse_mode": "HTML",
-                    "disable_web_page_preview": True,
-                },
-            )
+            enviar_telegram(token, chat, texto)
             estado["telegram_chat_id"] = chat
             enviados.append("telegram")
         except Exception as e:
@@ -516,6 +641,9 @@ def main():
                     f"Último erro: {escapar(str(e))}",
                     estado,
                 )
+            # Mesmo sem conseguir consultar, os botões continuam respondendo —
+            # com o último catálogo bom e o aviso de que ele não é de agora.
+            atender_comandos(estado, estado.get("catalogo"), agora, ao_vivo=False)
             gravar_estado(estado)
         return 1
 
@@ -551,7 +679,10 @@ def main():
             gravar_estado(estado)
             return 3  # houve o que avisar e não saiu — o job deve falhar
 
+    atendidos = atender_comandos(estado, catalogo, agora, ao_vivo=True)
     gravar_estado(estado)
+    if atendidos:
+        print(f"COMANDOS_ATENDIDOS={atendidos}")
     print(f"MUDANCAS={len(mudancas)}")
     for m in mudancas:
         print(f"  {m}")
