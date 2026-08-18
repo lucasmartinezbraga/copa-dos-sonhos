@@ -74,9 +74,17 @@ const alvo = path.resolve(process.argv.slice(2).find(a => !a.startsWith('--')) |
           atual.amostras.push({ t: Number(this.t), x: b.x, y: b.y, z: z,
                                 v: Math.hypot(b.vx || 0, b.vy || 0), vz: b.vz || 0 });
           if (z > atual.apice) atual.apice = z;
-          /* quique: z chega a ~0 vindo de cima e volta a subir */
-          if (prev && prev.z > 0.02 && z <= 0.02 && (b.vz || 0) >= 0) {
-            atual.quiques.push(+prev.z.toFixed(3));
+          /* §2a versao · O QUIQUE E O APICE ENTRE DOIS CONTATOS, nao a amostra
+             que precede o solo. Medindo a amostra anterior, o numero dependia
+             de ONDE o passo caiu na descida -- e foi assim que a primeira
+             leitura acusou "todo segundo quique tem 0,200 m", que e o passo de
+             amostragem, nao a fisica. Agora marca-se o contato e guarda-se o
+             MAIOR z ate o contato seguinte. */
+          if (prev && prev.z > 0.02 && z <= 0.02) {
+            if (atual.emQuique) atual.quiques.push(+(atual.apiceQuique || 0).toFixed(3));
+            atual.emQuique = true; atual.apiceQuique = 0;
+          } else if (atual.emQuique && z > (atual.apiceQuique || 0)) {
+            atual.apiceQuique = z;
           }
           if (atual.amostras.length > 900) { S.voos.push(atual); atual = null; }
         }

@@ -1376,8 +1376,58 @@
     /* §OS-220 · estado persistente da bola entre quadros: rotacao acumulada,
        ultima posicao e o quique. Declarado no TOPO porque tanto o giro quanto
        o achatamento o consultam, e o achatamento e desenhado ANTES. */
-    if (!ball._est) ball._est = { rot: 0, x: null, y: null, zAnt: null, quique: 0, forca: 1, pxAnt: 0, pyAnt: 0 };
+    if (!ball._est) ball._est = { rot: 0, x: null, y: null, zAnt: null, quique: 0, forca: 1, pxAnt: 0, pyAnt: 0,
+                                 zDes: null, taxa: 0, tAlt: 0 };
     const _e = ball._est;
+
+    /* §OS-239 · A BOLA NAO CAI: ELA SOME.
+       ---------------------------------------------------------------------
+       RELATO: "a animacao da bola ainda nao me agrada", "a pingada da bola nao
+       me agrada".
+
+       O quique esta CERTO -- o traco bruto mostra a bola caindo de 5,97 m,
+       tocando a 0,09 e subindo a 1,755 m, que e exatamente restituicao 0,55
+       sobre os -10,5 m/s de chegada. O defeito e outro, e a sonda
+       `salto-da-bola.js` o isola:
+
+           212 saltos de altura por partida alem do que a gravidade permite
+           31 de 157 registrados passam de 0,5 m
+           e o padrao e sempre o mesmo: 0,7 a 2,6 m  ->  ZERO, em um quadro
+
+       As causas sao administrativas -- alguem domina a bola, a viagem termina,
+       a posse muda -- e todas fazem sentido para o MOTOR: ele precisa por a
+       bola no pe de quem a tem. O que nao pode e isso vazar para a TELA. Um
+       metro e meio de bola desaparecendo num quadro le como falha de desenho,
+       varias vezes por partida.
+
+       E o mesmo raciocinio da OS-208 para o corpo do atleta: o motor recoloca
+       a ficha, o desenho PERSEGUE. Aqui a perseguicao tem teto de velocidade
+       de queda, entao a bola desce depressa e visivelmente em vez de sumir.
+
+       O teto nao pode atrapalhar a fisica de verdade: um chute descendo a
+       25 m/s tem de continuar descendo a 25. Por isso a taxa permitida sai de
+       uma media movel da PROPRIA queda observada, que rejeita o quadro do
+       salto como outlier -- e nunca fica abaixo de um piso generoso. */
+    const _agoraB = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+    let _dtB = _e.tAlt ? (_agoraB - _e.tAlt) / 1000 : 1 / 60;
+    if (!(_dtB > 0) || _dtB > 0.25) _dtB = 1 / 60;
+    _e.tAlt = _agoraB;
+    const _zFis = Math.max(0, o.z || 0);
+    if (_e.zDes == null) _e.zDes = _zFis;
+    const _caiu = Math.max(0, (_e.zAnt == null ? 0 : _e.zAnt) - _zFis);
+    /* media movel que so aceita quedas plausiveis: o quadro do teleporte tem
+       queda muito acima da media e nao entra na conta */
+    if (_caiu <= _e.taxa * 1.6 + 0.05) _e.taxa = _e.taxa * 0.72 + _caiu * 0.28;
+    const _tetoQueda = Math.max(_e.taxa * 1.7 + 0.03, 12 * _dtB);
+    const _tetoSubida = Math.max(_e.taxa * 1.7 + 0.03, 14 * _dtB);
+    if (_zFis >= _e.zDes) _e.zDes = Math.min(_zFis, _e.zDes + _tetoSubida);
+    else _e.zDes = Math.max(_zFis, _e.zDes - _tetoQueda);
+    if (Math.abs(_e.zDes - _zFis) < 0.02) _e.zDes = _zFis;
+    /* `CDS_ZSUAVE = false` devolve o comportamento antigo, para a sonda medir
+       antes e depois na MESMA partida */
+    if (root.CDS_ZSUAVE === false) _e.zDes = _zFis;
+    o = Object.assign({}, o, { z: _e.zDes });
+
     const g0 = project(o.gx, o.gy);
     /* §OS-236 · `air` governa tamanho da bola e encolhimento da sombra, as
        duas pistas de altura que sobram quando o olho perde a referencia.
