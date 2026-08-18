@@ -283,6 +283,36 @@ checar("Ainda não tenho ficha" in vazia_rec, "sem ficha, não inventa recomenda
 r_livre = M.responder_comando("vou treinar", cat_rec, {"fichas": FICHAS}, agora, True)
 checar(r_livre is not None and "Exercício" in r_livre, "texto livre no Telegram vira recomendação")
 
+print("\nSecret único (ABECMED_CONFIG)")
+import os  # noqa: E402
+
+
+def com_config(valor):
+    for k in ("ABECMED_CPF", "TELEGRAM_BOT_TOKEN", "ABECMED_CONFIG"):
+        os.environ.pop(k, None)
+    os.environ["ABECMED_CONFIG"] = valor
+    M.carregar_credenciais()
+    return os.environ.get("ABECMED_CPF"), os.environ.get("TELEGRAM_BOT_TOKEN")
+
+
+cpf, tok = com_config("42689744821|123456:ABCdef")
+checar(cpf == "42689744821" and tok == "123456:ABCdef", "separa CPF e token do valor combinado")
+cpf, tok = com_config("123456:ABCdef | 426.897.448-21")
+checar(cpf == "42689744821", "aceita ordem trocada e CPF pontuado")
+checar(tok == "123456:ABCdef", "token continua íntegro com a ordem trocada")
+cpf, tok = com_config("42689744821\n123456:ABCdef")
+checar(cpf == "42689744821" and tok == "123456:ABCdef", "aceita quebra de linha como separador")
+for k in ("ABECMED_CPF", "TELEGRAM_BOT_TOKEN", "ABECMED_CONFIG"):
+    os.environ.pop(k, None)
+os.environ["ABECMED_CPF"] = "11122233344"
+os.environ["ABECMED_CONFIG"] = "99988877766|123456:XYZ"
+M.carregar_credenciais()
+checar(os.environ["ABECMED_CPF"] == "11122233344", "Secret separado tem prioridade sobre o combinado")
+for k in ("ABECMED_CPF", "TELEGRAM_BOT_TOKEN", "ABECMED_CONFIG"):
+    os.environ.pop(k, None)
+M.carregar_credenciais()
+checar("ABECMED_CPF" not in os.environ, "sem ABECMED_CONFIG não inventa credencial")
+
 print("\nbotões e comandos do bot")
 estado_ex = {"falhas_seguidas": 0, "ultima_mudanca_em": "2026-08-18T19:30:00-03:00"}
 cat = {

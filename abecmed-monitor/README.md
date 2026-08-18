@@ -92,11 +92,20 @@ A conversa tem um teclado fixo com **💡 O que usar hoje?**, **🌿 Ver catálo
 agora**, **📸 Fotos e THC** e **📊 Status**, e o menu de comandos traz `/guia`,
 `/catalogo`, `/fotos`, `/status` e `/ajuda`.
 
-Não existe servidor ouvindo o Telegram — isso custaria dinheiro e o combinado é
-não gastar nada. Quem escuta é a própria execução agendada: cada rodada lê o
-que chegou desde a anterior (`getUpdates` com o offset guardado no estado) e
-responde. Na prática o toque no botão é atendido em até ~5 minutos, média de
-~2,5. Para resposta imediata existe **Run workflow** na aba Actions.
+**A resposta é imediata.** Não existe servidor ligado — quem escuta é a própria
+execução agendada: depois de verificar o catálogo, ela fica pendurada no *long
+polling* do Telegram (`getUpdates?timeout=25`) até a rodada seguinte começar. A
+chamada dorme enquanto não chega nada e retorna no instante em que a mensagem
+chega, então o toque no botão é atendido em segundos.
+
+Isso não gera nenhuma requisição a mais para a ABECMED: a janela de escuta só
+conversa com o Telegram. O que ela consome é tempo de runner, que é gratuito e
+ilimitado em repositório público.
+
+A janela está em 240 s (`ESCUTA` no workflow). Vale saber que isso usa o
+Actions mais como processo de plantão do que como CI — se preferir ser
+conservador, baixar `ESCUTA` para `0` volta ao comportamento de responder só na
+rodada seguinte.
 
 Só o dono recebe resposta. O bot é público — qualquer um acha `@abecmed_bot` e
 pode mandar mensagem —, então as mensagens de outros chats são consumidas e
@@ -129,10 +138,17 @@ Configurados em **Settings → Secrets and variables → Actions**:
 
 | Secret | obrigatório | para quê |
 | --- | --- | --- |
-| `ABECMED_CPF` | sim | CPF do paciente, usado para entrar no assistente |
-| `TELEGRAM_BOT_TOKEN` | sim | token do bot que manda a notificação |
+| `ABECMED_CONFIG` | um deles | CPF e token juntos, separados por `\|` — cadastro único |
+| `ABECMED_CPF` | um deles | CPF do paciente, usado para entrar no assistente |
+| `TELEGRAM_BOT_TOKEN` | um deles | token do bot que manda a notificação |
 | `TELEGRAM_CHAT_ID` | não | descoberto sozinho no primeiro envio |
 | `NTFY_TOPIC` | não | canal alternativo via [ntfy.sh](https://ntfy.sh) |
+
+Criar Secret é a única coisa deste projeto que o dono do repositório tem de
+fazer à mão: o token de um agente não recebe permissão de escrever Secrets, de
+propósito. Por isso existe o `ABECMED_CONFIG`, que junta as duas credenciais em
+um cadastro só. Com ele o monitor separa as partes e mascara cada uma no log
+(`::add-mask::`), já que o GitHub só mascara o valor exato do Secret.
 
 O CPF só existe como Secret. Ele não aparece no código, e o GitHub mascara
 Secrets na saída dos jobs — nada de dado pessoal fica visível neste

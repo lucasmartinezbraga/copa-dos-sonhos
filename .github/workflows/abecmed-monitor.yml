@@ -31,7 +31,7 @@ concurrency:
 jobs:
   verificar:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 8
 
     steps:
       - name: Baixar repositório
@@ -59,10 +59,18 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          # Um Secret só, com CPF e token juntos — o monitor separa os dois.
+          ABECMED_CONFIG: ${{ secrets.ABECMED_CONFIG }}
           FORCAR: ${{ (github.event_name == 'workflow_dispatch' && inputs.forcar) && '--forcar' || '' }}
+          # Depois de verificar o catálogo, o job fica ouvindo o Telegram até a
+          # próxima rodada começar. É isso que faz o botão responder na hora, em
+          # vez de esperar o próximo agendamento. Não gera requisição nenhuma a
+          # mais para a ABECMED — o long polling dorme esperando mensagem.
+          # Baixe para 0 se preferir o comportamento antigo.
+          ESCUTA: '240'
         run: |
           set +e
-          python3 abecmed-monitor/monitor.py $FORCAR 2>&1 | tee /tmp/saida.txt
+          python3 abecmed-monitor/monitor.py $FORCAR --escutar ${ESCUTA:-240} 2>&1 | tee /tmp/saida.txt
           codigo=${PIPESTATUS[0]}
           echo "codigo=$codigo" >> "$GITHUB_OUTPUT"
           {

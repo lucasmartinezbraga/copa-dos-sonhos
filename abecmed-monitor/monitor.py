@@ -936,24 +936,28 @@ def responder_comando(texto, catalogo, estado, agora, ao_vivo):
     return None  # mensagem solta: não responde nada
 
 
-def atender_comandos(estado, catalogo, agora, ao_vivo, cpf=None):
-    """Lê o que chegou no bot desde a última execução e responde.
+def atender_comandos(estado, catalogo, agora, ao_vivo, cpf=None, espera=0):
+    """Lê o que chegou no bot e responde.
 
-    Sem servidor ouvindo, quem "escuta" o Telegram é esta execução, que já roda
-    de 5 em 5 minutos por causa do monitoramento. O offset guardado no estado
-    marca o que já foi atendido, senão responderíamos a mesma mensagem para
-    sempre.
+    `espera` liga o long polling do Telegram: em vez de perguntar "chegou algo?"
+    e voltar na hora, a chamada fica pendurada até `espera` segundos e retorna
+    no instante em que a mensagem chega. É o que faz a resposta ser imediata
+    sem existir servidor — quem segura a conexão é a execução que já está no ar.
+
+    O offset guardado no estado marca o que já foi atendido, senão a mesma
+    mensagem seria respondida para sempre.
     """
     token = (os.environ.get("TELEGRAM_BOT_TOKEN") or "").strip()
     dono = estado.get("telegram_chat_id") or os.environ.get("TELEGRAM_CHAT_ID", "").strip()
     if not token or not dono:
         return 0
 
-    url = f"https://api.telegram.org/bot{token}/getUpdates?timeout=0&limit=20"
+    url = f"https://api.telegram.org/bot{token}/getUpdates?timeout={int(espera)}&limit=20"
     if estado.get("telegram_offset"):
         url += f"&offset={int(estado['telegram_offset'])}"
     try:
-        with urllib.request.urlopen(url, timeout=30) as r:
+        # A leitura tem de sobreviver ao tempo que o Telegram segura a conexão.
+        with urllib.request.urlopen(url, timeout=int(espera) + 20) as r:
             data = json.loads(r.read().decode())
     except Exception as e:
         print(f"AVISO: não consegui ler mensagens do Telegram: {e}", file=sys.stderr)
@@ -1064,6 +1068,33 @@ def notificar(texto, estado):
 # ---------------------------------------------------------------- estado
 
 
+def carregar_credenciais():
+    """Aceita um Secret único `ABECMED_CONFIG` com CPF e token juntos.
+
+    Criar Secret é a única coisa aqui que só a pessoa dona do repositório pode
+    fazer — o token de um agente não recebe essa permissão, de propósito. Então
+    o mínimo que dá para fazer é exigir um cadastro em vez de dois, e sumir com
+    o passo "fiz um e esqueci o outro".
+
+    Não importa a ordem: CPF é o pedaço com 11 dígitos, token de bot é o que
+    tem ':'. Dois Secrets separados continuam funcionando e têm prioridade.
+
+    O GitHub mascara Secret pelo valor exato, então o valor combinado sai do log
+    sozinho, mas as partes não — por isso o ::add-mask:: de cada uma.
+    """
+    bruto = (os.environ.get("ABECMED_CONFIG") or "").strip()
+    if not bruto:
+        return
+    for parte in (p.strip() for p in re.split(r"[|\n;,\s]+", bruto) if p.strip()):
+        digitos = re.sub(r"\D", "", parte)
+        if len(digitos) == 11 and not os.environ.get("ABECMED_CPF"):
+            os.environ["ABECMED_CPF"] = digitos
+            print(f"::add-mask::{digitos}")
+        elif ":" in parte and not os.environ.get("TELEGRAM_BOT_TOKEN"):
+            os.environ["TELEGRAM_BOT_TOKEN"] = parte
+            print(f"::add-mask::{parte}")
+
+
 def ler_estado():
     try:
         return json.loads(ESTADO.read_text(encoding="utf-8"))
@@ -1084,6 +1115,37 @@ def gravar_estado(estado):
     ESTADO.write_text(json.dumps(limpo, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
+def escutar(estado, catalogo, cpf, segundos):
+    """Fica atendendo o Telegram até a janela acabar, respondendo na hora.
+
+    A verificação do catálogo acontece uma vez por execução; isto aqui só
+    conversa com o Telegram, então não gera nenhuma requisição a mais para a
+    ABECMED. Como o long polling dorme enquanto não chega nada, o laço fica
+    parado a maior parte do tempo em vez de ficar perguntando.
+
+    O estado é gravado a cada resposta: se o runner for interrompido no meio, o
+    offset já está no disco e a mensagem não é respondida duas vezes.
+    """
+    fim = time.time() + segundos
+    total = 0
+    while True:
+        restante = fim - time.time()
+        if restante <= 1:
+            break
+        n = atender_comandos(
+            estado,
+            catalogo,
+            datetime.now(TZ),
+            ao_vivo=False,
+            cpf=cpf,
+            espera=min(25, int(restante)),
+        )
+        if n:
+            total += n
+            gravar_estado(estado)
+    return total
+
+
 # ---------------------------------------------------------------- principal
 
 
@@ -1091,8 +1153,16 @@ def main():
     ap = argparse.ArgumentParser(description="Monitor do catálogo da ABECMED")
     ap.add_argument("--forcar", action="store_true", help="notifica mesmo sem mudança")
     ap.add_argument("--sem-estado", action="store_true", help="só consulta e imprime, não grava nada")
+    ap.add_argument(
+        "--escutar",
+        type=int,
+        default=0,
+        metavar="SEGUNDOS",
+        help="depois de verificar, fica respondendo o Telegram por este tempo",
+    )
     args = ap.parse_args()
 
+    carregar_credenciais()
     agora = datetime.now(TZ)
     estado = ler_estado()
     anterior = estado.get("catalogo") or {}
@@ -1106,6 +1176,8 @@ def main():
         # parecer quebrado quando os Secrets ainda não existiam.
         if not args.sem_estado:
             atender_comandos(estado, anterior, agora, ao_vivo=False)
+            if args.escutar > 0:
+                escutar(estado, anterior, None, args.escutar)
             gravar_estado(estado)
         return 2
 
@@ -1188,11 +1260,15 @@ def main():
 
     atendidos = atender_comandos(estado, catalogo, agora, ao_vivo=True, cpf=cpf)
     gravar_estado(estado)
-    if atendidos:
-        print(f"COMANDOS_ATENDIDOS={atendidos}")
     print(f"MUDANCAS={len(mudancas)}")
     for m in mudancas:
         print(f"  {m}")
+
+    if args.escutar > 0:
+        atendidos += escutar(estado, catalogo, cpf, args.escutar)
+        gravar_estado(estado)
+    if atendidos:
+        print(f"COMANDOS_ATENDIDOS={atendidos}")
     return 0
 
 
