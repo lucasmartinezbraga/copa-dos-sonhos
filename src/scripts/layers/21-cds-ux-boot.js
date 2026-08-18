@@ -168,12 +168,46 @@
      continua exatamente 1:1, senao uma bola por cima do travessao nao PARECE
      por cima do travessao. Acima disso a curva satura suavemente, entao o ceu
      inteiro cabe na tela sem comprimir o que importa. */
-  const Z_FIEL = 2.6, Z_FOLGA = 3.4;
+  /* §OS-236 · A CURVA DO LANCAMENTO ERA UMA CUPULA ACHATADA
+     ------------------------------------------------------------------------
+     RELATO: "a curva da bola na hora do lancamento ta estranha".
+
+     Nao e a fisica. Medido em partida (`tools/fisica/tela/voo-da-bola.js`), o
+     lancamento sai a 40 graus com apice de 6,97 m em 34,8 m de alcance -- que
+     e bola alcada de futebol, e confere com a conta a mao.
+
+     O defeito esta em como essa altura vira PIXEL. Com Z_FIEL 2,6 e
+     Z_FOLGA 3,4, um apice de 7 m era desenhado como 4,52 m (35% a menos), e o
+     que estraga a leitura nao e nem o encolhimento: e a DERIVADA. A inclinacao
+     da curva em 7 m cai para 0,19 do valor 1:1, entao a bola sobe depressa
+     perto do chao e quase PARA de subir no alto. Uma parabola desenhada assim
+     vira cupula achatada -- que e exatamente "estranha".
+
+     E o lancamento vive justamente na faixa saturada: 2,6 m e menos da metade
+     do apice tipico dele.
+
+     A compressao existia para "o ceu inteiro caber na tela". Mas o apice maximo
+     medido numa partida inteira e ~11 m: a 22 px/m sao 242 px de um quadro de
+     768. Cabe com folga. A compressao estava conservadora demais.
+
+     Agora a faixa fiel cobre o lancamento inteiro COM FOLGA (9 m) e a saturacao
+     so age acima disso, para o chutao ocasional nao furar o topo do campo. Nao
+     ha risco de a bola invadir a arquibancada porque a altura desenhada ja
+     escala com a profundidade (`* s` em `liftY`): no campo distante, onde a
+     linha do chao esta la em cima, `s` vale ~0,54 e os 7 m viram 83 px, nao 154. O travessao (2,44 m)
+     segue dentro da faixa 1:1 nos dois casos, entao a invariante da §D50 --
+     bola por cima do travessao PARECE por cima -- fica intacta.
+
+     Ajustavel em execucao por `CDS_ZFIEL`, para a sonda medir antes e depois na
+     mesma partida. Apresentacao pura: bloco pulado pela bateria. */
+  const Z_FIEL_PADRAO = 9.0, Z_FOLGA_PADRAO = 8.0;
   function alturaVisual(z) {
     const a = Math.max(0, z || 0);
-    if (a <= Z_FIEL) return a;
-    const e = a - Z_FIEL;
-    return Z_FIEL + e / (1 + e / Z_FOLGA);
+    const zf = typeof root.CDS_ZFIEL === 'number' ? root.CDS_ZFIEL : Z_FIEL_PADRAO;
+    const zg = typeof root.CDS_ZFOLGA === 'number' ? root.CDS_ZFOLGA : Z_FOLGA_PADRAO;
+    if (a <= zf) return a;
+    const e = a - zf;
+    return zf + e / (1 + e / zg);
   }
   /* §D50 · UMA escala de altura, para a bola E para o gol.
      ---------------------------------------------------------------------
@@ -425,6 +459,113 @@
     if (ctx.roundRect) ctx.roundRect(x, y, w, h, rad);
     else ctx.rect(x, y, w, h);
   }
+
+  /* §OS-237 · MEMBROS COM ARTICULACAO
+     ========================================================================
+     RELATO do dono: "o problema principal e a qualidade das animacoes", e
+     depois, explicitamente, "se voce achar melhor mude os bonecos, reconstrua
+     a parte grafica".
+
+     O teto de qualidade nao era a maquina de estados nem a fisica: era o
+     DESENHO. Cada perna e cada braco eram um `fillRect` ALINHADO AOS EIXOS.
+     Um retangulo alinhado nao gira -- ele so translada. Entao a passada movia
+     blocos para cima e para baixo, e nenhuma quantidade de envelope, fase ou
+     mistura faz um bloco que nao gira parecer uma perna.
+
+     E o que o olho usa para ler corrida e justamente o ANGULO: a coxa abre, o
+     joelho dobra, o pe acompanha. Sem joelho nao ha corrida, ha deslize.
+
+     Agora cada membro tem dois segmentos e uma juncao:
+
+         quadril --(coxa, angulo)--> joelho --(canela, angulo+dobra)--> pe
+         ombro   --(braco, angulo)--> cotovelo --(antebraco, +dobra)--> mao
+
+     A dobra do joelho nao e decorativa: ela cresce quando o membro vai para
+     TRAS, que e o que um corredor faz (o calcanhar sobe atras e a perna estende
+     na frente). E o que separa correr de marchar.
+
+     Ajustavel por `CDS_ARTIC = false`, que devolve o desenho antigo -- e por
+     isso as tiras de comparacao saem do MESMO build, sem variancia. */
+  function _pontaDe(x, y, ang, comp) {
+    return [x + Math.sin(ang) * comp, y + Math.cos(ang) * comp];
+  }
+  function _segmento(ctx, x, y, ang, comp, larg, raio) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    rr(ctx, -larg / 2, -larg * 0.18, larg, comp + larg * 0.18, raio); ctx.fill();
+    ctx.restore();
+  }
+  /* Uma perna. `ang` e medido a partir da vertical, positivo para a FRENTE do
+     atleta (ja multiplicado por `face` por quem chama). */
+  function _perna(ctx, hx, hy, ang, dobra, r, corPerna, corPe, face) {
+    const _C = _corpo();
+    const coxa = r * _C.coxa, canela = r * _C.canela, larg = r * 0.23;
+    ctx.fillStyle = corPerna;
+    _segmento(ctx, hx, hy, ang, coxa, larg, larg * 0.46);
+    const j = _pontaDe(hx, hy, ang, coxa);
+    const angC = ang + dobra;
+    _segmento(ctx, j[0], j[1], angC, canela, larg * 0.88, larg * 0.42);
+    const t = _pontaDe(j[0], j[1], angC, canela);
+    ctx.fillStyle = corPe;
+    ctx.save(); ctx.translate(t[0], t[1]); ctx.rotate(angC * 0.30);
+    rr(ctx, face >= 0 ? -r * 0.07 : -r * 0.17, -r * 0.015, r * 0.24, r * 0.135, r * 0.055);
+    ctx.fill(); ctx.restore();
+    return t;
+  }
+  /* Um braco. Mesma ideia, mais curto e mais fino; a dobra do cotovelo cresce
+     quando o braco vem para a FRENTE, ao contrario do joelho. */
+  function _braco(ctx, sx, sy, ang, dobra, r, cor, corMao) {
+    const sup = r * 0.30, ante = r * 0.28, larg = r * 0.20;
+    ctx.fillStyle = cor;
+    _segmento(ctx, sx, sy, ang, sup, larg, larg * 0.46);
+    const c = _pontaDe(sx, sy, ang, sup);
+    const angA = ang + dobra;
+    _segmento(ctx, c[0], c[1], angA, ante, larg * 0.86, larg * 0.42);
+    if (corMao) {
+      const m = _pontaDe(c[0], c[1], angA, ante);
+      ctx.fillStyle = corMao;
+      ctx.beginPath(); ctx.arc(m[0], m[1], r * 0.10, 0, TAU); ctx.fill();
+    }
+  }
+  function _articulado() { return root.CDS_ARTIC !== false; }
+
+  /* §OS-238 · PROPORCAO DO BONECO
+     ========================================================================
+     Com os membros ja articulados, a folha de poses ampliada mostrou que o que
+     mais atrapalha a leitura nao e detalhe nenhum: e a PROPORCAO. O atleta era
+     um torso enorme com tocos embaixo.
+
+         antes:  cabeca 0,68 r  ·  torso 0,92 r  ·  pernas 0,69 r
+                 -> a perna era 30% da altura do corpo
+
+     Num corpo humano a perna e ~48% da altura. Com 30%, qualquer passada fica
+     escondida: o olho ve um bloco que desliza, porque o pedaco que se move e
+     pequeno demais na silhueta.
+
+     A altura total nao muda (o boneco continua ocupando o mesmo espaco no
+     gramado, ~2,1 r): o que muda e a REPARTICAO -- torso mais curto e estreito,
+     perna mais longa. A 13 px de raio, que e o tamanho real em jogo, e a
+     silhueta que carrega a animacao, e nao o desenho fino.
+
+     Tudo em unidades de `r` e num lugar so, entao a proxima mudanca de
+     proporcao e uma tabela, nao uma cacada por numeros soltos.
+     Ajustavel por `CDS_PROP = false` para comparar no mesmo build. */
+  const CORPO_NOVO = {
+    torsoX: 0.46, torsoTopo: -0.56, torsoAlt: 0.66, torsoRaio: 0.22,
+    shortsX: 0.40, shortsY: 0.02, shortsAlt: 0.30,
+    ombroX: 0.56, ombroY: -0.40,
+    quadrilX: 0.17, quadrilY: 0.14,
+    coxa: 0.42, canela: 0.40,
+    cabecaY: -0.84, cabecaR: 0.30,
+  };
+  const CORPO_ANTIGO = {
+    torsoX: 0.56, torsoTopo: -0.52, torsoAlt: 0.92, torsoRaio: 0.26,
+    shortsX: 0.50, shortsY: 0.12, shortsAlt: 0.38,
+    ombroX: 0.62, ombroY: -0.36,
+    quadrilX: 0.19, quadrilY: 0.24,
+    coxa: 0.35, canela: 0.34,
+    cabecaY: -0.82, cabecaR: 0.34,
+  };
+  function _corpo() { return root.CDS_PROP === false ? CORPO_ANTIGO : CORPO_NOVO; }
   /* Envelope de amplitude por FASE da ação (R14). O antigo `wave` era uma rampa
      única 0..1 que não sabia onde ficava o contato; aqui a preparação sobe até o
      pico, o CONTATO é o pico (é o tick em que a bola sai), a continuidade desce
@@ -544,6 +685,101 @@
     receive_contact: { esc: 0.15, spr: 0.20, inc:  0.18, agacha: 0.18, braco: 1.20, estica: 0.50 },
     receive_control: { esc: 0.40, spr: 0.16, inc:  0.06, agacha: 0.10, braco: 1.10, estica: 0.14 },
   };
+
+  /* §OS-235 · A POSE PASSA A SER MISTURADA — O CORTE SECO ERA O DEFEITO
+     ------------------------------------------------------------------------
+     RELATO do dono, depois de tudo o que ja foi corrigido: "o problema
+     principal e a qualidade das animacoes" -- o pulo, o desarme, a falta, a
+     bola. Varias animacoes, a mesma sensacao.
+
+     Nao sao varias. E UMA.
+
+     Ate aqui o desenho lia `POSE[st]` DIRETO, no estado do quadro. Quando o
+     estado mudava, os seis parametros da silhueta trocavam de valor de uma vez:
+     `esc`, `spr`, `inc`, `agacha`, `braco` e `estica` saltavam no mesmo quadro.
+     Como `bob` carrega `- r * P.agacha`, o boneco AFUNDA e volta a subir em um
+     quadro; como `_rotTot` carrega `face * P.inc`, o tronco chicoteia.
+
+     Ou seja: TODA troca de gesto era um corte. Nao existe pose boa o bastante
+     para sobreviver a isso -- e por isso a queixa e "varias animacoes" em vez
+     de uma. O carrinho comeca com solavanco, o pulo termina com solavanco, a
+     falta idem.
+
+     Agora a silhueta desenhada persegue a do estado por MISTURA, com smoothstep
+     sobre `T_MISTURA` de relogio de PAREDE por atleta -- o mesmo `_dtP` da
+     passada, entao quadro irregular e botao de velocidade nao mexem na duracao
+     da transicao.
+
+     A pose neutra e exatamente o que os oito usos de `P` ja faziam quando
+     `POSE[st]` nao existia (`esc` 1, `braco` 1, o resto 0), entao em REGIME
+     nada muda: o desenho fica identico ao de antes. So a troca deixa de ser
+     um degrau.
+
+     A ONDA (`animWave`) e misturada com criterio diferente. Ela e o envelope do
+     gesto, e a maioria ja nasce em zero (`sin(p*PI)`), onde misturar seria
+     amolecer um golpe que deve ser seco. Entao so se mistura quando existe
+     DEGRAU DE VERDADE -- o caso real e `fouled` (que termina em 0,70) para
+     `get_up` (que comeca em 1,0), e todo gesto que cai num estado sem envelope,
+     onde `animWave` devolve 0 e o corpo apagava de um quadro para o outro.
+
+     Apresentacao pura: este bloco (`cds-ux-boot`) e pulado pela bateria. */
+  const POSE_NEUTRA = { esc: 1, spr: 0, inc: 0, agacha: 0, braco: 1, estica: 0 };
+  const T_MISTURA_PADRAO = 0.11;   // s de parede -- ~3 quadros a 30 fps
+  const DEGRAU_ONDA = 0.15;        // abaixo disto a onda nao e misturada
+  /* A duracao e ajustavel em tempo de execucao por `CDS_MIX_T`. Com 0 a
+     mistura desaparece e o desenho volta a ser EXATAMENTE o de antes -- e por
+     isso a sonda consegue medir controle e tratamento na MESMA partida, sem
+     variancia de build entre as duas medicoes. */
+  const AUDIT = { quadros: 0, trocas: 0, soma: 0, pico: 0 };
+  root.CDS_ANIM_MIX = {
+    get t() { return typeof root.CDS_MIX_T === 'number' ? root.CDS_MIX_T : T_MISTURA_PADRAO; },
+    auditoria: AUDIT,
+    zerar: function () { AUDIT.quadros = 0; AUDIT.trocas = 0; AUDIT.soma = 0; AUDIT.pico = 0; }
+  };
+
+  function misturarPose(d, st, ondaCrua, dtP) {
+    const alvo = POSE[st] || POSE_NEUTRA;
+    if (d.__poseSt !== st) {
+      /* parte de onde o corpo ESTAVA desenhado, e nao da tabela do estado
+         velho: se a troca pegou uma mistura pela metade, ela segue de onde
+         estava, em vez de recomecar de um degrau novo */
+      d.__poseDe = d.__poseAtual || { esc: alvo.esc, spr: alvo.spr, inc: alvo.inc,
+                                      agacha: alvo.agacha, braco: alvo.braco, estica: alvo.estica };
+      const ant = (typeof d.__ondaAtual === 'number') ? d.__ondaAtual : ondaCrua;
+      d.__ondaDe = ant;
+      d.__ondaMistura = Math.abs(ondaCrua - ant) >= DEGRAU_ONDA;
+      d.__poseSt = st;
+      d.__poseK = 0;
+      AUDIT.trocas++;
+    }
+    const _T = typeof root.CDS_MIX_T === 'number' ? root.CDS_MIX_T : T_MISTURA_PADRAO;
+    d.__poseK = _T > 0 ? Math.min(1, (d.__poseK || 0) + Math.max(0, dtP || 0) / _T) : 1;
+    const k = d.__poseK, e = k * k * (3 - 2 * k);        // smoothstep
+    const de = d.__poseDe || alvo;
+    const fora = {
+      esc:    de.esc    + (alvo.esc    - de.esc)    * e,
+      spr:    de.spr    + (alvo.spr    - de.spr)    * e,
+      inc:    de.inc    + (alvo.inc    - de.inc)    * e,
+      agacha: de.agacha + (alvo.agacha - de.agacha) * e,
+      braco:  de.braco  + (alvo.braco  - de.braco)  * e,
+      estica: de.estica + (alvo.estica - de.estica) * e
+    };
+    /* AUDITORIA · o salto de silhueta DESENHADO de um quadro para o outro.
+       E esta a grandeza da queixa: um degrau grande aqui e o solavanco que se
+       ve. Somam-se os seis parametros em modulo. */
+    const ant = d.__poseAnterior;
+    if (ant) {
+      const salto = Math.abs(fora.esc - ant.esc) + Math.abs(fora.spr - ant.spr)
+                  + Math.abs(fora.inc - ant.inc) + Math.abs(fora.agacha - ant.agacha)
+                  + Math.abs(fora.braco - ant.braco) + Math.abs(fora.estica - ant.estica);
+      AUDIT.quadros++; AUDIT.soma += salto;
+      if (salto > AUDIT.pico) AUDIT.pico = salto;
+    }
+    d.__poseAnterior = fora;
+    d.__poseAtual = fora;
+    d.__ondaAtual = d.__ondaMistura ? (d.__ondaDe + (ondaCrua - d.__ondaDe) * e) : ondaCrua;
+    return fora;
+  }
 
   function body(ctx, o) {
     const { x, y, r } = o;
@@ -719,7 +955,11 @@
        maquina da R14 entra em `gk_low_dive`/`gk_high_dive` sem que o caminho
        antigo tenha agendado um `dive`, o goleiro voava de pe. */
     const mergulho = o.divePose || (A && /^gk_(low|high)_dive$/.test(st));
-    const w = mergulho ? 0 : (A ? animWave(st, A.phase) : (o.wave || 0));
+    const _ondaCrua = mergulho ? 0 : (A ? animWave(st, A.phase) : (o.wave || 0));
+    /* §OS-235 · a mistura roda UMA vez por atleta por quadro, aqui, porque
+       ela avanca o relogio da transicao; `P` la embaixo so le o resultado. */
+    const _poseMix = misturarPose(d, st, _ondaCrua, _dtP);
+    const w = (typeof d.__ondaAtual === 'number') ? d.__ondaAtual : _ondaCrua;
     const act = o.act || '', pose = o.pose || '';
     /* §D48 · as variantes entram no ramo de CHUTE do desenho: sem isto elas
        cairiam na modulacao de corrida e o atleta "bateria" correndo. */
@@ -755,7 +995,7 @@
               : clamp(d.vms / 4.2, 0, 1) * (bursting ? 1.35 : 1);   // 0 parado … 1 correndo
     const sw = Math.sin(d.gait) * amp;                  // -1..1 alterna as pernas
     /* §D42 · a postura do estado modula a corrida em vez de substitui-la */
-    const P = POSE[st] || null;
+    const P = _poseMix;   /* §OS-235 · silhueta misturada, nunca mais o degrau */
     const swL = P ? sw * P.esc : sw;                    // tesoura das pernas
     /* §OS-215 · o braco vinha com a MESMA amplitude da perna vezes `P.braco`,
        que chega a 1,7 -- ou seja, mais que a perna. No futebol o braco
@@ -824,29 +1064,72 @@
          chute de forca, que projeta mais a perna que a cavadinha. */
       const alto = (st === 'volley') ? r * .46 : (st === 'power_shot') ? r * .16 : 0;
       const forca = (st === 'power_shot') ? 1.35 : (st === 'placed_shot') ? 0.78 : 1;
-      const back = -face * r * .28, front = face * (r * .06 + w * r * .52 * forca);
-      ctx.fillRect(back - r * .13, r * .40, r * .26, r * .46);                  // apoio
-      ctx.fillRect(front - r * .13, r * .40 - w * r * .12 - w * alto, r * .26, r * .46);   // perna de chute
-      ctx.fillStyle = '#0b0f16';
-      ctx.fillRect(back - r * .15, r * .78, r * .30, r * .20);
-      ctx.fillRect(front - r * .15, r * .78 - w * r * .12 - w * alto, r * .30, r * .20);
+      if (_articulado()) {
+        /* §OS-237 · O CHUTE VIRA PENDULO, e nao dois blocos que trocam de Y.
+           A perna de chute vem de TRAS (angulo negativo, joelho dobrado) e
+           varre para a FRENTE ate estender no contato -- que e onde `w` vale 1.
+           A dobra do joelho e maxima na preparacao e ZERA no impacto: e assim
+           que uma perna bate numa bola, e e o que separa o chute de forca
+           (`forca` 1,35, varredura maior) da cavadinha (0,78).
+           O voleio sobe o quadril de saida, entao o pe encontra a bola no ar. */
+        const _C = _corpo();
+        const varrer = 1.25 * forca;
+        const angChute = (-0.55 + w * varrer) * face;
+        const dobraChute = (1 - w) * 1.15;
+        const subir = (w * alto) / Math.max(1e-3, r);
+        const hy = r * (_C.quadrilY - subir * 0.5), hx = r * _C.quadrilX;
+        _perna(ctx, -hx * face, r * _C.quadrilY, -0.16 * face, 0.30, r, '#17202e', '#0b0f16', face);
+        _perna(ctx,  hx * face, hy, angChute, dobraChute, r, '#17202e', '#0b0f16', face);
+      } else {
+        const back = -face * r * .28, front = face * (r * .06 + w * r * .52 * forca);
+        ctx.fillRect(back - r * .13, r * .40, r * .26, r * .46);                  // apoio
+        ctx.fillRect(front - r * .13, r * .40 - w * r * .12 - w * alto, r * .26, r * .46);   // perna de chute
+        ctx.fillStyle = '#0b0f16';
+        ctx.fillRect(back - r * .15, r * .78, r * .30, r * .20);
+        ctx.fillRect(front - r * .15, r * .78 - w * r * .12 - w * alto, r * .30, r * .20);
+      }
     } else if (blocking) {
       /* OS-60 · MEDIDO: o estado de bloqueio desenhava exatamente igual ao de
          corrida — tinha 100% de cobertura de evento e nenhuma pose. Agora o
          atleta se joga na frente: base larga, corpo baixo, perna estendida na
          linha da bola. */
       const _bw = Math.sin(dphase * Math.PI);
-      ctx.fillRect(-r * .46 - _bw * r * .22, r * .46, r * .28, r * .44);
-      ctx.fillRect(r * .18 + _bw * r * .22, r * .46, r * .28, r * .44);
-      ctx.fillStyle = '#0b0f16';
-      ctx.fillRect(-r * .50 - _bw * r * .22, r * .84, r * .32, r * .20);
-      ctx.fillRect(r * .16 + _bw * r * .22, r * .84, r * .32, r * .20);
+      if (_articulado()) {
+        /* §OS-237 · o bloqueio abre a base pelo ANGULO do quadril, com joelho
+           dobrado nos dois lados -- corpo baixo e pernas em V, que e a postura
+           de quem se poe na frente da bola. */
+        const _C = _corpo();
+        const abre = 0.42 + _bw * 0.34;
+        const hy = r * (_C.quadrilY + _bw * 0.10);
+        _perna(ctx, -r * _C.quadrilX, hy, -abre, 0.55, r, '#17202e', '#0b0f16', face);
+        _perna(ctx,  r * _C.quadrilX, hy,  abre, 0.55, r, '#17202e', '#0b0f16', face);
+      } else {
+        ctx.fillRect(-r * .46 - _bw * r * .22, r * .46, r * .28, r * .44);
+        ctx.fillRect(r * .18 + _bw * r * .22, r * .46, r * .28, r * .44);
+        ctx.fillStyle = '#0b0f16';
+        ctx.fillRect(-r * .50 - _bw * r * .22, r * .84, r * .32, r * .20);
+        ctx.fillRect(r * .16 + _bw * r * .22, r * .84, r * .32, r * .20);
+      }
     } else if (tackling) {
-      const front = face * (r * .22 + w * r * .60);
-      ctx.fillRect(-face * r * .06 - r * .13, r * .50, r * .26, r * .40);       // dobrada sob o corpo
-      ctx.fillRect(Math.min(front, front) - r * .20, r * .62, r * .46, r * .22);// estendida no deslize
-      ctx.fillStyle = '#0b0f16';
-      ctx.fillRect(front + face * r * .20 - r * .14, r * .62, r * .28, r * .20);
+      if (_articulado()) {
+        /* §OS-237 · O CARRINHO. A perna de ataque vai quase a HORIZONTAL --
+           1,45 rad no pico -- e a de tras dobra sob o corpo, que e a leitura de
+           quem se joga no chao. Antes eram dois retangulos deitados, sem
+           angulo: o gesto lia como "agachou", nao como "se jogou".
+           O quadril tambem desce com `w`, senao o atleta desliza de pe. */
+        const _C = _corpo();
+        const angAtaque = (0.55 + w * 0.90) * face;
+        const angTras = (-0.30 - w * 0.25) * face;
+        const hy = r * (_C.quadrilY + w * 0.22);
+        _perna(ctx, -r * _C.quadrilX * face, hy, angTras, 1.05, r, '#17202e', '#0b0f16', face);
+        _perna(ctx,  r * _C.quadrilX * face, hy, angAtaque, Math.max(0, .35 - w * .35), r, '#17202e', '#0b0f16', face);
+      } else {
+        const front = face * (r * .22 + w * r * .60);
+        ctx.fillRect(-face * r * .06 - r * .13, r * .50, r * .26, r * .40);       // dobrada sob o corpo
+        ctx.fillRect(Math.min(front, front) - r * .20, r * .62, r * .46, r * .22);// estendida no deslize
+        ctx.fillStyle = '#0b0f16';
+        ctx.fillRect(front + face * r * .20 - r * .14, r * .62, r * .28, r * .20);
+      }
     } else {
       /* OS-58 · a passada movia a perna SO em Y, por r*.20 — com r ~ 30 px sao
          6 px de diferenca entre as duas pernas, quase nada. Agora ha TESOURA:
@@ -878,27 +1161,49 @@
         const _pico = Math.sin(Math.max(0, Math.min(1, dphase)) * Math.PI);
         ext = ext * (1 - _pico) + _mira * _pico;
       }
-      const lsx = swL * r * .20 * face, rsx = -swL * r * .20 * face;
-      ctx.fillRect(-r * .34 - spr + lsx, llY, r * .26, r * .46);
-      ctx.fillRect(r * .08 + spr + rsx + ext, rlY, r * .26, r * .46);
-      ctx.fillStyle = '#0b0f16';
-      ctx.fillRect(-r * .36 - spr + lsx, llY + r * .38, r * .30, r * .22);
-      ctx.fillRect(r * .06 + spr + rsx + ext, rlY + r * .38, r * .30, r * .22);
+      if (_articulado()) {
+        /* §OS-237 · A PASSADA VIRA ANGULO, que e como o olho le corrida.
+           `swL` ja e a tesoura -1..1 vinda da fase e da amplitude; aqui ela
+           deixa de empurrar retangulos em Y e passa a ABRIR a coxa. A dobra do
+           joelho cresce na perna que vai para TRAS -- calcanhar subindo -- e
+           some na que estende a frente, que e a assimetria que separa correr
+           de marchar. `ext` (alcance) entra como angulo extra na perna da
+           frente, com teto, em vez de translacao. */
+        const ABRE = 0.62;
+        const angF =  swL * ABRE * face;      // perna que vai a frente
+        const angT = -swL * ABRE * face;      // ... e a que vai atras
+        const dobraF = Math.max(0, -swL) * 0.90;
+        const dobraT = Math.max(0,  swL) * 0.90;
+        const extAng = Math.max(-0.75, Math.min(0.75, ext / Math.max(1e-3, r * 0.60)));
+        const _C = _corpo();
+        const hy = r * _C.quadrilY, hx = r * _C.quadrilX + spr * 0.6;
+        _perna(ctx, -hx, hy, angT, dobraT * face * face, r, '#17202e', '#0b0f16', face);
+        _perna(ctx,  hx, hy, angF + extAng, dobraF, r, '#17202e', '#0b0f16', face);
+      } else {
+        const lsx = swL * r * .20 * face, rsx = -swL * r * .20 * face;
+        ctx.fillRect(-r * .34 - spr + lsx, llY, r * .26, r * .46);
+        ctx.fillRect(r * .08 + spr + rsx + ext, rlY, r * .26, r * .46);
+        ctx.fillStyle = '#0b0f16';
+        ctx.fillRect(-r * .36 - spr + lsx, llY + r * .38, r * .30, r * .22);
+        ctx.fillRect(r * .06 + spr + rsx + ext, rlY + r * .38, r * .30, r * .22);
+      }
     }
     // shorts
     ctx.fillStyle = dark;
-    rr(ctx, -r * .5, r * .12, r, r * .38, r * .1); ctx.fill();
+    const _Cs = _corpo();
+    rr(ctx, -r * _Cs.shortsX, r * _Cs.shortsY, r * _Cs.shortsX * 2, r * _Cs.shortsAlt, r * .1); ctx.fill();
     // TORSO (camisa) — leve inclinação à frente no drible; recuo no chute
     /* OS-60 · na finta o TRONCO vai para um lado e volta — e o corpo enganando.
        Nos outros dribles fica o deslocamento leve de sempre. */
     const tl = (dribbling ? face * r * .06 : 0) + (kicking ? -face * r * .05 : 0)
              + (feint ? Math.sin(dphase * Math.PI * 2) * r * .34 * face : 0);
     ctx.save(); ctx.translate(tl, 0);
+    const _Ct = _corpo();
     ctx.fillStyle = torsoGrad(ctx, jersey, lite, dark, r);
-    rr(ctx, -r * .56, -r * .52, r * 1.12, r * .92, r * .26); ctx.fill();
+    rr(ctx, -r * _Ct.torsoX, r * _Ct.torsoTopo, r * _Ct.torsoX * 2, r * _Ct.torsoAlt, r * _Ct.torsoRaio); ctx.fill();
     ctx.lineWidth = o.hasBall ? 2 : 1;
     ctx.strokeStyle = o.hasBall ? '#ffffff' : 'rgba(255,255,255,.34)';
-    rr(ctx, -r * .56, -r * .52, r * 1.12, r * .92, r * .26); ctx.stroke();
+    rr(ctx, -r * _Ct.torsoX, r * _Ct.torsoTopo, r * _Ct.torsoX * 2, r * _Ct.torsoAlt, r * _Ct.torsoRaio); ctx.stroke();
     ctx.restore();
     // MANGAS/braços — GOLEIRO tem prontidão/encaixe + LUVAS (ATL-032); linha de campo
     // ergue no cabeceio e abre no chute (equilíbrio).
@@ -944,8 +1249,24 @@
          acompanham a passada em vez de disputar com ela. */
       const abY = -swB * r * .08, abX = swB * r * .17 * face;
       const abrir = P ? r * .12 * Math.max(0, P.braco - 1) : 0;
-      rr(ctx, -r * .8 + tl + abX - abrir, -r * .46 + abY, r * .26, r * .58, r * .09); ctx.fill();
-      rr(ctx, r * .54 + tl - abX + abrir, -r * .46 - abY, r * .26, r * .58, r * .09); ctx.fill();
+      if (_articulado()) {
+        /* §OS-237 · o braco tambem passa a ter cotovelo, em contrafase com a
+           perna. A dobra cresce quando ele vem para a FRENTE (o antebraco sobe),
+           ao contrario do joelho -- e essa inversao e o que faz o par
+           braco/perna ler como humano em vez de pendulo duplo.
+           `P.braco > 1` continua ABRINDO o braco do corpo, que e o que
+           distingue proteger a bola e marcar de lado da corrida. */
+        const BAL = 0.44;
+        const angE = -swB * BAL * face - (abrir / r) * 1.5;
+        const angD =  swB * BAL * face + (abrir / r) * 1.5;
+        const _Cb = _corpo();
+        const sy = r * _Cb.ombroY, sx = r * _Cb.ombroX;
+        _braco(ctx, -sx + tl, sy, angE, Math.max(0, -swB * face) * 0.48, r, jersey, null);
+        _braco(ctx,  sx + tl, sy, angD, Math.max(0,  swB * face) * 0.48, r, jersey, null);
+      } else {
+        rr(ctx, -r * .8 + tl + abX - abrir, -r * .46 + abY, r * .26, r * .58, r * .09); ctx.fill();
+        rr(ctx, r * .54 + tl - abX + abrir, -r * .46 - abY, r * .26, r * .58, r * .09); ctx.fill();
+      }
     }
     if (gk) {                                            // LUVAS do goleiro nas pontas dos braços
       ctx.fillStyle = '#eef3ff';
@@ -967,10 +1288,11 @@
        cabeca sobre o quadril e ainda deixa o tronco projetado a frente. */
     const hx = lean * .4 + tl + (heading ? face * r * .26 : 0) + (dribbling ? face * r * .10 : 0)
              - _rotTot * r * .62;
-    const hy = -r * .82 + (heading ? w * r * .10 : 0);
-    ctx.beginPath(); ctx.arc(hx, hy, r * .34, 0, TAU);
+    const _Ch = _corpo();
+    const hy = r * _Ch.cabecaY + (heading ? w * r * .10 : 0);
+    ctx.beginPath(); ctx.arc(hx, hy, r * _Ch.cabecaR, 0, TAU);
     ctx.fillStyle = '#e9b98b'; ctx.fill();
-    ctx.beginPath(); ctx.arc(hx, hy - r * .06, r * .31, Math.PI, TAU);
+    ctx.beginPath(); ctx.arc(hx, hy - r * _Ch.cabecaR * .18, r * _Ch.cabecaR * .91, Math.PI, TAU);
     ctx.fillStyle = 'rgba(38,25,14,.85)'; ctx.fill();
     ctx.restore();
   }
@@ -1057,7 +1379,12 @@
     if (!ball._est) ball._est = { rot: 0, x: null, y: null, zAnt: null, quique: 0, forca: 1, pxAnt: 0, pyAnt: 0 };
     const _e = ball._est;
     const g0 = project(o.gx, o.gy);
-    const s = g0.s, z = o.z || 0, air = clamp(z / 3.2, 0, 1);
+    /* §OS-236 · `air` governa tamanho da bola e encolhimento da sombra, as
+       duas pistas de altura que sobram quando o olho perde a referencia.
+       Saturando em 3,2 m elas congelavam na metade de baixo do voo de um
+       lancamento: a bola subia mais 4 m sem crescer nem clarear a sombra.
+       O teto acompanha a faixa fiel. */
+    const s = g0.s, z = o.z || 0, air = clamp(z / 8.0, 0, 1);
     const gy = groundY(g0.y, s);          // mesmo plano de chão dos atletas
     const bx = g0.x, by = liftY(gy, z, s);
     if (window.__ballProbe) window.__ballProbe(z, by, G.topY, s);   // hook de auditoria (PRO-021)
