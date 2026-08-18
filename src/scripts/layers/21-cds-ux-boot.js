@@ -967,6 +967,10 @@
                       : ((pose === 'kick' || act === 'shoot') && w > 0.02);
     const tackling = A ? /tackle$/.test(st) : (pose === 'tackle' && w > 0.02);
     const heading = A ? (st === 'header') : (pose === 'jump' && w > 0.02);
+    /* o goleiro que sobe para encaixar cruzamento tambem sai do chao; a
+       variavel `gkClaim` completa so nasce mais abaixo, entao aqui basta o
+       teste de ESTADO, que e o que decide o salto. */
+    const gkClaimPre = !!(o.isGK && A && /^gk_(catch|punch|high_dive)$/.test(st));
     /* §D39/§D42 · a interceptacao TINHA aqui uma bandeira propria que so mexia
        no `bob` — 0,07·r de deslocamento vertical do boneco inteiro. A sonda de
        silhueta mostrou que os membros nao se moviam e o gesto lia como corrida.
@@ -1005,9 +1009,28 @@
     /* OS-58 · a subida do corpo a cada passada era quase imperceptivel. */
     /* §D38 · 0,09·r nao se lia. O corpo sobe DUAS vezes por ciclo (uma por
        perna de apoio), que e o que da a leitura de passo em vez de deslize. */
+    /* §OS-240 · O CABECEIO NAO TINHA PULO.
+       RELATO do dono: "o pulo do jogador ta estranho tambem".
+
+       Estava estranho porque nao existia. O estado `header` mexia em tres
+       coisas -- bracos ao alto, cabeca empurrada para a frente e cabeca subindo
+       0,10 r -- e em nenhuma delas o CORPO saia do chao. O atleta cabeceava
+       plantado, e as pernas seguiam no ciclo de corrida porque `heading` nunca
+       entrou na cadeia de pernas.
+
+       Um cabeceio e um salto: o corpo sobe, as pernas RECOLHEM debaixo dele e
+       ele volta. Sem a subida, o gesto e so um boneco levantando o braco.
+
+       `Math.sin(fase * PI)` da a subida e a descida numa expressao so, e o pico
+       cai na mesma fase em que a onda do gesto vale 1 -- que e o quadro em que
+       a bola sai. O goleiro que sai para encaixar cruzamento sobe junto, pelo
+       mesmo motivo. */
+    const _pulo = heading ? r * .62 * Math.sin(dphase * Math.PI)
+                : (gkClaimPre ? r * .46 * Math.sin(dphase * Math.PI) : 0);
     const bob = Math.abs(swL) * r * .16 - (tackling ? r * .16 : 0) + (dribbling ? r * .10 : 0)
               - (P ? r * P.agacha : 0)             /* §D42 · o agachamento do estado */
-              - (blocking ? r * .12 * Math.sin(dphase * Math.PI) : 0);   /* OS-60 · agacha no bloqueio */
+              - (blocking ? r * .12 * Math.sin(dphase * Math.PI) : 0)   /* OS-60 · agacha no bloqueio */
+              + _pulo;                             /* §OS-240 · o salto do cabeceio */
 
     /* OS-47 · GIRO DE 360. Em vista 2,5D o giro se le pelo estreitamento: o
        corpo afina ate o perfil, passa de costas e volta. cos(theta) faz isso em
@@ -1110,6 +1133,13 @@
         ctx.fillRect(-r * .50 - _bw * r * .22, r * .84, r * .32, r * .20);
         ctx.fillRect(r * .16 + _bw * r * .22, r * .84, r * .32, r * .20);
       }
+    } else if (heading) {
+      /* §OS-240 · no ar as pernas nao correm: recolhem. A da frente sobe mais,
+         que e a leitura de quem se impulsiona para cabecear. */
+      const _C = _corpo(), _s = Math.sin(dphase * Math.PI);
+      const hy = r * (_C.quadrilY - _s * .06);
+      _perna(ctx, -r * _C.quadrilX, hy, (-0.30 - _s * 0.35) * face, 0.70 + _s * 0.55, r, '#17202e', '#0b0f16', face);
+      _perna(ctx,  r * _C.quadrilX, hy, ( 0.22 + _s * 0.30) * face, 0.45 + _s * 0.85, r, '#17202e', '#0b0f16', face);
     } else if (tackling) {
       if (_articulado()) {
         /* §OS-237 · O CARRINHO. A perna de ataque vai quase a HORIZONTAL --
@@ -1224,11 +1254,33 @@
       rr(ctx, -r * .94 - _gx, -r * .36 + _gl, r * .24, r * .52, r * .09); ctx.fill();
       rr(ctx, r * .70 + _gx, -r * .36 + _gr, r * .24, r * .52, r * .09); ctx.fill();
     } else if (heading) {
-      rr(ctx, -r * .88, -r * .74 - w * r * .32, r * .24, r * .52, r * .09); ctx.fill();
-      rr(ctx, r * .64, -r * .74 - w * r * .32, r * .24, r * .52, r * .09); ctx.fill();
+      if (_articulado()) {
+        /* §OS-240 · os bracos do cabeceio eram duas barras SOLTAS ao lado do
+           corpo: nasciam num x fixo, sem nenhuma ligacao com o ombro, entao
+           flutuavam. Agora saem do ombro e abrem para cima, que e o que um
+           corpo faz para se equilibrar no ar. */
+        const _Ca = _corpo(), _s = Math.sin(dphase * Math.PI);
+        const sy = r * _Ca.ombroY, sx = r * _Ca.ombroX;
+        const sobe = Math.PI - 0.30 - _s * 0.32;
+        _braco(ctx, -sx, sy, -sobe, -0.35, r, jersey, null);
+        _braco(ctx,  sx, sy,  sobe,  0.35, r, jersey, null);
+      } else {
+        rr(ctx, -r * .88, -r * .74 - w * r * .32, r * .24, r * .52, r * .09); ctx.fill();
+        rr(ctx, r * .64, -r * .74 - w * r * .32, r * .24, r * .52, r * .09); ctx.fill();
+      }
     } else if (kicking) {
-      rr(ctx, -r * .86 - face * w * r * .12, -r * .46, r * .24, r * .56, r * .09); ctx.fill();
-      rr(ctx, r * .62 - face * w * r * .12, -r * .46, r * .24, r * .56, r * .09); ctx.fill();
+      if (_articulado()) {
+        /* §OS-237 · no chute o braco contrario a perna vai a frente e o outro
+           atras -- e o contrapeso que todo chute tem, e ele nasce do ombro. */
+        const _Ck = _corpo();
+        const sy = r * _Ck.ombroY, sx = r * _Ck.ombroX;
+        const abre = 0.55 + w * 0.55;
+        _braco(ctx, -sx, sy, -abre * face - 0.10, 0.30, r, jersey, null);
+        _braco(ctx,  sx, sy,  abre * face - 0.10, 0.30, r, jersey, null);
+      } else {
+        rr(ctx, -r * .86 - face * w * r * .12, -r * .46, r * .24, r * .56, r * .09); ctx.fill();
+        rr(ctx, r * .62 - face * w * r * .12, -r * .46, r * .24, r * .56, r * .09); ctx.fill();
+      }
     } else {
       /* OS-58 · os bracos eram dois retangulos FIXOS, sem nenhuma dependencia
          da passada. Braco parado e o que mais denuncia "boneco deslizando".
