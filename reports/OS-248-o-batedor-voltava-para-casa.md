@@ -86,6 +86,39 @@ por mim, no mesmo dia em que a documentei pela décima vez.
   quadro a quadro *quem* move o batedor entre a chegada e a cobrança, como a
   `aproximacao.js` fez para o escanteio.
 
+## A bateria fechou a prova
+
+Rodei 288 partidas nos dois builds — com a OS-248 e sem ela (o controle, HEAD).
+As **treze métricas voltaram idênticas até a terceira casa**:
+
+```
+goalsPerMatch 3.14 · shotsPerMatch 25.38 · xgPerMatch 3.16 · onTargetRate 0.324
+passCompletion 0.822 · foulsPerMatch 22.70 · yellowsPerMatch 4.59
+redsPerMatch 0.368 · cornersPerMatch 7.56 · drawRate 0.250
+zeroZeroRate 0.069 · blowoutRate 0.184 · averageEndingStamina 64.36
+```
+
+A camada 81 **não** é pulada pela bateria. Se a trava tivesse encostado em
+alguma coisa, algum número teria se mexido. Nenhum se mexeu — porque a trava
+nunca chegou a engatar: `__cdsTakerWait` é marca de falta, escanteio e lateral,
+e no pontapé — o único lance em que essa camada acorda — ela é nula. `_bat`
+nunca existiu, `__os248Bat` nunca foi escrito.
+
+Ou seja: o patch era **inerte no motor e inerte no lance que ele queria
+consertar**. Os 0,56 → 0,34 m eram, do começo ao fim, duas amostras diferentes
+de partidas diferentes.
+
+## Um item aberto que essa medição revelou de graça
+
+O controle a 288 partidas dá `redsPerMatch` **0,368** contra teto de 0,30. Não
+é da OS-246, nem da 247, nem da 248 — é o valor da própria linha principal
+hoje. Rodadas anteriores dispensaram 0,318 como ruído; 0,368 em 288 partidas
+é ~106 expulsões contra as ~70 do controle antigo (`controle-288.json`, anterior
+à OS-234), e isso não se explica por amostra.
+
+Fica anotado como próxima medição: **o que subiu as expulsões entre a OS-234 e
+hoje.** A comparação certa é a bateria commit a commit nesse intervalo.
+
 ## A lição de método
 
 Eu tinha o número (0,56 → 0,34 m) e uma explicação plausível. O que faltava era

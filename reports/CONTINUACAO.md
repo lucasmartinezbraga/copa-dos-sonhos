@@ -161,6 +161,14 @@ errado, e nenhuma dá erro — falham em silêncio.
    `_startTravel(o, alvo, 'pass', …)`. Vale para qualquer medição que amarre
    gesto a evento: **pergunte se o evento marca o começo ou o fim do lance.**
 
+13. **`controle-288.json` está velho — use `controle-288-r1915.json`.** O
+   controle antigo é anterior à OS-234 e mede `cornersPerMatch` 12,82 e
+   `redsPerMatch` 0,243. Comparar contra ele credita ou culpa a rodada de hoje
+   por efeito de rodadas antigas: foi assim que quase atribuí `redsPerMatch`
+   0,368 a uma camada que nem roda. A linha de base atual (R19.15, 288
+   partidas) é 11/13, com `onTargetRate` 0,324 e `redsPerMatch` 0,368 fora.
+   **Antes de comparar, confira de quando é o controle.**
+
 ---
 
 ## 4. Padrão de defeito que se repete neste código
