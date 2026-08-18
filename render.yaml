@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: abecmed-check
+    runtime: docker
+    plan: free
+    autoDeploy: false
+    healthCheckPath: /health
