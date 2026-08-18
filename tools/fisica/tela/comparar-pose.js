@@ -50,7 +50,7 @@ const SAIDA = path.resolve('reports/imagens');
   await pg.waitForTimeout(3000);
 
   const r = await pg.evaluate(async (GESTO) => {
-    const N = 16, TILE_W = 120, TILE_H = 190, DT = 34;
+    const N = 16, TILE_W = 130, TILE_H = 210, DT = 34;
     const A = window.CDS_ANIM;
     const temGesto = !!(A && A.STATES && A.STATES[GESTO]);
     const loco = (A && A.STATES && (A.STATES.run ? 'run' : Object.keys(A.STATES)[0])) || 'run';
@@ -59,6 +59,13 @@ const SAIDA = path.resolve('reports/imagens');
     /* roteiro: corre -> gesto -> recompoe. E na FRONTEIRA entre eles que o
        corte acontecia. */
     function roteiro(i) {
+      /* para o par falta/levantar o roteiro tem de mostrar os DOIS: cair e
+         voltar. Para os demais gestos, corre -> gesto -> recompoe. */
+      if (GESTO === 'fouled') {
+        if (i < 2) return { state: loco, phase: i / 2 };
+        if (i < 9) return { state: 'fouled', phase: (i - 2) / 7 };
+        return { state: 'get_up', phase: (i - 9) / 7 };
+      }
       if (i < 4) return { state: loco, phase: (i / 4) };
       if (i < 11) return { state: temGesto ? GESTO : loco, phase: (i - 4) / 7 };
       return { state: depois, phase: (i - 11) / 5 };
@@ -82,7 +89,7 @@ const SAIDA = path.resolve('reports/imagens');
         ctx.rect(i * TILE_W, 0, TILE_W, TILE_H);
         ctx.clip();
         window.CDS_F25D.body(ctx, {
-          x: i * TILE_W + TILE_W / 2, y: TILE_H * 0.58, r: 30,
+          x: i * TILE_W + TILE_W / 2, y: TILE_H * 0.50, r: 34,
           pc: '#3ea1ff', gkC: '#ffd166', isGK: false, divePose: null,
           hasBall: false, key: chave, act: '', pose: '', wave: 0, ballX: null
         });

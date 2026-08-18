@@ -980,6 +980,18 @@
     /* OS-60 · os quatro estados de drible caiam no mesmo desenho. Agora cada um
        tem pose propria, dirigida pela FASE do controlador. */
     const dphase = A ? clamp(A.phase || 0, 0, 1) : 0;
+    /* §OS-241 · QUEM SOFRE FALTA CAI. Ate aqui `fouled` era `agacha 0,30` e
+       `inc -0,34`: quatro pixels de agachamento e 19 graus de tronco. Isso e
+       cambalear, nao levar falta. O gesto principal da falta -- o unico que se
+       olha no momento em que o juiz apita -- praticamente nao existia, e e por
+       isso que "a falta nao me agrada nada".
+       Agora o corpo GIRA para perto da horizontal e DESCE ate o gramado, e o
+       `get_up` desfaz o mesmo caminho. A mecanica ja existia no jogo: e a
+       mesma do mergulho do goleiro (`ctx.rotate`), que sempre leu bem. */
+    const caindo = !!(A && (st === 'fouled' || st === 'get_up'));
+    const _kQueda = !caindo ? 0
+                  : (st === 'fouled' ? Math.min(1, dphase / 0.45)
+                                     : Math.max(0, 1 - dphase / 0.72));
     const feint  = A && st === 'body_feint';
     const cutting= A && (st === 'inside_cut' || st === 'outside_cut');
     /* §D43 · os dois cortes desenhavam IDENTICOS: `cutting` nao olhava para
@@ -1030,7 +1042,8 @@
     const bob = Math.abs(swL) * r * .16 - (tackling ? r * .16 : 0) + (dribbling ? r * .10 : 0)
               - (P ? r * P.agacha : 0)             /* §D42 · o agachamento do estado */
               - (blocking ? r * .12 * Math.sin(dphase * Math.PI) : 0)   /* OS-60 · agacha no bloqueio */
-              + _pulo;                             /* §OS-240 · o salto do cabeceio */
+              + _pulo                              /* §OS-240 · o salto do cabeceio */
+              - r * .46 * _kQueda;                 /* §OS-241 · o corpo vai ao chao */
 
     /* OS-47 · GIRO DE 360. Em vista 2,5D o giro se le pelo estreitamento: o
        corpo afina ate o perfil, passa de costas e volta. cos(theta) faz isso em
@@ -1073,6 +1086,7 @@
       const _sq = 1 - Math.abs(_sin) * _vig * 0.22;
       ctx.scale(_sq < .5 ? .5 : _sq, 1);
     }
+    if (caindo && _kQueda > 0.01) ctx.rotate(face * 1.12 * _kQueda);  /* §OS-241 */
     if (mergulho) ctx.rotate(Math.PI / 2);
     else if (spinning) {
       const _c = Math.cos(spinTh);
@@ -1133,6 +1147,12 @@
         ctx.fillRect(-r * .50 - _bw * r * .22, r * .84, r * .32, r * .20);
         ctx.fillRect(r * .16 + _bw * r * .22, r * .84, r * .32, r * .20);
       }
+    } else if (caindo && _kQueda > 0.05) {
+      /* §OS-241 · no chao as pernas ficam dobradas e abertas, nao em passada */
+      const _Cq = _corpo();
+      const hyq = r * _Cq.quadrilY;
+      _perna(ctx, -r * _Cq.quadrilX, hyq, (-0.55 - _kQueda * 0.35) * face, 0.85, r, '#17202e', '#0b0f16', face);
+      _perna(ctx,  r * _Cq.quadrilX, hyq, ( 0.30 + _kQueda * 0.55) * face, 0.55, r, '#17202e', '#0b0f16', face);
     } else if (heading) {
       /* §OS-240 · no ar as pernas nao correm: recolhem. A da frente sobe mais,
          que e a leitura de quem se impulsiona para cabecear. */
@@ -1339,7 +1359,10 @@
        deixaria o pescoco rigido e mataria a leitura do gesto; 62% mantem a
        cabeca sobre o quadril e ainda deixa o tronco projetado a frente. */
     const hx = lean * .4 + tl + (heading ? face * r * .26 : 0) + (dribbling ? face * r * .10 : 0)
-             - _rotTot * r * .62;
+             /* §OS-241 · a compensacao de pescoco existe para a INCLINACAO da
+                corrida; com o corpo deitado ela arranca a cabeca do tronco.
+                Some junto com a queda. */
+             - _rotTot * r * .62 * (1 - _kQueda);
     const _Ch = _corpo();
     const hy = r * _Ch.cabecaY + (heading ? w * r * .10 : 0);
     ctx.beginPath(); ctx.arc(hx, hy, r * _Ch.cabecaR, 0, TAU);
