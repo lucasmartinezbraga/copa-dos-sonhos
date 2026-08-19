@@ -352,6 +352,30 @@ for k in ("ABECMED_CPF", "TELEGRAM_BOT_TOKEN", "ABECMED_CONFIG"):
 M.carregar_credenciais()
 checar("ABECMED_CPF" not in os.environ, "sem ABECMED_CONFIG não inventa credencial")
 
+print("\nbotão só da Zeleno")
+cat_duplo = {
+    "flores": {"disponivel": True, "produtos": [{"nome": "Papaya (indoor)", "preco": 85.0}]},
+    "zeleno_flores": {"disponivel": True, "produtos": [
+        {"nome": "Power Plant", "preco": 93.0, "por": "/g", "categoria": "Híbrida (+sativa)"}]},
+    "zeleno_oleos": {"disponivel": True, "produtos": [{"nome": "Óleo THC Rosin", "preco": 490.0}]},
+}
+so_z = M.secoes_da_fonte(cat_duplo, "zeleno")
+checar(set(so_z) == {"zeleno_flores", "zeleno_oleos"}, f"recorta só a Zeleno (achou {set(so_z)})")
+checar(M.secoes_da_fonte(cat_duplo, "abecmed").keys() == {"flores"}, "e sabe recortar a ABECMED também")
+saida_z = M.render_catalogo(so_z, {})
+checar("Power Plant" in saida_z, "o recorte mostra o produto da Zeleno")
+checar("ABECMED" not in saida_z, "e não anuncia as seções da ABECMED como indisponíveis")
+checar("Papaya" not in saida_z, "nem vaza produto da outra associação")
+completo = M.render_catalogo(cat_duplo, {})
+checar("Papaya" in completo and "Power Plant" in completo, "o catálogo completo segue trazendo as duas")
+
+# "Alto em THC" e "216mg THC" já trazem a sigla
+rot = M.render_catalogo(so_z, {"power plant": {"thc": "Alto em THC"}})
+checar("THC Alto em THC" not in rot, "não repete a sigla quando o valor já a contém")
+checar("Alto em THC" in rot, "mas mostra o valor")
+rot2 = M.render_catalogo(so_z, {"power plant": {"thc": "20,5%"}})
+checar("THC 20,5%" in rot2, "valor numérico ganha o rótulo THC")
+
 print("\nbotões e comandos do bot")
 estado_ex = {"falhas_seguidas": 0, "ultima_mudanca_em": "2026-08-18T19:30:00-03:00"}
 cat = {
