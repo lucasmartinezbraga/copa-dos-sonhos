@@ -658,6 +658,65 @@
     /* os cinco que a sonda pegou desenhando a corrida */
     protect:    { esc: 0.20, spr: 0.32, inc: -0.12, agacha: 0.14, braco: 1.50, estica: 0.00 },
     shot_recover:{esc: 0.45, spr: 0.10, inc: -0.20, agacha: 0.06, braco: 0.70, estica: 0.26 },
+
+    /* §OS-257 · VINTE E SETE GESTOS DESENHAVAM A CORRIDA.
+       ---------------------------------------------------------------------
+       PERGUNTA DO DONO: "qual e a animacao quando o jogador da um chute?
+       quando sai driblando? o pulo do goleiro?"
+
+       A resposta era: a MESMA de correr. `const alvo = POSE[st] || POSE_NEUTRA`
+       -- e POSE_NEUTRA e a silhueta de corrida (`esc: 1, braco: 1`). Contados
+       na tabela: **33 dos 64 estados nao tinham pose propria**. Seis sao
+       locomocao e devem mesmo usar a neutra; os outros 27 sao gesto de verdade
+       desenhado como passada.
+
+       Foi isso que a folha de quadros mostrou sem eu precisar medir: o chute
+       sem perna, o goleiro estatua, o desarme que nao le. A OS-255 fez o jogo
+       ESCOLHER carrinho ou bote em pe pela distancia -- e os dois desenhavam a
+       mesma coisa, porque nenhum dos dois tinha pose.
+
+       Os valores abaixo modulam o desenho de corrida que ja existe, na mesma
+       escala das entradas que ja estavam aqui (`intercept` chega a estica 0,62;
+       `body_duel` a braco 1,45). Nada de ramo de desenho novo. */
+
+    /* CHUTE — carrega para tras, estende no contato, acompanha depois */
+    shot_prepare:      { esc: 1.10, spr: 0.18, inc: -0.18, agacha: 0.10, braco: 1.30, estica: 0.16 },
+    shot_contact:      { esc: 1.85, spr: 0.22, inc:  0.06, agacha: 0.02, braco: 1.55, estica: 0.88 },
+    shot_followthrough:{ esc: 1.45, spr: 0.16, inc:  0.24, agacha: 0.04, braco: 1.35, estica: 0.58 },
+    power_shot:        { esc: 2.00, spr: 0.24, inc:  0.10, agacha: 0.02, braco: 1.70, estica: 0.95 },
+    placed_shot:       { esc: 1.20, spr: 0.14, inc: -0.06, agacha: 0.08, braco: 1.10, estica: 0.52 },
+    volley:            { esc: 1.30, spr: 0.34, inc: -0.24, agacha: 0.00, braco: 1.60, estica: 0.80 },
+
+    /* PASSE — mesma familia, amplitude menor: passe nao e chute */
+    pass_prepare:      { esc: 0.85, spr: 0.14, inc: -0.10, agacha: 0.08, braco: 1.15, estica: 0.12 },
+    pass_contact:      { esc: 1.30, spr: 0.18, inc:  0.04, agacha: 0.03, braco: 1.30, estica: 0.60 },
+    pass_followthrough:{ esc: 1.05, spr: 0.12, inc:  0.14, agacha: 0.04, braco: 1.20, estica: 0.36 },
+    pass_recover:      { esc: 0.70, spr: 0.08, inc: -0.06, agacha: 0.05, braco: 0.90, estica: 0.18 },
+    first_touch_pass:  { esc: 1.25, spr: 0.26, inc: -0.08, agacha: 0.02, braco: 1.40, estica: 0.66 },
+    long_pass:         { esc: 1.60, spr: 0.20, inc: -0.14, agacha: 0.04, braco: 1.55, estica: 0.78 },
+    cross:             { esc: 1.50, spr: 0.28, inc: -0.10, agacha: 0.03, braco: 1.60, estica: 0.72 },
+
+    /* CABECEIO — o corpo sobe (o pulo e da OS-240); aqui o tronco arqueia */
+    header:            { esc: 0.55, spr: 0.30, inc: -0.30, agacha: 0.00, braco: 1.75, estica: 0.10 },
+
+    /* DESARME — bote em pe alcanca com a perna, carrinho se lanca rente ao chao */
+    standing_tackle:   { esc: 1.35, spr: 0.30, inc:  0.28, agacha: 0.18, braco: 1.30, estica: 0.82 },
+    slide_tackle:      { esc: 1.00, spr: 0.46, inc:  0.10, agacha: 0.62, braco: 1.10, estica: 1.15 },
+    block:             { esc: 0.40, spr: 0.44, inc:  0.16, agacha: 0.26, braco: 1.65, estica: 0.30 },
+
+    /* DRIBLE — o corpo engana antes de o pe tocar */
+    body_feint:        { esc: 0.75, spr: 0.40, inc: -0.16, agacha: 0.20, braco: 1.45, estica: 0.14 },
+    inside_cut:        { esc: 0.90, spr: 0.34, inc:  0.12, agacha: 0.16, braco: 1.25, estica: 0.34 },
+    outside_cut:       { esc: 0.90, spr: 0.34, inc:  0.12, agacha: 0.16, braco: 1.25, estica: 0.34 },
+    turn_dribble:      { esc: 0.65, spr: 0.38, inc: -0.08, agacha: 0.22, braco: 1.35, estica: 0.20 },
+    burst_touch:       { esc: 1.55, spr: 0.12, inc:  0.26, agacha: 0.00, braco: 1.45, estica: 0.40 },
+    protect_turn:      { esc: 0.50, spr: 0.42, inc: -0.10, agacha: 0.24, braco: 1.55, estica: 0.16 },
+
+    /* GOLEIRO — o mergulho e o gesto mais visivel do jogo e nao existia */
+    gk_low_dive:       { esc: 0.30, spr: 0.60, inc:  0.34, agacha: 0.70, braco: 1.90, estica: 1.05 },
+    gk_high_dive:      { esc: 0.35, spr: 0.55, inc: -0.36, agacha: 0.00, braco: 2.10, estica: 0.95 },
+    gk_catch:          { esc: 0.25, spr: 0.26, inc: -0.14, agacha: 0.08, braco: 1.95, estica: 0.30 },
+    gk_punch:          { esc: 0.30, spr: 0.30, inc: -0.22, agacha: 0.00, braco: 2.05, estica: 0.40 },
     intercept:  { esc: 0.35, spr: 0.10, inc:  0.34, agacha: 0.04, braco: 1.20, estica: 0.62 },
     lose_control:{esc: 0.40, spr: 0.28, inc: -0.26, agacha: 0.02, braco: 1.60, estica: 0.16 },
     heavy_touch:{ esc: 0.95, spr: 0.06, inc:  0.30, agacha: 0.00, braco: 1.15, estica: 0.44 },
@@ -740,16 +799,71 @@
      mistura desaparece e o desenho volta a ser EXATAMENTE o de antes -- e por
      isso a sonda consegue medir controle e tratamento na MESMA partida, sem
      variancia de build entre as duas medicoes. */
-  const AUDIT = { quadros: 0, trocas: 0, soma: 0, pico: 0 };
+  const AUDIT = { quadros: 0, trocas: 0, soma: 0, pico: 0, chegou: 0, cortou: 0, somaK: 0 };
   root.CDS_ANIM_MIX = {
     get t() { return typeof root.CDS_MIX_T === 'number' ? root.CDS_MIX_T : T_MISTURA_PADRAO; },
     auditoria: AUDIT,
-    zerar: function () { AUDIT.quadros = 0; AUDIT.trocas = 0; AUDIT.soma = 0; AUDIT.pico = 0; }
+    zerar: function () {
+      AUDIT.quadros = 0; AUDIT.trocas = 0; AUDIT.soma = 0; AUDIT.pico = 0;
+      AUDIT.chegou = 0; AUDIT.cortou = 0; AUDIT.somaK = 0;
+    }
   };
 
-  function misturarPose(d, st, ondaCrua, dtP) {
+  /* §OS-260 · A MISTURA E O GESTO VIVIAM EM RELOGIOS DIFERENTES.
+     ---------------------------------------------------------------------
+     A maquina de animacao conta em segundos de SIMULACAO (`this.t += dt` no
+     Controller, com o dt do motor). A mistura de pose da OS-235 conta em
+     segundos de PAREDE, de proposito: "quadro irregular e botao de velocidade
+     nao mexem na duracao da transicao".
+
+     As duas decisoes sao defensaveis sozinhas e incompativeis juntas. O botao
+     de velocidade encolhe o gesto e nao encolhe a mistura, entao no padrao de
+     3X todo gesto vale um terco e a silhueta dele nunca chega.
+
+     MEDIDO (tools/fisica/tela/vida-do-gesto.js, 22 atletas, ~70 s por lado):
+
+                        declara    vive em 3X    vive em 1X
+         turn             260 ms      83 ms        267 ms
+         decelerate       300 ms     100 ms        300 ms
+         accelerate       300 ms     100 ms        300 ms
+         pass_prepare     150 ms      50 ms        167 ms
+         pass_recover     120 ms      50 ms        133 ms
+
+         entradas que morreram antes da mistura:  67,3% em 3X
+
+     Nao e aproximado: e a divisao exata pelo multiplicador do botao. E como
+     3X e o PADRAO (OS-202), o jogo que o dono assiste e o de cima -- dois
+     tercos dos gestos nunca terminam de ser desenhados. E a explicacao de
+     "nao da pra sentir a fluidez" que faltava, e a razao pela qual acertar a
+     tabela POSE sozinha (OS-257) mudava pouco.
+
+     A correcao nao e reduzir a mistura no braco: e amarra-la ao ESTADO. A
+     transicao passa a ter teto em `FRACAO` da vida de PAREDE que o estado
+     ainda tem pela frente. Assim ela encolhe junto com o gesto em qualquer
+     velocidade, e tambem cobre o caso 1X de estados naturalmente curtos
+     (`shot_contact` dura 80 ms e a mistura pedia 110). Estado ciclico nao tem
+     duracao e segue com a constante de sempre. */
+  const FRACAO_MISTURA = 0.40;   // no maximo 40% do estado e transicao
+  const T_MISTURA_MIN = 0.02;    // piso: abaixo disso volta a ser degrau
+  function velDeExibicao() {
+    const v = root && root.__CDS_VELVIS;
+    return (typeof v === 'number' && v > 0.05 && isFinite(v)) ? v : 1;
+  }
+
+  function misturarPose(d, st, ondaCrua, dtP, durSim) {
     const alvo = POSE[st] || POSE_NEUTRA;
     if (d.__poseSt !== st) {
+      /* §OS-260 · A SILHUETA CHEGOU, OU FOI CORTADA NO MEIO?
+         Esta e a grandeza que faltava para julgar animacao. `trocas` conta o
+         quanto o gesto muda; `chegou`/`cortou` contam se ele chegou a ser
+         DESENHADO. Uma troca com `__poseK` em 0,22 significa que o corpo
+         mostrou 22% da pose do estado e ja partiu para a proxima -- e o que
+         acontecia em 3X antes desta OS. Fica publicado porque foi justamente a
+         falta de uma medida assim que deixou a OS-257 parecer inocua. */
+      if (d.__poseSt !== undefined) {
+        const _k = d.__poseK || 0;
+        if (_k >= 0.999) AUDIT.chegou++; else { AUDIT.cortou++; AUDIT.somaK += _k; }
+      }
       /* parte de onde o corpo ESTAVA desenhado, e nao da tabela do estado
          velho: se a troca pegou uma mistura pela metade, ela segue de onde
          estava, em vez de recomecar de um degrau novo */
@@ -762,7 +876,16 @@
       d.__poseK = 0;
       AUDIT.trocas++;
     }
-    const _T = typeof root.CDS_MIX_T === 'number' ? root.CDS_MIX_T : T_MISTURA_PADRAO;
+    let _T = typeof root.CDS_MIX_T === 'number' ? root.CDS_MIX_T : T_MISTURA_PADRAO;
+    /* §OS-260 · o teto que amarra a mistura ao estado. `durSim` e a duracao
+       efetiva em segundos de simulacao; dividida pela velocidade de exibicao
+       vira a vida de PAREDE que o gesto tem. Zero (ciclico) nao limita. */
+    /* `CDS_MIX_TETO = 0` desliga o teto em tempo de execucao e devolve o
+       comportamento de antes da OS-260, para a sonda poder medir A e B na
+       MESMA partida — foi assim que a OS-246 se provou. */
+    if (_T > 0 && durSim > 0 && ajuste('CDS_MIX_TETO', 1)) {
+      _T = Math.max(T_MISTURA_MIN, Math.min(_T, (durSim / velDeExibicao()) * FRACAO_MISTURA));
+    }
     d.__poseK = _T > 0 ? Math.min(1, (d.__poseK || 0) + Math.max(0, dtP || 0) / _T) : 1;
     const k = d.__poseK, e = k * k * (3 - 2 * k);        // smoothstep
     const de = d.__poseDe || alvo;
@@ -998,7 +1121,7 @@
     const _ondaCrua = mergulho ? 0 : (A ? animWave(st, A.phase) : (o.wave || 0));
     /* §OS-235 · a mistura roda UMA vez por atleta por quadro, aqui, porque
        ela avanca o relogio da transicao; `P` la embaixo so le o resultado. */
-    const _poseMix = misturarPose(d, st, _ondaCrua, _dtP);
+    const _poseMix = misturarPose(d, st, _ondaCrua, _dtP, (A && Number(A.dur)) || 0);
     const w = (typeof d.__ondaAtual === 'number') ? d.__ondaAtual : _ondaCrua;
     const act = o.act || '', pose = o.pose || '';
     /* §D48 · as variantes entram no ramo de CHUTE do desenho: sem isto elas
@@ -1049,7 +1172,50 @@
        perna por inteiro, em qualquer velocidade de exibicao. */
     const amp = (mergulho || kicking || tackling) ? 0
               : clamp(d.vms / 4.2, 0, 1) * (bursting ? 1.35 : 1);   // 0 parado … 1 correndo
-    const sw = Math.sin(d.gait) * amp;                  // -1..1 alterna as pernas
+    /* §OS-258 · O GESTO DISCRETO NAO TINHA AMPLITUDE NENHUMA.
+       ---------------------------------------------------------------------
+       A linha acima zera `amp` no chute, no bote e no mergulho -- e faz
+       sentido: o gesto nao e uma passada, entao a tesoura da CORRIDA nao pode
+       continuar rodando por baixo dele.
+       So que duas linhas abaixo esta `swL = sw * P.esc` e `swB = sw * P.braco`.
+       Com `amp = 0`, `sw` e 0, e os dois viram 0 tambem. Ou seja: `esc` e
+       `braco` -- os UNICOS dois parametros da tabela POSE que movem os
+       MEMBROS -- eram multiplicados por zero em exatamente os estados em que
+       mais importam. A pose so conseguia falar por `spr`, `inc`, `agacha` e
+       `estica`, que mexem na base e no tronco.
+
+       Visto na folha de quadros (tools/fisica/tela/lance-em-quadros.js) e por
+       isso que a OS-257 pareceu nao ter efeito no chute: de -200 ms a +301 ms
+       o chutador e a MESMA silhueta, quadro por quadro. E por isso tambem que
+       a OS-255 -- que escolhe carrinho ou bote em pe pela distancia -- nao
+       mudou nada na tela: os dois desenhavam a mesma coisa.
+
+       O gesto tem de trazer a propria amplitude. `_batida` e um envelope de
+       ATAQUE RAPIDO e queda longa, com relogio proprio por atleta: sobe em
+       90 ms e decai com constante de 0,30 s.
+
+       O relogio e do GESTO, nao do estado, de proposito. Medido no jogo, a
+       cadeia de um chute e `placed_shot` 550 ms -> `shot_contact` 33 ms ->
+       `shot_followthrough` 67 ms -> `shot_recover`. Dois desses beats duram
+       MENOS que os 110 ms que a mistura de pose leva para completar: se o
+       envelope reiniciasse a cada estado, a perna pedalaria quatro vezes e o
+       pico nunca chegaria. Com relogio de cadeia, sai um arco so. */
+    const _ehGesto = (kicking || tackling || heading) && !mergulho;
+    if (_ehGesto) {
+      /* §OS-260 · o relogio do envelope e o do GESTO, e o gesto conta em
+         segundos de simulacao. Somar parede aqui repetiria o erro que a
+         OS-260 acabou de achar: em 3X o chute inteiro dura ~280 ms de parede
+         e o envelope ainda estaria na subida. */
+      d.__gestoT = (d.__gestoAtivo ? (d.__gestoT || 0) : 0)
+                 + Math.max(0, _dtP || 0) * velDeExibicao();
+      d.__gestoAtivo = true;
+    } else { d.__gestoAtivo = false; d.__gestoT = 0; }
+    const GESTO_ATAQUE = 0.09, GESTO_QUEDA = 0.30;
+    const _tg = d.__gestoT || 0;
+    const _batida = !_ehGesto ? 0
+                  : (_tg < GESTO_ATAQUE ? _tg / GESTO_ATAQUE
+                                        : Math.exp(-(_tg - GESTO_ATAQUE) / GESTO_QUEDA));
+    const sw = _ehGesto ? _batida : Math.sin(d.gait) * amp;   // -1..1 alterna as pernas
     /* §D42 · a postura do estado modula a corrida em vez de substitui-la */
     const P = _poseMix;   /* §OS-235 · silhueta misturada, nunca mais o degrau */
     const swL = P ? sw * P.esc : sw;                    // tesoura das pernas
@@ -1445,6 +1611,16 @@
     // segue reto. Antes o arco excluía kind=shot mesmo com z alto.
     const aerial = z > 0.45 && (!isShot || z > 1.1);
     const col = isShot ? '255,255,255' : '255,220,40';
+    /* §OS-259 · A SETA DA TRAJETORIA CRESCIA COM A LENTE.
+       9 px de ponta e 2 px de traco sao medidas de TELA, mas isto e desenhado
+       dentro da transformacao da camera: fechando o zoom em 2,1 a seta virava
+       19 px -- maior que a cabeca do atleta -- e o traco 4,2. Na folha de
+       quadros do desarme (tools/fisica/tela/lance-em-quadros.js) a seta
+       atravessa os dois corpos no exato quadro do bote.
+       Mesmo remedio da OS-243 para a placa de nome: dividir pelo zoom cancela
+       a escala e a guia volta a ter tamanho constante em tela. */
+    const _cz = (typeof root.__CDS_CAMZ === 'number' && root.__CDS_CAMZ > 0) ? root.__CDS_CAMZ : 1;
+    const PT = 9 / _cz, LW = 2 / _cz, TRC = [7 / _cz, 6 / _cz];
     ctx.save();
     if (aerial) {
       const B = { x: g.x, y: liftY(g.y, z, g.s) };
@@ -1457,30 +1633,30 @@
       const AC = { x: A.x + (C.x - A.x) * u, y: A.y + (C.y - A.y) * u };
       const CD = { x: C.x + (D.x - C.x) * u, y: C.y + (D.y - C.y) * u };
       // percorrido: sólido suave até a bola
-      ctx.strokeStyle = 'rgba(' + col + ',.42)'; ctx.lineWidth = 2; ctx.setLineDash([]);
+      ctx.strokeStyle = 'rgba(' + col + ',.42)'; ctx.lineWidth = LW; ctx.setLineDash([]);
       ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.quadraticCurveTo(AC.x, AC.y, B.x, B.y); ctx.stroke();
       // restante: tracejado vivo da bola ao ponto de queda
-      ctx.strokeStyle = 'rgba(' + col + ',.9)'; ctx.lineWidth = 2; ctx.setLineDash([7, 6]);
+      ctx.strokeStyle = 'rgba(' + col + ',.9)'; ctx.lineWidth = LW; ctx.setLineDash(TRC);
       ctx.beginPath(); ctx.moveTo(B.x, B.y); ctx.quadraticCurveTo(CD.x, CD.y, D.x, D.y); ctx.stroke();
       ctx.setLineDash([]);
       const ang = Math.atan2(D.y - CD.y, D.x - CD.x);
       ctx.fillStyle = 'rgba(' + col + ',.95)';
       ctx.beginPath();
       ctx.moveTo(D.x, D.y);
-      ctx.lineTo(D.x - 9 * Math.cos(ang - 0.42), D.y - 9 * Math.sin(ang - 0.42));
-      ctx.lineTo(D.x - 9 * Math.cos(ang + 0.42), D.y - 9 * Math.sin(ang + 0.42));
+      ctx.lineTo(D.x - PT * Math.cos(ang - 0.42), D.y - PT * Math.sin(ang - 0.42));
+      ctx.lineTo(D.x - PT * Math.cos(ang + 0.42), D.y - PT * Math.sin(ang + 0.42));
       ctx.closePath(); ctx.fill();
     } else {
-      if (isShot) { ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 2; ctx.setLineDash([]); }
-      else { ctx.strokeStyle = 'rgba(255,220,40,.9)'; ctx.lineWidth = 2; ctx.setLineDash([7, 6]); }
+      if (isShot) { ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = LW; ctx.setLineDash([]); }
+      else { ctx.strokeStyle = 'rgba(255,220,40,.9)'; ctx.lineWidth = LW; ctx.setLineDash(TRC); }
       ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(D.x, D.y); ctx.stroke();
       const ang = Math.atan2(D.y - A.y, D.x - A.x);
       ctx.setLineDash([]);
       ctx.fillStyle = isShot ? 'rgba(255,255,255,.85)' : 'rgba(255,220,40,.95)';
       ctx.beginPath();
       ctx.moveTo(D.x, D.y);
-      ctx.lineTo(D.x - 9 * Math.cos(ang - 0.42), D.y - 9 * Math.sin(ang - 0.42));
-      ctx.lineTo(D.x - 9 * Math.cos(ang + 0.42), D.y - 9 * Math.sin(ang + 0.42));
+      ctx.lineTo(D.x - PT * Math.cos(ang - 0.42), D.y - PT * Math.sin(ang - 0.42));
+      ctx.lineTo(D.x - PT * Math.cos(ang + 0.42), D.y - PT * Math.sin(ang + 0.42));
       ctx.closePath(); ctx.fill();
     }
     ctx.restore();
@@ -2261,6 +2437,12 @@
     return {
       state: this.state,
       tier: this.tier,
+      /* §OS-260 · a duracao EFETIVA do estado (em segundos de simulacao) vai
+         junto. `_enter` sobrescreve a declarada em varios caminhos -- contato
+         de acao, preparo vindo do contrato, recuperacao -- entao a tabela
+         `STATES` nao serve para quem desenha. Sem este numero a mistura de
+         pose nao tem como saber quanto tempo o estado ainda vai viver. */
+      dur: this.dur,
       phase: +phase.toFixed(4),
       loop: !!def.loop,
       inAction: !!this.seq,

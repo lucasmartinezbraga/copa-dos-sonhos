@@ -3447,10 +3447,16 @@ function paintField() {
     ctx.scale(z, z);
     ctx.translate(-cpx, -cpy);
     _camView = { z: z, cpx: cpx, cpy: cpy };   /* §OS-84 · para projetar texto fora do zoom */
+    /* §OS-259 · o zoom da camera passa a ser PUBLICO. A camada 2,5D desenha as
+       guias (rastro, trajetoria, seta) dentro desta transformacao e nao tinha
+       como saber por quanto elas seriam multiplicadas. Mesma razao da OS-243:
+       guia e interface, e interface tem tamanho de TELA. */
+    try { window.__CDS_CAMZ = z; } catch (_) { }
   } else {
     camX = CW / 2;
     camY = CH / 2;
     _camView = { z: 1, cpx: CW / 2, cpy: CH / 2 };
+    try { window.__CDS_CAMZ = 1; } catch (_) { }
   }
 
   /* gramado listrado (delegado ao palco 2.5D quando presente) */
@@ -3582,6 +3588,11 @@ function paintField() {
   const _pxPorM = Math.max(1, (G.CW - 2 * G.M) / (FL || 105));
   const MUITO_LONGE_PX = 34 * _pxPorM;   // trocou de metade do campo: nao se anima
   const _velVis = (slowmo ? Math.min(G.speed, 1) * slowmo.f : G.speed) || 1;
+  /* §OS-260 · a velocidade de EXIBICAO passa a ser publica. A maquina de
+     animacao conta em segundos de SIMULACAO e a mistura de pose conta em
+     segundos de PAREDE; sem este numero a segunda nao tem como saber por
+     quanto a primeira foi encolhida. */
+  try { window.__CDS_VELVIS = _velVis; } catch (_) { }
   for (const tmSt of groups) {
     const C = tmSt.color || (tmSt.players[0] && tmSt.players[0].color) || '#2e9bff';
     const perPlayerColor = !tmSt.color;   // no replay cada jogador traz sua cor
@@ -3784,14 +3795,28 @@ function paintField() {
         ctx.restore();
       }
 
-      // cartão amarelo (flag no ombro)
-      if (p.yellow>=1) { ctx.fillStyle='#ffcb45'; ctx.fillRect(x+r-6,y-r-3,5,7); }
+      /* cartão amarelo (flag no ombro)
+         §OS-259 · era 5x7 px FIXOS em `x+r-6` — quase meio raio de altura, e
+         nao encostava no ombro de ninguem: na folha de quadros do desarme
+         aparece como um tijolo amarelo flutuando ao lado do grupo. Agora sai
+         do porte do atleta e encosta no ombro. */
+      if (p.yellow>=1) { ctx.fillStyle='#ffcb45';
+        ctx.fillRect(x + r*0.58, y - r*0.86, Math.max(2, r*0.22), Math.max(3, r*0.34)); }
 
-      // número da camisa
+      /* §OS-259 · O NUMERO DA CAMISA TAPAVA O TRONCO INTEIRO.
+         Era `min(12, 10*r/13)` px desenhado em `(x, y)` -- o CENTRO do corpo.
+         Com `r` na casa de 13, a altura da caixa do texto batia com o RAIO do
+         atleta: o numero cobria o torso de ombro a cintura.
+         Isso nao e detalhe de acabamento. O torso e onde `inc` (a inclinacao) e
+         o balanco dos bracos se leem; ampliando um quadro do chute, o que se ve
+         e um "13" e duas pernas, e nada mais. A OS-258 pode acertar o gesto que
+         ele continua invisivel debaixo da propria identificacao.
+         Agora e ~0,5 r de corpo, na altura do PEITO (e nao no centro), que e
+         onde numero de camisa fica. Continua legivel e deixa o corpo aparecer. */
       ctx.fillStyle = numCol;
-      ctx.font = `bold ${Math.max(7, Math.min(12, 10 * r / 13)).toFixed(1)}px Arial,sans-serif`;
+      ctx.font = `bold ${Math.max(5.5, Math.min(8.5, 6.6 * r / 13)).toFixed(1)}px Arial,sans-serif`;
       ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText(p.num||'', x, y);
+      ctx.fillText(p.num||'', x, y - r * 0.18);
 
       // sobrenome em pill escuro — INTELIGENTE: só perto da bola (ou em 1X),
       // pra 22 chips não virarem poluição no movimento (leitura estilo FM)
@@ -3822,7 +3847,15 @@ function paintField() {
       const _oc = window.__cdsChips.r;
       const _bate = (ax, ay) => _oc.some(q =>
         Math.abs(ax - q.x) < (pw + q.w) / 2 - 1 && Math.abs(ay - q.y) < (ph2 + q.h) / 2 - 1);
-      let py2 = y + r + 2 / _cz, _ok = !_bate(pxc, py2 + ph2 / 2);
+      /* §OS-259 · A PLACA DE NOME FICAVA EM CIMA DAS CHUTEIRAS.
+         `y + r + 2` e o pe do CIRCULO, mas o atleta 2,5D nao e um circulo: as
+         pernas descem ate cerca de 1,4 r abaixo do centro, e a sombra vai a
+         0,98 r com meia altura de 0,34 r. A placa caia exatamente sobre os pes.
+         Perna e o membro que carrega `esc` e `estica` -- ou seja, a placa
+         cobria a metade do corpo onde o chute, o carrinho e a passada se leem.
+         Desce para depois da sombra; a lista de ocupacao ja resolve empilhamento
+         a partir dai. */
+      let py2 = y + r * 1.52 + 2 / _cz, _ok = !_bate(pxc, py2 + ph2 / 2);
       for (let _t = 0; !_ok && _t < 3; _t++) {
         py2 += 12 / _cz;
         _ok = !_bate(pxc, py2 + ph2 / 2);
@@ -3874,6 +3907,25 @@ function paintField() {
     let x = cx(v.x), y = cy(v.y);
     if (window.CDS_F25D) { const _pj = window.CDS_F25D.project(x, y); x = _pj.x; y = _pj.y; }
     ctx.save(); ctx.globalAlpha = a;
+    /* §OS-259 · OS EFEITOS SAO INTERFACE E CRESCIAM COM A LENTE.
+       Todo este laco desenha em pixels FIXOS -- '17px Arial' na luva, 14 no
+       escudo, raios de 10 a 18, cartoes de 12x17 -- mas roda DENTRO da
+       transformacao da camera. Com o zoom em 2,1 cada um desses numeros
+       dobra, e o efeito passa a ser maior do que o atleta que ele comenta.
+
+       Visto na folha de quadros da DEFESA: o emoji de luva do evento `save`
+       vira um par de luvas do tamanho do tronco do goleiro, flutuando a uma
+       altura de corpo acima dele, por 300 ms -- exatamente por cima do
+       mergulho que a OS-257 acabou de fazer existir. Parecia bug de desenho
+       das maos do goleiro; e o efeito.
+
+       A contra-escala em volta do ponto projetado resolve o laco INTEIRO de
+       uma vez, em vez de acertar numero por numero: qualquer efeito novo
+       nasce com tamanho de tela sem precisar lembrar disso. Mesmo principio
+       da OS-243 (placa de nome) e das duas correcoes acima (numero da camisa
+       e seta da trajetoria). */
+    const _vz = (typeof window.__CDS_CAMZ === 'number' && window.__CDS_CAMZ > 0) ? window.__CDS_CAMZ : 1;
+    if (_vz !== 1) { ctx.translate(x, y); ctx.scale(1 / _vz, 1 / _vz); ctx.translate(-x, -y); }
     if (v.type === 'ring') {                     // drible: onda dupla expansiva
       ctx.strokeStyle = `rgba(125,240,255,${a})`; ctx.lineWidth = 2.5;
       ctx.beginPath(); ctx.arc(x, y, 16 + (1-a)*16, 0, Math.PI*2); ctx.stroke();
@@ -3910,8 +3962,13 @@ function paintField() {
     } else if (v.type === 'block') {             // bloqueio de chute
       ctx.strokeStyle='#ffcb45'; ctx.lineWidth=3;
       ctx.beginPath(); ctx.arc(x, y, 10+(1-a)*8, 0, Math.PI*2); ctx.stroke();
+      /* §OS-259 · o escudo era um emoji CHEIO de 14 px em cima do peito, e o
+         efeito de bloqueio dura meio segundo: na folha de quadros do chute ele
+         apagou o autor de +84 ms a +585 ms -- justamente o gesto que se queria
+         ver. O anel fica (e stroke, nao tapa nada); o escudo sobe para a altura
+         dos cartoes, que e onde os outros avisos ja moram. */
       ctx.font='bold 14px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText('🛡️', x, y);
+      ctx.fillText('🛡️', x, y - 30 - (1-a)*8);
     } else if (v.type === 'arrow') {             // cruzamento
       ctx.strokeStyle=`rgba(255,203,69,${a})`; ctx.lineWidth=2.5;
       ctx.beginPath(); ctx.moveTo(x-10,y); ctx.lineTo(x+12,y); ctx.stroke();

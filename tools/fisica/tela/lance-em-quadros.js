@@ -55,6 +55,11 @@ const LARG = Number(argv.larg || 300);       // recorte, em px de canvas
 const ALT = Number(argv.alt || 210);
 const ZOOM = Number(argv.zoom || 2);         // ampliacao do recorte
 const VEL = Number(argv.vel || 1);           // velocidade do jogo na captura
+/* §PASSO ENTRE QUADROS. A primeira versao guardava TODO quadro: 24 quadros a
+   60 fps sao 0,4 s de jogo -- um piscar, insuficiente para acompanhar a
+   jogada. Guardando 1 em cada N, a mesma folha cobre N vezes mais tempo, e o
+   movimento entre celulas fica visivel. */
+const PASSO = Number(argv.passo || 4);
 const SAIDA = path.resolve('reports/imagens');
 
 (async () => {
@@ -116,10 +121,11 @@ const SAIDA = path.resolve('reports/imagens');
     };
     window.CDS_F25D = F;
 
+    let conta = 0;
     const laco = () => {
       if (S.fim) return;
       try {
-        if (cv) {
+        if (cv && (conta++ % cfg.passo === 0)) {
           const copia = document.createElement('canvas');
           copia.width = cv.width; copia.height = cv.height;
           copia.getContext('2d').drawImage(cv, 0, 0);
@@ -132,7 +138,7 @@ const SAIDA = path.resolve('reports/imagens');
       requestAnimationFrame(laco);
     };
     requestAnimationFrame(laco);
-  }, { evento: EVENTO, antes: ANTES, depois: DEPOIS, vel: VEL });
+  }, { evento: EVENTO, antes: ANTES, depois: DEPOIS, vel: VEL, passo: PASSO });
 
   try {
     await pg.waitForFunction(() => window.__lq.fim === true, null, { timeout: 240000 });
@@ -162,7 +168,8 @@ const SAIDA = path.resolve('reports/imagens');
       fx.strokeStyle = 'rgba(255,255,255,.12)'; fx.strokeRect(dx, dy, W * Z, H * Z);
       fx.fillStyle = i === cfg.antes ? '#ffd166' : 'rgba(255,255,255,.6)';
       fx.font = "600 13px system-ui, sans-serif";
-      fx.fillText((i - cfg.antes >= 0 ? '+' : '') + (i - cfg.antes) +
+      const ms = Math.round((i - cfg.antes) * cfg.passo * 16.7);
+      fx.fillText((ms >= 0 ? '+' : '') + ms + ' ms' +
                   (i === cfg.antes ? '   <- o evento' : ''), dx + 6, dy + H * Z + 14);
       /* tira para o GIF: o mesmo recorte, sem rotulo */
       const t = document.createElement('canvas');
@@ -172,13 +179,14 @@ const SAIDA = path.resolve('reports/imagens');
       tiras.push(t.toDataURL('image/png'));
     }
     fx.fillStyle = '#e8f2ec'; fx.font = "700 15px system-ui, sans-serif";
-    fx.fillText(cfg.nome + ' — ' + N + ' quadros | minuto ' + (S.quando ? S.quando.minuto : '?') +
+    fx.fillText(cfg.nome + ' — ' + N + ' quadros, 1 a cada ' + cfg.passo +
+                ' (' + Math.round(cfg.passo * 16.7) + ' ms entre celulas) | minuto ' + (S.quando ? S.quando.minuto : '?') +
                 ' | ' + (S.quando ? S.quando.quem : '?') + (S.chave ? '' : '  (autor desconhecido: segue a bola)'),
                 8, 14);
     let gif = null;
     try { if (window.__cdsGif) gif = await window.__cdsGif(tiras, 70); } catch (_) { }
     return { folha: folha.toDataURL('image/png'), gif: gif, n: N, quando: S.quando };
-  }, { antes: ANTES, nome: NOME, larg: LARG, alt: ALT, zoom: ZOOM });
+  }, { antes: ANTES, nome: NOME, larg: LARG, alt: ALT, zoom: ZOOM, passo: PASSO });
 
   await nav.close();
   const arqF = path.join(SAIDA, 'lance-' + NOME + '.png');
