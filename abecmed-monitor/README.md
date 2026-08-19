@@ -1,8 +1,28 @@
-# Monitor do catálogo da ABECMED
+# Monitor de catálogo de associações
 
-Verifica de tempos em tempos o que a ABECMED tem disponível em **flores** e
-**concentrados**, compara com a consulta anterior e manda uma notificação no
-celular quando alguma coisa muda.
+Verifica de tempos em tempos o que as associações têm disponível, compara com a
+consulta anterior e manda uma notificação no celular quando alguma coisa muda.
+
+| associação | o que é lido | como |
+| --- | --- | --- |
+| **ABECMED** | flores, concentrados | Typebot com CPF (`monitor.py`) |
+| **Zeleno** | flores, extratos, óleos | páginas estáticas, sem login (`zeleno.py`) |
+
+As duas caem no mesmo catálogo e na mesma notificação. `SECOES`, no
+`monitor.py`, é o que junta: cada seção declara sua fonte, e comparação,
+exibição, histórico e sugestão percorrem esse dicionário em vez de nomes fixos —
+somar uma associação nova é acrescentar linhas lá.
+
+## Zeleno: fora de estoque é comentário
+
+O detalhe que decide a leitura da Zeleno: produto esgotado **não sai da página,
+vira comentário HTML**. Quando isto foi escrito, `flores1.html` trazia 122
+produtos com 1 ativo, e `extratos1.html` 27 com 1 ativo. Um parser que ignore os
+comentários anuncia 149 disponíveis e vira gerador de alarme falso.
+
+É também o que torna essa fonte valiosa de monitorar: a volta de um produto ao
+estoque é, literalmente, alguém descomentando um bloco — e você é avisado no
+mesmo minuto.
 
 Roda inteiro dentro do GitHub Actions: nenhum computador precisa ficar ligado,
 nenhuma página aberta, nada para executar na mão.
@@ -33,8 +53,10 @@ desconhecido. Um clique errado aqui viraria um pedido real.
 
 | arquivo | o que é |
 | --- | --- |
-| `monitor.py` | consulta, compara e notifica |
+| `monitor.py` | consulta a ABECMED, junta as fontes, compara e notifica |
+| `zeleno.py` | leitura das páginas estáticas da Zeleno |
 | `test_monitor.py` | testes do parser e da comparação, sobre texto real do site |
+| `test_zeleno.py` | testes da Zeleno, com o caso do produto comentado |
 | `state.json` | catálogo da última consulta, fichas dos produtos e histórico de preços |
 | `../.github/workflows/abecmed-monitor.yml` | o agendamento |
 

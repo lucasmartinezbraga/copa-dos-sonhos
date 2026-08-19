@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
-"""Monitor do catálogo da ABECMED (flores e concentrados).
+"""Monitor de catálogo de associações de cannabis medicinal.
+
+Duas fontes, bem diferentes entre si:
+
+  ABECMED (bot.abecmed.com.br) — Typebot, exige CPF, descrito abaixo.
+  Zeleno  (catalogoassociativo.zelenomeds.com) — páginas estáticas, sem
+          login; a leitura está em `zeleno.py`.
+
+O que as junta é `SECOES`: cada seção declara sua fonte, e comparação,
+exibição, histórico e sugestão percorrem esse dicionário em vez de nomes
+fixos. Somar uma associação nova é acrescentar linhas lá.
 
 O assistente da ABECMED em https://bot.abecmed.com.br é um Typebot. O widget do
 navegador conversa com o servidor por uma API JSON pública, e é essa API que
@@ -40,6 +50,8 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import zeleno
+
 BASE = "https://bot.abecmed.com.br"
 PUBLIC_ID = "pix-pagamento"
 AQUI = Path(__file__).resolve().parent
@@ -64,10 +76,28 @@ INTENCOES_PERMITIDAS = {
     "voltar": re.compile(r"^\s*voltar\s*$", re.I),
 }
 
+# Cada seção declara de qual associação vem. O resto do código percorre este
+# dicionário em vez de nomes fixos, então acrescentar uma fonte nova é
+# acrescentar linhas aqui — não sair caçando laços espalhados.
 SECOES = {
-    "flores": {"intencao": "flores", "titulo": "🌿 Flores", "limite_rx": r"limite mensal para flores[^.]*"},
-    "concentrados": {"intencao": "concentrados", "titulo": "🍯 Concentrados", "limite_rx": r"limite mensal para concentrados[^.]*"},
+    "flores": {
+        "fonte": "abecmed",
+        "intencao": "flores",
+        "titulo": "🌿 Flores · ABECMED",
+        "limite_rx": r"limite mensal para flores[^.]*",
+    },
+    "concentrados": {
+        "fonte": "abecmed",
+        "intencao": "concentrados",
+        "titulo": "🍯 Concentrados · ABECMED",
+        "limite_rx": r"limite mensal para concentrados[^.]*",
+    },
+    "zeleno_flores": {"fonte": "zeleno", "titulo": "🌿 Flores · Zeleno"},
+    "zeleno_extratos": {"fonte": "zeleno", "titulo": "🧪 Extratos · Zeleno"},
+    "zeleno_oleos": {"fonte": "zeleno", "titulo": "💧 Óleos · Zeleno"},
 }
+
+SECOES_ABECMED = [k for k, v in SECOES.items() if v["fonte"] == "abecmed"]
 
 
 class ErroDeFluxo(RuntimeError):
@@ -344,7 +374,17 @@ def consultar(cpf):
 
     _, concentrados = ler_secao(sessao, data, "concentrados")
 
-    return {"flores": flores, "concentrados": concentrados}
+    catalogo = {"flores": flores, "concentrados": concentrados}
+
+    # A Zeleno é site estático e não depende de sessão nem de CPF. Se ela cair,
+    # a ABECMED — que é a fonte principal e a que exige login — não pode cair
+    # junto: o catálogo dela já está lido a esta altura.
+    try:
+        catalogo.update(zeleno.consultar())
+    except zeleno.ErroZeleno as e:
+        print(f"AVISO: Zeleno indisponível: {e}", file=sys.stderr)
+
+    return catalogo
 
 
 def ler_ficha(sessao, data, categoria, nome):
@@ -398,7 +438,7 @@ def enriquecer(cpf, pedidos, limite=6):
     data = ir_ate_o_menu(sessao, cpf)
     restantes = limite
 
-    for chave in ("flores", "concentrados"):
+    for chave in SECOES_ABECMED:
         alvos = pedidos.get(chave) or []
         if not alvos or restantes <= 0:
             continue
@@ -417,12 +457,21 @@ def enriquecer(cpf, pedidos, limite=6):
 
 
 def fichas_faltando(catalogo, cache):
-    """Produtos do catálogo que ainda não têm ficha guardada."""
-    pedidos = {"flores": [], "concentrados": []}
-    for chave in pedidos:
+    """Produtos sem ficha guardada, separados por fonte.
+
+    Cada associação entrega ficha de um jeito: na ABECMED é navegar o bot, na
+    Zeleno é baixar a página do produto. Quem chama decide o que fazer com cada
+    grupo — aqui só se responde "quem ainda falta".
+    """
+    pedidos = {"abecmed": {}, "zeleno": []}
+    for chave, cfg in SECOES.items():
         for p in (catalogo.get(chave) or {}).get("produtos") or []:
-            if p["nome"].lower() not in cache:
-                pedidos[chave].append((p.get("categoria") or "THC", p["nome"]))
+            if p["nome"].lower() in cache:
+                continue
+            if cfg["fonte"] == "abecmed":
+                pedidos["abecmed"].setdefault(chave, []).append((p.get("categoria") or "THC", p["nome"]))
+            else:
+                pedidos["zeleno"].append((p.get("link"), p["nome"]))
     return pedidos
 
 
@@ -440,7 +489,7 @@ def registrar_historico(estado, catalogo, agora, teto=800):
     ultimo = {}
     for e in hist:
         ultimo[e["produto"]] = e["preco"]
-    for chave in ("flores", "concentrados"):
+    for chave in SECOES:
         for p in (catalogo.get(chave) or {}).get("produtos") or []:
             if ultimo.get(p["nome"]) != p["preco"]:
                 hist.append(
@@ -462,7 +511,7 @@ def _mapa(secao):
 def comparar(antigo, novo):
     """Lista legível do que mudou entre duas consultas."""
     mudancas = []
-    for chave in ("flores", "concentrados"):
+    for chave in SECOES:
         titulo = SECOES[chave]["titulo"]
         a, n = antigo.get(chave) or {}, novo.get(chave) or {}
         ma, mn = _mapa(a), _mapa(n)
@@ -501,7 +550,7 @@ def escapar(s):
 def render_catalogo(catalogo, fichas=None):
     fichas = fichas or {}
     linhas = []
-    for chave in ("flores", "concentrados"):
+    for chave in SECOES:
         sec = catalogo.get(chave) or {}
         titulo = SECOES[chave]["titulo"]
         limite = f" — {sec['limite']}" if sec.get("limite") else ""
@@ -518,7 +567,8 @@ def render_catalogo(catalogo, fichas=None):
                         linhas.append(f"<i>{escapar(atual)}</i>")
                 thc = (fichas.get(p["nome"].lower()) or {}).get("thc")
                 selo = f"  <i>THC {escapar(thc)}</i>" if thc else ""
-                linhas.append(f"• {escapar(p['nome'])} — {reais(p['preco'])}{selo}")
+                por = escapar(p.get("por") or "")
+                linhas.append(f"• {escapar(p['nome'])} — {reais(p['preco'])}{por}{selo}")
         linhas.append("")
     return "\n".join(linhas).strip()
 
@@ -640,6 +690,26 @@ PERFIS = {
     },
 }
 
+# A Zeleno publica "Efeitos" explicitamente — a ABECMED não. Onde existe, é o
+# sinal mais direto que há: é a própria associação dizendo para que serve.
+EFEITOS = {
+    "sedativ": {"dormir": 4},
+    "relaxante": {"dormir": 3, "calma": 3, "corpo": 2},
+    "calmante": {"calma": 3, "dormir": 2},
+    "analg": {"corpo": 4},
+    "criativ": {"criatividade": 4},
+    "eufóric": {"disposicao": 3, "criatividade": 2},
+    "euforic": {"disposicao": 3, "criatividade": 2},
+    "empolgante": {"disposicao": 3, "criatividade": 2},
+    "energ": {"disposicao": 4},
+    "estimulante": {"disposicao": 3, "foco": 2},
+    "focad": {"foco": 4},
+    "concentra": {"foco": 3},
+}
+
+for _chave, _perfil in PERFIS.items():
+    _perfil["chave"] = _chave
+
 RX_PROPORCAO = re.compile(r"(\d{1,3})\s*%\s*(sativa|[íi]ndica)\s*/\s*(\d{1,3})\s*%\s*(sativa|[íi]ndica)", re.I)
 
 
@@ -664,16 +734,44 @@ def perfil_do_produto(ficha):
         indica, sativa = 0.7, 0.3
     elif re.search(r"predomin\w*\s+sativa", texto, re.I):
         indica, sativa = 0.3, 0.7
+    # A Zeleno escreve "Híbrida (+sativa)": inclinação, não predominância forte.
+    elif re.search(r"\(\s*\+\s*sativa", texto, re.I):
+        indica, sativa = 0.4, 0.6
+    elif re.search(r"\(\s*\+\s*[íi]ndica", texto, re.I):
+        indica, sativa = 0.6, 0.4
 
     achados = [t for t in ("mirceno", "limoneno", "pineno", "cariofileno", "linalol",
                            "terpinoleno", "humuleno", "ocimeno")
                if re.search(t, texto, re.I)]
-    return {"terpenos": achados, "indica": indica, "sativa": sativa, "thc": thc_numero(ficha.get("thc"))}
+    # Campo a campo, não sobre os detalhes juntados: no texto colado o ".+"
+    # atravessava para o campo seguinte e "Eufórico" virava
+    # "eufórico sabor: herbal", que não casa com efeito nenhum.
+    efeitos = []
+    for d in ficha.get("detalhes") or []:
+        m = re.match(r"\s*efeitos\s*:\s*(.+)", d, re.I)
+        if m:
+            efeitos = [e.strip().lower() for e in re.split(r"[,;/]", m.group(1)) if e.strip()]
+            break
+
+    return {
+        "terpenos": achados,
+        "efeitos": efeitos,
+        "indica": indica,
+        "sativa": sativa,
+        "thc": thc_numero(ficha.get("thc")),
+    }
 
 
 def pontuar(perfil, alvo):
     """Nota do produto para uma atividade, mais o porquê em texto."""
     nota, motivos = 0.0, []
+
+    for efeito in perfil.get("efeitos") or []:
+        for pedaco, pesos in EFEITOS.items():
+            if pedaco in efeito and alvo.get("chave") in pesos:
+                nota += pesos[alvo["chave"]]
+                motivos.append(efeito.capitalize())
+                break
 
     casados = [t for t in perfil["terpenos"] if t in alvo["terpenos"]]
     for t in casados:
@@ -707,7 +805,7 @@ def pontuar(perfil, alvo):
 def recomendar(catalogo, fichas, atividade, quantos=2):
     alvo = PERFIS[atividade]
     ranking = []
-    for chave in ("flores", "concentrados"):
+    for chave in SECOES:
         for p in (catalogo.get(chave) or {}).get("produtos") or []:
             ficha = (fichas or {}).get(p["nome"].lower())
             if not ficha:
@@ -812,7 +910,7 @@ def legenda_produto(nome, preco, ficha):
 
 
 def achar_produto(catalogo, nome):
-    for chave in ("flores", "concentrados"):
+    for chave in SECOES:
         for p in (catalogo.get(chave) or {}).get("produtos") or []:
             if p["nome"].lower() == nome.lower():
                 return p
@@ -847,29 +945,37 @@ def enviar_fotos(estado, catalogo, nomes):
 
 def garantir_fotos(cpf, estado, catalogo, nomes):
     """Rebusca a ficha de quem ainda não tem file_id, para haver o que enviar."""
-    if not cpf:
-        return
     fichas = estado.setdefault("fichas", {})
-    pedidos = {"flores": [], "concentrados": []}
     alvo = {n.lower() for n in nomes}
-    for chave in pedidos:
+    pedidos = {"abecmed": {}, "zeleno": []}
+    for chave, cfg in SECOES.items():
         for p in (catalogo.get(chave) or {}).get("produtos") or []:
             f = fichas.get(p["nome"].lower()) or {}
-            if p["nome"].lower() in alvo and not f.get("foto_id") and not f.get("foto_url"):
-                pedidos[chave].append((p.get("categoria") or "THC", p["nome"]))
-    if not any(pedidos.values()):
-        return
-    try:
-        for nome, ficha in enriquecer(cpf, pedidos, limite=12).items():
-            fichas.setdefault(nome, {}).update(ficha)
-    except ErroDeFluxo as e:
-        print(f"AVISO: não consegui buscar fotos: {e}", file=sys.stderr)
+            if p["nome"].lower() not in alvo or f.get("foto_id") or f.get("foto_url"):
+                continue
+            if cfg["fonte"] == "abecmed":
+                pedidos["abecmed"].setdefault(chave, []).append((p.get("categoria") or "THC", p["nome"]))
+            else:
+                pedidos["zeleno"].append((p.get("link"), p["nome"]))
+
+    if cpf and pedidos["abecmed"]:
+        try:
+            for nome, ficha in enriquecer(cpf, pedidos["abecmed"], limite=12).items():
+                fichas.setdefault(nome, {}).update(ficha)
+        except ErroDeFluxo as e:
+            print(f"AVISO: não consegui buscar fotos na ABECMED: {e}", file=sys.stderr)
+    if pedidos["zeleno"]:
+        try:
+            for nome, ficha in zeleno.ler_fichas(pedidos["zeleno"]).items():
+                fichas.setdefault(nome, {}).update(ficha)
+        except Exception as e:
+            print(f"AVISO: não consegui buscar fotos na Zeleno: {e}", file=sys.stderr)
 
 
 def produtos_novos(antigo, novo):
     """Nomes que passaram a existir entre duas consultas."""
     novos = []
-    for chave in ("flores", "concentrados"):
+    for chave in SECOES:
         antes = {p["nome"].lower() for p in (antigo.get(chave) or {}).get("produtos") or []}
         for p in (novo.get(chave) or {}).get("produtos") or []:
             if p["nome"].lower() not in antes:
@@ -978,7 +1084,7 @@ def atender_comandos(estado, catalogo, agora, ao_vivo, cpf=None, espera=0):
         if pediu_fotos:
             nomes = [
                 p["nome"]
-                for chave in ("flores", "concentrados")
+                for chave in SECOES
                 for p in ((catalogo or {}).get(chave) or {}).get("produtos") or []
             ]
             # A URL da foto expira e não é guardada; o que dura é o file_id, que
@@ -1232,12 +1338,18 @@ def main():
     # regime normal isto não faz nenhuma requisição extra.
     cache = estado.setdefault("fichas", {})
     pedidos = fichas_faltando(catalogo, cache)
-    if any(pedidos.values()):
+    # Ficha é enfeite: o catálogo e o alerta valem mais do que ela, e uma fonte
+    # com problema não pode levar a outra junto.
+    if pedidos["abecmed"]:
         try:
-            cache.update(enriquecer(cpf, pedidos))
+            cache.update(enriquecer(cpf, pedidos["abecmed"]))
         except ErroDeFluxo as e:
-            # Ficha é enfeite: o catálogo e o alerta valem mais do que ela.
-            print(f"AVISO: não consegui ler fichas: {e}", file=sys.stderr)
+            print(f"AVISO: não consegui ler fichas da ABECMED: {e}", file=sys.stderr)
+    if pedidos["zeleno"]:
+        try:
+            cache.update(zeleno.ler_fichas(pedidos["zeleno"]))
+        except Exception as e:
+            print(f"AVISO: não consegui ler fichas da Zeleno: {e}", file=sys.stderr)
 
     # De propósito não gravamos o horário exato da verificação: ele mudaria a
     # cada 5 minutos e o workflow commitaria o state.json 288 vezes por dia. Só

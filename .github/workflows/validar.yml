@@ -44,9 +44,11 @@ jobs:
       - name: Módulos, manifesto, build e balística
         run: python3 tools/verify.py
 
-      - name: Parser e comparação do monitor da ABECMED
-        # nao acessa a rede: roda sobre o texto real capturado do site
-        run: python3 abecmed-monitor/test_monitor.py
+      - name: Parser e comparação do monitor de catálogos
+        # nao acessam a rede: rodam sobre o HTML/texto real capturado dos sites
+        run: |
+          python3 abecmed-monitor/test_monitor.py
+          python3 abecmed-monitor/test_zeleno.py
 
       - name: Conferir que dist/ está em dia com src/
         run: |
