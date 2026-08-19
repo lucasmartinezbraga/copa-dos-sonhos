@@ -107,13 +107,21 @@ jobs:
             FORCAR=''
             # Erro de configuração não melhora repetindo por uma hora.
             [ "$codigo" = "2" ] && break
-            # O ciclo dura ~55 min, então código novo só valia na hora seguinte:
-            # foi assim que um botão recém-criado ficou mudo para quem o tocava,
-            # porque a execução no ar era anterior ao deploy. Ao ver a branch
-            # andar, este ciclo encerra e a execução pendente assume com o
-            # código atual.
+            # Encerrar cedo quando sai CÓDIGO novo faz o deploy valer em ~5 min
+            # em vez de ~55. Mas comparar o commit da branch com o desta execução
+            # não serve: o GitHub fixa a execução no commit de quando o
+            # agendamento disparou, e o próprio monitor commita state.json a cada
+            # mudança de catálogo. A branch estava SEMPRE à frente, todo ciclo
+            # encerrava após uma verificação, e o bot ficava morto entre um cron
+            # atrasado e outro — 30 a 60 minutos de silêncio.
+            #
+            # Agora a comparação é só dos arquivos que mudam comportamento.
+            # state.json é dado, não código: ele não interrompe nada.
             if git fetch -q origin "${{ github.ref_name }}" 2>/dev/null &&
-               [ "$(git rev-parse HEAD)" != "$(git rev-parse FETCH_HEAD)" ]; then
+               ! git diff --quiet HEAD FETCH_HEAD -- \
+                   abecmed-monitor/monitor.py \
+                   abecmed-monitor/zeleno.py \
+                   .github/workflows/abecmed-monitor.yml; then
               echo "Código novo na branch — encerrando para a próxima execução assumir."
               break
             fi
