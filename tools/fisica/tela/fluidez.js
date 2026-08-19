@@ -190,7 +190,11 @@ const alvo = path.resolve(process.argv.slice(2).find(a => !a.startsWith('--')) |
   const fps = 1000 / Math.max(0.1, q(.5));
   console.log('     ritmo mediano equivale a', fps.toFixed(0), 'fps');
 
-  console.log('\n  2. SALTO DO ATLETA DESENHADO (px de canvas por quadro)');
+  console.log('\n  2. SALTO DO ATLETA DESENHADO (px por CHAMADA — inflado, ver OS-253/254)');
+  console.log('     Salto por chamada cresce quando a sonda derruba quadro: dois desenhos');
+  console.log('     a 50 ms de distancia em vez de 16,7 triplicam o "salto" sem nada piorar.');
+  console.log('     `salto-desenhado.js` mede em px por MILISSEGUNDO e da 1,1 px de mediana,');
+  console.log('     p99 de 3,1 px, e zero salto > 60 px fora da reprise de gol.');
   console.log('     amostras', S.corpo.n, '| pico', S.corpo.pico.toFixed(0), 'px');
   console.log('     > 6 px:', S.corpo.p6, ' >18 px:', S.corpo.p18, ' >60 px:', S.corpo.p60,
               ' ->', (S.corpo.p18 / seg).toFixed(2), 'saltos medios por segundo');
