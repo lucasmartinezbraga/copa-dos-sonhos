@@ -518,13 +518,13 @@ def comparar(antigo, novo):
 
         for k in sorted(mn.keys() - ma.keys()):
             p = mn[k]
-            mudancas.append(f"🆕 {titulo} — {p['nome']}: {reais(p['preco'])}")
+            mudancas.append(f"🆕 {titulo} — {p['nome']}: {preco_txt(p)}")
         for k in sorted(ma.keys() - mn.keys()):
             mudancas.append(f"❌ {titulo} — {ma[k]['nome']} saiu do catálogo")
         for k in sorted(mn.keys() & ma.keys()):
             if mn[k]["preco"] != ma[k]["preco"]:
                 mudancas.append(
-                    f"💰 {titulo} — {mn[k]['nome']}: {reais(ma[k]['preco'])} → {reais(mn[k]['preco'])}"
+                    f"💰 {titulo} — {mn[k]['nome']}: {preco_txt(ma[k])} → {preco_txt(mn[k])}"
                 )
 
         if a and bool(a.get("disponivel")) != bool(n.get("disponivel")):
@@ -541,6 +541,16 @@ def comparar(antigo, novo):
 
 def reais(v):
     return f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def preco_txt(produto):
+    """Preço com a unidade junto.
+
+    A Zeleno cobra por grama e a ABECMED por unidade. Mostrar "R$ 93,00" para
+    algo que custa R$ 93,00/g com mínimo de 5 g não é um detalhe de formatação:
+    é informar o preço errado por um fator de cinco.
+    """
+    return f"{reais(produto['preco'])}{produto.get('por') or ''}"
 
 
 def escapar(s):
@@ -567,8 +577,7 @@ def render_catalogo(catalogo, fichas=None):
                         linhas.append(f"<i>{escapar(atual)}</i>")
                 thc = (fichas.get(p["nome"].lower()) or {}).get("thc")
                 selo = f"  <i>THC {escapar(thc)}</i>" if thc else ""
-                por = escapar(p.get("por") or "")
-                linhas.append(f"• {escapar(p['nome'])} — {reais(p['preco'])}{por}{selo}")
+                linhas.append(f"• {escapar(p['nome'])} — {escapar(preco_txt(p))}{selo}")
         linhas.append("")
     return "\n".join(linhas).strip()
 
@@ -901,7 +910,7 @@ def enviar_foto(token, chat, foto, legenda):
 
 
 def legenda_produto(nome, preco, ficha):
-    linhas = [f"<b>{escapar(nome)}</b>", reais(preco) if preco is not None else ""]
+    linhas = [f"<b>{escapar(nome)}</b>", escapar(preco) if isinstance(preco, str) else (reais(preco) if preco is not None else "")]
     if ficha.get("thc"):
         linhas.append(f"🧪 THC: {escapar(ficha['thc'])}")
     for d in ficha.get("detalhes") or []:
@@ -934,7 +943,10 @@ def enviar_fotos(estado, catalogo, nomes):
             continue
         produto = achar_produto(catalogo, nome)
         try:
-            fid = enviar_foto(token, chat, foto, legenda_produto(nome, (produto or {}).get("preco"), ficha))
+            fid = enviar_foto(
+                token, chat, foto,
+                legenda_produto(nome, preco_txt(produto) if produto else None, ficha),
+            )
             if fid:
                 ficha["foto_id"] = fid
             enviadas += 1

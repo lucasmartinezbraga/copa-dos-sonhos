@@ -74,6 +74,9 @@ checar(M.para_reais("1,234.56") == 1234.56, "'1,234.56' -> 1234.56")
 checar(M.reais(85.0) == "R$ 85,00", "formata 85.0 como R$ 85,00")
 checar(M.reais(1234.5) == "R$ 1.234,50", "formata milhar com ponto")
 
+checar(M.preco_txt({"preco": 93.0, "por": "/g"}) == "R$ 93,00/g", "preço por grama mostra a unidade")
+checar(M.preco_txt({"preco": 85.0}) == "R$ 85,00", "produto sem unidade não ganha sufixo")
+
 print("\nlista de flores")
 flores = M.extrair_produtos(FLORES)
 checar(len(flores) == 5, f"5 produtos (achou {len(flores)})")
@@ -132,6 +135,15 @@ checar(
     "detectou alteração de preço com valor antigo e novo",
 )
 checar(len(mudancas) == 3, f"exatamente 3 mudanças (achou {len(mudancas)})")
+
+print("\nduas associações no mesmo catálogo")
+dois_antes = {"zeleno_flores": {"disponivel": True, "produtos": []}}
+dois_depois = {"zeleno_flores": {"disponivel": True, "produtos": [
+    {"nome": "Power Plant", "preco": 93.0, "por": "/g", "categoria": "Híbrida (+sativa)"}]}}
+md = M.comparar(dois_antes, dois_depois)
+checar(len(md) == 1 and "Power Plant" in md[0], "detecta produto novo em seção da Zeleno")
+checar("/g" in md[0], f"e mostra que o preço é por grama (achou {md[0]!r})")
+checar("Zeleno" in md[0], "a mudança diz de qual associação veio")
 
 print("\nseção que fica sem estoque")
 vazio = {
