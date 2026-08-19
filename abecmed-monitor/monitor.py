@@ -357,8 +357,23 @@ def ler_secao(sessao, data, chave):
     return data, secao
 
 
-def consultar(cpf):
-    """Uma verificação completa: flores + concentrados."""
+def toca_abecmed(agora):
+    """Se esta rodada deve consultar a ABECMED.
+
+    A Zeleno é site estático: consultar de 5 em 5 minutos não custa nada a
+    ninguém. A ABECMED é outra história — cada verificação abre uma sessão nova
+    no Typebot deles, e sessão conta como atendimento no painel da associação.
+    Eram ~288 por dia numa associação pequena.
+
+    A cada 15 minutos, então. A decisão sai do relógio, não do estado: guardar
+    "última consulta" faria o state.json mudar toda rodada, e o workflow
+    commitaria de 5 em 5 minutos — foi um problema que já tivemos.
+    """
+    return agora.minute % 15 < 5
+
+
+def consultar_abecmed(cpf):
+    """Uma passada pelo bot: flores + concentrados."""
     sessao = Sessao()
     menu = ir_ate_o_menu(sessao, cpf)
 
@@ -373,16 +388,39 @@ def consultar(cpf):
         data = ir_ate_o_menu(sessao, cpf)
 
     _, concentrados = ler_secao(sessao, data, "concentrados")
+    return {"flores": flores, "concentrados": concentrados}
 
-    catalogo = {"flores": flores, "concentrados": concentrados}
 
-    # A Zeleno é site estático e não depende de sessão nem de CPF. Se ela cair,
-    # a ABECMED — que é a fonte principal e a que exige login — não pode cair
-    # junto: o catálogo dela já está lido a esta altura.
+def consultar(cpf, anterior=None, agora=None):
+    """Verificação completa, respeitando a cadência de cada associação.
+
+    Quando uma fonte não é consultada nesta rodada, as seções dela vêm do
+    catálogo anterior — e isso não é detalhe: sem copiá-las, a comparação veria
+    as seções sumidas e anunciaria todos os produtos como removidos.
+    """
+    anterior = anterior or {}
+    agora = agora or datetime.now(TZ)
+    catalogo = {}
+
+    def herdar(fonte):
+        for chave, cfg in SECOES.items():
+            if cfg["fonte"] == fonte and chave in anterior:
+                catalogo[chave] = anterior[chave]
+
+    if toca_abecmed(agora) or not any(
+        c in anterior for c, v in SECOES.items() if v["fonte"] == "abecmed"
+    ):
+        catalogo.update(consultar_abecmed(cpf))
+    else:
+        herdar("abecmed")
+
+    # A Zeleno é lida depois: o catálogo da ABECMED já está em mãos, então uma
+    # falha dela não derruba a fonte que exige login.
     try:
         catalogo.update(zeleno.consultar())
     except zeleno.ErroZeleno as e:
         print(f"AVISO: Zeleno indisponível: {e}", file=sys.stderr)
+        herdar("zeleno")
 
     return catalogo
 
@@ -1376,7 +1414,7 @@ def main():
         return 2
 
     try:
-        catalogo = consultar(cpf)
+        catalogo = consultar(cpf, anterior, agora)
     except ErroDeFluxo as e:
         # Falha transitória não vira alerta: só depois de várias seguidas. O
         # contador satura em 6 (o limiar do aviso) e a falha é gravada sem

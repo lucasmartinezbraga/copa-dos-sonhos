@@ -57,6 +57,7 @@ desconhecido. Um clique errado aqui viraria um pedido real.
 | `zeleno.py` | leitura das páginas estáticas da Zeleno |
 | `test_monitor.py` | testes do parser e da comparação, sobre texto real do site |
 | `test_zeleno.py` | testes da Zeleno, com o caso do produto comentado |
+| `vigia.py` | avisa quando o próprio monitor para de rodar |
 | `state.json` | catálogo da última consulta, fichas dos produtos e histórico de preços |
 | `../.github/workflows/abecmed-monitor.yml` | o agendamento |
 
@@ -191,17 +192,33 @@ O CPF só existe como Secret. Ele não aparece no código, e o GitHub mascara
 Secrets na saída dos jobs — nada de dado pessoal fica visível neste
 repositório, que é público.
 
+## Quem vigia o vigia
+
+O pior modo de falha deste projeto não é errar, é emudecer: monitor parado é
+indistinguível de catálogo sem novidade. Já aconteceu — um defeito encerrava o
+ciclo cedo, o bot passava horas fora do ar, e só se descobria tocando num botão
+e não sendo atendido.
+
+`abecmed-vigia.yml` roda de hora em hora, num job separado (se fosse o mesmo,
+morreria junto), pergunta à API quando o monitor concluiu com sucesso pela
+última vez e avisa no Telegram se passou de 2h, 6h e 24h. Ele só envia, nunca lê
+o Telegram: dois leitores do mesmo bot brigam por `getUpdates`.
+
 ## Frequência
 
 O agendamento está em `*/5 * * * *` (cinco minutos, o mínimo que o cron do
 GitHub aceita). O agendador é "melhor esforço": em horário de pico a fila
 atrasa alguns minutos ou pula uma rodada.
 
-Cinco minutos são ~288 verificações por dia. Cada uma abre uma sessão nova no
-Typebot da ABECMED, e sessões contam como atendimento no painel deles. Se
-preferir pegar mais leve com o servidor da associação, troque para `*/15` ou
-`*/30` no workflow — é uma linha só, e para reposição de estoque continua de
-sobra.
+Cada associação tem sua cadência, porque o custo é diferente. A Zeleno é site
+estático: consultar de 5 em 5 minutos não pesa para ninguém. A ABECMED abre uma
+sessão nova no Typebot a cada verificação, e sessão conta como atendimento no
+painel da associação — eram ~288 por dia numa associação pequena. Ela passou a
+ser consultada a cada 15 minutos: 96 por dia.
+
+A decisão sai do relógio (`toca_abecmed`), não do estado. Guardar "última
+consulta" faria o state.json mudar toda rodada e o workflow commitaria de 5 em 5
+minutos.
 
 ## Quando algo quebra
 

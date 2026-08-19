@@ -49,6 +49,7 @@ jobs:
         run: |
           python3 abecmed-monitor/test_monitor.py
           python3 abecmed-monitor/test_zeleno.py
+          python3 -c "import ast,pathlib; ast.parse(pathlib.Path('abecmed-monitor/vigia.py').read_text())"
 
       - name: Conferir que dist/ está em dia com src/
         run: |

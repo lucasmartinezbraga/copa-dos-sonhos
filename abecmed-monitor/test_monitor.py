@@ -352,6 +352,34 @@ for k in ("ABECMED_CPF", "TELEGRAM_BOT_TOKEN", "ABECMED_CONFIG"):
 M.carregar_credenciais()
 checar("ABECMED_CPF" not in os.environ, "sem ABECMED_CONFIG não inventa credencial")
 
+print("\ncadência separada por associação")
+checar(M.toca_abecmed(datetime.datetime(2026, 8, 19, 10, 0, tzinfo=M.TZ)), "consulta a ABECMED no minuto :00")
+checar(not M.toca_abecmed(datetime.datetime(2026, 8, 19, 10, 7, tzinfo=M.TZ)), "pula no minuto :07")
+checar(M.toca_abecmed(datetime.datetime(2026, 8, 19, 10, 16, tzinfo=M.TZ)), "volta no minuto :16")
+quantas = sum(1 for m in range(60) if M.toca_abecmed(datetime.datetime(2026, 8, 19, 10, m, tzinfo=M.TZ)))
+checar(quantas == 20, f"a janela cobre 20 dos 60 minutos (achou {quantas})")
+
+# O risco desta mudança tem nome: pular a ABECMED e deixar as seções dela fora
+# do catálogo faria a comparação anunciar TODOS os produtos como removidos.
+_ant = {
+    "flores": {"disponivel": True, "produtos": [{"nome": "Papaya (indoor)", "preco": 85.0}]},
+    "concentrados": {"disponivel": True, "produtos": [{"nome": "Live Rosin", "preco": 350.0}]},
+    "zeleno_flores": {"disponivel": True, "produtos": [{"nome": "Power Plant", "preco": 93.0, "por": "/g"}]},
+}
+_real_abecmed, _real_zeleno = M.consultar_abecmed, M.zeleno.consultar
+
+
+def _nao_deveria(_cpf):
+    raise AssertionError("consultou a ABECMED fora da janela")
+
+
+M.consultar_abecmed = _nao_deveria
+M.zeleno.consultar = lambda: {"zeleno_flores": _ant["zeleno_flores"]}
+_cat = M.consultar("42689744821", _ant, datetime.datetime(2026, 8, 19, 10, 7, tzinfo=M.TZ))
+M.consultar_abecmed, M.zeleno.consultar = _real_abecmed, _real_zeleno
+checar("flores" in _cat and "concentrados" in _cat, "as seções da ABECMED continuam no catálogo")
+checar(M.comparar(_ant, _cat) == [], "pular a consulta NÃO vira alerta de remoção")
+
 print("\nbotão só da Zeleno")
 cat_duplo = {
     "flores": {"disponivel": True, "produtos": [{"nome": "Papaya (indoor)", "preco": 85.0}]},

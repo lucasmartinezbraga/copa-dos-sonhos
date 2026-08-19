@@ -1,0 +1,42 @@
+name: Vigia do monitor ABECMED
+
+# O monitor avisa quando o catálogo muda. Ninguém avisava quando o monitor
+# parava — e um monitor parado parece exatamente igual a um catálogo sem
+# novidade. Já aconteceu: um defeito encerrava o ciclo cedo, o bot passava horas
+# fora do ar, e a única forma de perceber era tocar num botão e não ser
+# atendido.
+#
+# Este workflow roda de hora em hora, pergunta à API quando o monitor concluiu
+# com sucesso pela última vez e avisa no Telegram se faz tempo demais. É
+# deliberadamente separado do monitor: se fosse o mesmo job, morreria junto.
+
+on:
+  schedule:
+    - cron: '7 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  vigiar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+        with:
+          # Só o state.json interessa aqui, e é dele que sai o chat do Telegram
+          # quando não há Secret com o id.
+          sparse-checkout: abecmed-monitor
+          sparse-checkout-cone-mode: true
+
+      - name: Conferir se o monitor ainda está de pé
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ABECMED_CONFIG: ${{ secrets.ABECMED_CONFIG }}
+        run: python3 abecmed-monitor/vigia.py
