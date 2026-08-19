@@ -1077,6 +1077,16 @@ def atender_comandos(estado, catalogo, agora, ao_vivo, cpf=None, espera=0):
         # A leitura tem de sobreviver ao tempo que o Telegram segura a conexão.
         with urllib.request.urlopen(url, timeout=int(espera) + 20) as r:
             data = json.loads(r.read().decode())
+    except urllib.error.HTTPError as e:
+        if e.code == 409:
+            # O Telegram entrega cada update a um leitor só. 409 significa que
+            # outra execução já está escutando este bot — o que é normal na
+            # virada de um ciclo para o outro. Quem está no ar responde; este
+            # aqui recua em vez de brigar pela fila.
+            print("AVISO: outra execução já está escutando o bot (409); recuando.", file=sys.stderr)
+        else:
+            print(f"AVISO: não consegui ler mensagens do Telegram: {e}", file=sys.stderr)
+        return 0
     except Exception as e:
         print(f"AVISO: não consegui ler mensagens do Telegram: {e}", file=sys.stderr)
         return 0
@@ -1253,6 +1263,7 @@ def escutar(estado, catalogo, cpf, segundos):
 
     fim = time.time() + segundos
     total = 0
+    seguidas = 0
     while True:
         restante = fim - time.time()
         if restante <= 1:
@@ -1269,10 +1280,16 @@ def escutar(estado, catalogo, cpf, segundos):
         if n:
             total += n
             gravar_estado(estado)
-        # Quando o Telegram está fora do ar a chamada volta na hora, com erro.
-        # Sem esta pausa o laço viraria uma tempestade de tentativas.
+        # Chamada que volta na hora é chamada que falhou: Telegram fora do ar,
+        # ou 409 porque outra execução está escutando. Sem recuo o laço vira uma
+        # tempestade de tentativas — na janela de 9 minutos que motivou isto,
+        # foram centenas de 409 seguidos e nenhuma mensagem respondida.
+        # O recuo cresce até 30s para o caso de o outro leitor demorar a sair.
         if time.time() - inicio < 1:
-            time.sleep(2)
+            seguidas += 1
+            time.sleep(min(2 * seguidas, 30))
+        else:
+            seguidas = 0
     return total
 
 

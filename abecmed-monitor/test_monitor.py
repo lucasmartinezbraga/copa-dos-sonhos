@@ -295,6 +295,33 @@ checar("Ainda não tenho ficha" in vazia_rec, "sem ficha, não inventa recomenda
 r_livre = M.responder_comando("vou treinar", cat_rec, {"fichas": FICHAS}, agora, True)
 checar(r_livre is not None and "Exercício" in r_livre, "texto livre no Telegram vira recomendação")
 
+print("\nduas escutas ao mesmo tempo (409 do Telegram)")
+# O Telegram entrega cada update a um leitor só; o segundo leva 409. Sem recuo,
+# o laço girava e a janela inteira passava sem responder nada — foi o que
+# aconteceu numa janela real de 9 minutos.
+import io as _io  # noqa: E402
+import time as _time  # noqa: E402
+import urllib.error as _uerr  # noqa: E402
+
+_tentativas = []
+_real_urlopen = M.urllib.request.urlopen
+
+
+def _sempre_409(url, timeout=None):
+    _tentativas.append(_time.time())
+    raise _uerr.HTTPError(url, 409, "Conflict", {}, _io.BytesIO(b""))
+
+
+M.urllib.request.urlopen = _sempre_409
+os.environ["TELEGRAM_BOT_TOKEN"] = "falso"
+_t0 = _time.time()
+M.escutar({"telegram_chat_id": "1"}, {}, None, 8)
+_gasto = _time.time() - _t0
+M.urllib.request.urlopen = _real_urlopen
+os.environ.pop("TELEGRAM_BOT_TOKEN", None)
+checar(len(_tentativas) <= 5, f"recua em vez de girar (fez {len(_tentativas)} tentativas em 8s)")
+checar(_gasto >= 7, "e ainda assim respeita a janela pedida")
+
 print("\nSecret único (ABECMED_CONFIG)")
 import os  # noqa: E402
 
