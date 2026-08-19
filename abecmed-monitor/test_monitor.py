@@ -382,8 +382,8 @@ cat = {
     "flores": antes["flores"],
     "concentrados": antes["concentrados"],
 }
-r = M.responder_comando(M.BOTAO_CATALOGO, cat, estado_ex, agora, True)
-checar(r is not None and "Extrato Live Rosin" in r, "o botão de catálogo devolve a lista")
+r = M.responder_comando("/catalogo", cat, estado_ex, agora, True)
+checar(r is not None and "Extrato Live Rosin" in r, "/catalogo devolve a lista completa")
 checar("consultado agora" in r, "diz que o dado é da consulta ao vivo")
 r_off = M.responder_comando("/catalogo", cat, estado_ex, agora, False)
 checar("última consulta que deu certo" in r_off, "avisa quando o dado não é ao vivo")
@@ -399,10 +399,15 @@ checar(M.responder_comando("bom dia", cat, estado_ex, agora, True) is None, "ign
 # quebrava por layout em vez de por comportamento.
 rotulos = {b["text"] for linha in M.TECLADO["keyboard"] for b in linha}
 checar(
-    {M.BOTAO_GUIA, M.BOTAO_CATALOGO, M.BOTAO_FOTOS, M.BOTAO_STATUS} <= rotulos,
-    f"o teclado fixo traz os quatro botões (achou {len(rotulos)})",
+    {M.BOTAO_ABECMED, M.BOTAO_ZELENO, M.BOTAO_GUIA, M.BOTAO_STATUS} == rotulos,
+    f"o teclado tem uma associação por botão, sem sobra (achou {sorted(rotulos)})",
 )
 checar(M.TECLADO.get("is_persistent") is True, "o teclado não some depois de usar")
+checar(len(M.TECLADO["keyboard"]) == 3, "três fileiras, não uma parede de botões")
+checar(
+    [b["text"] for b in M.TECLADO["keyboard"][0]] == [M.BOTAO_ABECMED, M.BOTAO_ZELENO],
+    "as duas associações ficam lado a lado na primeira fileira",
+)
 
 print()
 if falhas:

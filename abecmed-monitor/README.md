@@ -110,13 +110,24 @@ estiver lá a consulta aborta em vez de improvisar.
 
 ## Botões no Telegram
 
-A conversa tem um teclado fixo com **💡 O que usar hoje?**, **🌿 Ver catálogo
-agora**, **🏪 Catálogo Zeleno**, **📸 Fotos e THC** e **📊 Status**, e o menu de
-comandos traz `/zeleno`, `/guia`, `/catalogo`, `/fotos`, `/status` e `/ajuda`.
+O teclado tem **uma associação por botão**:
 
-O botão da Zeleno manda só aquela associação: primeiro a lista com preço e THC,
-depois a foto de cada produto — e a legenda de cada foto traz preço, THC e
+```
+🌿 ABECMED      🏪 Zeleno
+    💡 O que usar hoje?
+        📊 Status
+```
+
+Cada botão de associação manda o catálogo dela: a lista com preço e THC e, em
+seguida, a foto de cada produto — a legenda de cada foto traz preço, THC e
 efeitos, então a lista serve de índice e as fotos, de ficha.
+
+A versão anterior separava "Ver catálogo" de "Fotos e THC", e nenhum dos dois
+dizia de qual associação era. Quem toca quer ver o catálogo de um lugar, não
+escolher entre lista e foto.
+
+Mensagem que o bot não entende recebe resposta curta, nunca silêncio: um botão
+que não responde é indistinguível de um bot quebrado.
 
 **A resposta é imediata.** Não existe servidor ligado — quem escuta é a própria
 execução agendada: depois de verificar o catálogo, ela fica pendurada no *long

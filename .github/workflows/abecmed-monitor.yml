@@ -107,6 +107,16 @@ jobs:
             FORCAR=''
             # Erro de configuração não melhora repetindo por uma hora.
             [ "$codigo" = "2" ] && break
+            # O ciclo dura ~55 min, então código novo só valia na hora seguinte:
+            # foi assim que um botão recém-criado ficou mudo para quem o tocava,
+            # porque a execução no ar era anterior ao deploy. Ao ver a branch
+            # andar, este ciclo encerra e a execução pendente assume com o
+            # código atual.
+            if git fetch -q origin "${{ github.ref_name }}" 2>/dev/null &&
+               [ "$(git rev-parse HEAD)" != "$(git rev-parse FETCH_HEAD)" ]; then
+              echo "Código novo na branch — encerrando para a próxima execução assumir."
+              break
+            fi
           done
           echo "codigo=$codigo" >> "$GITHUB_OUTPUT"
           echo "Ciclo encerrado após $rodadas verificação(ões)."

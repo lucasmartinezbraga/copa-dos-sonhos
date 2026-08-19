@@ -605,10 +605,12 @@ def render_mensagem(mudancas, catalogo, agora, fichas=None):
 # ---------------------------------------------------------------- notificação
 
 
-BOTAO_CATALOGO = "🌿 Ver catálogo agora"
-BOTAO_FOTOS = "📸 Fotos e THC"
+# Um botão por associação. A versão anterior tinha "Ver catálogo agora" e
+# "Fotos e THC" separados, e nenhum dos dois dizia de qual associação era —
+# quem toca quer ver o catálogo de um lugar, não escolher entre lista e foto.
+BOTAO_ABECMED = "🌿 ABECMED"
+BOTAO_ZELENO = "🏪 Zeleno"
 BOTAO_GUIA = "💡 O que usar hoje?"
-BOTAO_ZELENO = "🏪 Catálogo Zeleno"
 BOTAO_STATUS = "📊 Status"
 
 # Teclado fixo na conversa: os botões só mandam esse texto de volta, e a
@@ -616,9 +618,9 @@ BOTAO_STATUS = "📊 Status"
 # fazer sem manter um servidor ligado ouvindo o Telegram.
 TECLADO = {
     "keyboard": [
+        [{"text": BOTAO_ABECMED}, {"text": BOTAO_ZELENO}],
         [{"text": BOTAO_GUIA}],
-        [{"text": BOTAO_CATALOGO}, {"text": BOTAO_ZELENO}],
-        [{"text": BOTAO_FOTOS}, {"text": BOTAO_STATUS}],
+        [{"text": BOTAO_STATUS}],
     ],
     "resize_keyboard": True,
     "is_persistent": True,
@@ -630,10 +632,9 @@ AJUDA = (
     "anterior e só te chamo quando alguma coisa muda: produto novo, produto que "
     "saiu, preço alterado ou seção que ficou sem estoque.\n\n"
     "Roda no GitHub Actions — seu celular e seu computador podem ficar desligados.\n\n"
+    f"<b>{BOTAO_ABECMED}</b> e <b>{BOTAO_ZELENO}</b> — o catálogo daquela "
+    "associação: a lista com preço e THC, e depois a foto de cada produto.\n"
     f"<b>{BOTAO_GUIA}</b> — sugere o que combina com cada atividade.\n"
-    f"<b>{BOTAO_CATALOGO}</b> — manda o catálogo atual das duas associações.\n"
-    f"<b>{BOTAO_ZELENO}</b> — só a Zeleno, com foto e ficha de cada produto.\n"
-    f"<b>{BOTAO_FOTOS}</b> — manda a foto e a ficha de cada produto.\n"
     f"<b>{BOTAO_STATUS}</b> — diz se está tudo funcionando.\n\n"
     "Pode escrever o que vai fazer — <i>“vou treinar”</i>, <i>“preciso dormir”</i>, "
     "<i>“dor nas costas”</i> — que eu comparo com os terpenos da ficha e respondo.\n\n"
@@ -1022,12 +1023,12 @@ def responder_comando(texto, catalogo, estado, agora, ao_vivo):
     """Traduz o que a pessoa mandou na resposta correspondente."""
     t = texto.strip().lower().lstrip("/")
 
-    if t.startswith(("catalogo", "catálogo")) or texto.strip() == BOTAO_CATALOGO:
+    if t.startswith(("catalogo", "catálogo")):
         if not catalogo:
             return "⚠️ Ainda não tenho um catálogo guardado. Tente de novo no próximo ciclo."
         quando = "consultado agora" if ao_vivo else "última consulta que deu certo"
         return (
-            f"🌿 <b>Catálogo da ABECMED</b>\n"
+            f"📋 <b>Catálogo completo</b>\n"
             f"🕐 {agora.strftime('%d/%m/%Y %H:%M')} (Brasília) — {quando}\n\n"
             + render_catalogo(catalogo, estado.get("fichas"))
         )
@@ -1128,16 +1129,26 @@ def atender_comandos(estado, catalogo, agora, ao_vivo, cpf=None, espera=0):
         limpo = texto.strip()
         pedido = limpo.lower().lstrip("/")
 
-        if limpo == BOTAO_ZELENO or pedido.startswith("zeleno"):
-            secoes = secoes_da_fonte(catalogo, "zeleno")
+        fonte = None
+        if limpo == BOTAO_ABECMED or pedido.startswith(("abecmed", "abcmed")):
+            fonte = ("abecmed", "🌿", "ABECMED")
+        elif limpo == BOTAO_ZELENO or pedido.startswith(("zeleno", "zelano", "zelendo")):
+            fonte = ("zeleno", "🏪", "Zeleno")
+
+        if fonte:
+            chave_fonte, emoji, nome_fonte = fonte
+            secoes = secoes_da_fonte(catalogo, chave_fonte)
             nomes = [p["nome"] for sec in secoes.values() for p in (sec.get("produtos") or [])]
             if not nomes:
-                enviar_telegram(token, chat, "🏪 <b>Zeleno</b>\n\nNenhum produto disponível no momento.")
+                enviar_telegram(
+                    token, chat,
+                    f"{emoji} <b>{nome_fonte}</b>\n\nNenhum produto disponível no momento.",
+                )
             else:
                 enviar_telegram(
                     token,
                     chat,
-                    f"🏪 <b>Catálogo Zeleno</b>\n"
+                    f"{emoji} <b>Catálogo {nome_fonte}</b>\n"
                     f"🕐 {agora.strftime('%d/%m/%Y %H:%M')} (Brasília)\n\n"
                     + render_catalogo(secoes, estado.get("fichas")),
                 )
@@ -1145,36 +1156,20 @@ def atender_comandos(estado, catalogo, agora, ao_vivo, cpf=None, espera=0):
                 # THC e efeitos, então a lista serve de índice e as fotos, de ficha.
                 garantir_fotos(cpf, estado, catalogo or {}, nomes)
                 enviar_fotos(estado, catalogo or {}, nomes)
-            print(f"[{datetime.now(TZ).strftime('%H:%M:%S')}] respondido: Zeleno", flush=True)
-            atendidos += 1
-            continue
-
-        pediu_fotos = limpo == BOTAO_FOTOS or pedido.startswith("fotos")
-        if pediu_fotos:
-            nomes = [
-                p["nome"]
-                for chave in SECOES
-                for p in ((catalogo or {}).get(chave) or {}).get("produtos") or []
-            ]
-            # A URL da foto expira e não é guardada; o que dura é o file_id, que
-            # só existe depois do primeiro envio. Para quem ainda não tem, a
-            # ficha é buscada agora — é um toque explícito, não custo de rotina.
-            garantir_fotos(cpf, estado, catalogo or {}, nomes)
-            n = enviar_fotos(estado, catalogo or {}, nomes)
-            print(f"[{datetime.now(TZ).strftime('%H:%M:%S')}] respondido: fotos ({n})", flush=True)
-            enviar_telegram(
-                token,
-                chat,
-                f"📸 {n} foto(s) enviada(s)." if n else
-                "📸 Ainda não tenho as fichas guardadas. Elas são buscadas quando um "
-                "produto aparece no catálogo — tente de novo na próxima verificação.",
-            )
+            print(f"[{datetime.now(TZ).strftime('%H:%M:%S')}] respondido: {nome_fonte}", flush=True)
             atendidos += 1
             continue
 
         resposta = responder_comando(texto, catalogo, estado, agora, ao_vivo)
         if not resposta:
-            continue
+            # Silêncio é o pior desfecho: quem toca num botão que o código ainda
+            # não conhece — porque a execução no ar é anterior ao deploy — conclui
+            # que está quebrado. Uma resposta curta já diz que o bot está vivo.
+            resposta = (
+                "🤔 Não entendi esse pedido.\n\n"
+                f"Use os botões abaixo, ou escreva o que vai fazer "
+                f"(<i>“vou treinar”</i>, <i>“preciso dormir”</i>) que eu sugiro algo."
+            )
         try:
             enviar_telegram(token, chat, resposta)
             atendidos += 1
