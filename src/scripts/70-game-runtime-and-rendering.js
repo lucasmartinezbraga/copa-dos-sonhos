@@ -1915,8 +1915,25 @@ function startLoop() {
 
            Isto e SO apresentacao: o simulador recebe os mesmos passos, na
            mesma ordem. O resultado da partida nao muda em nada. */
-        const _espera = (sim && sim.dead > 0 && !slowmo) ? ADIANTA_PARADA : 1;
-        acc += dt * (slowmo ? Math.min(G.speed, 1) * slowmo.f : G.speed) * _espera;
+        /* §OS-263 · A CERIMONIA NAO E BUROCRACIA.
+           A linha abaixo adiantava TODA bola parada 3,5x, em cima do
+           multiplicador do botao -- 10,5x o tempo real no padrao de 3X. Para
+           a burocracia (tiro de meta, arrumacao de lateral, recolocar a bola)
+           isso e certo e e o que a OS-203 mediu. Para a CERIMONIA e o
+           contrario: a falta, o cartao, o penalti e o gol sao justamente os
+           momentos em que uma transmissao demora, e adiantar corta a parte que
+           faz o lance existir.
+           MEDIDO na partida inteira (tools/fisica/tela/a-partida-inteira.js),
+           94 minutos e 64 reinicios no 3X padrao: a falta parava o jogo por
+           300 ms medianos. Dezoito quadros -- o olho nao registra, e dai o
+           relato "eh como se tudo acontecesse de forma continua".
+           Durante a janela de cerimonia (camada 85) a pausa roda em tempo de
+           PAREDE: sem adianto e sem multiplicador de botao. */
+        const _cerim = !!(window.__cdsCerimoniaAtiva && window.__cdsCerimoniaAtiva(sim));
+        const _espera = (sim && sim.dead > 0 && !slowmo && !_cerim) ? ADIANTA_PARADA : 1;
+        const _mult = _cerim ? Math.min(G.speed, 1)
+                    : (slowmo ? Math.min(G.speed, 1) * slowmo.f : G.speed);
+        acc += dt * _mult * _espera;
         const h = 1/60; let g = 0;
         /* §OS-227 · O JOGO DESENHAVA O ESTADO DISCRETO DA SIMULACAO.
            O laco e de passo FIXO: `acc += dt*speed` e depois roda quantos
