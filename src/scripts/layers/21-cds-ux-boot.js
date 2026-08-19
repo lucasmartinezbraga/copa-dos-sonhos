@@ -61,6 +61,16 @@
 
   const TAU = Math.PI * 2;
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  /* §OS-256 · interruptor de tempo de execucao para o desenho, lido do global.
+     Existe para que o dono possa OLHAR duas opcoes lado a lado em vez de eu
+     escolher por ele. */
+  const ajuste = (nome, padrao) => {
+    const v = root && root[nome];
+    return (typeof v === 'number' && isFinite(v)) ? v : padrao;
+  };
+  /* raio da bola em px na escala 1, e quanto ele cresce quando ela sobe.
+     Era 6,2 + 2,6 -- uma bola com quase metade da altura do atleta. */
+  const BOLA_BASE = 3.9, BOLA_AR = 1.6;
 
   /* ── PROJEÇÃO ────────────────────────────────────────────────────────────
    * Plano do campo visto por câmera de TV alta. Coordenadas de entrada são as
@@ -1648,7 +1658,24 @@
       if (_f >= 1) _e.quique = 0; else _sq = Math.sin(Math.PI * _f) * 0.34 * (_e.forca || 1);
     }
     // corpo da bola
-    const rb = (6.2 + air * 2.6) * s;
+    /* §OS-256 · A BOLA E QUASE QUATRO VEZES MAIOR DO QUE DEVERIA.
+       ---------------------------------------------------------------------
+       Olhando a folha de quadros de um chute (`lance-em-quadros.js`), a
+       primeira coisa que salta nao e o gesto: e a BOLA. Ela tem quase metade
+       da altura do atleta.
+
+       MEDIDO no desenho: raio 6,2 * s (12,4 px de diametro perto da camera)
+       contra ~36 px de altura do atleta -> proporcao 0,48.
+       No futebol de verdade: 0,22 m de bola contra 1,75 m de jogador -> 0,126.
+
+       Bola grande demais e a razao numero um de um jogo 2.5D nao "ler" como
+       futebol: o olho usa a bola como regua de escala, e uma bola de praia
+       encolhe o campo inteiro.
+
+       O tamanho nao vai para 0,126 porque a 34 px/m isso seria uma bola de
+       4 px, invisivel em movimento. `BOLA_BASE` e o meio termo, e fica como
+       interruptor (`CDS_BOLA_R`) para o dono escolher olhando. */
+    const rb = (ajuste('CDS_BOLA_R', BOLA_BASE) + air * BOLA_AR) * s;
     const bg = ctx.createRadialGradient(bx - rb * .36, by - rb * .36, 0, bx, by, rb);
     bg.addColorStop(0, '#ffffff'); bg.addColorStop(.75, '#e9e9e9'); bg.addColorStop(1, '#b9bcc4');
     /* §OS-224 · BOLA RAPIDA SE ALONGA NA DIRECAO DO VOO.
