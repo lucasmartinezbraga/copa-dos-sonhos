@@ -12,6 +12,7 @@ Rodar:  python3 abecmed-monitor/test_monitor.py
 """
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -323,7 +324,6 @@ checar(len(_tentativas) <= 5, f"recua em vez de girar (fez {len(_tentativas)} te
 checar(_gasto >= 7, "e ainda assim respeita a janela pedida")
 
 print("\nSecret único (ABECMED_CONFIG)")
-import os  # noqa: E402
 
 
 def com_config(valor):
