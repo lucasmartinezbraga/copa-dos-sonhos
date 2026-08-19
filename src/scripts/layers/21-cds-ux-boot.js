@@ -713,10 +713,15 @@
     protect_turn:      { esc: 0.50, spr: 0.42, inc: -0.10, agacha: 0.24, braco: 1.55, estica: 0.16 },
 
     /* GOLEIRO — o mergulho e o gesto mais visivel do jogo e nao existia */
-    gk_low_dive:       { esc: 0.30, spr: 0.60, inc:  0.34, agacha: 0.70, braco: 1.90, estica: 1.05 },
-    gk_high_dive:      { esc: 0.35, spr: 0.55, inc: -0.36, agacha: 0.00, braco: 2.10, estica: 0.95 },
-    gk_catch:          { esc: 0.25, spr: 0.26, inc: -0.14, agacha: 0.08, braco: 1.95, estica: 0.30 },
-    gk_punch:          { esc: 0.30, spr: 0.30, inc: -0.22, agacha: 0.00, braco: 2.05, estica: 0.40 },
+    /* §OS-261 · `gl`/`gr`/`gx` sao as LUVAS. Sem elas a mao ficava no ponto
+       neutro do corpo em pe -- e com o tronco girado 90 graus isso poe as
+       maos apontando para o chao no meio do voo. Negativo sobe a luva no
+       corpo, que depois do giro e a direcao do mergulho: as maos vao NA
+       FRENTE, e a de cima lidera. */
+    gk_low_dive:       { esc: 0.30, spr: 0.60, inc:  0.34, agacha: 0.70, braco: 1.90, estica: 1.05, gl: -0.52, gr: -0.76, gx: 0.30 },
+    gk_high_dive:      { esc: 0.35, spr: 0.55, inc: -0.36, agacha: 0.00, braco: 2.10, estica: 0.95, gl: -0.70, gr: -0.98, gx: 0.34 },
+    gk_catch:          { esc: 0.25, spr: 0.26, inc: -0.14, agacha: 0.08, braco: 1.95, estica: 0.30, gl: -0.62, gr: -0.62, gx: 0.10 },
+    gk_punch:          { esc: 0.30, spr: 0.30, inc: -0.22, agacha: 0.00, braco: 2.05, estica: 0.40, gl: -0.80, gr: -0.44, gx: 0.16 },
     intercept:  { esc: 0.35, spr: 0.10, inc:  0.34, agacha: 0.04, braco: 1.20, estica: 0.62 },
     lose_control:{esc: 0.40, spr: 0.28, inc: -0.26, agacha: 0.02, braco: 1.60, estica: 0.16 },
     heavy_touch:{ esc: 0.95, spr: 0.06, inc:  0.30, agacha: 0.00, braco: 1.15, estica: 0.44 },
@@ -1155,6 +1160,69 @@
     const _kQueda = !caindo ? 0
                   : (st === 'fouled' ? Math.min(1, dphase / 0.45)
                                      : Math.max(0, 1 - dphase / 0.72));
+
+    /* §OS-261 · O MERGULHO DO GOLEIRO ERA UMA LINHA, E A LINHA ESTAVA ERRADA.
+       ---------------------------------------------------------------------
+       RELATO do dono, olhando a folha de quadros da defesa: "mó feio as
+       animações, olha esse pulo do goleiro".
+
+       O mergulho inteiro era `if (mergulho) ctx.rotate(Math.PI / 2)`. Ou seja:
+       o boneco EM PE, girado noventa graus, no lugar. Some com isso:
+
+         · nao ha voo -- o corpo nunca sai do gramado, so tomba;
+         · o giro e INSTANTANEO, de zero a noventa em um quadro;
+         · o lado e sempre o mesmo -- a cabeca aponta para a direita quer ele
+           va buscar no angulo esquerdo, quer no direito;
+         · as pernas ficam na tesoura de CAMINHADA, deitada. Ampliado, o
+           goleiro parece um homem andando numa parede;
+         · e no fim ele volta a ficar de pe em um quadro, porque
+           `gk_ground_recover` nao e mergulho e a rotacao some de uma vez.
+
+       Um mergulho e um SALTO com rotacao: o corpo sai do chao, gira para o
+       lado da bola enquanto voa, estende os bracos na frente e ATERRISSA
+       deitado -- e so entao se levanta. As quatro coisas ficam aqui, e o
+       levantar-se e a mesma curva ao contrario, como ja e na OS-241 para quem
+       sofre falta.
+
+       O lado sai de onde a BOLA esta na tela, e nao de `face`: `face` vem da
+       direcao do deslocamento, e um goleiro que se joga tem deslocamento quase
+       nulo no quadro em que decide. */
+    const _levantando = !!(A && st === 'gk_ground_recover');
+    const _mergAtivo = mergulho || _levantando;
+    /* sobe depressa (o goleiro se joga de uma vez) e SUSTENTA ate aterrissar;
+       levantar desfaz o mesmo caminho, com folga no comeco para o corpo
+       chegar ao chao antes de comecar a subir */
+    const _kMerg = mergulho ? Math.min(1, dphase / 0.20)
+                 : _levantando ? 1 - clamp((dphase - 0.30) / 0.60, 0, 1)
+                 : 0;
+    /* o voo: sai do chao e volta. So no mergulho -- levantar nao voa. */
+    const _altoMerg = (st === 'gk_high_dive') ? 0.92 : 0.44;
+    const _vooMerg = mergulho ? _altoMerg * Math.sin(clamp(dphase, 0, 1) * Math.PI) : 0;
+    /* §OS-261 · O EIXO DO MERGULHO E O DA BOLA, E NAO UM GIRO FIXO.
+       O giro era `Math.PI/2` cravado: o corpo sempre deitava com a cabeca para
+       a DIREITA da tela. Nesta camera a linha do gol e quase vertical, entao o
+       goleiro se deslocava para cima ou para baixo e o corpo ficava
+       ATRAVESSADO ao proprio voo -- que e a parte que mais denuncia.
+       Agora o angulo sai do vetor ate a bola em coordenadas de tela: o eixo do
+       corpo (que aponta para cima, `-y` local) e girado ate coincidir com ele.
+       Vale em qualquer orientacao de camera, e o mesmo vetor da o deslocamento.
+       O vetor e CONGELADO no comeco do voo: a bola continua andando durante o
+       mergulho, e sem congelar o goleiro giraria atras dela no ar. */
+    let _angMerg = 0, _dxMerg = 0, _dyMerg = 0;
+    if (_mergAtivo) {
+      let v = d.__vMerg;
+      if (!v || !_levantando) {
+        const bx = (o.ballX != null) ? (o.ballX - x) : 0;
+        const by = (o.ballY != null) ? (o.ballY - (y - r * 0.5)) : 0;
+        const h = Math.hypot(bx, by);
+        if (h > r * 0.35) { v = { x: bx / h, y: by / h }; d.__vMerg = v; }
+        else v = d.__vMerg || { x: (face >= 0 ? 1 : -1), y: 0 };
+      }
+      /* angulo que leva o eixo -y local ate o vetor v */
+      _angMerg = Math.atan2(v.x, -v.y) * _kMerg;
+      const _alcance = r * 1.35 * _kMerg;   /* o mergulho COBRE terreno */
+      _dxMerg = v.x * _alcance; _dyMerg = v.y * _alcance;
+    } else d.__vMerg = null;
     const feint  = A && st === 'body_feint';
     const cutting= A && (st === 'inside_cut' || st === 'outside_cut');
     /* §D43 · os dois cortes desenhavam IDENTICOS: `cutting` nao olhava para
@@ -1170,7 +1238,7 @@
        mv = 0,470 px/quadro em 1X contra 1,309 em 3X, o mesmo atleta a ~3,5 m/s.
        Agora vem de `d.vms`, que e a velocidade FISICA em m/s: 4,2 m/s abre a
        perna por inteiro, em qualquer velocidade de exibicao. */
-    const amp = (mergulho || kicking || tackling) ? 0
+    const amp = (_mergAtivo || kicking || tackling) ? 0
               : clamp(d.vms / 4.2, 0, 1) * (bursting ? 1.35 : 1);   // 0 parado … 1 correndo
     /* §OS-258 · O GESTO DISCRETO NAO TINHA AMPLITUDE NENHUMA.
        ---------------------------------------------------------------------
@@ -1200,7 +1268,13 @@
        MENOS que os 110 ms que a mistura de pose leva para completar: se o
        envelope reiniciasse a cada estado, a perna pedalaria quatro vezes e o
        pico nunca chegaria. Com relogio de cadeia, sai um arco so. */
-    const _ehGesto = (kicking || tackling || heading) && !mergulho;
+    /* §OS-261 · o mergulho entra aqui tambem. Ele caia no mesmo `amp = 0` do
+       chute e do bote, entao `esc` e `braco` das poses de voo (que a OS-257
+       acabou de criar) eram multiplicados por zero: o goleiro voava com as
+       pernas na tesoura de caminhada e os bracos colados no corpo.
+       A diferenca e o formato do envelope -- o chute BATE e recolhe, o
+       mergulho estende e SUSTENTA ate cair. */
+    const _ehGesto = kicking || tackling || heading || _mergAtivo;
     if (_ehGesto) {
       /* §OS-260 · o relogio do envelope e o do GESTO, e o gesto conta em
          segundos de simulacao. Somar parede aqui repetiria o erro que a
@@ -1213,6 +1287,7 @@
     const GESTO_ATAQUE = 0.09, GESTO_QUEDA = 0.30;
     const _tg = d.__gestoT || 0;
     const _batida = !_ehGesto ? 0
+                  : _mergAtivo ? Math.min(1, _tg / GESTO_ATAQUE)   /* §OS-261 · sustenta */
                   : (_tg < GESTO_ATAQUE ? _tg / GESTO_ATAQUE
                                         : Math.exp(-(_tg - GESTO_ATAQUE) / GESTO_QUEDA));
     const sw = _ehGesto ? _batida : Math.sin(d.gait) * amp;   // -1..1 alterna as pernas
@@ -1249,6 +1324,7 @@
               - (P ? r * P.agacha : 0)             /* §D42 · o agachamento do estado */
               - (blocking ? r * .12 * Math.sin(dphase * Math.PI) : 0)   /* OS-60 · agacha no bloqueio */
               + _pulo                              /* §OS-240 · o salto do cabeceio */
+              + r * _vooMerg                       /* §OS-261 · o goleiro SAI do chao */
               - r * .46 * _kQueda;                 /* §OS-241 · o corpo vai ao chao */
 
     /* OS-47 · GIRO DE 360. Em vista 2,5D o giro se le pelo estreitamento: o
@@ -1265,15 +1341,15 @@
     /* §D41 · a inclinacao do tronco e o estreitamento de perspectiva saiam da
        mesma `d.spd` de tela: o jogador se jogava para a frente ao apertar 3X e
        endireitava ao voltar para 1X, sem mudar de velocidade no campo. */
-    const _vig = (mergulho || spinning) ? 0 : Math.max(0, Math.min(1, d.vms / 4.2));
+    const _vig = (_mergAtivo || spinning) ? 0 : Math.max(0, Math.min(1, d.vms / 4.2));
     let _rotTot = 0;
     ctx.save();
-    ctx.translate(x, y - bob - (spinning ? r * .16 * Math.sin(spinTh / 2) : 0));
+    ctx.translate(x + _dxMerg, y - bob + _dyMerg - (spinning ? r * .16 * Math.sin(spinTh / 2) : 0));
     /* §D42 · o portao era so `_vig > .02` (velocidade de tela). Postura parada —
        `jockey`, `protect`, `receive_*` — acontece justamente com pouca
        velocidade: sem abrir o portao para ela, a inclinacao do estado nunca
        chegava a ser aplicada. */
-    if (!mergulho && !spinning && (_vig > .02 || (P && P.inc !== 0))) {
+    if (!_mergAtivo && !spinning && (_vig > .02 || (P && P.inc !== 0))) {
       /* OS-60 · corte joga o peso para fora antes de sair para dentro;
          arrancada projeta o tronco a frente. */
       const _extra = cutting  ? -face * cutLado * .30 * Math.sin(dphase * Math.PI)
@@ -1293,7 +1369,10 @@
       ctx.scale(_sq < .5 ? .5 : _sq, 1);
     }
     if (caindo && _kQueda > 0.01) ctx.rotate(face * 1.12 * _kQueda);  /* §OS-241 */
-    if (mergulho) ctx.rotate(Math.PI / 2);
+    /* §OS-261 · o giro do mergulho: PROGRESSIVO e para o LADO da bola. Era
+       `ctx.rotate(Math.PI/2)` fixo -- instantaneo e sempre com a cabeca para a
+       direita. Aterrissar e o mesmo caminho de volta, por `_kMerg`. */
+    if (_mergAtivo && _kMerg > 0.005) ctx.rotate(_angMerg);
     else if (spinning) {
       const _c = Math.cos(spinTh);
       ctx.scale(Math.abs(_c) < .16 ? (_c < 0 ? -.16 : .16) : _c, 1);
@@ -1646,13 +1725,35 @@
       ctx.lineTo(D.x - PT * Math.cos(ang - 0.42), D.y - PT * Math.sin(ang - 0.42));
       ctx.lineTo(D.x - PT * Math.cos(ang + 0.42), D.y - PT * Math.sin(ang + 0.42));
       ctx.closePath(); ctx.fill();
+    } else if (isShot) {
+      /* §OS-262 · A SETA DO CHUTE NAO TINHA SENTIDO NENHUM.
+         RELATO do dono: "essa seta, nao tem sentido nenhum".
+         Era uma linha branca SOLIDA do pe do chutador ate o ponto de queda,
+         com ponta de seta cravada no gramado, desenhada desde o instante em
+         que a bola sai. Tres defeitos de uma vez:
+           · conta o final antes de acontecer -- ela aponta onde o chute vai
+             morrer enquanto a bola ainda esta no meio do caminho;
+           · a ponta fica plantada na grama, e nada em campo esta ali;
+           · a linha atravessa os corpos -- na folha de quadros da defesa ela
+             passa por dentro do goleiro.
+         Chute em transmissao nao tem guia: tem RASTRO. Fica so a parte ja
+         percorrida, atras da bola, e ela some junto com o lance.
+         O passe segue com a guia tracejada a frente, que e leitura de jogada
+         (estilo FM) e nao entrega desfecho nenhum. */
+      const bx = g.x, by = liftY(g.y, z, g.s);
+      const grad = ctx.createLinearGradient(A.x, A.y, bx, by);
+      grad.addColorStop(0, 'rgba(255,255,255,0)');
+      grad.addColorStop(1, 'rgba(255,255,255,.55)');
+      ctx.strokeStyle = grad; ctx.lineWidth = LW * 1.3; ctx.setLineDash([]);
+      ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(bx, by); ctx.stroke();
+      ctx.lineCap = 'butt';
     } else {
-      if (isShot) { ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = LW; ctx.setLineDash([]); }
-      else { ctx.strokeStyle = 'rgba(255,220,40,.9)'; ctx.lineWidth = LW; ctx.setLineDash(TRC); }
+      ctx.strokeStyle = 'rgba(255,220,40,.9)'; ctx.lineWidth = LW; ctx.setLineDash(TRC);
       ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(D.x, D.y); ctx.stroke();
       const ang = Math.atan2(D.y - A.y, D.x - A.x);
       ctx.setLineDash([]);
-      ctx.fillStyle = isShot ? 'rgba(255,255,255,.85)' : 'rgba(255,220,40,.95)';
+      ctx.fillStyle = 'rgba(255,220,40,.95)';
       ctx.beginPath();
       ctx.moveTo(D.x, D.y);
       ctx.lineTo(D.x - PT * Math.cos(ang - 0.42), D.y - PT * Math.sin(ang - 0.42));

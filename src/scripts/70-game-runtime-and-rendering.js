@@ -3566,13 +3566,18 @@ function paintField() {
   /* §OS-220 · posicao de TELA da bola, uma vez por quadro. E o unico dado que
      faltava para o atleta poder olhar para ela: `CDS_F25D.body` recebe so o
      proprio boneco e nao tem como saber onde o jogo esta acontecendo. */
-  let _bolaTelaX = null;
+  let _bolaTelaX = null, _bolaTelaY = null;
   try {
     const _bb = (shotFx ? { x: shotFx.x / 105, y: shotFx.y / 68 } : st.ball);
     if (_bb) {
       let _bxr = cx(_bb.x), _byr = cy(_bb.y);
-      if (window.CDS_F25D) { const _pj = window.CDS_F25D.project(_bxr, _byr); _bxr = _pj.x; }
-      _bolaTelaX = _bxr;
+      /* §OS-261 · o Y da bola tambem. So o X bastava para o atleta OLHAR para
+         ela; o mergulho precisa da direcao inteira, porque o corpo do goleiro
+         tem de se deitar ao longo da linha do voo -- e nesta camera a linha do
+         gol e quase vertical na tela, entao um giro fixo de 90 graus deitava o
+         corpo atravessado ao proprio deslocamento. */
+      if (window.CDS_F25D) { const _pj = window.CDS_F25D.project(_bxr, _byr); _bxr = _pj.x; _byr = _pj.y; }
+      _bolaTelaX = _bxr; _bolaTelaY = _byr;
     }
   } catch (_) { }
   /* §OS-208 · estado do teto de passo do DESENHO. Ver o bloco no laco abaixo.
@@ -3705,7 +3710,21 @@ function paintField() {
         actionWave = Math.sin(Math.PI * phase);
         if (motion.type === 'jump') { y -= actionWave * 11; r += actionWave * 3.2; }
         else if (motion.type === 'claim') { y -= actionWave * 8; r += actionWave * 4; }
-        else if (motion.type === 'dive') { y += motion.dir * actionWave * 27; x += actionWave * 3; divePose = true; }
+        else if (motion.type === 'dive') {
+          /* §OS-261 · UMA AUTORIDADE SO PARA O MERGULHO.
+             Este caminho e o LEGADO (`activeMotion`) e ele deitava o goleiro
+             por conta propria, sem consultar a maquina de estados da R14.
+             Resultado medido no rastro: a R14 dizia `gk_parry` (uma palma, em
+             pe) durante 600 ms e o legado marcava `divePose`, entao o desenho
+             pegava a POSE EM PE e girava 90 graus. E por isso que, ampliado,
+             o goleiro parecia um homem em pe deitado na grama.
+             A doutrina do projeto ja e clara em todo o resto: a R14 manda
+             quando existe, o legado e queda para builds sem a camada. Aqui
+             ela nunca foi aplicada. O deslocamento e o voo passam a sair da
+             camada 2,5D, junto com o giro e os membros. */
+          const _Agk = window.__CDS_ANIM_BY_KEY && window.__CDS_ANIM_BY_KEY[_chave];
+          if (!_Agk) { y += motion.dir * actionWave * 27; x += actionWave * 3; divePose = true; }
+        }
       }
 
       // A sombra fica no gramado; o corpo se separa dela no salto/pulo.
@@ -3756,7 +3775,7 @@ function paintField() {
       if (window.CDS_F25D) { /* §OS-242 · a altura estimada do atleta ja existe no perfil e nunca chegava
          ao desenho; agora chega, e o campo passa a ter onze portes. */
       const _altCm = p.ref && p.ref.profileV3 && p.ref.profileV3.heightCmSim;
-      window.CDS_F25D.body(ctx, { x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall, key: _chave, act: p._act||'', pose: (motion&&motion.type)||'', wave: actionWave, ballX: _bolaTelaX, alturaCm: _altCm }); } else {
+      window.CDS_F25D.body(ctx, { x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall, key: _chave, act: p._act||'', pose: (motion&&motion.type)||'', wave: actionWave, ballX: _bolaTelaX, ballY: _bolaTelaY, alturaCm: _altCm }); } else {
       // corpo: no mergulho do goleiro vira uma elipse lateral, deixando o pulo
       // legível sem alterar a posição física usada pelo motor.
       ctx.beginPath();
@@ -3940,9 +3959,14 @@ function paintField() {
       ctx.font='bold 22px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
       ctx.fillText('❌', x, y - 24 - (1-a)*8);
     } else if (v.type === 'save') {              // defesa
-      ctx.strokeStyle='#ffcb45'; ctx.lineWidth=3;
-      ctx.beginPath(); ctx.arc(x, y, 22, -1.1, 1.1); ctx.stroke();
-      ctx.font='bold 17px Arial'; ctx.textAlign='center'; ctx.fillText('🧤', x, y-30);
+      /* §OS-262 · o arco dourado de raio 22 ficava CENTRADO no goleiro, por
+         quase um segundo, atravessando o corpo dele -- um risco de ouro que
+         nao aponta para nada, bem em cima do unico gesto que se queria ver. E
+         a luva era um emoji flutuando solto acima da cabeca. O aviso desce
+         para o tamanho e o lugar dos outros (acima da cabeca, como o cartao) e
+         o arco sai. */
+      ctx.font='bold 13px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('🧤', x, y - 30 - (1-a)*8);
     } else if (v.type === 'post') {              // trave
       ctx.font='bold 20px Arial'; ctx.textAlign='center'; ctx.fillText('💥', x, y-20);
     } else if (v.type === 'card') {
