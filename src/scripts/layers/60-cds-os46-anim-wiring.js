@@ -32,6 +32,23 @@ function pede(sim,p,estado,entao){
     if(!sim.__anim)sim.__anim=A.create();
     var c=sim.__anim.of(idOf(p));
     if(!c||typeof c.request!=='function')return;
+    /* §OS-255c · REPEDIR O MESMO GESTO O REINICIA, E ISSO O APAGA.
+       O bote nasce em dois eventos seguidos: `tackle_attempt` no quadro em que
+       o defensor se lanca, e `tackle`/`tackle_missed` no quadro seguinte, com o
+       desfecho. Os dois pedem gesto de bote, com `force`, e reentrar no mesmo
+       estado zera a fase -- entao o carrinho recomecava do quadro zero a cada
+       pedido e nunca chegava a ser desenhado por inteiro.
+
+       MEDIDO em 240 s: 15 pedidos de carrinho renderam 16 quadros desenhados,
+       pouco mais de um quadro por pedido. Com esta guarda o gesto que ja esta
+       correndo segue correndo, e so o `entao` e atualizado.
+
+       Nao vale para gesto DIFERENTE: uma defesa continua interrompendo tudo,
+       que e o que `force` existe para fazer. */
+    if(c.state===estado&&c.dur>0&&c.t<c.dur){
+      if(entao&&c.contract)c.contract.entao=entao;
+      return;
+    }
     c.request(estado,Number(sim.t)||0,{force:true,entao:entao||null});
     dbg.pedidos++;dbg.porEstado[estado]=(dbg.porEstado[estado]||0)+1;
     if(entao)dbg.porEstado[entao]=(dbg.porEstado[entao]||0)+1;
@@ -43,6 +60,58 @@ function pede(sim,p,estado,entao){
    certo para uma defesa (ela interrompe tudo), mas errado para a reposicao do
    goleiro: ela nasce logo depois do bloqueio de pe e apagava o `gk_smother`
    antes de ele virar quadro. Aqui o gesto em curso termina primeiro. */
+/* §OS-255 · O BOTE ERA ESCOLHIDO PELO DESFECHO, NAO PELA DISTANCIA.
+   ---------------------------------------------------------------------------
+   RELATO DO DONO: "qualidade do desarme da falta".
+
+   A fiacao daqui pedia `standing_tackle` quando o bote DAVA CERTO e
+   `slide_tackle` quando ERRAVA. O desfecho nao tem nada a ver com a geometria:
+   o que decide se o corpo alcanca e a DISTANCIA.
+
+   MEDIDO (`tools/fisica/contato.js`, 36 partidas, 1634 desarmes):
+
+       desarme com contato (<=1,5 m)   826/1634   50,6%
+       distancia:  p10 0,76  p25 1,16  p50 1,45  p75 1,93  p90 2,24  p99 2,48
+
+   Metade dos desarmes acontece com os corpos a mais de 1,5 m, e o pior chega a
+   3,00 m -- o motor decide o duelo dentro de `pressRadius`, que vai de 2,25 a
+   3,0 m mais o alcance de pressao. Desenhar um bote EM PE a 2,2 m e desenhar
+   uma perna que nao chega: no zoom 2,0 sao ~34 px/m, entao 2 m e um vao de uma
+   vez e meia a altura do boneco. E o "fantasma" que se ve.
+
+   Carrinho cobre esse vao -- e por isso que ele existe no futebol. Entao o
+   gesto passa a sair da distancia, nos tres ramos, e nao do resultado:
+
+       <= ALCANCE_EM_PE   bote em pe (ele chega com a perna)
+       >  ALCANCE_EM_PE   carrinho   (ele precisa se lancar)
+
+   1,85 m e o p73 medido: cerca de um quarto dos botes vira carrinho, que e
+   proporcao de futebol. Nao ha numero novo pedido ao motor -- `by` e `on` ja
+   vinham no evento e ninguem lia a posicao deles.
+
+   Isto e APRESENTACAO PURA: `pede` so escreve em `sim.__anim`. Nao move
+   ninguem, nao sorteia, nao muda desfecho. */
+var ALCANCE_EM_PE=1.85;
+function boteDe(sim,by,on){
+  try{
+    if(!by||!on)return 'standing_tackle';
+    /* §OS-255d · O CARRINHO QUE VOCE COMECA E O QUE VOCE TERMINA.
+       O bote nasce em dois eventos: `tackle_attempt` quando o defensor se
+       lanca, e o desfecho no quadro seguinte. Entre um e outro os dois corpos
+       ANDAM -- e recalcular a distancia trocava carrinho por bote em pe no meio
+       do gesto, cortando a animacao pela metade.
+       MEDIDO: 16 pedidos de carrinho rendiam 37 quadros desenhados (2,3 por
+       pedido) contra 10,2 do controle. Um lance ja em curso mantem o gesto que
+       comecou; so quem nao esta botando escolhe de novo. */
+    if(sim&&sim.__anim){
+      var c=sim.__anim.of(idOf(by));
+      if(c&&c.dur>0&&c.t<c.dur&&(c.state==='slide_tackle'||c.state==='standing_tackle'))return c.state;
+    }
+    var dx=(Number(by.x)||0)-(Number(on.x)||0),dy=(Number(by.y)||0)-(Number(on.y)||0);
+    return Math.hypot(dx,dy)>ALCANCE_EM_PE?'slide_tackle':'standing_tackle';
+  }catch(_){return 'standing_tackle';}
+}
+
 function pedeSeLivre(sim,p,estado,entao){
   try{
     if(!p||!estado)return;
@@ -220,7 +289,7 @@ P._emit=function(type,data){
       }
       /* a tentativa de bote e 23x mais frequente que o drible e nao tinha pose:
          so `tackle` e `tackle_missed` estavam fiados */
-      else if(type==='tackle_attempt'&&data.by){ pede(this,data.by,'standing_tackle'); }
+      else if(type==='tackle_attempt'&&data.by){ pede(this,data.by,boteDe(this,data.by,data.on)); }
       /* §OS-207 · A FALTA ERA O EVENTO MAIS FREQUENTE SEM GESTO NENHUM.
          ~15 por partida, e a fiacao inteira aqui ignorava `foul`. Quem sofria
          seguia trotando enquanto o juiz apitava; quem cometia tambem nao
@@ -231,7 +300,7 @@ P._emit=function(type,data){
          evento e ninguem os lia. */
       else if(type==='foul'){
         if(data.on)pede(this,data.on,'fouled','get_up');
-        if(data.by)pede(this,data.by,'standing_tackle','recover');
+        if(data.by)pede(this,data.by,boteDe(this,data.by,data.on),'recover');
       }
       else if((type==='header_shot'||type==='header_clear')&&data.by){
         pede(this,data.by,'header');
@@ -245,7 +314,7 @@ P._emit=function(type,data){
       else if(type==='tackle_missed'&&data.by){
         /* o motor ja marca `_beatenUntil` no defensor: o `recover` e a versao
            visivel do atraso que a fisica dele ja paga */
-        pede(this,data.by,'slide_tackle','recover');
+        pede(this,data.by,boteDe(this,data.by,data.on),'recover');
       }
       /* §OS-213 · QUEM PERDE A BOLA PERDE EM QUALQUER RAMO.
          O filtro exigia `source === 'dribble'`, e o desarme nasce em tres
@@ -255,6 +324,15 @@ P._emit=function(type,data){
          gesto de perda -- 24% saiam sem reacao nenhuma. */
       else if(type==='tackle'&&data.on){
         pede(this,data.on,'dribble_failure');
+        /* §OS-255b · QUEM DESARMA NAO GANHAVA GESTO NENHUM NO DESARME CERTO.
+           Este ramo so vestia a VITIMA. O bote do defensor vinha de
+           `tackle_attempt`, que nasce num ramo so -- e o desarme nasce em
+           quatro (`dribble`, `press_contact`, `press_poke`, e o do bote). Nos
+           que nao passam pelo `tackle_attempt`, o defensor tomava a bola de pe,
+           parado, sem mover uma perna.
+           E o mesmo defeito que a OS-213 achou do outro lado: la era a vitima
+           que seguia correndo como se nada tivesse acontecido. */
+        if(data.by)pedeSeLivre(this,data.by,boteDe(this,data.by,data.on),'recover');
       }
       else if(type==='bad_pass'&&data.by){ pede(this,data.by,'lose_control'); }
       else if(type==='miscontrol_out'&&data.by){ pede(this,data.by,'heavy_touch'); }
