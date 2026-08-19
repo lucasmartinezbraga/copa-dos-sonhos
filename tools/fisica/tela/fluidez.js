@@ -176,9 +176,13 @@ const alvo = path.resolve(process.argv.slice(2).find(a => !a.startsWith('--')) |
   console.log('\n=== VARREDURA DE FLUIDEZ ===  minuto', r.m.toFixed(1),
               '| quadros', S.quadros, '|', seg.toFixed(0), 's de tela\n');
 
-  console.log('  1. RITMO DO QUADRO   (limite SUPERIOR: a propria sonda pesa)');
-  console.log('     — ela envolve os 22 desenhos de corpo e a bola por quadro e');
-  console.log('       guarda historico; engasgo aqui e teto, nao valor do jogo limpo.');
+  console.log('  1. RITMO DO QUADRO   (limite SUPERIOR — MEDIDO, nao estimado)');
+  console.log('     Esta secao envolve os 22 desenhos de corpo e a bola por quadro.');
+  console.log('     `tools/fisica/tela/engasgo.js` mediu o mesmo build sem gancho:');
+  console.log('        aqui            0,40 a 0,49 engasgo/s  | pior 240 a 509 ms');
+  console.log('        limpo           0,11 e 0,07            | pior 62 ms');
+  console.log('     Ou seja: esta secao INFLA de 4 a 7 vezes. Use-a para comparar');
+  console.log('     builds entre si, nunca para dizer quanto o jogo engasga.');
   console.log('     mediana', q(.5).toFixed(1), 'ms  | p90', q(.9).toFixed(1),
               ' | p99', q(.99).toFixed(1), ' | pior', ord.length ? ord[ord.length - 1].toFixed(0) : 0, 'ms');
   console.log('     engasgos (>34 ms):', S.engasgos, '->', (S.engasgos / seg).toFixed(2), 'por segundo | pior',
