@@ -114,45 +114,52 @@ root.__cdsCerimoniaAtiva = function (sim) {
   } catch (_) { return false; }
 };
 
-/* OS-264 — INVESTIGADA E REPROVADA PELA PROPRIA MEDICAO, NAO EMBARCADA
+/* OS-264 — QUATRO HIPOTESES, QUATRO REPROVACOES, NADA EMBARCADO
    ---------------------------------------------------------------------------
-   O relato "quando rola um gol o jogo comeca do nada sem os jogadores se
-   organizarem" tem uma segunda metade que esta OS NAO resolve, e vale mais
-   registrar o que se descobriu do que embarcar um remendo nao provado.
+   RELATO: "quando rola um gol o jogo comeca do nada sem os jogadores se
+   organizarem". A PAUSA foi resolvida pela OS-263 acima (733 ms -> 3,3 s de
+   parede). A ORGANIZACAO nao foi, e o registro do que se tentou vale mais que
+   um remendo nao provado.
 
-   HIPOTESE 1 — teleporte. ERRADA. A partida inteira mostrou ZERO teleportes em
-   64 reinicios: a caminhada da R14/OS-229 funciona.
+   A sonda que decide e `tools/fisica/o-reinicio.js`: sem navegador, 34
+   partidas, 164 pontapes (contra 2 a 5 por partida na sonda de tela -- com
+   aquela amostra eu ja tinha proposto DUAS correcoes apoiadas em diferencas
+   que eram ruido).
 
-   HIPOTESE 2 — a janela de caminhada e curta demais. `deferPositions` (camada
-   18) tem teto `DEAD_CAP = 2.2` s, que a 5,98 m/s cobre 13 m; depois de um gol
-   a volta ao posto passa de 40 m. Implementei o alongamento e medi. A metrica
-   direta ("a que distancia do posto o atleta esta quando a bola volta a
-   rolar") REPROVOU: 16,5 m na media, pior a 43 m.
+   LINHA DE BASE, 164 pontapes:
 
-   O traco quadro a quadro mostrou o oposto do esperado:
+       R1 distancia MEDIA ao posto no reinicio      9,7 m
+       R2 atleta MAIS LONGE                        25,7 m
+       R4 quanto o POSTO andou na parada           32,6 m
+       R5 quanto o CORPO andou na parada           24,3 m
+       R3 ja posicionados (<= 3 m)                    27%
 
-       KICKOFF  dead 0 -> 3.48 | com __spTarget 22/22 | mais longe 17.2 m
-          dead 3.48 | alvos 22 | ao posto: media   7.0 m
-          dead 3.07 | alvos 21 | ao posto: media  18.5 m    <- AFASTANDO
-          dead 2.27 | alvos 12 | ao posto: media  26.1 m    <- AFASTANDO
-          dead -0.01 | alvos  0 | ao posto: media  16.5 m
+   1) TELEPORTE. Errada: zero teleportes em 64 reinicios numa partida inteira.
+      A caminhada da R14/OS-229 funciona.
 
-   No instante do pontape eles estao a 7 m do posto e depois ANDAM PARA LONGE.
-   Alongar `dead` PIORA: da mais tempo para se dispersarem.
+   2) A JANELA E CURTA (`DEAD_CAP = 2,2` s cobre 13 m; a volta passa de 40 m).
+      Alonguei. A metrica direta reprovou: 16,5 m de media. Alongar sozinho
+      PIORA -- da mais tempo para o que vem depois.
 
-   HIPOTESE 3 — quem chega ao posto e solto para a IA tatica (a camada 18 apaga
-   `__spTarget` na chegada e a OS-229 so cede enquanto ele existe). Implementei
-   um pino que reassina o alvo. `alvos` passou a ficar em 22/22 e a distancia
-   CONTINUOU crescendo (8,4 -> 25,9 m). Ou seja: a hipotese tambem nao explica.
+   3) QUEM CHEGA E SOLTO PARA A IA TATICA. Pino reassinando o alvo: `alvos` foi
+      a 22/22 e a distancia continuou crescendo.
 
-   O QUE FALTA DECIDIR, e por isso nada foi embarcado: nao esta separado se o
-   ATLETA se afasta do posto ou se o POSTO (`hx`/`hy`, que a camada tatica
-   recalcula) se move debaixo dele. A sonda mede distancia ao `hx` VIVO, entao
-   os dois casos dao o mesmo numero. Ate isso ser separado, qualquer correcao
-   aqui e chute -- e ja houve tres.
+   4) O ALVO FOGE (R4 = 32,6 m: o POSTO anda mais que o corpo). Re-mirei no
+      posto vivo quadro a quadro -- 15,8 -> 12,3 m na sonda de tela, dentro do
+      ruido de 2 gols por partida. Depois congelei o posto no instante do
+      pontape, que e quando `hx`/`hy` ainda E a formacao de pontape inicial:
+      R1 foi de 9,7 para 21,2 m e R3 de 27% para ZERO.
 
-   A pausa depois do gol, essa sim, ficou: 733 ms -> 3048 ms, e vem inteira da
-   OS-263 acima, que e apresentacao pura. */
+   POR QUE O 4 NAO CONCLUI, e e o ponto honesto: congelar leva os atletas a
+   formacao de PONTAPE INICIAL, que e onde o futebol os quer -- mas a metrica
+   R1 mede distancia ao `hx` VIVO, e o jogo move esse `hx` para a forma tatica
+   assim que solta. Entao o comportamento provavelmente CERTO pontua pessimo, e
+   a metrica nao sabe distinguir os dois casos.
+
+   O QUE FALTA, e nao e codigo: decidir qual e a formacao correta no instante
+   do pontape -- a de pontape inicial (congelada) ou a tatica (viva). Isso e
+   decisao de design do dono, nao de medicao. Enquanto nao houver essa
+   definicao, qualquer correcao aqui pontua contra si mesma. */
 
 root.CDS_OS263 = Object.freeze({
   versao: 'OS-263', instalado: true,
@@ -161,7 +168,7 @@ root.CDS_OS263 = Object.freeze({
 });
 root.CDS_OS264 = Object.freeze({
   versao: 'OS-264', instalado: false,
-  feature: 'KICKOFF_WALK — investigada, reprovada pela propria medicao, nao embarcada',
+  feature: 'KICKOFF_ORGANISATION — quatro hipoteses medidas e reprovadas; ver o bloco acima',
   rngAdded: false, xgChange: false
 });
 root.CDS_BUILD_ID = 'R19.16'; root.CDS_VERSION = '5.80.5-R19.16';

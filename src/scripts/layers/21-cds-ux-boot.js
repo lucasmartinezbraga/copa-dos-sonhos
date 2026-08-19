@@ -1286,11 +1286,37 @@
     } else { d.__gestoAtivo = false; d.__gestoT = 0; }
     const GESTO_ATAQUE = 0.09, GESTO_QUEDA = 0.30;
     const _tg = d.__gestoT || 0;
-    const _batida = !_ehGesto ? 0
-                  : _mergAtivo ? Math.min(1, _tg / GESTO_ATAQUE)   /* §OS-261 · sustenta */
-                  : (_tg < GESTO_ATAQUE ? _tg / GESTO_ATAQUE
-                                        : Math.exp(-(_tg - GESTO_ATAQUE) / GESTO_QUEDA));
+    /* §OS-265 · O BRACO NAO PODE SUBIR NO MESMO ESTALO DA PERNA.
+       ---------------------------------------------------------------------
+       RELATO do dono: "eh feio a maneira que pula os bracos".
+
+       E era defeito meu, da OS-258. Aquela OS deu amplitude propria ao gesto
+       com um envelope de ataque rapido -- `GESTO_ATAQUE = 0,09` s de
+       SIMULACAO. No 3X que e o padrao isso da 30 ms de parede: DOIS QUADROS.
+       A perna precisa desse estalo -- um chute E um estalo. O braco nao: ele
+       abre ate `P.braco`, que chega a 2,1, e fazer isso em dois quadros nao
+       le como balanco, le como salto.
+
+       E a rampa era LINEAR, entao a velocidade do membro pulava de zero para
+       o maximo no primeiro quadro. Descontinuidade de VELOCIDADE e exatamente
+       o que o olho chama de "pulo", e ela valia para os dois membros.
+
+       Agora: smoothstep nas duas rampas -- mata o canto sem alongar nada -- e
+       o braco ganha ataque proprio, tres vezes mais longo, com cauda mais
+       longa tambem. Braco humano acompanha a passada, nao lidera; e o mesmo
+       principio da OS-215, que ja tinha posto o balanco do braco abaixo do da
+       perna pelo fator 0,62. */
+    const GESTO_ATAQUE_BRACO = 0.26, GESTO_QUEDA_BRACO = 0.48;
+    const _suave = k => { const c = k < 0 ? 0 : k > 1 ? 1 : k; return c * c * (3 - 2 * c); };
+    const _envelope = (ataque, queda) =>
+      _mergAtivo ? _suave(_tg / ataque)                      /* §OS-261 · sustenta */
+                 : (_tg < ataque ? _suave(_tg / ataque)
+                                 : Math.exp(-(_tg - ataque) / queda));
+    const _batida = !_ehGesto ? 0 : _envelope(GESTO_ATAQUE, GESTO_QUEDA);
+    const _batidaBraco = !_ehGesto ? 0 : _envelope(GESTO_ATAQUE_BRACO, GESTO_QUEDA_BRACO);
     const sw = _ehGesto ? _batida : Math.sin(d.gait) * amp;   // -1..1 alterna as pernas
+    /* fora do gesto os dois membros sao a MESMA passada; dentro dele, nao */
+    const swBraco = _ehGesto ? _batidaBraco : Math.sin(d.gait) * amp;
     /* §D42 · a postura do estado modula a corrida em vez de substitui-la */
     const P = _poseMix;   /* §OS-235 · silhueta misturada, nunca mais o degrau */
     const swL = P ? sw * P.esc : sw;                    // tesoura das pernas
@@ -1298,7 +1324,7 @@
        que chega a 1,7 -- ou seja, mais que a perna. No futebol o braco
        acompanha, nao lidera. 0,62 e o fator que o poe abaixo da perna sem
        apagar o balanco, que e o que da vida ao boneco parado. */
-    const swB = (P ? sw * P.braco : sw) * 0.62;        // balanco dos bracos
+    const swB = (P ? swBraco * P.braco : swBraco) * 0.62;   // §OS-265 · envelope proprio
     /* OS-58 · a subida do corpo a cada passada era quase imperceptivel. */
     /* §D38 · 0,09·r nao se lia. O corpo sobe DUAS vezes por ciclo (uma por
        perna de apoio), que e o que da a leitura de passo em vez de deslize. */

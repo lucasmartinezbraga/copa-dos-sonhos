@@ -3973,8 +3973,17 @@ function paintField() {
         ctx.beginPath(); ctx.moveTo(x+8*Math.cos(an),y+8*Math.sin(an));
         ctx.lineTo(x+(15+(1-a)*7)*Math.cos(an),y+(15+(1-a)*7)*Math.sin(an)); ctx.stroke(); }
     } else if (v.type === 'foul') {              // falta
-      ctx.font='bold 22px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText('❌', x, y - 24 - (1-a)*8);
+      /* §OS-265 · O ❌ ERA O ELEMENTO MAIS ALTO DA TELA NUMA FALTA.
+         22 px -- o maior de todos os efeitos deste laco, contra 14 do escudo e
+         12x17 do cartao -- e um simbolo que le como ERRO, nao como falta.
+         Ampliando um quadro da falta, o que domina o enquadramento e um X
+         vermelho gigante; o bote do faltoso e a queda da vitima, que a OS-258
+         acabou de fazer existir, ficam por baixo dele.
+         Vira a linguagem que o resto ja usa: marcador pequeno, acima da
+         cabeca, na altura dos cartoes. O apito e a PAUSA (OS-263) sao o que
+         anuncia a falta -- o simbolo so confirma. */
+      ctx.font='bold 12px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('⚠', x, y - 30 - (1-a)*8);
     } else if (v.type === 'save') {              // defesa
       /* §OS-262 · o arco dourado de raio 22 ficava CENTRADO no goleiro, por
          quase um segundo, atravessando o corpo dele -- um risco de ouro que

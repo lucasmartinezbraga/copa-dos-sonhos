@@ -95,44 +95,69 @@ resultados — muda só quantos segundos de parede levam para serem desenhados.
 
 ---
 
-## OS-264 — investigada, **reprovada pela própria medição, e não embarcada**
+## OS-264 — quatro hipóteses, quatro reprovações, nada embarcado
 
-A segunda metade do relato — *"quando rola um gol o jogo começa do nada sem os
-jogadores se organizarem"* — não foi resolvida. Três hipóteses, todas testadas,
-todas derrubadas:
+A **pausa** depois do gol foi resolvida pela OS-263 (733 ms → 3,3 s). A
+**organização** não foi. Registro o que se tentou, porque isso vale mais que um
+remendo não provado — e porque cada hipótese foi derrubada por medição, não por
+argumento.
 
-**1. Teleporte.** Errada. Zero teleportes em 64 reinícios.
+A sonda que decide é `tools/fisica/o-reinicio.js`: sem navegador, 34 partidas,
+**164 pontapés**. A sonda de tela pega 2 a 5 por partida — e com essa amostra eu
+já tinha proposto *duas* correções apoiadas em diferenças que eram ruído.
 
-**2. A janela de caminhada é curta demais.** `deferPositions` (camada 18) tem
-teto `DEAD_CAP = 2.2` s, que a 5,98 m/s cobre 13 m; depois de um gol a volta ao
-posto passa de 40 m. Implementei o alongamento — e a métrica direta *("a que
-distância do posto o atleta está quando a bola volta a rolar")* **reprovou a
-correção**: 16,5 m na média, pior a 43 m. O traço quadro a quadro mostrou o
-oposto do esperado:
+**Linha de base, 164 pontapés:**
 
 ```
-KICKOFF  dead 0 -> 3.48 | com __spTarget 22/22 | mais longe 17.2 m
-   dead 3.48 | alvos 22 | ao posto: media   7.0 m
-   dead 3.07 | alvos 21 | ao posto: media  18.5 m    <- AFASTANDO
-   dead 2.27 | alvos 12 | ao posto: media  26.1 m    <- AFASTANDO
-   dead -0.01 | alvos  0 | ao posto: media  16.5 m
+R1 distancia MEDIA ao posto no reinicio      9,7 m
+R2 atleta MAIS LONGE                        25,7 m
+R4 quanto o POSTO andou na parada           32,6 m
+R5 quanto o CORPO andou na parada           24,3 m
+R3 ja posicionados (<= 3 m)                    27%
 ```
 
-No instante do pontapé eles estão a **7 m** do posto e depois **andam para
-longe**. Alongar `dead` *piora*: dá mais tempo para se dispersarem.
+1. **Teleporte.** Errada — zero teleportes em 64 reinícios.
+2. **A janela é curta** (`DEAD_CAP = 2,2` s cobre 13 m; a volta passa de 40 m).
+   Aloguei: reprovou com 16,5 m. Alongar sozinho **piora**.
+3. **Quem chega é solto para a IA tática.** Pino reassinando o alvo: `alvos` foi
+   a 22/22 e a distância continuou crescendo.
+4. **O alvo foge** — e `R4 = 32,6 m` mostra que é verdade: o *poste* anda mais
+   que o corpo. Re-mirei no poste vivo (15,8 → 12,3 m na sonda de tela, dentro
+   do ruído). Depois congelei o poste no instante do pontapé: **R1 foi de 9,7
+   para 21,2 m e R3 de 27% para zero.**
 
-**3. Quem chega ao posto é solto para a IA tática.** A camada 18 apaga
-`__spTarget` na chegada e a OS-229 só cede o comando enquanto ele existe.
-Implementei um pino que reassina o alvo: `alvos` passou a ficar em 22/22 e a
-distância **continuou crescendo** (8,4 → 25,9 m). A hipótese também não explica.
+**Por que a 4 não conclui, e é o ponto honesto:** congelar leva os atletas à
+formação de *pontapé inicial*, que é onde o futebol os quer — mas R1 mede
+distância ao `hx` **vivo**, e o jogo move esse `hx` para a forma tática assim
+que a janela solta. Então o comportamento provavelmente *certo* pontua péssimo,
+e a métrica não sabe distinguir os dois casos.
 
-**O que falta separar, e por isso nada foi embarcado:** a sonda mede distância
-ao `hx`/`hy` **vivo**, e a camada tática recalcula esses postos. Então "o atleta
-se afastou" e "o posto se moveu debaixo dele" dão exatamente o mesmo número.
-Até isso ser separado, qualquer correção aqui é chute — e já houve três.
+**O que falta não é código:** decidir qual formação vale no instante do pontapé
+— a de pontapé inicial (congelada) ou a tática (viva). É decisão de design do
+dono. Enquanto não houver, qualquer correção aqui pontua contra si mesma.
 
-O que ficou do gol foi a **pausa**: 733 ms → 3048 ms, e ela vem inteira da
-OS-263, que é apresentação pura.
+---
+
+## OS-265 — o braço subia no mesmo estalo da perna
+
+Relato: *"eh feio a maneira que pula os braços"*. E era regressão minha, da
+OS-258. Aquela OS deu amplitude própria ao gesto com ataque de `0,09 s` de
+**simulação** — no 3X padrão, **30 ms de parede: dois quadros**. A perna precisa
+desse estalo; um chute *é* um estalo. O braço não: ele abre até `P.braco`, que
+chega a 2,1, e fazer isso em dois quadros lê como salto, não como balanço.
+
+Pior: a rampa era **linear**, então a velocidade do membro pulava de zero ao
+máximo no primeiro quadro. Descontinuidade de velocidade é exatamente o que o
+olho chama de "pulo", e valia para os dois membros.
+
+Agora há smoothstep nas duas rampas — mata o canto sem alongar nada — e o braço
+tem ataque próprio, três vezes mais longo, com cauda mais longa também.
+
+E o marcador da falta: o `❌` era 22 px, o maior de todos os efeitos do laço
+(contra 14 do escudo e 12×17 do cartão), e um símbolo que lê como *erro*.
+Ampliando um quadro da falta, o que domina o enquadramento é um X vermelho
+gigante, e o bote do faltoso e a queda da vítima ficam por baixo dele. Virou
+marcador pequeno acima da cabeça, na linguagem que o resto já usa.
 
 ## O resultado, na mesma sonda e na mesma velocidade
 
@@ -177,6 +202,18 @@ pareada**. Como ela também foi reprovada no que se propunha a corrigir, saiu.
 Mesa: **APROVADO nas sete etapas**.
 
 ## O que continua em aberto
+
+- **`atleta_congelado_20s` é intermitente e PRÉ-EXISTENTE.** A Mesa reprovou uma
+  execução com 3 ocorrências (Beckham). Repetindo na mesma build: limpo. E o
+  build **já commitado** (HEAD anterior) também acusa 1 ocorrência (Courtois) em
+  1 de 3 execuções. Nenhuma mudança desta rodada mexe na simulação — ângulo de
+  membro e acumulador de render não congelam jogador — então não é regressão
+  daqui. Mas é defeito de verdade: um atleta que não anda 1,5 m em 20 s de jogo
+  **vivo** não é futebol. Fica na fila, e a `sanidade` deveria rodar com semente
+  fixa para deixar de ser loteria.
+- **A formação do pontapé inicial** — ver OS-264 acima: falta a decisão de design
+  antes de qualquer código.
+
 
 - **A falta ainda "acontece do nada" no sentido de causa**, e isso a OS-263 não
   resolve. Ela dá a pausa; não dá o aviso. O jogador perde a bola e o apito vem
