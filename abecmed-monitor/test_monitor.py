@@ -214,7 +214,7 @@ cat_thc = {
 }
 saida = M.render_catalogo(cat_thc, {"papaya (indoor)": {"thc": "até 15%"}})
 checar("THC até 15%" in saida, "o catálogo mostra o THC de quem tem ficha")
-checar("Chemdawg (indoor) — R$ 85,00" in saida, "quem não tem ficha aparece igual, sem THC")
+checar(">Chemdawg (indoor)</a> — R$ 85,00" in saida, "quem não tem ficha aparece igual, sem THC")
 
 print("\nhistórico de preços (matéria-prima do gráfico)")
 est = {}
@@ -351,6 +351,22 @@ for k in ("ABECMED_CPF", "TELEGRAM_BOT_TOKEN", "ABECMED_CONFIG"):
     os.environ.pop(k, None)
 M.carregar_credenciais()
 checar("ABECMED_CPF" not in os.environ, "sem ABECMED_CONFIG não inventa credencial")
+
+print("\nlink para a página do produto")
+_pz = {"nome": "Power Plant", "preco": 93.0, "por": "/g", "link": "207-(power-plant).html"}
+_url = M.link_do_produto(_pz, "zeleno_flores")
+checar(_url.startswith("https://catalogoassociativo.zelenomeds.com/"), "produto da Zeleno aponta para a página dele")
+checar("%28power-plant%29" in _url, f"parênteses vão codificados (achou {_url})")
+checar(M.link_do_produto({"nome": "Papaya"}, "flores") == M.BASE, "produto da ABECMED aponta para o bot, que é onde se pede")
+checar(M.link_do_produto({"nome": "X"}, "zeleno_oleos").startswith("https://catalogoassociativo"), "sem link, cai na home da Zeleno")
+
+_cat_link = {"zeleno_flores": {"disponivel": True, "produtos": [_pz]}}
+_saida = M.render_catalogo(_cat_link, {})
+checar('<a href="https://catalogoassociativo' in _saida, "o nome vira link na listagem")
+checar(">Power Plant</a>" in _saida, "e o texto do link é o nome do produto")
+_perigoso = {"nome": "Flor <b>&</b>", "preco": 1.0, "link": "x.html"}
+_esc = M.render_catalogo({"zeleno_flores": {"produtos": [_perigoso]}}, {})
+checar("&lt;b&gt;" in _esc and "&amp;" in _esc, "nome com caractere de marcação continua escapado dentro do link")
 
 print("\ncadência separada por associação")
 checar(M.toca_abecmed(datetime.datetime(2026, 8, 19, 10, 0, tzinfo=M.TZ)), "consulta a ABECMED no minuto :00")

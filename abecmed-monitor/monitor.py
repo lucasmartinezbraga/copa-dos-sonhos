@@ -46,6 +46,7 @@ import re
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -581,6 +582,20 @@ def reais(v):
     return f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
+def link_do_produto(produto, chave):
+    """Para onde o toque no nome deve levar.
+
+    A Zeleno dá endereço próprio a cada produto — o mesmo que já se usa para ler
+    a ficha, até agora desperdiçado na hora de avisar. A ABECMED não tem página
+    por produto: lá o pedido se faz no bot, então é para ele que se aponta.
+    """
+    fonte = (SECOES.get(chave) or {}).get("fonte")
+    if fonte == "zeleno":
+        rel = produto.get("link")
+        return f"{zeleno.BASE}/{urllib.parse.quote(rel)}" if rel else zeleno.BASE
+    return BASE
+
+
 def preco_txt(produto):
     """Preço com a unidade junto.
 
@@ -618,12 +633,16 @@ def render_catalogo(catalogo, fichas=None):
                     atual = p.get("categoria")
                     if atual:
                         linhas.append(f"<i>{escapar(atual)}</i>")
+                url = link_do_produto(p, chave)
+                nome = escapar(p["nome"])
+                if url:
+                    nome = f'<a href="{escapar(url)}">{nome}</a>'
                 thc = (fichas.get(p["nome"].lower()) or {}).get("thc")
                 # Alguns valores já vêm com a sigla ("Alto em THC", "216mg THC");
                 # prefixar de novo produzia "THC Alto em THC".
                 rotulo = thc if (thc and "thc" in thc.lower()) else (f"THC {thc}" if thc else "")
                 selo = f"  <i>{escapar(rotulo)}</i>" if rotulo else ""
-                linhas.append(f"• {escapar(p['nome'])} — {escapar(preco_txt(p))}{selo}")
+                linhas.append(f"• {nome} — {escapar(preco_txt(p))}{selo}")
         linhas.append("")
     return "\n".join(linhas).strip()
 
@@ -962,8 +981,11 @@ def enviar_foto(token, chat, foto, legenda):
     return tamanhos[-1].get("file_id") if tamanhos else None
 
 
-def legenda_produto(nome, preco, ficha):
-    linhas = [f"<b>{escapar(nome)}</b>", escapar(preco) if isinstance(preco, str) else (reais(preco) if preco is not None else "")]
+def legenda_produto(nome, preco, ficha, url=None):
+    titulo = f"<b>{escapar(nome)}</b>"
+    if url:
+        titulo = f'<a href="{escapar(url)}"><b>{escapar(nome)}</b></a>'
+    linhas = [titulo, escapar(preco) if isinstance(preco, str) else (reais(preco) if preco is not None else "")]
     if ficha.get("thc"):
         linhas.append(f"🧪 THC: {escapar(ficha['thc'])}")
     for d in ficha.get("detalhes") or []:
@@ -978,6 +1000,14 @@ def secoes_da_fonte(catalogo, fonte):
         for chave, sec in (catalogo or {}).items()
         if SECOES.get(chave, {}).get("fonte") == fonte
     }
+
+
+def secao_do_produto(catalogo, nome):
+    for chave in SECOES:
+        for p in (catalogo.get(chave) or {}).get("produtos") or []:
+            if p["nome"].lower() == nome.lower():
+                return chave
+    return None
 
 
 def achar_produto(catalogo, nome):
@@ -1007,7 +1037,12 @@ def enviar_fotos(estado, catalogo, nomes):
         try:
             fid = enviar_foto(
                 token, chat, foto,
-                legenda_produto(nome, preco_txt(produto) if produto else None, ficha),
+                legenda_produto(
+                    nome,
+                    preco_txt(produto) if produto else None,
+                    ficha,
+                    link_do_produto(produto or {}, secao_do_produto(catalogo, nome)),
+                ),
             )
             if fid:
                 ficha["foto_id"] = fid
