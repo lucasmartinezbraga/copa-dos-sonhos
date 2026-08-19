@@ -1145,6 +1145,7 @@ def atender_comandos(estado, catalogo, agora, ao_vivo, cpf=None, espera=0):
                 # THC e efeitos, então a lista serve de índice e as fotos, de ficha.
                 garantir_fotos(cpf, estado, catalogo or {}, nomes)
                 enviar_fotos(estado, catalogo or {}, nomes)
+            print(f"[{datetime.now(TZ).strftime('%H:%M:%S')}] respondido: Zeleno", flush=True)
             atendidos += 1
             continue
 
@@ -1160,6 +1161,7 @@ def atender_comandos(estado, catalogo, agora, ao_vivo, cpf=None, espera=0):
             # ficha é buscada agora — é um toque explícito, não custo de rotina.
             garantir_fotos(cpf, estado, catalogo or {}, nomes)
             n = enviar_fotos(estado, catalogo or {}, nomes)
+            print(f"[{datetime.now(TZ).strftime('%H:%M:%S')}] respondido: fotos ({n})", flush=True)
             enviar_telegram(
                 token,
                 chat,
@@ -1176,6 +1178,10 @@ def atender_comandos(estado, catalogo, agora, ao_vivo, cpf=None, espera=0):
         try:
             enviar_telegram(token, chat, resposta)
             atendidos += 1
+            # Hora da resposta no log: sem isso não dá para distinguir "o botão
+            # demora" de "não havia ninguém escutando na hora do toque", que
+            # são problemas diferentes e têm soluções diferentes.
+            print(f"[{datetime.now(TZ).strftime('%H:%M:%S')}] respondido: {texto[:28]!r}", flush=True)
         except Exception as e:
             print(f"AVISO: falha ao responder '{texto[:20]}': {e}", file=sys.stderr)
     return atendidos
