@@ -167,6 +167,23 @@ const SEGUNDOS = Number(argv.segundos || 240);
                reduz a frequencia do erro. A espera criada DENTRO de _awardFoul
                e, por construcao, a espera daquela falta: amarra-se aqui. */
             if (tag === 'falta') w.__faltaRef = faltaAberta;
+            /* §4a rodada, 4o erro · F2/F3 SO VALEM PARA FALTA QUE VIRA
+               COBRANCA. `_awardFoul` tem DOIS desfechos, e o motor escreve os
+               dois de proposito (:2524):
+
+                   if (dtg < 42 && chance(.92)) { this._freeKick(...); return; }
+                   // falta comum: reinicio com posse
+                   this.pendingRestart = () => this._giveBall(nearestFieldMate);
+
+               So o primeiro poe a bola NO PONTO da falta. O segundo entrega a
+               bola ao companheiro mais proximo, onde quer que ele esteja -- e
+               medir "a bola terminou no ponto da falta" nesse caso e cobrar do
+               jogo uma regra que ele nao tem.
+               Isso deixava F2/F3 BIMODAIS: 23/23 numa passada e 13/15 na
+               seguinte, no MESMO build, conforme calhasse de haver falta comum
+               na amostra. Duas rodadas anteriores ja tinham perseguido esta
+               assinatura como se fosse defeito de posicionamento. */
+            if (nome === '_freeKick' && faltaAberta) faltaAberta.viraCobranca = true;
           }
         } catch (_) { }
         return r;
@@ -390,9 +407,12 @@ const SEGUNDOS = Number(argv.segundos || 240);
               ok(V.falta.F4, d >= 8.6);   // 9,15 m com folga de execucao
             }
             const _fa = batAntes.falta;
-            ok(V.falta.F2, dist(this.ball.x, this.ball.y, _fa.x, _fa.y) <= 2.0);
-            V.falta.piorF2 = Math.max(V.falta.piorF2, dist(this.ball.x, this.ball.y, _fa.x, _fa.y));
-            ok(V.falta.F3, naBola <= 1.5); V.falta.piorF3 = Math.max(V.falta.piorF3, naBola);
+            /* §so a falta que virou COBRANCA tem ponto a respeitar; ver acima */
+            if (_fa.viraCobranca) {
+              ok(V.falta.F2, dist(this.ball.x, this.ball.y, _fa.x, _fa.y) <= 2.0);
+              V.falta.piorF2 = Math.max(V.falta.piorF2, dist(this.ball.x, this.ball.y, _fa.x, _fa.y));
+              ok(V.falta.F3, naBola <= 1.5); V.falta.piorF3 = Math.max(V.falta.piorF3, naBola);
+            }
             ok(V.falta.F6, salto <= teto); V.falta.piorF6 = Math.max(V.falta.piorF6, salto);
             /* o par VISIVEL do F6, como E4 e o par do E2: tirar o estrito do
                portao sem por o visivel no lugar deixaria a falta sem checagem

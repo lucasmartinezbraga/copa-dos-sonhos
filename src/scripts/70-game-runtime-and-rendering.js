@@ -1995,6 +1995,19 @@ function startLoop() {
            precisa de uma sonda que separe SUAVIDADE de ATRASO; a atual nao
            separa. */
         if (g === 0 && acc >= h) capturaInterp(sim);
+        /* §OS-267c · O ADIANTO DO CORTE NAO PODE ATRAVESSAR O REINICIO.
+           Este laco e de passo FIXO e roda MUITOS passos por quadro desenhado.
+           O corte era consultado uma vez, ANTES do laco -- entao a guarda de
+           "so adianta se ainda ha bola morta com folga" era avaliada uma vez e
+           o laco seguia consumindo. Com o adianto de 9x sobre o 3X do botao,
+           um unico quadro come 0,45 s de simulacao: a cobranca saia DENTRO do
+           laco e a imagem voltava com a bola ja longe do ponto.
+           Medido: o build sem o corte da F2 36/36 com pior 1,31 m em duas
+           passadas; com o corte, pior de 10 a 22 m em toda variante. Nao era a
+           sonda -- era o corte engolindo a batida, que e exatamente o defeito
+           que ele veio consertar.
+           O bloco da comemoracao (:1924) ja fazia certo, testando `sim.dead`
+           DENTRO da condicao. Aqui faltava. */
         while (acc >= h && g++ < 500) {
           sim.step(h); acc -= h; minorCd = Math.max(0, minorCd - h);
         }
@@ -2034,7 +2047,20 @@ function startLoop() {
       else advanceFkScene(dt);
     }
     if (breakOv && now >= breakOv.until) breakOv = null;
-    if (slowmo && now >= slowmo.until) slowmo = null;
+    /* §OS-266b · A BATIDA LENTA ACABA QUANDO NAO HA MAIS O QUE VER.
+       A camera lenta da falta multiplica por 26 a duracao de tudo o que estiver
+       na tela naquele instante -- inclusive a bola PARADA FORA DO CAMPO,
+       esperando o lateral. A sanidade pegou: 48 quadros com a bola em x = -2,8,
+       contra ZERO no build sem esta OS, nos mesmos 43 minutos.
+       Nao e falso positivo: bola parada fora do campo em camera lenta e tempo de
+       tela gasto com nada. A lentidao existe para o CONTATO; assim que a bola
+       sai, ela perdeu o assunto. */
+    if (slowmo) {
+      const _bs = sim && sim.ball;
+      const _fora = _bs && !_bs.traveling &&
+        (_bs.x < -0.5 || _bs.x > (FL || 105) + 0.5 || _bs.y < -0.5 || _bs.y > (FW || 68) + 0.5);
+      if (now >= slowmo.until || _fora) slowmo = null;
+    }
     playerMotions = playerMotions.filter(m => m.until > now);
     // após o fim, o loop segue só para animar overlays (shootout/comemoração)
     if (celebration) {
@@ -4187,6 +4213,20 @@ function paintField() {
     ctx.fillText(replay&&replay.source==='physics_timeline'?'REPLAY · TIMELINE':'REPLAY', 30, 34);
     ctx.restore();
   }
+
+  /* §OS-267 · O VEU DO CORTE. Desenhado por cima de tudo e FORA do zoom da
+     camera, como as outras sobreposicoes de tela cheia. Nao e um efeito: e a
+     unica coisa que separa "a cobranca saiu do nada" de "a transmissao voltou
+     com o lance montado". */
+  try {
+    const _cv = window.__cdsCorte && window.__cdsCorte(sim);
+    if (_cv && _cv.veu > 0.002) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(3,7,14,' + _cv.veu.toFixed(3) + ')';
+      ctx.fillRect(0, 0, CW, CH);
+      ctx.restore();
+    }
+  } catch (_) { }
 
   // OVERLAY DE INTERVALO/PRORROGAÇÃO (pausa dramática com aviso de troca de lado)
   if (breakOv && performance.now() < breakOv.until) {

@@ -88,7 +88,17 @@ const SEGUNDOS = Number(argv.segundos || 240);
                sonda contava os quadros de voo e acusou ~107 "bolas fora" por
                partida; medindo por EPISODIO, sao 1 episodio de 0,02 s, com a
                bola viajando. O flag util e a bola PARADA fora do campo. */
-            if (!b.traveling && (b.x < -2 || b.x > FLv + 2 || b.y < -2 || b.y > FWv + 2))
+            /* §a BOLA MORTA fora do campo NAO e defeito, e a sonda contava.
+               Medido: 48 ocorrencias numa partida, 96 em outra, sempre com
+               x = -2,8 -- a bola PARADA NA REDE durante a comemoracao do gol.
+               Um por gol. E o mesmo numero aparece no build anterior, entao
+               nunca foi regressao de ninguem: era a sonda chamando de defeito
+               a bola esperando o reinicio. Entre sair e ser reposta, bola
+               parada fora do campo e o estado CERTO.
+               O flag util e a bola VIVA presa fora do campo, e essa continua
+               valendo. */
+            if (!b.traveling && !((Number(this.dead) || 0) > 0) &&
+                (b.x < -2 || b.x > FLv + 2 || b.y < -2 || b.y > FWv + 2))
               flag('bola_parada_fora_do_campo', { x: +b.x.toFixed(1), y: +b.y.toFixed(1) });
             if (b.z < -0.05) flag('bola_abaixo_do_gramado', { z: +b.z.toFixed(2) });
             if (b.z > 45) flag('bola_alta_demais', { z: +b.z.toFixed(1) });
@@ -137,7 +147,15 @@ const SEGUNDOS = Number(argv.segundos || 240);
             if (!p || p.red) continue;
             /* ATLETA CONGELADO: parado no mesmo ponto com a bola rolando.
                Um jogador de futebol se reposiciona sempre. */
-            if (!(this.dead > 0)) {
+            /* §o GOLEIRO LONGE DA BOLA nao esta congelado, esta esperando.
+               Os exemplos que este flag vinha dando eram Courtois e Seaman --
+               goleiros parados enquanto o jogo acontecia no outro campo, que e
+               o que goleiro faz. Vinte segundos de jogo com a bola a mais de
+               35 m nao pedem reposicionamento nenhum.
+               O flag continua valendo para quem esta na jogada, goleiro
+               incluido: e ali que ficar parado e defeito. */
+            const _longe = b && p.isGK && Math.hypot(p.x - b.x, p.y - b.y) > 35;
+            if (!(this.dead > 0) && !_longe) {
               const reg = paradoDesde.get(p);
               const mexeu = !reg || Math.hypot(p.x - reg.x, p.y - reg.y) > 1.5;
               if (mexeu) paradoDesde.set(p, { x: p.x, y: p.y, t: t });

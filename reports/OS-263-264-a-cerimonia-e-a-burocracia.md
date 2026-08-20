@@ -245,6 +245,79 @@ viram partidas diferentes depois do primeiro gol e isto não é comparação
 pareada. O que sustenta é **não degradou** — e 11/13 fica acima da linha de base
 documentada no CLAUDE.md (10/13).
 
+## OS-267 — o corte do lance
+
+O dono trouxe a decisão de design junto com o relato: *"ela eh batida do nada,
+os times as vezes tao ate mal comportado... veja se eh melhor fazer um corte no
+lance e voltar com tudo ja reajustado ou reajustar ali mesmo."*
+
+**O corte, e a resposta é medida.** Reajustar ali mesmo foi tentado duas rodadas
+seguidas: a caminhada escreve em `__spTarget`, compartilhado com falta,
+escanteio, lateral e goleiro, e toda variante contaminou a cobrança. O corte não
+tem esse problema porque **não toca em nada do motor**: sai da imagem, o
+reposicionamento acontece escondido, a imagem volta com o campo montado.
+
+A coreografia da falta ficou assim, e cada peça já existia:
+
+| beat | de onde vem |
+|---|---|
+| contato em câmera lenta 0,40× por 650 ms | OS-266 |
+| escurece em 240 ms | OS-267 |
+| escuro por 200 ms — o reposicionamento acontece aqui | OS-267 |
+| clareia em 320 ms | OS-267 |
+| pausa em tempo real | OS-263 |
+| cobrança | |
+
+**A aceleração foi retirada, e o porquê vale mais que ela.** A ideia era adiantar
+a bola morta por baixo do escuro. Funciona no papel e destrói o lance na
+prática: o laço de render é de passo fixo e roda muitos `sim.step` por quadro
+desenhado, então com 9× sobre o 3× do botão **um quadro come 0,45 s de
+simulação** — e a cobrança saía *debaixo do escuro*, com a imagem voltando com a
+bola já longe. Quatro contenções tentadas e medidas:
+
+| tentativa | resultado |
+|---|---|
+| margem de 0,55 s de `dead` | pior caso 22,3 → 10,1 m |
+| margem de 1,20 s | ~12 m |
+| guarda na condição do laço | conserta a falta e **congela o jogo** (`bola_parada_fora_do_campo` 48×) |
+| teto no orçamento de `acc` | volta a 90,5% com pior 18,9 m |
+| **só o véu, sem aceleração** | **F2 23/23 · pior 0,85 m** |
+
+O véu sozinho já faz o trabalho — ele esconde o reposicionamento, que é o
+pedido. Sem a aceleração a camada não passa de um `fillRect` com alfa: não pode
+afetar a simulação nem por acidente.
+
+---
+
+## Três sondas consertadas no caminho
+
+Perseguindo essas medições descobri que **três gates estavam medindo a coisa
+errada**, e cada um me custou uma hipótese falsa:
+
+**`validar-lances` media F2/F3 em falta comum.** O motor tem dois desfechos e
+escreve os dois de propósito: `dtg < 42 && chance(.92)` vira cobrança e põe a
+bola no ponto; o resto é *falta comum*, que reinicia com posse para o
+companheiro mais próximo. Medir "a bola terminou no ponto" na segunda é cobrar
+uma regra que o jogo não tem. Isso deixava F2/F3 **bimodais** — 23/23 numa
+passada e 13/15 na seguinte, no mesmo build. Das 26 faltas de uma janela, só 9
+viravam cobrança.
+
+**`sanidade` chamava a bola na rede de defeito.** `bola_parada_fora_do_campo`
+dava 48 ocorrências numa partida e 96 em outra, sempre com x = −2,8 — uma por
+gol. É a bola parada na rede durante a comemoração. Entre sair e ser reposta,
+bola parada fora do campo é o estado **certo**.
+
+**`sanidade` chamava goleiro esperando de congelado.** Os exemplos eram Courtois
+e Seaman, parados enquanto o jogo acontecia no outro campo.
+
+E a lição de método, que é minha: **eu li demais uma amostra limpa.** Um 17/17
+do build anterior me fez afirmar que a OS-264 era regressão certa — com n=17 e
+taxa de ~4%, a chance de zero ocorrências é 50%. Repeti o erro ao ler uma única
+execução de `sanidade` como prova. As duas vezes, rodar o build anterior mais
+vezes derrubou a conclusão.
+
+---
+
 ## O que continua em aberto
 
 - **`atleta_congelado_20s` é intermitente e PRÉ-EXISTENTE.** A Mesa reprovou uma

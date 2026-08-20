@@ -89,7 +89,12 @@ def main():
         # Falta, barreira e escanteio sao RAROS: numa janela de 120 s a sonda ve
         # duas ou tres de cada, e limiar de 90% sobre denominador 2 mede ruido.
         # Esta etapa roda com o dobro do tempo das outras, no minimo 300 s.
-        seg_lances = str(max(460, int(SEGUNDOS) * 2))
+        # §a falta que vira COBRANCA e rara: das ~26 faltas de uma janela de
+        # 460 s, so 9 viram cobranca -- as outras 17 sao falta comum, que por
+        # regra do motor reinicia com posse e nao poe a bola no ponto. Com
+        # denominador 9 um unico caso derruba a etapa, que e medir ruido.
+        # 900 s dobra a amostra e e o preco de um portao em que se pode confiar.
+        seg_lances = str(max(900, int(SEGUNDOS) * 3))
         resultados.append(etapa('lances — falta, desarme, lateral, escanteio, saida de bola',
                                 ['node', 'tools/fisica/tela/validar-lances.js',
                                  'dist/index.html', '--segundos=' + seg_lances]))
