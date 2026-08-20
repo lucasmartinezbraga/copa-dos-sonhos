@@ -95,48 +95,80 @@ resultados — muda só quantos segundos de parede levam para serem desenhados.
 
 ---
 
-## OS-264 — quatro hipóteses, quatro reprovações, nada embarcado
+## OS-264 — a correção funciona, e mesmo assim não embarca
 
-A **pausa** depois do gol foi resolvida pela OS-263 (733 ms → 3,3 s). A
-**organização** não foi. Registro o que se tentou, porque isso vale mais que um
-remendo não provado — e porque cada hipótese foi derrubada por medição, não por
-argumento.
+A **pausa** depois do gol está resolvida pela OS-263 (733 ms → 3,7 s). A
+**organização** tem correção encontrada, medida — e revertida. O motivo de
+reverter é mais útil que a correção.
 
-A sonda que decide é `tools/fisica/o-reinicio.js`: sem navegador, 34 partidas,
-**164 pontapés**. A sonda de tela pega 2 a 5 por partida — e com essa amostra eu
-já tinha proposto *duas* correções apoiadas em diferenças que eram ruído.
-
-**Linha de base, 164 pontapés:**
+**O diagnóstico está fechado.** `tools/fisica/o-reinicio.js` mede sem navegador,
+34 partidas, ~165 pontapés (a sonda de tela pega 2 a 5 por partida, e com essa
+amostra eu propus *duas* correções apoiadas em ruído):
 
 ```
-R1 distancia MEDIA ao posto no reinicio      9,7 m
-R2 atleta MAIS LONGE                        25,7 m
-R4 quanto o POSTO andou na parada           32,6 m
-R5 quanto o CORPO andou na parada           24,3 m
-R3 ja posicionados (<= 3 m)                    27%
+R1 distancia MEDIA ao posto      9,7 m
+R4 quanto o POSTE andou         32,6 m   <- o alvo foge
+R5 quanto o CORPO andou         24,3 m
+R3 ja posicionados (<= 3 m)        27%
 ```
 
-1. **Teleporte.** Errada — zero teleportes em 64 reinícios.
-2. **A janela é curta** (`DEAD_CAP = 2,2` s cobre 13 m; a volta passa de 40 m).
-   Aloguei: reprovou com 16,5 m. Alongar sozinho **piora**.
-3. **Quem chega é solto para a IA tática.** Pino reassinando o alvo: `alvos` foi
-   a 22/22 e a distância continuou crescendo.
-4. **O alvo foge** — e `R4 = 32,6 m` mostra que é verdade: o *poste* anda mais
-   que o corpo. Re-mirei no poste vivo (15,8 → 12,3 m na sonda de tela, dentro
-   do ruído). Depois congelei o poste no instante do pontapé: **R1 foi de 9,7
-   para 21,2 m e R3 de 27% para zero.**
+**O poste anda 32,6 m.** Os atletas nunca se dispersaram: eles **perseguem um
+alvo que foge**, porque `_kickoff` fotografa `hx`/`hy` num `__spTarget`
+congelado e a camada tática passa os segundos seguintes recalculando esses
+postos.
 
-**Por que a 4 não conclui, e é o ponto honesto:** congelar leva os atletas à
-formação de *pontapé inicial*, que é onde o futebol os quer — mas R1 mede
-distância ao `hx` **vivo**, e o jogo move esse `hx` para a forma tática assim
-que a janela solta. Então o comportamento provavelmente *certo* pontua péssimo,
-e a métrica não sabe distinguir os dois casos.
+Quatro hipóteses caíram antes — teleporte (zero em 64 reinícios), janela curta
+(piora), pino no alvo (nada), congelar o poste (R1 de 9,7 → **21,2 m** e R3 →
+**zero**). A quinta funcionou, e ela só existiu porque o dono respondeu a
+pergunta de design: *"a formação eh a que o time estava"* — a **tática, viva**.
+Re-mirar no poste vivo quadro a quadro, com a janela fechando pela convergência
+da **média** e não do pior atleta:
 
-**O que falta não é código:** decidir qual formação vale no instante do pontapé
-— a de pontapé inicial (congelada) ou a tática (viva). É decisão de design do
-dono. Enquanto não houver, qualquer correção aqui pontua contra si mesma.
+| | base | corrigido |
+|---|---|---|
+| R1 distância média | 9,7 m | **3,2 m** |
+| R2 pior atleta | 25,7 m | **14,7 m** |
+| R3 já posicionados | 27% | **68%** |
 
----
+E na partida inteira o veredito virou: *"no reinício, os atletas CHEGARAM ao
+posto? **4,4 m**"*.
+
+**Por que mesmo assim não embarca.** `validar-lances.js`, a mesma sonda e a
+mesma janela de 460 s, contra o build anterior:
+
+| build | F2 bola no ponto da falta | pior |
+|---|---|---|
+| **sem OS-264** | **17/17 · 100%** | **0,97 m** |
+| com OS-264 (v1) | 84,6% | 16,43 m |
+| \+ posse por identidade do alvo | 95,8% | 17,35 m |
+| \+ guarda de `pendingRestart` | 90,9% | 19,81 m |
+
+Não é amostra: o pior caso do build sem a OS-264 é **um** metro, e o dela é
+**dezessete**, em toda variante. `__spTarget` e `dead` são compartilhados com a
+falta, o escanteio, o lateral e o goleiro, e não consegui isolar a janela do
+pontapé a ponto de não contaminar a cobrança. **Falta acontece 22 vezes por
+partida; pontapé após gol, duas ou três.**
+
+**O que falta para embarcar:** um alvo de caminhada próprio desta camada, que
+não seja `__spTarget`, com a camada 18 ensinada a respeitá-lo. Isso é mudança na
+camada 18, não aqui — e não se faz no fim de uma rodada.
+
+## OS-266 — a falta acontecia do nada porque não dava tempo de vê-la
+
+A OS-263 deu a **pausa**; não deu a **antecipação**, e "do nada" é a segunda
+coisa. Rastreado quadro a quadro, o motor faz tudo certo: emite
+`tackle_attempt` antes, os corpos estão a **1,11 m** (contato de verdade), o
+faltoso roda `standing_tackle` por 13 quadros e a vítima `fouled` por 25.
+
+Nada disso é invisível por falta de gesto. É invisível por falta de **tempo**:
+os 0,52 s de simulação do `fouled` valem 173 ms de parede no 3X. O corpo cai e
+levanta antes de o olho registrar que houve contato.
+
+E a alavanca já existia, no lugar errado: a **OS-88** põe câmera lenta na
+*cobrança* da falta — o momento burocrático — e não no **contato**, que é o
+momento que se julga. Agora entra onde importa: 650 ms a 0,40× no instante do
+apito, e a câmera lenta **vence** a janela de cerimônia (sem essa precedência a
+OS-263 anulava o fator e a batida virava velocidade normal).
 
 ## OS-265 — o braço subia no mesmo estalo da perna
 
@@ -159,47 +191,59 @@ Ampliando um quadro da falta, o que domina o enquadramento é um X vermelho
 gigante, e o bote do faltoso e a queda da vítima ficam por baixo dele. Virou
 marcador pequeno acima da cabeça, na linguagem que o resto já usa.
 
-## O resultado, na mesma sonda e na mesma velocidade
+## O resultado, na partida inteira
 
-Partida de confirmação com o build que embarca (OS-263 sozinha), 94 minutos,
-60 reinícios, 3X:
+94 minutos, 69 reinícios, no 3X que é o padrão:
 
 | reinício | antes | depois |
 |---|---|---|
-| **falta** | **300 ms** | **1916 ms** |
-| **gol** | **733 ms** | **3116 ms** |
-| escanteio | 517 ms | 1183 ms |
-| rotina (burocracia) | — | 456 ms |
+| **falta** | **300 ms** | **1955 ms** |
+| **gol** | **733 ms** | **3700 ms** |
+| impedimento | 217 ms | 1400 ms |
+| burocracia (rotina, escanteio) | — | 302–756 ms |
 
-```
-   VEREDITO
-     ok  a CERIMONIA se ve? (mediana >= 700 ms)        1924 ms em 25 paradas
-     ok  a BUROCRACIA continua passando rapido?         456 ms em 35 paradas
-     ok  depois do GOL da tempo de se organizar?       3116 ms
-     ok  depois do GOL os atletas ANDAM ate a posicao?  0 teleportes
-    NAO  no reinicio, os atletas CHEGARAM ao posto?    15,8 m na media
-     ok  a FALTA para o jogo?                          1916 ms
-     ok  a bola chega a ficar parada na falta?         18 de 18
-```
+A cerimônia e a burocracia estão separadas por um fator de 4, que é o desenho
+pretendido — o escanteio **continuou** rápido, e isso é o certo.
 
-A cerimônia e a burocracia agora estão separadas por um fator de 4, que é o
-desenho pretendido. E a linha que **continua reprovando** é a que eu mesmo
-acrescentei para julgar a OS-264 — ela fica no relatório de propósito.
+**Mesa: APROVADO nas sete etapas**, com as janelas das sondas de tela
+ampliadas (ver abaixo).
+
+## As janelas das sondas tiveram de crescer
+
+Efeito colateral legítimo da OS-263, e vale registrar porque é a **terceira**
+vez que o mesmo relógio trocado aparece nesta rodada: a Mesa orça as sondas de
+tela em segundos de **parede**, e o jogo agora gasta parede de propósito. Nos
+mesmos 150 s a sonda passou a ver ~30% menos futebol — o Árbitro reprovou por
+`defesa: 0 de 0` (sem amostra, que pela doutrina da OS-247 **não** é aprovação)
+e `lances` reportou a falta em 73,3% sobre denominador 15, enquanto a mesma
+invariante em 120 partidas dá 99,5% sobre 2655 cobranças.
+
+Não se afrouxa o limiar nem a doutrina: aumenta-se a janela. `SEGUNDOS` foi de
+150 para 230 e `lances` de 300 para 460.
 
 ## O custo, medido
 
-A OS-263 é **apresentação pura**: não toca `dead`, nem `pendingRestart`, nem
-posição, nem RNG. A bateria nem enxerga a camada `cds-ux-boot`-adjacente, e o
-simulador recebe os mesmos passos com os mesmos resultados. Não há placar a
-comparar porque não há nada no motor que possa ter mudado.
+A **OS-263** e a **OS-266** são apresentação pura: não tocam `dead`,
+`pendingRestart`, posição nem RNG. O simulador recebe os mesmos passos, na mesma
+ordem, com os mesmos resultados — muda só quantos segundos de parede levam para
+serem desenhados.
 
-A OS-264, que **mexia** em `dead`, foi medida antes de ser descartada — 96
-partidas, mesmas sementes: 9/13 sem ela, 10/13 com ela. Só que assim que `dead`
-muda, o número de chamadas de `step` muda, o consumo de RNG desfasa e as duas
-rodadas viram partidas diferentes depois do primeiro gol; **não é comparação
-pareada**. Como ela também foi reprovada no que se propunha a corrigir, saiu.
+A **OS-264** mexe em `dead`, e o motor vê. Bateria de 96 partidas:
 
-Mesa: **APROVADO nas sete etapas**.
+| métrica | sem OS-264 | com OS-264 |
+|---|---|---|
+| goalsPerMatch | 3.45 *(acima)* | 3.41 *(acima)* |
+| onTargetRate | 0.330 *(abaixo)* | 0.333 *(abaixo)* |
+| redsPerMatch | 0.406 *(acima)* | 0.281 ✓ |
+| zeroZeroRate | 0.042 *(abaixo)* | 0.094 ✓ |
+| drawRate | 0.250 ✓ | 0.240 ✓ |
+| **placar** | **9/13** | **11/13** |
+
+As duas que faltam já falhavam antes nesse conjunto de sementes. **A ressalva
+continua valendo:** mudar `dead` desfasa o consumo de RNG, então as duas rodadas
+viram partidas diferentes depois do primeiro gol e isto não é comparação
+pareada. O que sustenta é **não degradou** — e 11/13 fica acima da linha de base
+documentada no CLAUDE.md (10/13).
 
 ## O que continua em aberto
 

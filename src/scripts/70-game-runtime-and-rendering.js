@@ -1625,7 +1625,31 @@ function onEvent(e) {
   }
   if (e.type === 'tackle' && e.by) { motionAt(e.by, 'tackle', 0.5); }
   /* §OS-218 · a pose de interceptacao ja e desenhada (§D39) */
-  if (e.type === 'foul' && e.on) { fxAt(e.on, 'foul', 1.1); playUXSound('foul'); }
+  if (e.type === 'foul' && e.on) {
+    fxAt(e.on, 'foul', 1.1); playUXSound('foul');
+    /* §OS-266 · A FALTA PRECISA DE UMA BATIDA LENTA NO CONTATO.
+       RELATO, depois da OS-263 ja ter dado a PAUSA: "a falta esta acontecendo
+       do nada". A pausa resolveu o "nao da tempo de sentir que parou"; nao
+       resolveu o "do nada", que e outra coisa -- e ANTECIPACAO.
+
+       Rastreado quadro a quadro, o motor faz tudo certo: emite
+       `tackle_attempt` antes, os dois corpos estao a 1,11 m (contato de
+       verdade), o faltoso roda `standing_tackle` por 13 quadros e a vitima
+       `fouled` por 25. Nada disso e invisivel por falta de gesto.
+
+       E invisivel por falta de TEMPO. Os 0,52 s de simulacao do `fouled` valem
+       173 ms de parede no 3X que e o padrao: o corpo cai e levanta antes de o
+       olho registrar que houve contato. O apito chega junto com o lance, e nao
+       depois dele.
+
+       A alavanca ja existia e estava no lugar errado: a OS-88 poe camera lenta
+       na COBRANCA da falta -- que e o momento burocratico -- e nao no contato,
+       que e o momento que se julga. Aqui ela entra onde importa.
+
+       Apresentacao pura: `slowmo` reduz o passo do DESENHO, nao o da
+       simulacao. Os mesmos `sim.step` acontecem, espalhados no relogio. */
+    slowmo = { until: performance.now() + 650, f: 0.40 };
+  }
   if (e.type === 'save' && e.gk) {
     fxAt(e.gk, 'save', 0.9);
     motionAt(e.gk, 'dive', 0.9, (sim.ball.y - e.gk.y) >= 0 ? 1 : -1);
@@ -1931,8 +1955,11 @@ function startLoop() {
            PAREDE: sem adianto e sem multiplicador de botao. */
         const _cerim = !!(window.__cdsCerimoniaAtiva && window.__cdsCerimoniaAtiva(sim));
         const _espera = (sim && sim.dead > 0 && !slowmo && !_cerim) ? ADIANTA_PARADA : 1;
-        const _mult = _cerim ? Math.min(G.speed, 1)
-                    : (slowmo ? Math.min(G.speed, 1) * slowmo.f : G.speed);
+        /* §OS-266 · a camera lenta VENCE a cerimonia: ela e mais especifica.
+           Sem esta ordem, a janela da OS-263 anulava o fator de `slowmo` e a
+           batida lenta do contato virava velocidade normal. */
+        const _mult = slowmo ? Math.min(G.speed, 1) * slowmo.f
+                    : (_cerim ? Math.min(G.speed, 1) : G.speed);
         acc += dt * _mult * _espera;
         const h = 1/60; let g = 0;
         /* §OS-227 · O JOGO DESENHAVA O ESTADO DISCRETO DA SIMULACAO.

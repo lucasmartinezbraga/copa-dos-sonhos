@@ -12747,7 +12747,31 @@ function onEvent(e) {
   }
   if (e.type === 'tackle' && e.by) { motionAt(e.by, 'tackle', 0.5); }
   /* §OS-218 · a pose de interceptacao ja e desenhada (§D39) */
-  if (e.type === 'foul' && e.on) { fxAt(e.on, 'foul', 1.1); playUXSound('foul'); }
+  if (e.type === 'foul' && e.on) {
+    fxAt(e.on, 'foul', 1.1); playUXSound('foul');
+    /* §OS-266 · A FALTA PRECISA DE UMA BATIDA LENTA NO CONTATO.
+       RELATO, depois da OS-263 ja ter dado a PAUSA: "a falta esta acontecendo
+       do nada". A pausa resolveu o "nao da tempo de sentir que parou"; nao
+       resolveu o "do nada", que e outra coisa -- e ANTECIPACAO.
+
+       Rastreado quadro a quadro, o motor faz tudo certo: emite
+       `tackle_attempt` antes, os dois corpos estao a 1,11 m (contato de
+       verdade), o faltoso roda `standing_tackle` por 13 quadros e a vitima
+       `fouled` por 25. Nada disso e invisivel por falta de gesto.
+
+       E invisivel por falta de TEMPO. Os 0,52 s de simulacao do `fouled` valem
+       173 ms de parede no 3X que e o padrao: o corpo cai e levanta antes de o
+       olho registrar que houve contato. O apito chega junto com o lance, e nao
+       depois dele.
+
+       A alavanca ja existia e estava no lugar errado: a OS-88 poe camera lenta
+       na COBRANCA da falta -- que e o momento burocratico -- e nao no contato,
+       que e o momento que se julga. Aqui ela entra onde importa.
+
+       Apresentacao pura: `slowmo` reduz o passo do DESENHO, nao o da
+       simulacao. Os mesmos `sim.step` acontecem, espalhados no relogio. */
+    slowmo = { until: performance.now() + 650, f: 0.40 };
+  }
   if (e.type === 'save' && e.gk) {
     fxAt(e.gk, 'save', 0.9);
     motionAt(e.gk, 'dive', 0.9, (sim.ball.y - e.gk.y) >= 0 ? 1 : -1);
@@ -13053,8 +13077,11 @@ function startLoop() {
            PAREDE: sem adianto e sem multiplicador de botao. */
         const _cerim = !!(window.__cdsCerimoniaAtiva && window.__cdsCerimoniaAtiva(sim));
         const _espera = (sim && sim.dead > 0 && !slowmo && !_cerim) ? ADIANTA_PARADA : 1;
-        const _mult = _cerim ? Math.min(G.speed, 1)
-                    : (slowmo ? Math.min(G.speed, 1) * slowmo.f : G.speed);
+        /* §OS-266 · a camera lenta VENCE a cerimonia: ela e mais especifica.
+           Sem esta ordem, a janela da OS-263 anulava o fator de `slowmo` e a
+           batida lenta do contato virava velocidade normal. */
+        const _mult = slowmo ? Math.min(G.speed, 1) * slowmo.f
+                    : (_cerim ? Math.min(G.speed, 1) : G.speed);
         acc += dt * _mult * _espera;
         const h = 1/60; let g = 0;
         /* §OS-227 · O JOGO DESENHAVA O ESTADO DISCRETO DA SIMULACAO.
@@ -32268,52 +32295,55 @@ root.__cdsCerimoniaAtiva = function (sim) {
   } catch (_) { return false; }
 };
 
-/* OS-264 — QUATRO HIPOTESES, QUATRO REPROVACOES, NADA EMBARCADO
+/* OS-264 — A CORRECAO FUNCIONA E MESMO ASSIM NAO EMBARCA
    ---------------------------------------------------------------------------
    RELATO: "quando rola um gol o jogo comeca do nada sem os jogadores se
-   organizarem". A PAUSA foi resolvida pela OS-263 acima (733 ms -> 3,3 s de
-   parede). A ORGANIZACAO nao foi, e o registro do que se tentou vale mais que
-   um remendo nao provado.
+   organizarem". A PAUSA esta resolvida pela OS-263 acima (733 ms -> 3,7 s de
+   parede). A ORGANIZACAO tem correcao encontrada, medida, e REVERTIDA -- e o
+   motivo de reverter e mais util que a correcao.
 
-   A sonda que decide e `tools/fisica/o-reinicio.js`: sem navegador, 34
-   partidas, 164 pontapes (contra 2 a 5 por partida na sonda de tela -- com
-   aquela amostra eu ja tinha proposto DUAS correcoes apoiadas em diferencas
-   que eram ruido).
+   O DIAGNOSTICO, esse esta fechado. `tools/fisica/o-reinicio.js` mede sem
+   navegador, 34 partidas, ~165 pontapes (a sonda de tela pega 2 a 5 por
+   partida, e com essa amostra eu propus DUAS correcoes apoiadas em ruido):
 
-   LINHA DE BASE, 164 pontapes:
+       R1 distancia MEDIA ao posto      9,7 m
+       R4 quanto o POSTE andou         32,6 m   <- o alvo foge
+       R5 quanto o CORPO andou         24,3 m
+       R3 ja posicionados (<= 3 m)        27%
 
-       R1 distancia MEDIA ao posto no reinicio      9,7 m
-       R2 atleta MAIS LONGE                        25,7 m
-       R4 quanto o POSTO andou na parada           32,6 m
-       R5 quanto o CORPO andou na parada           24,3 m
-       R3 ja posicionados (<= 3 m)                    27%
+   O POSTE anda 32,6 m. Os atletas nunca se dispersaram: eles PERSEGUEM UM
+   ALVO QUE FOGE, porque `_kickoff` fotografa `hx`/`hy` num `__spTarget`
+   congelado e a camada tatica passa os segundos seguintes recalculando esses
+   postos.
 
-   1) TELEPORTE. Errada: zero teleportes em 64 reinicios numa partida inteira.
-      A caminhada da R14/OS-229 funciona.
+   Quatro hipoteses cairam antes (teleporte: zero em 64 reinicios; janela
+   curta: piora; pino no alvo: nada; congelar o poste: R1 de 9,7 para 21,2 m e
+   R3 para ZERO). A quinta funcionou: RE-MIRAR no poste vivo quadro a quadro,
+   com a janela fechando pela convergencia da MEDIA e nao do pior atleta --
+   gatear no maximo faz um unico atrasado segurar os outros vinte e um.
 
-   2) A JANELA E CURTA (`DEAD_CAP = 2,2` s cobre 13 m; a volta passa de 40 m).
-      Alonguei. A metrica direta reprovou: 16,5 m de media. Alongar sozinho
-      PIORA -- da mais tempo para o que vem depois.
+       R1  9,7 m -> 3,2 m      R3  27% -> 68%      R2  25,7 m -> 14,7 m
 
-   3) QUEM CHEGA E SOLTO PARA A IA TATICA. Pino reassinando o alvo: `alvos` foi
-      a 22/22 e a distancia continuou crescendo.
+   E na partida inteira o veredito virou: "no reinicio, os atletas CHEGARAM ao
+   posto? 4,4 m".
 
-   4) O ALVO FOGE (R4 = 32,6 m: o POSTO anda mais que o corpo). Re-mirei no
-      posto vivo quadro a quadro -- 15,8 -> 12,3 m na sonda de tela, dentro do
-      ruido de 2 gols por partida. Depois congelei o posto no instante do
-      pontape, que e quando `hx`/`hy` ainda E a formacao de pontape inicial:
-      R1 foi de 9,7 para 21,2 m e R3 de 27% para ZERO.
+   POR QUE MESMO ASSIM NAO EMBARCA. `tools/fisica/tela/validar-lances.js`, a
+   mesma sonda e a mesma janela de 460 s, contra o build anterior:
 
-   POR QUE O 4 NAO CONCLUI, e e o ponto honesto: congelar leva os atletas a
-   formacao de PONTAPE INICIAL, que e onde o futebol os quer -- mas a metrica
-   R1 mede distancia ao `hx` VIVO, e o jogo move esse `hx` para a forma tatica
-   assim que solta. Entao o comportamento provavelmente CERTO pontua pessimo, e
-   a metrica nao sabe distinguir os dois casos.
+       build sem OS-264   F2 bola no ponto da falta   17/17  100%   pior  0,97 m
+       com OS-264 (v1)                                84,6%         pior 16,43 m
+       com posse por identidade do alvo               95,8%         pior 17,35 m
+       com guarda de `pendingRestart`                 90,9%         pior 19,81 m
 
-   O QUE FALTA, e nao e codigo: decidir qual e a formacao correta no instante
-   do pontape -- a de pontape inicial (congelada) ou a tatica (viva). Isso e
-   decisao de design do dono, nao de medicao. Enquanto nao houver essa
-   definicao, qualquer correcao aqui pontua contra si mesma. */
+   Nao e amostra: o pior caso do build sem a OS-264 e UM metro, e o dela e
+   DEZESSETE, em toda variante. `__spTarget` e `dead` sao compartilhados com a
+   falta, o escanteio, o lateral e o goleiro, e nao consegui isolar a janela do
+   pontape a ponto de nao contaminar a cobranca. Falta acontece 22 vezes por
+   partida; pontape apos gol, duas ou tres.
+
+   O QUE FALTA PARA EMBARCAR: um alvo de caminhada PROPRIO desta camada, que
+   nao seja `__spTarget`, com a camada 18 ensinada a respeita-lo. Isso e
+   mudanca na camada 18, nao aqui -- e nao se faz no fim de uma rodada. */
 
 root.CDS_OS263 = Object.freeze({
   versao: 'OS-263', instalado: true,
@@ -32322,7 +32352,7 @@ root.CDS_OS263 = Object.freeze({
 });
 root.CDS_OS264 = Object.freeze({
   versao: 'OS-264', instalado: false,
-  feature: 'KICKOFF_ORGANISATION — quatro hipoteses medidas e reprovadas; ver o bloco acima',
+  feature: 'KICKOFF_WALK — diagnosticada e corrigida, revertida por contaminar a falta',
   rngAdded: false, xgChange: false
 });
 root.CDS_BUILD_ID = 'R19.16'; root.CDS_VERSION = '5.80.5-R19.16';

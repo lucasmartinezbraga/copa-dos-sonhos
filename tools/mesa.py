@@ -37,7 +37,18 @@ def arg(nome, padrao):
 
 
 RAPIDO = '--rapido' in sys.argv
-SEGUNDOS = arg('segundos', '150')
+# §OS-266 · O ORCAMENTO DAS SONDAS DE TELA E EM PAREDE, E O JOGO FICOU MAIS
+# LENTO EM PAREDE DE PROPOSITO.
+# A OS-263 poe a cerimonia da bola parada em tempo real: a falta passou de
+# 300 ms para ~1,9 s e o gol de 733 ms para ~3,7 s. Isso e o objetivo -- e o
+# efeito colateral e que, nos mesmos 150 s de parede, a sonda passou a ver ~30%
+# menos futebol. Resultado medido: o Arbitro reprovou por `defesa: 0 de 0` (sem
+# amostra, que pela doutrina da OS-247 NAO e aprovacao) e `lances` reportou a
+# falta em 73,3% sobre denominador 15 -- enquanto a mesma sonda em 120 partidas
+# da 99,5% sobre 2655 cobrancas.
+# Nao se afrouxa o limiar nem a doutrina: aumenta-se a janela. E a mesma licao
+# da OS-260, pela terceira vez -- quem orca no relogio errado mede outra coisa.
+SEGUNDOS = arg('segundos', '230')
 
 
 def etapa(rotulo, cmd, obrigatoria=True):
@@ -78,7 +89,7 @@ def main():
         # Falta, barreira e escanteio sao RAROS: numa janela de 120 s a sonda ve
         # duas ou tres de cada, e limiar de 90% sobre denominador 2 mede ruido.
         # Esta etapa roda com o dobro do tempo das outras, no minimo 300 s.
-        seg_lances = str(max(300, int(SEGUNDOS) * 2))
+        seg_lances = str(max(460, int(SEGUNDOS) * 2))
         resultados.append(etapa('lances — falta, desarme, lateral, escanteio, saida de bola',
                                 ['node', 'tools/fisica/tela/validar-lances.js',
                                  'dist/index.html', '--segundos=' + seg_lances]))
