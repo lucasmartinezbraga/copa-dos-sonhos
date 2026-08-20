@@ -154,6 +154,29 @@ python3 tests/browser_smoke.py
 
 Se falhar, não faça commit.
 
+### Auditoria de bugs
+
+A metodologia completa está em `docs/METODOLOGIA-DE-BUGS.md`. Ela existe
+porque teste comum não acha bug aqui: o jogo é uma trajetória, o código é uma
+pilha de camadas que se sobrescrevem, e metade dos defeitos é de **sensação**
+(ritmo, pausa, fluidez) — que só se mede em relógio de parede.
+
+```bash
+# portão de commit (~1 min)
+node tools/auditoria/auditoria.js --build=dist/index.html --partidas=8 --workers=8
+
+# antes de editar qualquer método: quem manda nele de verdade?
+node tools/auditoria/mapa_de_camadas.js --build=dist/index.html --metodo=_awardFoul
+
+# um defeito, quadro a quadro
+node tools/auditoria/repro.js --build=dist/index.html --partida=3 --regra=E1
+```
+
+Regra: **zero S1** e nenhum bloco com erro de carga. Ao mexer em ritmo, pausa
+ou render, rode também `tools/auditoria/tela.js` — a bateria de física não vê
+o laço de render, e é lá que vivem o multiplicador de velocidade, o adianto de
+bola parada e a janela de cerimônia.
+
 ## Como eu (Claude) trabalho aqui
 
 1. Leio o código e CLAUDE.md para entender limites

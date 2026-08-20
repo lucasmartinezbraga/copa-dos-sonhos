@@ -1,0 +1,4103 @@
+{
+  "ferramenta": "tools/auditoria/mapa_de_camadas.js",
+  "geradoEm": "2026-08-20T20:47:54.494Z",
+  "build": "build-atual.html",
+  "sha256": "b514442fb25283960ff155d653e3a0f6beb08e374692a7b67c0681f642477335",
+  "blocos": 79,
+  "metodosDoCore": 151,
+  "metodosRemendados": 165,
+  "achados": [
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_actorReachable",
+      "camada": "cds-physics-timeline-581",
+      "ordem": 3,
+      "detalhe": "substitui _actorReachable sem chamar o anterior; 1 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "core"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_gkInterceptTarget",
+      "camada": "cds-physics-timeline-581",
+      "ordem": 3,
+      "detalhe": "substitui _gkInterceptTarget sem chamar o anterior; 1 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "core"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_physicalBlockPoint",
+      "camada": "cds-physics-timeline-581",
+      "ordem": 3,
+      "detalhe": "substitui _physicalBlockPoint sem chamar o anterior; 1 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "core"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_ballGlue",
+      "camada": "cds-p04-physical-reception-584-r6",
+      "ordem": 4,
+      "detalhe": "substitui _ballGlue sem chamar o anterior; 1 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "core"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_ballTravel",
+      "camada": "cds-p04-physical-reception-584-r6",
+      "ordem": 4,
+      "detalhe": "substitui _ballTravel sem chamar o anterior; 2 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "core",
+        "cds-physics-timeline-581"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_contestLoose",
+      "camada": "cds-p04-physical-reception-584-r6",
+      "ordem": 4,
+      "detalhe": "substitui _contestLoose sem chamar o anterior; 1 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "core"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_continueTravel",
+      "camada": "cds-p04-physical-reception-584-r6",
+      "ordem": 4,
+      "detalhe": "substitui _continueTravel sem chamar o anterior; 2 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "core",
+        "cds-physics-timeline-581"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_giveBall",
+      "camada": "cds-p04-physical-reception-584-r6",
+      "ordem": 4,
+      "detalhe": "substitui _giveBall sem chamar o anterior; 1 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "core"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_goalkeeperClaim",
+      "camada": "cds-p04-physical-reception-584-r6",
+      "ordem": 4,
+      "detalhe": "substitui _goalkeeperClaim sem chamar o anterior; 1 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "core"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_looseBall",
+      "camada": "cds-p04-physical-reception-584-r6",
+      "ordem": 4,
+      "detalhe": "substitui _looseBall sem chamar o anterior; 1 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "core"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_looseRoll",
+      "camada": "cds-p04-physical-reception-584-r6",
+      "ordem": 4,
+      "detalhe": "substitui _looseRoll sem chamar o anterior; 1 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "core"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_receive",
+      "camada": "cds-p04-physical-reception-584-r6",
+      "ordem": 4,
+      "detalhe": "substitui _receive sem chamar o anterior; 1 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "core"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_startTravel",
+      "camada": "cds-p04-physical-reception-584-r6",
+      "ordem": 4,
+      "detalhe": "substitui _startTravel sem chamar o anterior; 2 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "core",
+        "cds-physics-timeline-581"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_turnover",
+      "camada": "cds-r10-engine-closure",
+      "ordem": 10,
+      "detalhe": "substitui _turnover sem chamar o anterior; 1 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "core"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "getPhysicalTimeline",
+      "camada": "cds-r10-engine-closure",
+      "ordem": 10,
+      "detalhe": "substitui getPhysicalTimeline sem chamar o anterior; 1 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "cds-physics-timeline-581"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_dribble",
+      "camada": "cds-r12-transactional-core-r123",
+      "ordem": 12,
+      "detalhe": "substitui _dribble sem chamar o anterior; 1 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "core"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_pressAndTackle",
+      "camada": "cds-r12-transactional-core-r123",
+      "ordem": 12,
+      "detalhe": "substitui _pressAndTackle sem chamar o anterior; 1 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "core"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_resolveOverlaps",
+      "camada": "cds-r12-transactional-core-r123",
+      "ordem": 12,
+      "detalhe": "substitui _resolveOverlaps sem chamar o anterior; 1 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "core"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_assignDefRoles",
+      "camada": "cds-r13-football-observer-cadence",
+      "ordem": 13,
+      "detalhe": "substitui _assignDefRoles sem chamar o anterior; 1 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "core"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_ballGlue",
+      "camada": "cds-r13-football-observer-cadence",
+      "ordem": 13,
+      "detalhe": "substitui _ballGlue sem chamar o anterior; 2 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "core",
+        "cds-p04-physical-reception-584-r6"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_physicalArc",
+      "camada": "cds-r183-natural-football",
+      "ordem": 15,
+      "detalhe": "substitui _physicalArc sem chamar o anterior; 1 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "cds-physics-timeline-581"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_trajectoryPoint",
+      "camada": "cds-r183-natural-football",
+      "ordem": 15,
+      "detalhe": "substitui _trajectoryPoint sem chamar o anterior; 1 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "cds-physics-timeline-581"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_clearBall",
+      "camada": "cds-r1821-post-recovery-decision",
+      "ordem": 40,
+      "detalhe": "substitui _clearBall sem chamar o anterior; 2 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "core",
+        "cds-r18182-duels-natural-restarts"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_physicalArc",
+      "camada": "cds-os200-balistica-real",
+      "ordem": 68,
+      "detalhe": "substitui _physicalArc sem chamar o anterior; 2 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "cds-physics-timeline-581",
+        "cds-r183-natural-football"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_physicalTargetZ",
+      "camada": "cds-os200-balistica-real",
+      "ordem": 68,
+      "detalhe": "substitui _physicalTargetZ sem chamar o anterior; 3 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "cds-physics-timeline-581",
+        "cds-r183-natural-football",
+        "cds-os92-shot-out-geometry"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_planPhysicalSegment",
+      "camada": "cds-os200-balistica-real",
+      "ordem": 68,
+      "detalhe": "substitui _planPhysicalSegment sem chamar o anterior; 3 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "cds-physics-timeline-581",
+        "cds-r183-natural-football",
+        "cds-os92-shot-out-geometry"
+      ]
+    },
+    {
+      "tipo": "patch_perdido",
+      "gravidade": "S2",
+      "metodo": "_trajectoryPoint",
+      "camada": "cds-os200-balistica-real",
+      "ordem": 68,
+      "detalhe": "substitui _trajectoryPoint sem chamar o anterior; 2 implementacao(oes) anterior(es) ficam mortas",
+      "anteriores": [
+        "cds-physics-timeline-581",
+        "cds-r183-natural-football"
+      ]
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_emit",
+      "camadas": [
+        "script-2",
+        "cds-physics-timeline-581",
+        "cds-pre25d-runtime-auditor-v04",
+        "cds-r12-transactional-core-r123",
+        "cds-r13-football-observer-cadence",
+        "cds-ux-boot",
+        "cds-r18155-shot-restart-law-fix",
+        "cds-r1817-release-meta",
+        "cds-r18172-approach-before-shot-meta",
+        "cds-r1818-offensive-progression",
+        "cds-r18181-second-phase-natural-out",
+        "cds-r18182-duels-natural-restarts",
+        "cds-r18183-corner-ecology",
+        "cds-r1821-throwin-law",
+        "cds-r1821-tempo-e-pausas",
+        "cds-os20-setpiece-hud",
+        "cds-os21-wall-taker",
+        "cds-os46-anim-wiring",
+        "cds-os51-beaten-defender",
+        "cds-os113-falta-cartao",
+        "cds-os206-plano-do-portador",
+        "cds-os216-cruzamento",
+        "cds-os263-cerimonia",
+        "cds-os267-corte"
+      ],
+      "ordem": 2,
+      "detalhe": "_emit e remendado por 24 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_ballTravel",
+      "camadas": [
+        "cds-physics-timeline-581",
+        "cds-p04-physical-reception-584-r6",
+        "cds-r12-transactional-core-r123",
+        "cds-r13-football-observer-cadence"
+      ],
+      "ordem": 3,
+      "detalhe": "_ballTravel e remendado por 4 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_continueTravel",
+      "camadas": [
+        "cds-physics-timeline-581",
+        "cds-p04-physical-reception-584-r6",
+        "cds-r12-transactional-core-r123"
+      ],
+      "ordem": 3,
+      "detalhe": "_continueTravel e remendado por 3 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_deflectTo",
+      "camadas": [
+        "cds-physics-timeline-581",
+        "cds-r13-football-observer-cadence",
+        "cds-r18181-second-phase-natural-out",
+        "cds-r18182-duels-natural-restarts",
+        "cds-r18183-corner-ecology",
+        "cds-os83-restart-watchdog"
+      ],
+      "ordem": 3,
+      "detalhe": "_deflectTo e remendado por 6 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_movePlayers",
+      "camadas": [
+        "cds-physics-timeline-581",
+        "cds-r12-transactional-core-r123",
+        "cds-r189-offball-intelligence",
+        "cds-os36-freekick-distance",
+        "cds-os48-carry-flow"
+      ],
+      "ordem": 3,
+      "detalhe": "_movePlayers e remendado por 5 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_physicalArc",
+      "camadas": [
+        "cds-physics-timeline-581",
+        "cds-r183-natural-football",
+        "cds-os200-balistica-real"
+      ],
+      "ordem": 3,
+      "detalhe": "_physicalArc e remendado por 3 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_physicalTargetZ",
+      "camadas": [
+        "cds-physics-timeline-581",
+        "cds-r183-natural-football",
+        "cds-os92-shot-out-geometry",
+        "cds-os200-balistica-real"
+      ],
+      "ordem": 3,
+      "detalhe": "_physicalTargetZ e remendado por 4 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_planPhysicalSegment",
+      "camadas": [
+        "cds-physics-timeline-581",
+        "cds-r183-natural-football",
+        "cds-os92-shot-out-geometry",
+        "cds-os200-balistica-real"
+      ],
+      "ordem": 3,
+      "detalhe": "_planPhysicalSegment e remendado por 4 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_startTravel",
+      "camadas": [
+        "cds-physics-timeline-581",
+        "cds-p04-physical-reception-584-r6",
+        "cds-r10-engine-closure",
+        "cds-r12-transactional-core-r123",
+        "cds-r13-football-observer-cadence",
+        "cds-r183-natural-football",
+        "cds-r18161-box-runs-execution",
+        "cds-r18182-duels-natural-restarts",
+        "cds-r1821-throwin-law",
+        "cds-r1821-shot-plausibility",
+        "cds-os39-block-on-flight",
+        "cds-os43-aerial-duel",
+        "cds-os46-anim-wiring",
+        "cds-os216-cruzamento"
+      ],
+      "ordem": 3,
+      "detalhe": "_startTravel e remendado por 14 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_trajectoryPoint",
+      "camadas": [
+        "cds-physics-timeline-581",
+        "cds-r183-natural-football",
+        "cds-os200-balistica-real"
+      ],
+      "ordem": 3,
+      "detalhe": "_trajectoryPoint e remendado por 3 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "isOver",
+      "camadas": [
+        "cds-physics-timeline-581",
+        "cds-r12-transactional-core-r123",
+        "cds-r1821-tempo-e-pausas"
+      ],
+      "ordem": 3,
+      "detalhe": "isOver e remendado por 3 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "reset",
+      "camadas": [
+        "cds-physics-timeline-581",
+        "cds-r12-transactional-core-r123",
+        "cds-r13-football-observer-cadence",
+        "cds-r14-engine",
+        "cds-r1817-release-meta",
+        "cds-r18172-approach-before-shot-meta",
+        "cds-r18173-defensive-responsibility",
+        "cds-r1818-offensive-progression",
+        "cds-r18181-second-phase-natural-out",
+        "cds-r18182-duels-natural-restarts",
+        "cds-r18183-corner-ecology",
+        "cds-r1820-chance-intelligence"
+      ],
+      "ordem": 3,
+      "detalhe": "reset e remendado por 12 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_giveBall",
+      "camadas": [
+        "cds-p04-physical-reception-584-r6",
+        "cds-r18181-second-phase-natural-out",
+        "cds-r1821-throwin-law",
+        "cds-os206-plano-do-portador"
+      ],
+      "ordem": 4,
+      "detalhe": "_giveBall e remendado por 4 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_looseBall",
+      "camadas": [
+        "cds-p04-physical-reception-584-r6",
+        "cds-r13-football-observer-cadence",
+        "cds-r18181-second-phase-natural-out",
+        "cds-r18182-duels-natural-restarts",
+        "cds-r18183-corner-ecology"
+      ],
+      "ordem": 4,
+      "detalhe": "_looseBall e remendado por 5 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_receive",
+      "camadas": [
+        "cds-p04-physical-reception-584-r6",
+        "cds-r13-football-observer-cadence",
+        "cds-r1818-offensive-progression",
+        "cds-r18181-second-phase-natural-out",
+        "cds-r18182-duels-natural-restarts"
+      ],
+      "ordem": 4,
+      "detalhe": "_receive e remendado por 5 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_selectPresser",
+      "camadas": [
+        "cds-r7-pass-flow-calibration",
+        "cds-r13-football-observer-cadence",
+        "cds-r18173-defensive-responsibility",
+        "cds-r18182-duels-natural-restarts",
+        "cds-r1821-press-anticipation"
+      ],
+      "ordem": 8,
+      "detalhe": "_selectPresser e remendado por 5 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "step",
+      "camadas": [
+        "cds-r7-pass-flow-calibration",
+        "cds-r10-engine-closure",
+        "cds-r12-transactional-core-r123",
+        "cds-r13-football-observer-cadence",
+        "cds-r14-engine",
+        "cds-ux-boot",
+        "cds-r18fix-restart-positions",
+        "cds-r18161-box-runs-execution",
+        "cds-r18173-defensive-responsibility",
+        "cds-r18181-second-phase-natural-out",
+        "cds-r18182-duels-natural-restarts",
+        "cds-r18183-corner-ecology",
+        "cds-os46-anim-wiring",
+        "cds-os77-common-foul-restart",
+        "cds-os83-restart-watchdog",
+        "cds-os100-throwin-delivery",
+        "cds-os107-bloco-bola-parada",
+        "cds-os112-lateral-saida-e-apoio",
+        "cds-r1899-antiteleporte",
+        "cds-r1905-papel-morre-com-o-lance",
+        "cds-os206-plano-do-portador",
+        "cds-os207-cerimonia-sem-tremor",
+        "cds-os212-toque-de-primeira",
+        "cds-os214-volta-para-casa",
+        "cds-os231-batedor"
+      ],
+      "ordem": 8,
+      "detalhe": "step e remendado por 25 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_turnover",
+      "camadas": [
+        "cds-r10-engine-closure",
+        "cds-r12-transactional-core-r123",
+        "cds-r13-football-observer-cadence",
+        "cds-r18181-second-phase-natural-out",
+        "cds-r18182-duels-natural-restarts",
+        "cds-r18183-corner-ecology"
+      ],
+      "ordem": 10,
+      "detalhe": "_turnover e remendado por 6 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "substitute",
+      "camadas": [
+        "cds-r10-engine-closure",
+        "cds-r184-certificacao-honesta",
+        "cds-r1821-tempo-e-pausas"
+      ],
+      "ordem": 10,
+      "detalhe": "substitute e remendado por 3 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_decide",
+      "camadas": [
+        "cds-r12-transactional-core-r123",
+        "cds-r13-football-observer-cadence",
+        "cds-r14-engine",
+        "cds-r1810-reception-intelligence",
+        "cds-r1818-offensive-progression",
+        "cds-r18181-second-phase-natural-out",
+        "cds-r1820-chance-intelligence"
+      ],
+      "ordem": 12,
+      "detalhe": "_decide e remendado por 7 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_goalKickOrRestart",
+      "camadas": [
+        "cds-r12-transactional-core-r123",
+        "cds-r13-football-observer-cadence",
+        "cds-r14-engine",
+        "cds-r18182-duels-natural-restarts",
+        "cds-r1899-antiteleporte"
+      ],
+      "ordem": 12,
+      "detalhe": "_goalKickOrRestart e remendado por 5 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_integrate",
+      "camadas": [
+        "cds-r12-transactional-core-r123",
+        "cds-r13-football-observer-cadence",
+        "cds-r185-bloco-defensivo",
+        "cds-r187-atributos-vivos",
+        "cds-os51-beaten-defender",
+        "cds-os229-arbitragem"
+      ],
+      "ordem": 12,
+      "detalhe": "_integrate e remendado por 6 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_pass",
+      "camadas": [
+        "cds-r12-transactional-core-r123",
+        "cds-r1818-offensive-progression",
+        "cds-r18181-second-phase-natural-out"
+      ],
+      "ordem": 12,
+      "detalhe": "_pass e remendado por 3 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_pressAndTackle",
+      "camadas": [
+        "cds-r12-transactional-core-r123",
+        "cds-r13-football-observer-cadence",
+        "cds-r18182-duels-natural-restarts"
+      ],
+      "ordem": 12,
+      "detalhe": "_pressAndTackle e remendado por 3 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_setCorner",
+      "camadas": [
+        "cds-r12-transactional-core-r123",
+        "cds-r13-football-observer-cadence",
+        "cds-r14-engine",
+        "cds-r18fix-restart-positions",
+        "cds-r18182-duels-natural-restarts",
+        "cds-r18183-corner-ecology",
+        "cds-os107-bloco-bola-parada",
+        "cds-os231-batedor"
+      ],
+      "ordem": 12,
+      "detalhe": "_setCorner e remendado por 8 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "getFullFootballAudit",
+      "camadas": [
+        "cds-r12-transactional-core-r123",
+        "cds-r13-football-observer-cadence",
+        "cds-r184-certificacao-honesta",
+        "cds-r185-bloco-defensivo",
+        "cds-r187-atributos-vivos",
+        "cds-r188-action-intelligence-core",
+        "cds-r189-offball-intelligence",
+        "cds-r1810-reception-intelligence",
+        "cds-r1811-second-ball-intelligence",
+        "cds-r1813-live-tackle-timing",
+        "cds-r1814-orientation-recovery",
+        "cds-r1815-carry-protection-pressure",
+        "cds-r18161-box-runs-execution",
+        "cds-r18172-approach-before-shot-meta",
+        "cds-r18173-defensive-responsibility",
+        "cds-r1818-offensive-progression",
+        "cds-r18181-second-phase-natural-out",
+        "cds-r18182-duels-natural-restarts",
+        "cds-r18183-corner-ecology",
+        "cds-r1820-chance-intelligence"
+      ],
+      "ordem": 12,
+      "detalhe": "getFullFootballAudit e remendado por 20 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_assignDefRoles",
+      "camadas": [
+        "cds-r13-football-observer-cadence",
+        "cds-r187-atributos-vivos",
+        "cds-r18173-defensive-responsibility",
+        "cds-r18182-duels-natural-restarts"
+      ],
+      "ordem": 13,
+      "detalhe": "_assignDefRoles e remendado por 4 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_attackTarget",
+      "camadas": [
+        "cds-r13-football-observer-cadence",
+        "cds-r18161-box-runs-execution",
+        "cds-r1818-offensive-progression",
+        "cds-r1843-block-depth"
+      ],
+      "ordem": 13,
+      "detalhe": "_attackTarget e remendado por 4 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_ballOut",
+      "camadas": [
+        "cds-r13-football-observer-cadence",
+        "cds-r18fix-restart-positions",
+        "cds-r18181-second-phase-natural-out",
+        "cds-r18182-duels-natural-restarts",
+        "cds-r18183-corner-ecology",
+        "cds-r1821-throwin-law",
+        "cds-os100-throwin-delivery",
+        "cds-os112-lateral-saida-e-apoio"
+      ],
+      "ordem": 13,
+      "detalhe": "_ballOut e remendado por 8 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_defendTarget",
+      "camadas": [
+        "cds-r13-football-observer-cadence",
+        "cds-r185-bloco-defensivo",
+        "cds-r187-atributos-vivos",
+        "cds-r1814-orientation-recovery",
+        "cds-r18173-defensive-responsibility",
+        "cds-r1821-press-anticipation",
+        "cds-r1843-block-depth",
+        "cds-os42-contest-the-cross",
+        "cds-os202-perseguicao"
+      ],
+      "ordem": 13,
+      "detalhe": "_defendTarget e remendado por 9 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_kickoff",
+      "camadas": [
+        "cds-r14-engine",
+        "cds-r18fix-restart-positions",
+        "cds-r1899-antiteleporte",
+        "cds-os214-volta-para-casa"
+      ],
+      "ordem": 14,
+      "detalhe": "_kickoff e remendado por 4 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "sem_guarda",
+      "gravidade": "S3",
+      "camada": "cds-r188-action-intelligence-core",
+      "ordem": 20,
+      "detalhe": "escreve 2 metodo(s) sem guarda de dupla instalacao"
+    },
+    {
+      "tipo": "sem_guarda",
+      "gravidade": "S3",
+      "camada": "cds-r189-offball-intelligence",
+      "ordem": 21,
+      "detalhe": "escreve 3 metodo(s) sem guarda de dupla instalacao"
+    },
+    {
+      "tipo": "sem_guarda",
+      "gravidade": "S3",
+      "camada": "cds-r1810-reception-intelligence",
+      "ordem": 22,
+      "detalhe": "escreve 5 metodo(s) sem guarda de dupla instalacao"
+    },
+    {
+      "tipo": "sem_guarda",
+      "gravidade": "S3",
+      "camada": "cds-r1811-second-ball-intelligence",
+      "ordem": 23,
+      "detalhe": "escreve 4 metodo(s) sem guarda de dupla instalacao"
+    },
+    {
+      "tipo": "sem_guarda",
+      "gravidade": "S3",
+      "camada": "cds-r1813-live-tackle-timing",
+      "ordem": 24,
+      "detalhe": "escreve 5 metodo(s) sem guarda de dupla instalacao"
+    },
+    {
+      "tipo": "sem_guarda",
+      "gravidade": "S3",
+      "camada": "cds-r1814-orientation-recovery",
+      "ordem": 25,
+      "detalhe": "escreve 7 metodo(s) sem guarda de dupla instalacao"
+    },
+    {
+      "tipo": "sem_guarda",
+      "gravidade": "S3",
+      "camada": "cds-r1815-carry-protection-pressure",
+      "ordem": 26,
+      "detalhe": "escreve 7 metodo(s) sem guarda de dupla instalacao"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_freeKick",
+      "camadas": [
+        "cds-r18fix-restart-positions",
+        "cds-r1821-tempo-e-pausas",
+        "cds-os36-freekick-distance",
+        "cds-os107-bloco-bola-parada"
+      ],
+      "ordem": 27,
+      "detalhe": "_freeKick e remendado por 4 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "pilha_funda",
+      "gravidade": "S3",
+      "metodo": "_shoot",
+      "camadas": [
+        "cds-r18181-second-phase-natural-out",
+        "cds-r1820-chance-intelligence",
+        "cds-r1821-throwin-law"
+      ],
+      "ordem": 35,
+      "detalhe": "_shoot e remendado por 3 camadas; a ordem do manifesto virou regra de negocio"
+    },
+    {
+      "tipo": "sem_guarda",
+      "gravidade": "S3",
+      "camada": "cds-r1843-block-depth",
+      "ordem": 45,
+      "detalhe": "escreve 3 metodo(s) sem guarda de dupla instalacao"
+    },
+    {
+      "tipo": "sem_guarda",
+      "gravidade": "S3",
+      "camada": "cds-os77-common-foul-restart",
+      "ordem": 56,
+      "detalhe": "escreve 2 metodo(s) sem guarda de dupla instalacao"
+    },
+    {
+      "tipo": "sem_guarda",
+      "gravidade": "S3",
+      "camada": "cds-os83-restart-watchdog",
+      "ordem": 57,
+      "detalhe": "escreve 2 metodo(s) sem guarda de dupla instalacao"
+    }
+  ],
+  "resumo": {
+    "patch_perdido": 27,
+    "pilha_funda": 33,
+    "sem_guarda": 10
+  },
+  "porMetodo": {
+    "_emit": [
+      {
+        "ordem": 2,
+        "camada": "script-2",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 6,
+        "camada": "cds-pre25d-runtime-auditor-v04",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 12,
+        "camada": "cds-r12-transactional-core-r123",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 13,
+        "camada": "cds-r13-football-observer-cadence",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 16,
+        "camada": "cds-ux-boot",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 28,
+        "camada": "cds-r18155-shot-restart-law-fix",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 31,
+        "camada": "cds-r1817-release-meta",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 32,
+        "camada": "cds-r18172-approach-before-shot-meta",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 34,
+        "camada": "cds-r1818-offensive-progression",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 35,
+        "camada": "cds-r18181-second-phase-natural-out",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 36,
+        "camada": "cds-r18182-duels-natural-restarts",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 37,
+        "camada": "cds-r18183-corner-ecology",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 39,
+        "camada": "cds-r1821-throwin-law",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 44,
+        "camada": "cds-r1821-tempo-e-pausas",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 47,
+        "camada": "cds-os20-setpiece-hud",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 48,
+        "camada": "cds-os21-wall-taker",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 53,
+        "camada": "cds-os46-anim-wiring",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 55,
+        "camada": "cds-os51-beaten-defender",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 63,
+        "camada": "cds-os113-falta-cartao",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 70,
+        "camada": "cds-os206-plano-do-portador",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 74,
+        "camada": "cds-os216-cruzamento",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 77,
+        "camada": "cds-os263-cerimonia",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 78,
+        "camada": "cds-os267-corte",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "reset": [
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 12,
+        "camada": "cds-r12-transactional-core-r123",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 13,
+        "camada": "cds-r13-football-observer-cadence",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 14,
+        "camada": "cds-r14-engine",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 31,
+        "camada": "cds-r1817-release-meta",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 32,
+        "camada": "cds-r18172-approach-before-shot-meta",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 33,
+        "camada": "cds-r18173-defensive-responsibility",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 34,
+        "camada": "cds-r1818-offensive-progression",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 35,
+        "camada": "cds-r18181-second-phase-natural-out",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 36,
+        "camada": "cds-r18182-duels-natural-restarts",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 37,
+        "camada": "cds-r18183-corner-ecology",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 38,
+        "camada": "cds-r1820-chance-intelligence",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_physicalTargetZ": [
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": false,
+        "capturou": false
+      },
+      {
+        "ordem": 15,
+        "camada": "cds-r183-natural-football",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 59,
+        "camada": "cds-os92-shot-out-geometry",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 68,
+        "camada": "cds-os200-balistica-real",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_physicalArc": [
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": false,
+        "capturou": false
+      },
+      {
+        "ordem": 15,
+        "camada": "cds-r183-natural-football",
+        "encadeia": false,
+        "capturou": false
+      },
+      {
+        "ordem": 68,
+        "camada": "cds-os200-balistica-real",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_planPhysicalSegment": [
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": false,
+        "capturou": false
+      },
+      {
+        "ordem": 15,
+        "camada": "cds-r183-natural-football",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 59,
+        "camada": "cds-os92-shot-out-geometry",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 68,
+        "camada": "cds-os200-balistica-real",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_trajectoryPoint": [
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": false,
+        "capturou": false
+      },
+      {
+        "ordem": 15,
+        "camada": "cds-r183-natural-football",
+        "encadeia": false,
+        "capturou": false
+      },
+      {
+        "ordem": 68,
+        "camada": "cds-os200-balistica-real",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_gkInterceptTarget": [
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_actorInterceptTarget": [
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_physicalContactValid": [
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": false,
+        "capturou": false
+      },
+      {
+        "ordem": 10,
+        "camada": "cds-r10-engine-closure",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_physicalBlockPoint": [
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_actorReachable": [
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_finalizePhysicsEvent": [
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": false,
+        "capturou": false
+      },
+      {
+        "ordem": 10,
+        "camada": "cds-r10-engine-closure",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_beginPhysicsEvent": [
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_appendPhysicsSegment": [
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_startTravel": [
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 4,
+        "camada": "cds-p04-physical-reception-584-r6",
+        "encadeia": false,
+        "capturou": false
+      },
+      {
+        "ordem": 10,
+        "camada": "cds-r10-engine-closure",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 12,
+        "camada": "cds-r12-transactional-core-r123",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 13,
+        "camada": "cds-r13-football-observer-cadence",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 15,
+        "camada": "cds-r183-natural-football",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 30,
+        "camada": "cds-r18161-box-runs-execution",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 36,
+        "camada": "cds-r18182-duels-natural-restarts",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 39,
+        "camada": "cds-r1821-throwin-law",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 41,
+        "camada": "cds-r1821-shot-plausibility",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 50,
+        "camada": "cds-os39-block-on-flight",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 52,
+        "camada": "cds-os43-aerial-duel",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 53,
+        "camada": "cds-os46-anim-wiring",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 74,
+        "camada": "cds-os216-cruzamento",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_continueTravel": [
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 4,
+        "camada": "cds-p04-physical-reception-584-r6",
+        "encadeia": false,
+        "capturou": false
+      },
+      {
+        "ordem": 12,
+        "camada": "cds-r12-transactional-core-r123",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_deflectTo": [
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 13,
+        "camada": "cds-r13-football-observer-cadence",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 35,
+        "camada": "cds-r18181-second-phase-natural-out",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 36,
+        "camada": "cds-r18182-duels-natural-restarts",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 37,
+        "camada": "cds-r18183-corner-ecology",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 57,
+        "camada": "cds-os83-restart-watchdog",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_ballTravel": [
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 4,
+        "camada": "cds-p04-physical-reception-584-r6",
+        "encadeia": false,
+        "capturou": false
+      },
+      {
+        "ordem": 12,
+        "camada": "cds-r12-transactional-core-r123",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 13,
+        "camada": "cds-r13-football-observer-cadence",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_movePlayers": [
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 12,
+        "camada": "cds-r12-transactional-core-r123",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 21,
+        "camada": "cds-r189-offball-intelligence",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 49,
+        "camada": "cds-os36-freekick-distance",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 54,
+        "camada": "cds-os48-carry-flow",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_recordVisualContact": [
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "isOver": [
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 12,
+        "camada": "cds-r12-transactional-core-r123",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 44,
+        "camada": "cds-r1821-tempo-e-pausas",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "getPhysicalTimeline": [
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": false,
+        "capturou": false
+      },
+      {
+        "ordem": 10,
+        "camada": "cds-r10-engine-closure",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getPhysicalTimelineRef": [
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getActivePhysicalEvent": [
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "exportPhysicsAudit": [
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "createPhysicalScenario": [
+      {
+        "ordem": 3,
+        "camada": "cds-physics-timeline-581",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_receive": [
+      {
+        "ordem": 4,
+        "camada": "cds-p04-physical-reception-584-r6",
+        "encadeia": false,
+        "capturou": false
+      },
+      {
+        "ordem": 13,
+        "camada": "cds-r13-football-observer-cadence",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 34,
+        "camada": "cds-r1818-offensive-progression",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 35,
+        "camada": "cds-r18181-second-phase-natural-out",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 36,
+        "camada": "cds-r18182-duels-natural-restarts",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_goalkeeperClaim": [
+      {
+        "ordem": 4,
+        "camada": "cds-p04-physical-reception-584-r6",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_giveBall": [
+      {
+        "ordem": 4,
+        "camada": "cds-p04-physical-reception-584-r6",
+        "encadeia": false,
+        "capturou": false
+      },
+      {
+        "ordem": 35,
+        "camada": "cds-r18181-second-phase-natural-out",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 39,
+        "camada": "cds-r1821-throwin-law",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 70,
+        "camada": "cds-os206-plano-do-portador",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_ballGlue": [
+      {
+        "ordem": 4,
+        "camada": "cds-p04-physical-reception-584-r6",
+        "encadeia": false,
+        "capturou": false
+      },
+      {
+        "ordem": 13,
+        "camada": "cds-r13-football-observer-cadence",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_looseBall": [
+      {
+        "ordem": 4,
+        "camada": "cds-p04-physical-reception-584-r6",
+        "encadeia": false,
+        "capturou": false
+      },
+      {
+        "ordem": 13,
+        "camada": "cds-r13-football-observer-cadence",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 35,
+        "camada": "cds-r18181-second-phase-natural-out",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 36,
+        "camada": "cds-r18182-duels-natural-restarts",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 37,
+        "camada": "cds-r18183-corner-ecology",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_contestLoose": [
+      {
+        "ordem": 4,
+        "camada": "cds-p04-physical-reception-584-r6",
+        "encadeia": false,
+        "capturou": false
+      },
+      {
+        "ordem": 35,
+        "camada": "cds-r18181-second-phase-natural-out",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_looseRoll": [
+      {
+        "ordem": 4,
+        "camada": "cds-p04-physical-reception-584-r6",
+        "encadeia": false,
+        "capturou": false
+      },
+      {
+        "ordem": 10,
+        "camada": "cds-r10-engine-closure",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "getP04ValidationReport": [
+      {
+        "ordem": 4,
+        "camada": "cds-p04-physical-reception-584-r6",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "__CDS_P04_PHYSICAL_RECEPTION_585_R7__": [
+      {
+        "ordem": 4,
+        "camada": "cds-p04-physical-reception-584-r6",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getPre25DAuditReport": [
+      {
+        "ordem": 6,
+        "camada": "cds-pre25d-runtime-auditor-v04",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "__CDS_PRE25D_AUDITOR_V04__": [
+      {
+        "ordem": 6,
+        "camada": "cds-pre25d-runtime-auditor-v04",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_selectPresser": [
+      {
+        "ordem": 8,
+        "camada": "cds-r7-pass-flow-calibration",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 13,
+        "camada": "cds-r13-football-observer-cadence",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 33,
+        "camada": "cds-r18173-defensive-responsibility",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 36,
+        "camada": "cds-r18182-duels-natural-restarts",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 42,
+        "camada": "cds-r1821-press-anticipation",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "step": [
+      {
+        "ordem": 8,
+        "camada": "cds-r7-pass-flow-calibration",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 10,
+        "camada": "cds-r10-engine-closure",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 12,
+        "camada": "cds-r12-transactional-core-r123",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 13,
+        "camada": "cds-r13-football-observer-cadence",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 14,
+        "camada": "cds-r14-engine",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 16,
+        "camada": "cds-ux-boot",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 27,
+        "camada": "cds-r18fix-restart-positions",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 30,
+        "camada": "cds-r18161-box-runs-execution",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 33,
+        "camada": "cds-r18173-defensive-responsibility",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 35,
+        "camada": "cds-r18181-second-phase-natural-out",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 36,
+        "camada": "cds-r18182-duels-natural-restarts",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 37,
+        "camada": "cds-r18183-corner-ecology",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 53,
+        "camada": "cds-os46-anim-wiring",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 56,
+        "camada": "cds-os77-common-foul-restart",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 57,
+        "camada": "cds-os83-restart-watchdog",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 60,
+        "camada": "cds-os100-throwin-delivery",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 61,
+        "camada": "cds-os107-bloco-bola-parada",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 62,
+        "camada": "cds-os112-lateral-saida-e-apoio",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 64,
+        "camada": "cds-r1899-antiteleporte",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 67,
+        "camada": "cds-r1905-papel-morre-com-o-lance",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 70,
+        "camada": "cds-os206-plano-do-portador",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 71,
+        "camada": "cds-os207-cerimonia-sem-tremor",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 72,
+        "camada": "cds-os212-toque-de-primeira",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 73,
+        "camada": "cds-os214-volta-para-casa",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 76,
+        "camada": "cds-os231-batedor",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "__CDS_R7_PASS_FLOW__": [
+      {
+        "ordem": 8,
+        "camada": "cds-r7-pass-flow-calibration",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "transferPossession": [
+      {
+        "ordem": 10,
+        "camada": "cds-r10-engine-closure",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "substitute": [
+      {
+        "ordem": 10,
+        "camada": "cds-r10-engine-closure",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 17,
+        "camada": "cds-r184-certificacao-honesta",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 44,
+        "camada": "cds-r1821-tempo-e-pausas",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_turnover": [
+      {
+        "ordem": 10,
+        "camada": "cds-r10-engine-closure",
+        "encadeia": false,
+        "capturou": true
+      },
+      {
+        "ordem": 12,
+        "camada": "cds-r12-transactional-core-r123",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 13,
+        "camada": "cds-r13-football-observer-cadence",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 35,
+        "camada": "cds-r18181-second-phase-natural-out",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 36,
+        "camada": "cds-r18182-duels-natural-restarts",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 37,
+        "camada": "cds-r18183-corner-ecology",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "getR10Report": [
+      {
+        "ordem": 10,
+        "camada": "cds-r10-engine-closure",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "__CDS_R10_ENGINE_CLOSURE__": [
+      {
+        "ordem": 10,
+        "camada": "cds-r10-engine-closure",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_blankStats": [
+      {
+        "ordem": 12,
+        "camada": "cds-r12-transactional-core-r123",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 13,
+        "camada": "cds-r13-football-observer-cadence",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_integrate": [
+      {
+        "ordem": 12,
+        "camada": "cds-r12-transactional-core-r123",
+        "encadeia": false,
+        "capturou": false
+      },
+      {
+        "ordem": 13,
+        "camada": "cds-r13-football-observer-cadence",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 18,
+        "camada": "cds-r185-bloco-defensivo",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 19,
+        "camada": "cds-r187-atributos-vivos",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 55,
+        "camada": "cds-os51-beaten-defender",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 75,
+        "camada": "cds-os229-arbitragem",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_resolveOverlaps": [
+      {
+        "ordem": 12,
+        "camada": "cds-r12-transactional-core-r123",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_pass": [
+      {
+        "ordem": 12,
+        "camada": "cds-r12-transactional-core-r123",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 34,
+        "camada": "cds-r1818-offensive-progression",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 35,
+        "camada": "cds-r18181-second-phase-natural-out",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_goalKickOrRestart": [
+      {
+        "ordem": 12,
+        "camada": "cds-r12-transactional-core-r123",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 13,
+        "camada": "cds-r13-football-observer-cadence",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 14,
+        "camada": "cds-r14-engine",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 36,
+        "camada": "cds-r18182-duels-natural-restarts",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 64,
+        "camada": "cds-r1899-antiteleporte",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_setCorner": [
+      {
+        "ordem": 12,
+        "camada": "cds-r12-transactional-core-r123",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 13,
+        "camada": "cds-r13-football-observer-cadence",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 14,
+        "camada": "cds-r14-engine",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 27,
+        "camada": "cds-r18fix-restart-positions",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 36,
+        "camada": "cds-r18182-duels-natural-restarts",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 37,
+        "camada": "cds-r18183-corner-ecology",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 61,
+        "camada": "cds-os107-bloco-bola-parada",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 76,
+        "camada": "cds-os231-batedor",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_canCross": [
+      {
+        "ordem": 12,
+        "camada": "cds-r12-transactional-core-r123",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_decide": [
+      {
+        "ordem": 12,
+        "camada": "cds-r12-transactional-core-r123",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 13,
+        "camada": "cds-r13-football-observer-cadence",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 14,
+        "camada": "cds-r14-engine",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 22,
+        "camada": "cds-r1810-reception-intelligence",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 34,
+        "camada": "cds-r1818-offensive-progression",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 35,
+        "camada": "cds-r18181-second-phase-natural-out",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 38,
+        "camada": "cds-r1820-chance-intelligence",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_dribble": [
+      {
+        "ordem": 12,
+        "camada": "cds-r12-transactional-core-r123",
+        "encadeia": false,
+        "capturou": false
+      },
+      {
+        "ordem": 36,
+        "camada": "cds-r18182-duels-natural-restarts",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_pressAndTackle": [
+      {
+        "ordem": 12,
+        "camada": "cds-r12-transactional-core-r123",
+        "encadeia": false,
+        "capturou": false
+      },
+      {
+        "ordem": 13,
+        "camada": "cds-r13-football-observer-cadence",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 36,
+        "camada": "cds-r18182-duels-natural-restarts",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_cross": [
+      {
+        "ordem": 12,
+        "camada": "cds-r12-transactional-core-r123",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 74,
+        "camada": "cds-os216-cruzamento",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "getR12Audit": [
+      {
+        "ordem": 12,
+        "camada": "cds-r12-transactional-core-r123",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getFullFootballAudit": [
+      {
+        "ordem": 12,
+        "camada": "cds-r12-transactional-core-r123",
+        "encadeia": false,
+        "capturou": false
+      },
+      {
+        "ordem": 13,
+        "camada": "cds-r13-football-observer-cadence",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 17,
+        "camada": "cds-r184-certificacao-honesta",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 18,
+        "camada": "cds-r185-bloco-defensivo",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 19,
+        "camada": "cds-r187-atributos-vivos",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 20,
+        "camada": "cds-r188-action-intelligence-core",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 21,
+        "camada": "cds-r189-offball-intelligence",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 22,
+        "camada": "cds-r1810-reception-intelligence",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 23,
+        "camada": "cds-r1811-second-ball-intelligence",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 24,
+        "camada": "cds-r1813-live-tackle-timing",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 25,
+        "camada": "cds-r1814-orientation-recovery",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 26,
+        "camada": "cds-r1815-carry-protection-pressure",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 30,
+        "camada": "cds-r18161-box-runs-execution",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 32,
+        "camada": "cds-r18172-approach-before-shot-meta",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 33,
+        "camada": "cds-r18173-defensive-responsibility",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 34,
+        "camada": "cds-r1818-offensive-progression",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 35,
+        "camada": "cds-r18181-second-phase-natural-out",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 36,
+        "camada": "cds-r18182-duels-natural-restarts",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 37,
+        "camada": "cds-r18183-corner-ecology",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 38,
+        "camada": "cds-r1820-chance-intelligence",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "__CDS_R122__": [
+      {
+        "ordem": 12,
+        "camada": "cds-r12-transactional-core-r123",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_ballOut": [
+      {
+        "ordem": 13,
+        "camada": "cds-r13-football-observer-cadence",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 27,
+        "camada": "cds-r18fix-restart-positions",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 35,
+        "camada": "cds-r18181-second-phase-natural-out",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 36,
+        "camada": "cds-r18182-duels-natural-restarts",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 37,
+        "camada": "cds-r18183-corner-ecology",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 39,
+        "camada": "cds-r1821-throwin-law",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 60,
+        "camada": "cds-os100-throwin-delivery",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 62,
+        "camada": "cds-os112-lateral-saida-e-apoio",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_assignDefRoles": [
+      {
+        "ordem": 13,
+        "camada": "cds-r13-football-observer-cadence",
+        "encadeia": false,
+        "capturou": false
+      },
+      {
+        "ordem": 19,
+        "camada": "cds-r187-atributos-vivos",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 33,
+        "camada": "cds-r18173-defensive-responsibility",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 36,
+        "camada": "cds-r18182-duels-natural-restarts",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_defendTarget": [
+      {
+        "ordem": 13,
+        "camada": "cds-r13-football-observer-cadence",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 18,
+        "camada": "cds-r185-bloco-defensivo",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 19,
+        "camada": "cds-r187-atributos-vivos",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 25,
+        "camada": "cds-r1814-orientation-recovery",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 33,
+        "camada": "cds-r18173-defensive-responsibility",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 42,
+        "camada": "cds-r1821-press-anticipation",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 45,
+        "camada": "cds-r1843-block-depth",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 51,
+        "camada": "cds-os42-contest-the-cross",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 69,
+        "camada": "cds-os202-perseguicao",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_attackTarget": [
+      {
+        "ordem": 13,
+        "camada": "cds-r13-football-observer-cadence",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 30,
+        "camada": "cds-r18161-box-runs-execution",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 34,
+        "camada": "cds-r1818-offensive-progression",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 45,
+        "camada": "cds-r1843-block-depth",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "getR13Audit": [
+      {
+        "ordem": 13,
+        "camada": "cds-r13-football-observer-cadence",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "__CDS_R13__": [
+      {
+        "ordem": 13,
+        "camada": "cds-r13-football-observer-cadence",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getR14ActionAudit": [
+      {
+        "ordem": 14,
+        "camada": "cds-r14-engine",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_kickoff": [
+      {
+        "ordem": 14,
+        "camada": "cds-r14-engine",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 27,
+        "camada": "cds-r18fix-restart-positions",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 64,
+        "camada": "cds-r1899-antiteleporte",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 73,
+        "camada": "cds-os214-volta-para-casa",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_buildTeam": [
+      {
+        "ordem": 14,
+        "camada": "cds-r14-engine",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_r183ExcecaoAoChuteContextual": [
+      {
+        "ordem": 15,
+        "camada": "cds-r183-natural-football",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getR183Report": [
+      {
+        "ordem": 15,
+        "camada": "cds-r183-natural-football",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "__CDS_R183_NATURAL_FOOTBALL__": [
+      {
+        "ordem": 15,
+        "camada": "cds-r183-natural-football",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "animOf": [
+      {
+        "ordem": 16,
+        "camada": "cds-ux-boot",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "rebuildRoleContracts": [
+      {
+        "ordem": 17,
+        "camada": "cds-r184-certificacao-honesta",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "setShapes": [
+      {
+        "ordem": 17,
+        "camada": "cds-r184-certificacao-honesta",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_bestPass": [
+      {
+        "ordem": 19,
+        "camada": "cds-r187-atributos-vivos",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "getAttributeInfluenceProfile": [
+      {
+        "ordem": 19,
+        "camada": "cds-r187-atributos-vivos",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getAttributeInfluenceAudit": [
+      {
+        "ordem": 19,
+        "camada": "cds-r187-atributos-vivos",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getActionDecisionProfile": [
+      {
+        "ordem": 20,
+        "camada": "cds-r188-action-intelligence-core",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getOffBallIntelligenceProfile": [
+      {
+        "ordem": 21,
+        "camada": "cds-r189-offball-intelligence",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getReceptionIntelligenceProfile": [
+      {
+        "ordem": 22,
+        "camada": "cds-r1810-reception-intelligence",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getFirstActionDecisionTemperature": [
+      {
+        "ordem": 22,
+        "camada": "cds-r1810-reception-intelligence",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getReceptionIntelligenceAudit": [
+      {
+        "ordem": 22,
+        "camada": "cds-r1810-reception-intelligence",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_r1811AfterSecondBallControl": [
+      {
+        "ordem": 23,
+        "camada": "cds-r1811-second-ball-intelligence",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getSecondBallIntelligenceProfile": [
+      {
+        "ordem": 23,
+        "camada": "cds-r1811-second-ball-intelligence",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getSecondBallIntelligenceAudit": [
+      {
+        "ordem": 23,
+        "camada": "cds-r1811-second-ball-intelligence",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_r1813TackleTimingProfile": [
+      {
+        "ordem": 24,
+        "camada": "cds-r1813-live-tackle-timing",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_r1813RecordEvaluation": [
+      {
+        "ordem": 24,
+        "camada": "cds-r1813-live-tackle-timing",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getTackleTimingProfile": [
+      {
+        "ordem": 24,
+        "camada": "cds-r1813-live-tackle-timing",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getTackleTimingAudit": [
+      {
+        "ordem": 24,
+        "camada": "cds-r1813-live-tackle-timing",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_r1814OrientationProfile": [
+      {
+        "ordem": 25,
+        "camada": "cds-r1814-orientation-recovery",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_r1814RecoveryDuration": [
+      {
+        "ordem": 25,
+        "camada": "cds-r1814-orientation-recovery",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_r1814MarkRecovery": [
+      {
+        "ordem": 25,
+        "camada": "cds-r1814-orientation-recovery",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getOrientationRecoveryProfile": [
+      {
+        "ordem": 25,
+        "camada": "cds-r1814-orientation-recovery",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getOrientationRecoveryAudit": [
+      {
+        "ordem": 25,
+        "camada": "cds-r1814-orientation-recovery",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_r1815PressureDuelProfile": [
+      {
+        "ordem": 26,
+        "camada": "cds-r1815-carry-protection-pressure",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_r1815CarryDuelProfile": [
+      {
+        "ordem": 26,
+        "camada": "cds-r1815-carry-protection-pressure",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_r1815RecordPressure": [
+      {
+        "ordem": 26,
+        "camada": "cds-r1815-carry-protection-pressure",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_r1815RecordCarry": [
+      {
+        "ordem": 26,
+        "camada": "cds-r1815-carry-protection-pressure",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getCarryProtectionPressureProfile": [
+      {
+        "ordem": 26,
+        "camada": "cds-r1815-carry-protection-pressure",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getCarryProtectionPressureAudit": [
+      {
+        "ordem": 26,
+        "camada": "cds-r1815-carry-protection-pressure",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_switchSides": [
+      {
+        "ordem": 27,
+        "camada": "cds-r18fix-restart-positions",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_penalty": [
+      {
+        "ordem": 27,
+        "camada": "cds-r18fix-restart-positions",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_freeKick": [
+      {
+        "ordem": 27,
+        "camada": "cds-r18fix-restart-positions",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 44,
+        "camada": "cds-r1821-tempo-e-pausas",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 49,
+        "camada": "cds-os36-freekick-distance",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 61,
+        "camada": "cds-os107-bloco-bola-parada",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_awardFoul": [
+      {
+        "ordem": 27,
+        "camada": "cds-r18fix-restart-positions",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 56,
+        "camada": "cds-os77-common-foul-restart",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_r18161CreateFlightPlan": [
+      {
+        "ordem": 30,
+        "camada": "cds-r18161-box-runs-execution",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_r18161ActivePlan": [
+      {
+        "ordem": 30,
+        "camada": "cds-r18161-box-runs-execution",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getBoxMovementProfile": [
+      {
+        "ordem": 30,
+        "camada": "cds-r18161-box-runs-execution",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getBoxMovementAudit": [
+      {
+        "ordem": 30,
+        "camada": "cds-r18161-box-runs-execution",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getR1817Audit": [
+      {
+        "ordem": 31,
+        "camada": "cds-r1817-release-meta",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "__CDS_R1817_META__": [
+      {
+        "ordem": 31,
+        "camada": "cds-r1817-release-meta",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getR18172Audit": [
+      {
+        "ordem": 32,
+        "camada": "cds-r18172-approach-before-shot-meta",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "__CDS_R18172__": [
+      {
+        "ordem": 32,
+        "camada": "cds-r18172-approach-before-shot-meta",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getR18173Audit": [
+      {
+        "ordem": 33,
+        "camada": "cds-r18173-defensive-responsibility",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "__CDS_R18173__": [
+      {
+        "ordem": 33,
+        "camada": "cds-r18173-defensive-responsibility",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getR1818Audit": [
+      {
+        "ordem": 34,
+        "camada": "cds-r1818-offensive-progression",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_carry": [
+      {
+        "ordem": 35,
+        "camada": "cds-r18181-second-phase-natural-out",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "_shoot": [
+      {
+        "ordem": 35,
+        "camada": "cds-r18181-second-phase-natural-out",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 38,
+        "camada": "cds-r1820-chance-intelligence",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 39,
+        "camada": "cds-r1821-throwin-law",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "getR18181Audit": [
+      {
+        "ordem": 35,
+        "camada": "cds-r18181-second-phase-natural-out",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_clearBall": [
+      {
+        "ordem": 36,
+        "camada": "cds-r18182-duels-natural-restarts",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 40,
+        "camada": "cds-r1821-post-recovery-decision",
+        "encadeia": false,
+        "capturou": true
+      }
+    ],
+    "getR18182Audit": [
+      {
+        "ordem": 36,
+        "camada": "cds-r18182-duels-natural-restarts",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_gkResolveSave": [
+      {
+        "ordem": 37,
+        "camada": "cds-r18183-corner-ecology",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "getR18183Audit": [
+      {
+        "ordem": 37,
+        "camada": "cds-r18183-corner-ecology",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getR1820Audit": [
+      {
+        "ordem": 38,
+        "camada": "cds-r1820-chance-intelligence",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "__CDS_R1820_CHANCE_INTELLIGENCE__": [
+      {
+        "ordem": 38,
+        "camada": "cds-r1820-chance-intelligence",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_goal": [
+      {
+        "ordem": 39,
+        "camada": "cds-r1821-throwin-law",
+        "encadeia": true,
+        "capturou": true
+      },
+      {
+        "ordem": 44,
+        "camada": "cds-r1821-tempo-e-pausas",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "getThrowInLawAudit": [
+      {
+        "ordem": 39,
+        "camada": "cds-r1821-throwin-law",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "__CDS_R1821_THROWIN_LAW__": [
+      {
+        "ordem": 39,
+        "camada": "cds-r1821-throwin-law",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "__CDS_R1821_POST_RECOVERY__": [
+      {
+        "ordem": 40,
+        "camada": "cds-r1821-post-recovery-decision",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getShotPlausibilityAudit": [
+      {
+        "ordem": 41,
+        "camada": "cds-r1821-shot-plausibility",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "__CDS_R1821_SHOT_PLAUSIBILITY__": [
+      {
+        "ordem": 41,
+        "camada": "cds-r1821-shot-plausibility",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getPressAnticipationAudit": [
+      {
+        "ordem": 42,
+        "camada": "cds-r1821-press-anticipation",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "__CDS_R1821_PRESS_ANTICIPATION__": [
+      {
+        "ordem": 42,
+        "camada": "cds-r1821-press-anticipation",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_injure": [
+      {
+        "ordem": 44,
+        "camada": "cds-r1821-tempo-e-pausas",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "getTempoAudit": [
+      {
+        "ordem": 44,
+        "camada": "cds-r1821-tempo-e-pausas",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "__CDS_R1821_TEMPO__": [
+      {
+        "ordem": 44,
+        "camada": "cds-r1821-tempo-e-pausas",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getBlockDepthAudit": [
+      {
+        "ordem": 45,
+        "camada": "cds-r1843-block-depth",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "__CDS_OS20__": [
+      {
+        "ordem": 47,
+        "camada": "cds-os20-setpiece-hud",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "__CDS_OS21__": [
+      {
+        "ordem": 48,
+        "camada": "cds-os21-wall-taker",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getOS36Audit": [
+      {
+        "ordem": 49,
+        "camada": "cds-os36-freekick-distance",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "__CDS_OS36__": [
+      {
+        "ordem": 49,
+        "camada": "cds-os36-freekick-distance",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "__CDS_OS39__": [
+      {
+        "ordem": 50,
+        "camada": "cds-os39-block-on-flight",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "__CDS_OS42__": [
+      {
+        "ordem": 51,
+        "camada": "cds-os42-contest-the-cross",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "__CDS_OS43__": [
+      {
+        "ordem": 52,
+        "camada": "cds-os43-aerial-duel",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getOS46Audit": [
+      {
+        "ordem": 53,
+        "camada": "cds-os46-anim-wiring",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "__CDS_OS46__": [
+      {
+        "ordem": 53,
+        "camada": "cds-os46-anim-wiring",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getOS48Audit": [
+      {
+        "ordem": 54,
+        "camada": "cds-os48-carry-flow",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "__CDS_OS48__": [
+      {
+        "ordem": 54,
+        "camada": "cds-os48-carry-flow",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getOS51Audit": [
+      {
+        "ordem": 55,
+        "camada": "cds-os51-beaten-defender",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "__CDS_OS51__": [
+      {
+        "ordem": 55,
+        "camada": "cds-os51-beaten-defender",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_goalkeeperTarget": [
+      {
+        "ordem": 58,
+        "camada": "cds-os90-gk-freekick-stance",
+        "encadeia": true,
+        "capturou": true
+      }
+    ],
+    "__OS113__": [
+      {
+        "ordem": 63,
+        "camada": "cds-os113-falta-cartao",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_r19FoulRisk": [
+      {
+        "ordem": 65,
+        "camada": "cds-r1903-falta-natural",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_r19ClearOut": [
+      {
+        "ordem": 66,
+        "camada": "cds-r1904-corte-que-sai",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getR1904": [
+      {
+        "ordem": 66,
+        "camada": "cds-r1904-corte-que-sai",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getR1905": [
+      {
+        "ordem": 67,
+        "camada": "cds-r1905-papel-morre-com-o-lance",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_os200EscalaXg": [
+      {
+        "ordem": 68,
+        "camada": "cds-os200-balistica-real",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_os200Desfecho": [
+      {
+        "ordem": 68,
+        "camada": "cds-os200-balistica-real",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_os200Rebote": [
+      {
+        "ordem": 68,
+        "camada": "cds-os200-balistica-real",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_os200Defesa": [
+      {
+        "ordem": 68,
+        "camada": "cds-os200-balistica-real",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_os200Mira": [
+      {
+        "ordem": 68,
+        "camada": "cds-os200-balistica-real",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "_os200ResolverChute": [
+      {
+        "ordem": 68,
+        "camada": "cds-os200-balistica-real",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getOS200Report": [
+      {
+        "ordem": 68,
+        "camada": "cds-os200-balistica-real",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getOS212Audit": [
+      {
+        "ordem": 72,
+        "camada": "cds-os212-toque-de-primeira",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getOS229Audit": [
+      {
+        "ordem": 75,
+        "camada": "cds-os229-arbitragem",
+        "encadeia": false,
+        "capturou": false
+      }
+    ],
+    "getOS231Audit": [
+      {
+        "ordem": 76,
+        "camada": "cds-os231-batedor",
+        "encadeia": false,
+        "capturou": false
+      }
+    ]
+  },
+  "porBloco": [
+    {
+      "ordem": 0,
+      "id": "script-0",
+      "escreve": 0,
+      "encadeia": 0,
+      "naoEncadeia": 0,
+      "temGuarda": false
+    },
+    {
+      "ordem": 1,
+      "id": "cds-mobile-boot-bridge",
+      "escreve": 0,
+      "encadeia": 0,
+      "naoEncadeia": 0,
+      "temGuarda": false
+    },
+    {
+      "ordem": 2,
+      "id": "script-2",
+      "escreve": 1,
+      "encadeia": 1,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 3,
+      "id": "cds-physics-timeline-581",
+      "escreve": 26,
+      "encadeia": 9,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 4,
+      "id": "cds-p04-physical-reception-584-r6",
+      "escreve": 12,
+      "encadeia": 0,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 5,
+      "id": "cds-2_5d-gate-a-contracts-v02",
+      "escreve": 0,
+      "encadeia": 0,
+      "naoEncadeia": 0,
+      "temGuarda": false
+    },
+    {
+      "ordem": 6,
+      "id": "cds-pre25d-runtime-auditor-v04",
+      "escreve": 3,
+      "encadeia": 1,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 7,
+      "id": "cds-pre25d-build-meta-584-r6",
+      "escreve": 0,
+      "encadeia": 0,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 8,
+      "id": "cds-r7-pass-flow-calibration",
+      "escreve": 3,
+      "encadeia": 2,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 9,
+      "id": "cds-r9-pass-natural-calibration",
+      "escreve": 0,
+      "encadeia": 0,
+      "naoEncadeia": 0,
+      "temGuarda": false
+    },
+    {
+      "ordem": 10,
+      "id": "cds-r10-engine-closure",
+      "escreve": 11,
+      "encadeia": 6,
+      "naoEncadeia": 1,
+      "temGuarda": true
+    },
+    {
+      "ordem": 11,
+      "id": "cds-r109-async-cup",
+      "escreve": 0,
+      "encadeia": 0,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 12,
+      "id": "cds-r12-transactional-core-r123",
+      "escreve": 23,
+      "encadeia": 16,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 13,
+      "id": "cds-r13-football-observer-cadence",
+      "escreve": 24,
+      "encadeia": 20,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 14,
+      "id": "cds-r14-engine",
+      "escreve": 8,
+      "encadeia": 9,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 15,
+      "id": "cds-r183-natural-football",
+      "escreve": 8,
+      "encadeia": 3,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 16,
+      "id": "cds-ux-boot",
+      "escreve": 3,
+      "encadeia": 2,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 17,
+      "id": "cds-r184-certificacao-honesta",
+      "escreve": 4,
+      "encadeia": 3,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 18,
+      "id": "cds-r185-bloco-defensivo",
+      "escreve": 3,
+      "encadeia": 3,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 19,
+      "id": "cds-r187-atributos-vivos",
+      "escreve": 7,
+      "encadeia": 5,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 20,
+      "id": "cds-r188-action-intelligence-core",
+      "escreve": 2,
+      "encadeia": 1,
+      "naoEncadeia": 0,
+      "temGuarda": false
+    },
+    {
+      "ordem": 21,
+      "id": "cds-r189-offball-intelligence",
+      "escreve": 3,
+      "encadeia": 2,
+      "naoEncadeia": 0,
+      "temGuarda": false
+    },
+    {
+      "ordem": 22,
+      "id": "cds-r1810-reception-intelligence",
+      "escreve": 5,
+      "encadeia": 2,
+      "naoEncadeia": 0,
+      "temGuarda": false
+    },
+    {
+      "ordem": 23,
+      "id": "cds-r1811-second-ball-intelligence",
+      "escreve": 4,
+      "encadeia": 1,
+      "naoEncadeia": 0,
+      "temGuarda": false
+    },
+    {
+      "ordem": 24,
+      "id": "cds-r1813-live-tackle-timing",
+      "escreve": 5,
+      "encadeia": 1,
+      "naoEncadeia": 0,
+      "temGuarda": false
+    },
+    {
+      "ordem": 25,
+      "id": "cds-r1814-orientation-recovery",
+      "escreve": 7,
+      "encadeia": 2,
+      "naoEncadeia": 0,
+      "temGuarda": false
+    },
+    {
+      "ordem": 26,
+      "id": "cds-r1815-carry-protection-pressure",
+      "escreve": 7,
+      "encadeia": 1,
+      "naoEncadeia": 0,
+      "temGuarda": false
+    },
+    {
+      "ordem": 27,
+      "id": "cds-r18fix-restart-positions",
+      "escreve": 8,
+      "encadeia": 8,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 28,
+      "id": "cds-r18155-shot-restart-law-fix",
+      "escreve": 1,
+      "encadeia": 1,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 29,
+      "id": "cds-build-identity",
+      "escreve": 0,
+      "encadeia": 0,
+      "naoEncadeia": 0,
+      "temGuarda": false
+    },
+    {
+      "ordem": 30,
+      "id": "cds-r18161-box-runs-execution",
+      "escreve": 8,
+      "encadeia": 4,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 31,
+      "id": "cds-r1817-release-meta",
+      "escreve": 4,
+      "encadeia": 2,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 32,
+      "id": "cds-r18172-approach-before-shot-meta",
+      "escreve": 5,
+      "encadeia": 3,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 33,
+      "id": "cds-r18173-defensive-responsibility",
+      "escreve": 8,
+      "encadeia": 6,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 34,
+      "id": "cds-r1818-offensive-progression",
+      "escreve": 8,
+      "encadeia": 7,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 35,
+      "id": "cds-r18181-second-phase-natural-out",
+      "escreve": 16,
+      "encadeia": 15,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 36,
+      "id": "cds-r18182-duels-natural-restarts",
+      "escreve": 18,
+      "encadeia": 17,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 37,
+      "id": "cds-r18183-corner-ecology",
+      "escreve": 11,
+      "encadeia": 11,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 38,
+      "id": "cds-r1820-chance-intelligence",
+      "escreve": 6,
+      "encadeia": 4,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 39,
+      "id": "cds-r1821-throwin-law",
+      "escreve": 8,
+      "encadeia": 6,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 40,
+      "id": "cds-r1821-post-recovery-decision",
+      "escreve": 2,
+      "encadeia": 0,
+      "naoEncadeia": 1,
+      "temGuarda": true
+    },
+    {
+      "ordem": 41,
+      "id": "cds-r1821-shot-plausibility",
+      "escreve": 3,
+      "encadeia": 1,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 42,
+      "id": "cds-r1821-press-anticipation",
+      "escreve": 4,
+      "encadeia": 2,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 43,
+      "id": "cds-r1821-respread-top",
+      "escreve": 0,
+      "encadeia": 0,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 44,
+      "id": "cds-r1821-tempo-e-pausas",
+      "escreve": 8,
+      "encadeia": 6,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 45,
+      "id": "cds-r1843-block-depth",
+      "escreve": 3,
+      "encadeia": 2,
+      "naoEncadeia": 0,
+      "temGuarda": false
+    },
+    {
+      "ordem": 46,
+      "id": "cds-r1849-carry-cone",
+      "escreve": 0,
+      "encadeia": 0,
+      "naoEncadeia": 0,
+      "temGuarda": false
+    },
+    {
+      "ordem": 47,
+      "id": "cds-os20-setpiece-hud",
+      "escreve": 2,
+      "encadeia": 1,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 48,
+      "id": "cds-os21-wall-taker",
+      "escreve": 2,
+      "encadeia": 1,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 49,
+      "id": "cds-os36-freekick-distance",
+      "escreve": 4,
+      "encadeia": 2,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 50,
+      "id": "cds-os39-block-on-flight",
+      "escreve": 2,
+      "encadeia": 1,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 51,
+      "id": "cds-os42-contest-the-cross",
+      "escreve": 2,
+      "encadeia": 1,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 52,
+      "id": "cds-os43-aerial-duel",
+      "escreve": 2,
+      "encadeia": 1,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 53,
+      "id": "cds-os46-anim-wiring",
+      "escreve": 5,
+      "encadeia": 3,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 54,
+      "id": "cds-os48-carry-flow",
+      "escreve": 3,
+      "encadeia": 1,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 55,
+      "id": "cds-os51-beaten-defender",
+      "escreve": 4,
+      "encadeia": 2,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 56,
+      "id": "cds-os77-common-foul-restart",
+      "escreve": 2,
+      "encadeia": 2,
+      "naoEncadeia": 0,
+      "temGuarda": false
+    },
+    {
+      "ordem": 57,
+      "id": "cds-os83-restart-watchdog",
+      "escreve": 2,
+      "encadeia": 2,
+      "naoEncadeia": 0,
+      "temGuarda": false
+    },
+    {
+      "ordem": 58,
+      "id": "cds-os90-gk-freekick-stance",
+      "escreve": 1,
+      "encadeia": 1,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 59,
+      "id": "cds-os92-shot-out-geometry",
+      "escreve": 2,
+      "encadeia": 2,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 60,
+      "id": "cds-os100-throwin-delivery",
+      "escreve": 2,
+      "encadeia": 2,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 61,
+      "id": "cds-os107-bloco-bola-parada",
+      "escreve": 3,
+      "encadeia": 3,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 62,
+      "id": "cds-os112-lateral-saida-e-apoio",
+      "escreve": 2,
+      "encadeia": 2,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 63,
+      "id": "cds-os113-falta-cartao",
+      "escreve": 2,
+      "encadeia": 1,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 64,
+      "id": "cds-r1899-antiteleporte",
+      "escreve": 3,
+      "encadeia": 3,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 65,
+      "id": "cds-r1903-falta-natural",
+      "escreve": 1,
+      "encadeia": 0,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 66,
+      "id": "cds-r1904-corte-que-sai",
+      "escreve": 2,
+      "encadeia": 0,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 67,
+      "id": "cds-r1905-papel-morre-com-o-lance",
+      "escreve": 2,
+      "encadeia": 1,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 68,
+      "id": "cds-os200-balistica-real",
+      "escreve": 11,
+      "encadeia": 0,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 69,
+      "id": "cds-os202-perseguicao",
+      "escreve": 1,
+      "encadeia": 1,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 70,
+      "id": "cds-os206-plano-do-portador",
+      "escreve": 3,
+      "encadeia": 3,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 71,
+      "id": "cds-os207-cerimonia-sem-tremor",
+      "escreve": 1,
+      "encadeia": 1,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 72,
+      "id": "cds-os212-toque-de-primeira",
+      "escreve": 2,
+      "encadeia": 1,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 73,
+      "id": "cds-os214-volta-para-casa",
+      "escreve": 2,
+      "encadeia": 2,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 74,
+      "id": "cds-os216-cruzamento",
+      "escreve": 3,
+      "encadeia": 3,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 75,
+      "id": "cds-os229-arbitragem",
+      "escreve": 2,
+      "encadeia": 1,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 76,
+      "id": "cds-os231-batedor",
+      "escreve": 3,
+      "encadeia": 2,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 77,
+      "id": "cds-os263-cerimonia",
+      "escreve": 1,
+      "encadeia": 1,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    },
+    {
+      "ordem": 78,
+      "id": "cds-os267-corte",
+      "escreve": 1,
+      "encadeia": 1,
+      "naoEncadeia": 0,
+      "temGuarda": true
+    }
+  ]
+}

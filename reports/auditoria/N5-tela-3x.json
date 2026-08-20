@@ -1,0 +1,129 @@
+{
+  "ferramenta": "tools/auditoria/tela.js",
+  "geradoEm": "2026-08-20T20:47:21.769Z",
+  "build": "build-atual.html",
+  "janelaS": 120,
+  "velocidadeBotao": 3,
+  "partida": {
+    "simulados": 328.5,
+    "minuto": 22,
+    "placar": [
+      0,
+      0
+    ]
+  },
+  "custoDeTela": {
+    "paredePorSimulacao": 0.3653,
+    "partidaInteiraMin": 8.3,
+    "obs": "partidaInteiraMin projeta 1.366 s de simulacao no custo medido nesta janela"
+  },
+  "orcamentoDeTela": {
+    "fracaoParedeBolaMorta": 0.251,
+    "fracaoSimBolaMorta": 0.2093,
+    "cerimoniaS": 19.4,
+    "obs": "se a fracao de PAREDE morta e muito maior que a de SIMULACAO morta, a espera esta sendo esticada na tela"
+  },
+  "pausas": {
+    "foul": {
+      "n": 9,
+      "paredeMsP50": 2001,
+      "paredeMsP90": 2246,
+      "paredeMsMax": 2246,
+      "simSP50": 2.83
+    },
+    "goal_kick": {
+      "n": 6,
+      "paredeMsP50": 1102,
+      "paredeMsP90": 1148,
+      "paredeMsMax": 1148,
+      "simSP50": 1.58
+    },
+    "sem_evento": {
+      "n": 5,
+      "paredeMsP50": 437,
+      "paredeMsP90": 577,
+      "paredeMsMax": 577,
+      "simSP50": 4.52
+    },
+    "throw_in": {
+      "n": 3,
+      "paredeMsP50": 322,
+      "paredeMsP90": 324,
+      "paredeMsMax": 324,
+      "simSP50": 3.12
+    },
+    "yellow": {
+      "n": 1,
+      "paredeMsP50": 2233,
+      "paredeMsP90": 2233,
+      "paredeMsMax": 2233,
+      "simSP50": 5.03
+    }
+  },
+  "fluidez": {
+    "quadros": 11188,
+    "fpsMedio": 93.2,
+    "quadroMsMedio": 10.73,
+    "quadroMsPior": 90.9,
+    "passosDeSimulacao": 19710,
+    "fracaoQuadrosSemPasso": 0.1779,
+    "fracaoQuadrosCom2OuMais": 0.5843,
+    "obs": "passos por quadro medem a VELOCIDADE escolhida, nao a fluidez: no 3X e normal desenhar ~2 passos por quadro.",
+    "desenho": {
+      "disponivel": true,
+      "amostras": 246114,
+      "deslocamentoMedianoPx": 0.735,
+      "fracaoTremor": 0.0021,
+      "fracaoSalto": 0.0239,
+      "obs": "tremor = deslocamento desenhado que inverte de direcao entre quadros; salto = passada 4x acima da mediana. Esta e a medida de fluidez."
+    }
+  },
+  "eventosContagem": {
+    "kickoff": 1,
+    "match_phase": 206,
+    "action_prepare": 102,
+    "action_contact": 93,
+    "pass": 72,
+    "visual_contact": 111,
+    "pressure": 139,
+    "containment": 60,
+    "tackle_attempt": 21,
+    "foul": 10,
+    "falta_cobrada": 6,
+    "falta_atras_cobrada": 6,
+    "action_interrupted": 9,
+    "run_burst": 3,
+    "through": 9,
+    "looseControl": 5,
+    "dribble": 4,
+    "run_break": 9,
+    "shot_taken": 5,
+    "finish_choice": 5,
+    "miss": 6,
+    "goal_kick": 7,
+    "tackle": 12,
+    "throw_in": 3,
+    "cross": 8,
+    "header_shot": 2,
+    "blocked": 2,
+    "offside_trap": 4,
+    "bad_pass": 10,
+    "intercept": 4,
+    "freekick_routine": 4,
+    "defensive_error": 1,
+    "header_clear": 3,
+    "clear_out": 1,
+    "corner": 3,
+    "corner_delivery": 3,
+    "gk_claim": 3,
+    "yellow": 1,
+    "gk_sweep": 2,
+    "intercept_attempt_aborted": 2,
+    "freekick": 1,
+    "shot_deferred": 3
+  },
+  "erros": {
+    "pageerror": [],
+    "consoleError": []
+  }
+}
