@@ -19,6 +19,18 @@
      R3  fracao dos atletas ja posicionados (<= 3 m do posto)
      R4  quanto o POSTO andou durante a parada  (o alvo fugiu?)
      R5  quanto o CORPO andou durante a parada  (ele tentou?)
+     R6  fracao dos atletas na PROPRIA METADE quando a bola rola
+     R7  a maior invasao da metade adversaria, em metros
+
+   §R6 e R7 existem porque R1 MENTE quando a janela muda de tamanho. R1 mede a
+   distancia ao posto `hx/hy`, e a camada tatica recalcula esse posto durante a
+   parada inteira -- R4 mostra que ele anda 32 m. Esticar a janela deixa o
+   atleta chegar no alvo que ele perseguia E da mais tempo para o posto fugir,
+   entao R1 pode piorar enquanto o campo FICA mais arrumado.
+
+   Estar na propria metade no pontape nao e preferencia tatica: e regra do
+   jogo, nao se move, e e o que o olho le como "time bem posto". Os dois
+   batedores do circulo central sao excluidos -- o lugar deles e o meio.
 
    R4 e R5 juntos sao o que separa "o atleta nao anda" de "o atleta persegue um
    alvo que foge" -- distincao que custou tres hipoteses erradas para aparecer,
@@ -142,6 +154,8 @@ function medir(n) {
       /* a medicao acontece no quadro em que a bola VOLTA A ROLAR */
       if (pend && morta && !agoraMorta) {
         let soma = 0, pior = 0, perto = 0, poste = 0, corpo = 0, k = 0;
+        let naMetade = 0, invasao = 0, m = 0;
+        const dono = this.ball && this.ball.owner;
         for (const b of pend) {
           const p = b.p; if (!p || p.red) continue;
           const d = Math.hypot(p.x - p.hx, p.y - p.hy);
@@ -149,8 +163,20 @@ function medir(n) {
           poste += Math.hypot(p.hx - b.hx, p.hy - b.hy);
           corpo += Math.hypot(p.x - b.px, p.y - b.py);
           k++;
+          /* R6/R7 · a REGRA. `attackDir > 0` ataca para +x, entao a propria
+             metade e x <= FL/2. O batedor do circulo fica de fora. */
+          if (p === dono) continue;
+          const tm = this.teams[p.team];
+          const dir = (tm && tm.attackDir > 0) ? 1 : -1;
+          const dentro = dir > 0 ? (p.x <= FL / 2) : (p.x >= FL / 2);
+          const fora = dir > 0 ? (p.x - FL / 2) : (FL / 2 - p.x);
+          if (dentro) naMetade++; else if (fora > invasao) invasao = fora;
+          m++;
         }
-        if (k) R.push({ media: soma / k, pior, perto: perto / k, poste: poste / k, corpo: corpo / k });
+        if (k) R.push({
+          media: soma / k, pior, perto: perto / k, poste: poste / k, corpo: corpo / k,
+          metade: m ? naMetade / m : 1, invasao
+        });
         pend = null;
       }
       morta = agoraMorta;
@@ -191,6 +217,10 @@ linha('R5 quanto o CORPO andou na parada', x => x.corpo, ' m');
 const g3 = q(R, x => x.perto);
 console.log('   ' + 'R3 fracao ja posicionada (<= ' + PERTO + ' m)'.padEnd(44) +
   (100 * g3(.50)).toFixed(0).padStart(7) + '%   p10 ' + (100 * g3(.10)).toFixed(0) + '%');
+const g6 = q(R, x => x.metade);
+console.log('   ' + 'R6 fracao na PROPRIA METADE (regra)'.padEnd(44) +
+  (100 * g6(.50)).toFixed(0).padStart(7) + '%   p10 ' + (100 * g6(.10)).toFixed(0) + '%');
+linha('R7 maior invasao da metade adversaria', x => x.invasao, ' m');
 console.log('\n   R4 e R5 juntos separam "o atleta nao anda" de "o atleta persegue um alvo');
 console.log('   que foge". A distancia final sozinha nao distingue os dois casos.');
 process.exit(0);

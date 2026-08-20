@@ -61,6 +61,84 @@ const CORTA = {
   red:     { espera: 900, saida: 260, escuro: 260, entrada: 360 },
 };
 
+/* §OS-268 · O PONTAPE DEPOIS DO GOL TAMBEM PRECISA DE CORTE, e mais que a
+   falta. Medido em ~165 pontapes (`tools/fisica/o-reinicio.js`): no instante em
+   que a bola volta a rolar, o atleta esta a 9,7 m do posto na media e so 27%
+   estao posicionados -- porque o POSTE anda 32,6 m durante a parada enquanto o
+   corpo anda 24,3, e a caminhada persegue um alvo que foge.
+
+   Quatro tentativas de consertar isso PELA POSICAO foram medidas e revertidas,
+   todas pelo mesmo motivo: o alvo de caminhada e `__spTarget`, compartilhado
+   com a falta, o escanteio, o lateral e o goleiro, e nao ha variante que nao
+   contamine a cobranca (F2 de 0,97 m de pior caso para 16-20 m).
+
+   O corte resolve por outro caminho: nao arruma nada, so nao MOSTRA a arrumacao.
+   Zero escrita no motor.
+
+   E o escuro aqui e ADAPTATIVO, nao cronometrado: ele dura enquanto ainda
+   houver alguem com `__spTarget`, ou seja, enquanto o campo estiver se
+   montando. Cronometro fixo erraria dos dois lados -- curto demais devolve a
+   imagem com o time andando, longo demais deixa a tela preta com o campo ja
+   pronto. Com teto duro, porque tela preta presa e pior que time desarrumado.
+
+   §OS-268b · O TETO CAIU DE 1500 PARA 420 ms, e o motivo e que a PRIMEIRA
+   versao media isto, em partida inteira a 3X:
+
+       kickoff   dur 1835 ms   quadros pretos 91   alvos ao voltar 11
+       kickoff   dur 1969 ms   quadros pretos 88   alvos ao voltar 11
+       kickoff   dur 1933 ms   quadros pretos 91   alvos ao voltar 11
+
+   Um segundo e meio de tela preta E a imagem voltando com onze jogadores ainda
+   andando: o pior dos dois lados. O corte nao era longo demais por si -- ele
+   era refem da caminhada, que levava ~1950 ms de parede porque a janela de
+   cerimonia da OS-263 continuava valendo depois do pontape e mantinha tudo a
+   1x. Com a §OS-263b encerrando a cerimonia no `_kickoff`, a mesma caminhada
+   volta a ser burocracia (`_espera` 3,5x sobre o botao) e cabe em centenas de
+   milissegundos. O teto so precisa cobrir isso, com folga.
+
+   §OS-269b · O TETO ESCALA PELO BOTAO, e NAO tenta prever a caminhada.
+   A primeira tentativa converteu os segundos de bola morta em milissegundos de
+   parede pela conta do proprio laco de render, `parede = simulacao / (botao x
+   ADIANTA_PARADA)`. Parece exata e erra na pratica, medido:
+
+       dead 5,50 s   far 34,7 m   teto previsto 907 ms   caminhada real 569 ms
+       dead 3,38 s   far 18,1 m   teto previsto 634 ms   caminhada real 634 ms
+
+   A conta supoe `_espera` cheio a parada inteira, e basta um punhado de
+   quadros em que ela nao valha para a parede esticar sem o teto esticar junto
+   -- e ai o escuro para de se estender com o time ainda andando. Previsao
+   errada e pior que teto generoso, porque quem DECIDE o fim do escuro nunca
+   foi o teto: e a arrumacao terminar. O teto so existe para a tela nao ficar
+   presa no preto se o campo nunca se montar.
+
+   Entao ele escala pelo unico fator que escala o relogio de parede de forma
+   conhecida -- o botao de velocidade -- e sobra de proposito. */
+const ESCURO_BASE = 2400;             // ms de parede a 1X, dividido pelo botao
+const ESCURO_MIN = 400;               // piso: abaixo disso o corte vira piscada
+const ESCURO_MAX = 1800;              // teto duro: preto preso e pior que time torto
+
+function tetoDoEscuro() {
+  try {
+    const vel = Number(root.__CDS_VELVIS);
+    const botao = (vel > 0.05 && isFinite(vel)) ? vel : 1;
+    return Math.max(ESCURO_MIN, Math.min(ESCURO_MAX, ESCURO_BASE / botao));
+  } catch (_) { return 800; }
+}
+
+function aindaArrumando(sim) {
+  try {
+    const tms = (sim && sim.teams) || [];
+    for (let i = 0; i < tms.length; i++) {
+      const pl = tms[i].players || [];
+      for (let j = 0; j < pl.length; j++) {
+        const p = pl[j];
+        if (p && !p.red && p.__spTarget) return true;
+      }
+    }
+  } catch (_) { }
+  return false;
+}
+
 function agora() {
   try { return (root.performance && root.performance.now) ? root.performance.now() : Date.now(); }
   catch (_) { return Date.now(); }
@@ -88,11 +166,49 @@ P._emit = function (t, d) {
   return oldEmit.apply(this, arguments);
 };
 
+/* O pontape depois do gol nao emite evento (`_kickoff(side, false)`), entao o
+   gatilho e o proprio metodo. So LE o relogio e marca um estado de desenho --
+   nao escreve nada no motor.
+
+   O pontape de COMECO de partida (`start === true`) fica de fora: nao ha nada
+   a esconder ali -- o dono acabou de mandar comecar e o campo ja esta montado
+   na formacao. Cortar seria um piscar preto na primeira imagem do jogo. */
+const oldKickoff = P._kickoff;
+if (typeof oldKickoff === 'function') {
+  P._kickoff = function (side, start) {
+    const r = oldKickoff.apply(this, arguments);
+    try {
+      if (!start && (Number(this.t) || 0) > 0.5) {
+        const t0 = agora();
+        root.__CDS_CORTE = {
+          tipo: 'kickoff', t0: t0, adaptativo: true,
+          fimSaida: t0 + 200,
+          fimEscuro: t0 + 200 + 180,
+          fim: t0 + 200 + 180 + 300,
+          /* `tetoEscuro` fica para a primeira consulta do render: a OS-269
+             embrulha ESTE metodo, entao o `__CDS_PONTAPE_JANELA` deste lance
+             so existe depois que este bloco terminou. Ler aqui pegaria a
+             janela do pontape ANTERIOR. */
+          tetoEscuro: null,
+        };
+      }
+    } catch (_) { }
+    return r;
+  };
+}
+
 /* Consultada pelo laco de render, uma vez por quadro.
    Devolve { veu } — o alfa do preto, de 0 a 1. So isso: ver §OS-267b.
 
    O corte MORRE assim que a bola volta a rolar: se o motor reiniciou antes do
-   previsto, nao ha nada a esconder e segurar a tela seria mentira. */
+   previsto, nao ha nada a esconder e segurar a tela seria mentira.
+
+   MAS SO ATE O ESCURO. Depois que a entrada comecou, a imagem ja esta voltando
+   e matar o veu no meio dela troca um clareamento de 300 ms por um POP -- foi
+   o que aconteceu nos tres pontapes medidos, em que a bola voltava a rolar aos
+   ~600 ms e o corte era anulado ali, com a tela ainda meio preta. A entrada
+   termina sempre: um fade sobre bola rolando e exatamente a cara de uma volta
+   de transmissao. */
 root.__cdsCorte = function (sim) {
   try {
     const C = root.__CDS_CORTE;
@@ -100,8 +216,16 @@ root.__cdsCorte = function (sim) {
     const n = agora();
     if (n >= C.fim) { root.__CDS_CORTE = null; return null; }
     const morta = !!(sim && (Number(sim.dead) || 0) > 0);
-    if (!morta && n > C.t0) { root.__CDS_CORTE = null; return null; }
+    if (!morta && n > C.t0 && n < C.fimEscuro) { root.__CDS_CORTE = null; return null; }
     if (n < C.t0) return null;                       // ainda na camera lenta
+    /* §OS-268 · o escuro ADAPTATIVO espera o campo se montar */
+    if (C.adaptativo) {
+      if (C.tetoEscuro == null) C.tetoEscuro = C.fimSaida + tetoDoEscuro();
+      if (n >= C.fimSaida && n < C.tetoEscuro && aindaArrumando(sim)) {
+        const desloca = C.fimEscuro - n;
+        if (desloca < 16) { C.fimEscuro = n + 16; C.fim = C.fimEscuro + 300; }
+      }
+    }
     let veu;
     if (n < C.fimSaida) veu = (n - C.t0) / (C.fimSaida - C.t0);
     else if (n < C.fimEscuro) veu = 1;
@@ -134,6 +258,12 @@ root.CDS_OS267 = Object.freeze({
   feature: 'BROADCAST_CUT_HIDES_THE_RESTART_SETUP',
   rngAdded: false, xgChange: false, corta: CORTA
 });
-root.CDS_BUILD_ID = 'R19.17'; root.CDS_VERSION = '5.80.5-R19.17';
-try { document.title = 'Copa dos Sonhos — R19.17'; } catch (_) { }
+root.CDS_OS268 = Object.freeze({
+  versao: 'OS-268', instalado: true,
+  feature: 'CUT_ALSO_COVERS_THE_KICKOFF_AFTER_A_GOAL',
+  rngAdded: false, xgChange: false,
+  escuroBase: ESCURO_BASE, escuroMin: ESCURO_MIN, escuroMax: ESCURO_MAX
+});
+root.CDS_BUILD_ID = 'R19.18'; root.CDS_VERSION = '5.80.5-R19.18';
+try { document.title = 'Copa dos Sonhos — R19.18'; } catch (_) { }
 })(typeof window !== 'undefined' ? window : globalThis);

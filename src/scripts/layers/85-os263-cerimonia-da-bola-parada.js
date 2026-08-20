@@ -102,6 +102,32 @@ P._emit = function (t, d) {
   return oldEmit.apply(this, arguments);
 };
 
+/* §OS-263b · A CERIMONIA ACABA QUANDO A BOLA VAI PARA O MEIO.
+   Medido em partida inteira a 3X (`scratchpad/linha-do-corte.js`, 3 gols):
+
+       goal      t = 268634
+       _kickoff  t = 269801   dead = 2,2 s   22 alvos de caminhada
+       arrumado  t = 271785   -> 1984 ms de PAREDE andando de volta
+
+   A comemoracao dura do apito ate a bola ser colocada no circulo central: 1,2 s
+   aqui, que e o `dead` do gol. O que vem DEPOIS do `_kickoff` e a caminhada de
+   volta a formacao -- burocracia pura, ninguem transmite isso. E a janela de
+   2600 ms da cerimonia ainda estava valendo, segurando `_espera` em 1 e o
+   multiplicador do botao em 1: os 2,2 s de simulacao da caminhada viravam 2 s
+   de parede em vez dos ~210 ms que a burocracia normal levaria a 3X.
+
+   Encerrar a janela no pontape devolve a caminhada ao ritmo de burocracia sem
+   encurtar um milissegundo da comemoracao. Nao toca `dead` nem posicao: so
+   apaga um estado de APRESENTACAO que ja cumpriu o que tinha para cumprir. */
+const oldKickoffCer = P._kickoff;
+if (typeof oldKickoffCer === 'function') {
+  P._kickoff = function () {
+    const r = oldKickoffCer.apply(this, arguments);
+    try { root.__CDS_CERIMONIA = null; } catch (_) { }
+    return r;
+  };
+}
+
 /* Consultada pelo laco de render. Devolve `true` enquanto a cerimonia vale E a
    bola ainda esta morta -- assim que o jogo volta a rolar, a janela nao segura
    nada, mesmo que ainda houvesse tempo nela. */

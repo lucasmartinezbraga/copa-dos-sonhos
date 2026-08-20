@@ -98,6 +98,16 @@ def main():
         resultados.append(etapa('lances — falta, desarme, lateral, escanteio, saida de bola',
                                 ['node', 'tools/fisica/tela/validar-lances.js',
                                  'dist/index.html', '--segundos=' + seg_lances]))
+        # §OS-268 · O CORTE tem DOIS jeitos de dar errado e cada um tem um
+        # remedio que piora o outro: curto demais devolve a imagem com o time
+        # andando, longo demais deixa o dono olhando um retangulo preto. A
+        # primeira versao conseguiu os dois ao mesmo tempo (1,9 s de veu com 11
+        # ainda caminhando) e PASSOU em verify, smoke e bateria -- todos
+        # continuam certos com a tela preta. Esta etapa mede as duas juntas.
+        # Ela colhe ate ter amostra e para sozinha; o teto e so o limite.
+        resultados.append(etapa('corte — o veu esconde a arrumacao e devolve o campo montado',
+                                ['node', 'tools/fisica/tela/o-corte-do-lance.js',
+                                 'dist/index.html', '--vel=3', '--seg=700']))
 
     print('\n' + '=' * 78)
     print('A MESA')

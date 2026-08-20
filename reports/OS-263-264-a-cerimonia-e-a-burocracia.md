@@ -289,6 +289,163 @@ afetar a simulação nem por acidente.
 
 ---
 
+## OS-268 — o pontapé depois do gol, e a cerimônia que não sabia acabar
+
+O relato do dono é o mesmo de sempre, e é o caso com a pior arrumação medida:
+*"quando rola um gol o jogo começa do nada sem os jogadores se organizarem"*.
+
+A OS-264 diagnosticou isso por completo (o poste anda 32,6 m, os atletas
+perseguem um alvo que foge) e a correção por posição foi revertida três vezes
+por contaminar a cobrança de falta. **O corte resolve por outro caminho: não
+arruma nada, só não mostra a arrumação.** Zero escrita no motor.
+
+**A primeira versão do corte de pontapé foi um fracasso instrutivo.** Medida em
+partida inteira a 3×, três gols:
+
+| | duração do véu | quadros pretos | ainda caminhando ao voltar |
+|---|---|---|---|
+| pontapé 1 | 1835 ms | 91 | 11 |
+| pontapé 2 | 1969 ms | 88 | 11 |
+| pontapé 3 | 1933 ms | 91 | 11 |
+
+Um segundo e meio de tela preta **e** a imagem voltando com onze jogadores ainda
+andando. O pior dos dois lados.
+
+**A causa não estava no corte.** A linha do tempo de um gol denuncia:
+
+```
+goal       t = 268634
+_kickoff   t = 269801   dead = 2,2 s   22 alvos de caminhada
+arrumado   t = 271785   ->  1984 ms de PAREDE caminhando de volta
+```
+
+A caminhada de volta à formação leva 2,2 s de *simulação*, que como burocracia
+normal (`_espera` 3,5× sobre o botão) caberia em ~210 ms de parede a 3×. Levava
+1984 ms porque **a janela de cerimônia da OS-263 ainda estava valendo depois do
+pontapé**, segurando `_espera` em 1 e o multiplicador do botão em 1.
+
+E isso é a OS-263 aplicada larga demais — exatamente o erro que ela própria
+diagnosticou na OS-203, agora cometido por mim. A comemoração vai do apito até a
+bola ser colocada no círculo central; o que vem **depois** do `_kickoff` é
+caminhada de volta, burocracia pura. Ninguém transmite isso.
+
+**§OS-263b** encerra a janela no `_kickoff` — apaga um estado de *apresentação*
+que já cumpriu o que tinha para cumprir, sem tocar `dead`, posição ou RNG, e sem
+encurtar um milissegundo da comemoração. Com ela, a mesma caminhada:
+
+| | antes | depois |
+|---|---|---|
+| caminhada de volta, em parede | 1850 · 1984 · 1952 ms | 518 · 618 · 685 ms |
+
+Aí o corte passou a caber. **§OS-268b** derrubou o teto do escuro de 1500 para
+700 ms, e **§OS-267c** deixou a entrada terminar: matar o véu no meio dela —
+que era o que acontecia quando a bola voltava a rolar aos ~600 ms — troca um
+clareamento de 300 ms por um *pop*. Fade sobre bola rolando é exatamente a cara
+de uma volta de transmissão.
+
+| pontapé após gol | duração do véu | quadros pretos | **ainda caminhando ao voltar** |
+|---|---|---|---|
+| primeira versão | 1835–1969 ms | ~90 | **11** |
+| **final** | **983 ms** | **30** | **0** |
+
+Zero. A imagem volta com o campo inteiro montado. Na folha de contato
+(`reports/imagens/lance-gol-corte.png`): gol e comemoração até +1052 ms,
+escurece em +1169, preto de +1403 a +1987, imagem de volta **já no círculo
+central com o campo montado** em +2221, bola rolando em +2338.
+
+O pontapé de *começo de partida* ficou de fora do corte (`start === true`): não
+há nada a esconder ali — o dono acabou de mandar começar e o campo já está na
+formação. Cortar seria um piscar preto na primeira imagem do jogo.
+
+**A lição, e ela se repete nesta rodada inteira:** o defeito não estava na peça
+nova. Estava numa peça anterior minha, correta na intenção e larga demais na
+aplicação — a mesma frase que escrevi sobre a OS-203 sessenta linhas acima.
+
+---
+
+## OS-269 — o motor desistia da caminhada no meio
+
+Com o corte no ar, a sonda nova (`tools/fisica/tela/o-corte-do-lance.js`)
+mostrou que o resultado era **bimodal**:
+
+```
+dur   900 ms   caminhando 22 ->  0   vales 0
+dur   603 ms   caminhando 21 -> 10   vales 0
+dur   543 ms   caminhando 22 -> 11   vales 0
+```
+
+`vales 0` mata a hipótese de quadro perdido: `__spTarget` nunca oscila dentro da
+janela. Ou os 22 chegam, ou metade do time para no meio do caminho — e o véu,
+corretamente, deixa de esconder o que já não está acontecendo.
+
+**A causa é o `DEAD_CAP = 2,2 s` da camada 18**, e ela é deliberada: 2,2 s a
+~6 m/s cobrem ~13 m, e o comentário de lá diz por quê — *"jogador atrasado para
+o escanteio existe"*. Para o escanteio, certo. Para o pontapé depois de um gol,
+os 22 estão amontoados numa área e `far` passa dos 13 m quase sempre.
+
+A OS-269 estica `dead` **só nesse pontapé** até caber a caminhada mais longa que
+a camada 18 acabou de agendar. Ela **lê** `__spTarget` e não escreve nele — foi
+a escrita nesse alvo compartilhado que derrubou as cinco tentativas da OS-264.
+
+**E aqui eu ia errar a justificativa.** Escrevi na camada que a regra "cada time
+na própria metade" estava sendo violada. Medi antes de fechar, 34 partidas e
+160 pontapés, e ela não estava:
+
+| | sem OS-269 | com OS-269 |
+|---|---|---|
+| R1 distância média ao posto | 15,9 m | 16,0 m |
+| **R6 fração na própria metade** | **100%** | **100%** |
+| R2 atleta mais longe, pior caso | 56,0 m | **45,3 m** |
+| R7 maior invasão da metade, pior | 13,3 m | **5,4 m** |
+
+R6 é 100% dos dois lados. E **R1 não melhora porque não pode**: o posto `hx/hy`
+anda 32,5 m durante a parada (R4), então o atleta chega no alvo que perseguia e
+o posto já é outro. Isso continua sendo a OS-264, em aberto.
+
+O que a OS-269 entrega é a **cauda** e a apresentação: o pior atleta deixa de
+terminar a 56 m do posto, a pior invasão cai pela metade, e a caminhada termina
+em vez de ser abandonada — que era o que fazia o véu devolver a imagem com dez
+ou onze atletas parados em lugares aleatórios.
+
+**R6 e R7 são novos em `o-reinicio.js`**, e existem porque R1 mente quando a
+janela muda de tamanho: ele mede contra um posto que se move, então esticar a
+janela deixa o atleta chegar **e** dá mais tempo para o alvo fugir. R1 pode
+piorar enquanto o campo fica mais arrumado.
+
+**Bateria, 48 partidas, antes e depois:** 10/13 → 12/13 métricas na faixa
+(`goalsPerMatch` 3,21 → 3,17 e `redsPerMatch` 0,375 → 0,271 entraram;
+`onTargetRate` 0,325 → 0,338, ainda abaixo do piso 0,34). Com 48 partidas isso é
+pouco para cravar melhora — o que importa é que **nada saiu da faixa**. O custo
+em tempo de jogo é de ~3 s de simulação por pontapé, dois ou três por partida,
+e `dead` não move o relógio da partida.
+
+### O teto do escuro, e uma previsão que não se sustentou
+
+A primeira versão do teto convertia bola morta em parede pela conta do próprio
+laço de render, `parede = simulação / (botão × ADIANTA_PARADA)`. Parece exata:
+
+```
+dead 5,50 s   far 34,7 m   teto previsto 907 ms   caminhada real 569 ms
+dead 3,38 s   far 18,1 m   teto previsto 634 ms   caminhada real 634 ms
+```
+
+A conta supõe `_espera` cheio a parada inteira, e basta um punhado de quadros em
+que ela não valha para a parede esticar sem o teto esticar junto. **Previsão
+errada é pior que teto generoso**, porque quem decide o fim do escuro nunca foi
+o teto — é a arrumação terminar. O teto só existe para a tela não ficar presa no
+preto. Ele escala pelo botão (`2400 / velocidade`, entre 400 e 1800 ms) e sobra
+de propósito.
+
+Resultado, quatro corridas seguidas da sonda, oito cortes de pontapé:
+
+| | primeira OS-268 | final |
+|---|---|---|
+| chegaram ao posto | 11 de 22 em metade dos casos | **22 de 22, 8 em 8** |
+| duração do véu | 1835–1969 ms | 847–963 ms |
+| tela preta | ~1500 ms | 356–498 ms |
+
+---
+
 ## Três sondas consertadas no caminho
 
 Perseguindo essas medições descobri que **três gates estavam medindo a coisa
@@ -320,16 +477,29 @@ vezes derrubou a conclusão.
 
 ## O que continua em aberto
 
-- **`atleta_congelado_20s` é intermitente e PRÉ-EXISTENTE.** A Mesa reprovou uma
-  execução com 3 ocorrências (Beckham). Repetindo na mesma build: limpo. E o
-  build **já commitado** (HEAD anterior) também acusa 1 ocorrência (Courtois) em
-  1 de 3 execuções. Nenhuma mudança desta rodada mexe na simulação — ângulo de
-  membro e acumulador de render não congelam jogador — então não é regressão
-  daqui. Mas é defeito de verdade: um atleta que não anda 1,5 m em 20 s de jogo
-  **vivo** não é futebol. Fica na fila, e a `sanidade` deveria rodar com semente
-  fixa para deixar de ser loteria.
-- **A formação do pontapé inicial** — ver OS-264 acima: falta a decisão de design
-  antes de qualquer código.
+- **`atleta_congelado_20s` é intermitente e PRÉ-EXISTENTE**, e desta vez com
+  medição pareada em vez de impressão. Quatro execuções de cada lado, mesma
+  janela de 230 s:
+
+  | | HEAD | build desta rodada |
+  |---|---|---|
+  | `atleta_congelado_20s` | 2 · 8 · 7 · 8 | 6 · 1 · 2 · 4 |
+  | `atletas_empilhados` | 22 · 0 · 0 · 0 | 0 · 0 · 0 · 0 |
+
+  O flag aparece em 4/4 do HEAD e o build novo fica **abaixo** dele — a Mesa
+  estava vermelha nisso antes desta rodada. Mas continua defeito de verdade: um
+  atleta que não anda 1,5 m em 20 s de jogo **vivo** não é futebol, e o exemplo
+  é sempre goleiro (Seaman, Courtois) com a bola a menos de 35 m. Fica na fila,
+  e a `sanidade` deveria rodar com semente fixa para deixar de ser loteria.
+  `atletas_empilhados` tem causa conhecida: `_resolveOverlaps` exclui goleiros
+  por construção.
+- **O POSTE que anda 32,5 m durante a parada** é o que sobra da OS-264, e a
+  OS-269 confirmou que não dá para contornar por tempo: com janela maior o
+  atleta chega ao alvo que perseguia e o alvo já é outro (R1 fica em 16 m dos
+  dois lados). A correção medida existe — re-mirar no poste vivo quadro a quadro
+  levava R1 a 3,2 m — e continua barrada pelo mesmo motivo: ela precisa de um
+  **alvo de caminhada próprio**, que não seja `__spTarget`, com a camada 18
+  ensinada a respeitá-lo. Isso é mudança na camada 18.
 
 
 - **A falta ainda "acontece do nada" no sentido de causa**, e isso a OS-263 não
