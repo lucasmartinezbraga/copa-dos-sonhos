@@ -80,6 +80,13 @@ def main():
         resultados.append(etapa('autoteste — o Arbitro pega a pane da OS-247?',
                                 ['node', 'tools/fisica/tela/arbitro.js',
                                  'dist/index.html', '--segundos=45', '--autoteste']))
+        # §OS-270 · a sanidade tambem se prova antes de julgar. A guarda do
+        # "goleiro esperando" AFROUXA o flag de atleta congelado, e sonda
+        # afrouxada tem de mostrar que ainda pega o defeito: o autoteste prega
+        # um jogador de linha no lugar e exige a reprovacao.
+        resultados.append(etapa('autoteste — a sanidade pega um jogador pregado no lugar?',
+                                ['node', 'tools/fisica/tela/sanidade.js',
+                                 'dist/index.html', '--segundos=60', '--autoteste']))
         resultados.append(etapa('sanidade — o que nunca pode acontecer',
                                 ['node', 'tools/fisica/tela/sanidade.js',
                                  'dist/index.html', '--segundos=' + SEGUNDOS]))

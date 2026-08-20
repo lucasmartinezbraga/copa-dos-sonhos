@@ -37,6 +37,9 @@ const argv = Object.fromEntries(process.argv.slice(2).filter(a => a.startsWith('
 }));
 const alvo = path.resolve(process.argv.slice(2).find(a => !a.startsWith('--')) || 'dist/index.html');
 const SEGUNDOS = Number(argv.segundos || 240);
+/* §OS-270 · o portao se prova antes de julgar: prega um jogador de linha no
+   lugar e exige que `atleta_congelado_20s` dispare. */
+const AUTOTESTE = !!argv.autoteste;
 
 (async () => {
   const navegador = await chromium.launch({
@@ -51,8 +54,9 @@ const SEGUNDOS = Number(argv.segundos || 240);
   await pagina.goto(pathToFileURL(alvo).href, { waitUntil: 'load', timeout: 120000 });
   await pagina.waitForTimeout(1500);
 
-  await pagina.evaluate(() => {
+  await pagina.evaluate((AUTOTESTE) => {
     const FLv = window.FL || 105, FWv = window.FW || 68;
+    window.__sanAutoteste = AUTOTESTE;
     const S = window.__san = { quadros: 0, achados: Object.create(null), exemplos: Object.create(null) };
     const flag = (k, ex) => {
       S.achados[k] = (S.achados[k] || 0) + 1;
@@ -75,6 +79,19 @@ const SEGUNDOS = Number(argv.segundos || 240);
       try {
         S.quadros++;
         const b = this.ball, t = Number(this.t) || 0;
+        /* §AUTOTESTE · a guarda do goleiro esperando afrouxa o flag de atleta
+           congelado, e sonda afrouxada tem de PROVAR que ainda pega o defeito.
+           Aqui um jogador de linha e pregado no lugar de proposito: se
+           `atleta_congelado_20s` nao aparecer, a sonda virou enfeite. */
+        if (window.__sanAutoteste && t > 3) {
+          const vitima = (this.teams[0].players || []).find(p => p && !p.red && !p.isGK);
+          if (vitima) {
+            if (vitima.__sanPreso == null) vitima.__sanPreso = { x: vitima.x, y: vitima.y };
+            vitima.x = vitima.__sanPreso.x; vitima.y = vitima.__sanPreso.y;
+            vitima.vx = 0; vitima.vy = 0;
+            S.cobaia = (vitima.ref && vitima.ref.n) || '?';
+          }
+        }
 
         if (tAnt >= 0 && t < tAnt - 1e-9) flag('relogio_para_tras', { t, tAnt });
         tAnt = t;
@@ -153,13 +170,39 @@ const SEGUNDOS = Number(argv.segundos || 240);
                o que goleiro faz. Vinte segundos de jogo com a bola a mais de
                35 m nao pedem reposicionamento nenhum.
                O flag continua valendo para quem esta na jogada, goleiro
-               incluido: e ali que ficar parado e defeito. */
+               incluido: e ali que ficar parado e defeito.
+
+               §A ISENCAO TEM DE PARAR O RELOGIO, E NAO SO A VERIFICACAO.
+               A versao anterior desta guarda pulava o teste nos quadros isentos
+               e deixava o CARIMBO de tempo intacto -- entao o goleiro que ficou
+               parado 40 s com a bola a 50 m era acusado no instante em que a
+               bola entrava nos 35 m, com 20 s de relogio que nunca lhe pediram
+               movimento nenhum. Medido em 12 partidas sem navegador:
+
+                   relogio parando na isencao        0 episodios
+                   relogio correndo (versao antiga)  94 episodios
+
+               e nos 94, a bola NUNCA chegou perto: mediana de 29,0 m de
+               aproximacao maxima, com `bolaMax` colado nos 35,0 m do limite --
+               ou seja, todo episodio era um goleiro raspando a fronteira da
+               isencao. O corpo estava a 0,9 m do proprio alvo (mediana) e o
+               alvo andou 2,6 m: ele estava onde devia, sem nada a fazer.
+
+               Agora o acumulador conta SEGUNDOS QUE EXIGEM MOVIMENTO. E o que
+               o proprio nome do flag diz: "parado no mesmo ponto COM A BOLA
+               ROLANDO". Bola morta e bola longe nao entram na conta. */
             const _longe = b && p.isGK && Math.hypot(p.x - b.x, p.y - b.y) > 35;
-            if (!(this.dead > 0) && !_longe) {
-              const reg = paradoDesde.get(p);
-              const mexeu = !reg || Math.hypot(p.x - reg.x, p.y - reg.y) > 1.5;
-              if (mexeu) paradoDesde.set(p, { x: p.x, y: p.y, t: t });
-              else if (t - reg.t > 20) { flag('atleta_congelado_20s', { n: p.ref && p.ref.n }); paradoDesde.set(p, { x: p.x, y: p.y, t: t }); }
+            const _exige = !(this.dead > 0) && !_longe;
+            const reg = paradoDesde.get(p);
+            const mexeu = !reg || Math.hypot(p.x - reg.x, p.y - reg.y) > 1.5;
+            if (mexeu || !_exige) {
+              paradoDesde.set(p, { x: p.x, y: p.y, acc: 0 });
+            } else {
+              reg.acc += (typeof dt === 'number' && isFinite(dt)) ? dt : 0;
+              if (reg.acc > 20) {
+                flag('atleta_congelado_20s', { n: p.ref && p.ref.n });
+                paradoDesde.set(p, { x: p.x, y: p.y, acc: 0 });
+              }
             }
             /* EMPILHAMENTO: dois corpos no mesmo lugar, fora de disputa da
                bola. `_resolveOverlaps` existe justamente para impedir. */
@@ -186,13 +229,26 @@ const SEGUNDOS = Number(argv.segundos || 240);
       } catch (e) { flag('excecao_na_sonda', { msg: String(e && e.message) }); }
       return r;
     };
-  });
+  }, AUTOTESTE);
 
   const nome = await pagina.evaluate(() => window.__quickMatch(40, 120));
   if (!/ x /.test(String(nome))) { console.error('partida nao subiu:', nome); await navegador.close(); process.exit(2); }
   await pagina.waitForTimeout(SEGUNDOS * 1000);
   const r = await pagina.evaluate(() => ({ s: window.__san, minuto: window.GAME._sim().minute }));
   await navegador.close();
+
+  if (AUTOTESTE) {
+    const n = r.s.achados['atleta_congelado_20s'] || 0;
+    console.log('\n=== AUTOTESTE DA SANIDADE ===  cobaia: ' + (r.s.cobaia || '?') +
+      ' | minuto ' + r.minuto.toFixed(1));
+    if (n > 0) {
+      console.log('   APROVA — o flag disparou ' + n + 'x no jogador pregado no lugar.');
+      process.exit(0);
+    }
+    console.log('   REPROVA — jogador de linha imovel a partida inteira e a sonda');
+    console.log('   nao acusou. `atleta_congelado_20s` virou enfeite.');
+    process.exit(1);
+  }
 
   console.log('\n=== VARREDURA DE SANIDADE ===\n');
   console.log('bundle:', alvo, '| minuto:', r.minuto.toFixed(1), '| quadros:', r.s.quadros);

@@ -446,6 +446,54 @@ Resultado, quatro corridas seguidas da sonda, oito cortes de pontapé:
 
 ---
 
+## OS-270 — a quarta sonda consertada, e a isenção que não parava o relógio
+
+`atleta_congelado_20s` reprovava a Mesa há rodadas. A medição pareada mostrou
+que **o HEAD acusa mais que o build novo** — 2·8·7·8 contra 6·1·2·4 em quatro
+execuções de cada lado — o que já dizia que não era regressão de ninguém. Mas
+"pré-existente" não é diagnóstico. O diagnóstico é este.
+
+Sem navegador, 12 partidas, contando episódios de 20 s sem andar 1,5 m:
+
+| clock | episódios |
+|---|---|
+| **zerando na isenção** | **0** |
+| correndo (versão anterior da sonda) | **94** |
+
+A guarda que exime *"goleiro a mais de 35 m da bola não está congelado, está
+esperando"* pulava a **verificação** e deixava o **carimbo de tempo intacto**.
+Então o goleiro que ficou parado 40 s com a bola a 50 m era acusado no instante
+em que a bola entrava nos 35 m — com vinte segundos de relógio que nunca lhe
+pediram movimento nenhum.
+
+E os 94 episódios confirmam isso pelo conteúdo, não só pela contagem:
+
+| | mediana | p90 |
+|---|---|---|
+| aproximação máxima da bola no episódio | 29,0 m | 34,1 m |
+| distância do corpo ao próprio alvo | 0,9 m | 1,8 m |
+| quanto o alvo andou | 2,6 m | 7,1 m |
+
+`bolaMax` colado nos 35,0 m em todos: cada episódio era um goleiro raspando a
+fronteira da isenção. E ele estava **a 0,9 m do próprio alvo** — não estava
+congelado, estava onde devia, sem nada a fazer.
+
+O acumulador agora conta **segundos que exigem movimento**, que é o que o nome
+do flag sempre disse: *"parado no mesmo ponto com a bola rolando"*. Bola morta e
+bola longe não entram na conta.
+
+**E uma sonda afrouxada tem de provar que ainda pega o defeito** — senão isto
+aqui teria sido eu silenciando o portão. A `sanidade` ganhou `--autoteste`, nos
+moldes do que o Árbitro já tinha: prega um jogador de linha no lugar a partida
+inteira e exige a reprovação. Ele passa (`Toby Alderweireld`, 2 disparos), e a
+etapa está na Mesa antes da varredura normal. Três varreduras seguidas depois da
+correção: **limpas**.
+
+Isto fecha a quarta sonda desta rodada que media a coisa errada — e as quatro
+erravam do mesmo jeito: chamando de defeito um estado que era o **certo**.
+
+---
+
 ## Três sondas consertadas no caminho
 
 Perseguindo essas medições descobri que **três gates estavam medindo a coisa
@@ -477,22 +525,12 @@ vezes derrubou a conclusão.
 
 ## O que continua em aberto
 
-- **`atleta_congelado_20s` é intermitente e PRÉ-EXISTENTE**, e desta vez com
-  medição pareada em vez de impressão. Quatro execuções de cada lado, mesma
-  janela de 230 s:
-
-  | | HEAD | build desta rodada |
-  |---|---|---|
-  | `atleta_congelado_20s` | 2 · 8 · 7 · 8 | 6 · 1 · 2 · 4 |
-  | `atletas_empilhados` | 22 · 0 · 0 · 0 | 0 · 0 · 0 · 0 |
-
-  O flag aparece em 4/4 do HEAD e o build novo fica **abaixo** dele — a Mesa
-  estava vermelha nisso antes desta rodada. Mas continua defeito de verdade: um
-  atleta que não anda 1,5 m em 20 s de jogo **vivo** não é futebol, e o exemplo
-  é sempre goleiro (Seaman, Courtois) com a bola a menos de 35 m. Fica na fila,
-  e a `sanidade` deveria rodar com semente fixa para deixar de ser loteria.
-  `atletas_empilhados` tem causa conhecida: `_resolveOverlaps` exclui goleiros
-  por construção.
+- **`atletas_empilhados`** tem causa conhecida e continua aberto:
+  `_resolveOverlaps` exclui goleiros por construção, então um goleiro e um
+  zagueiro podem ocupar o mesmo ponto. Intermitente (22 numa execução do HEAD,
+  0 em sete outras).
+- **`onTargetRate` 0,338 contra piso de 0,34** — item antigo, encostou no piso
+  mas não entrou.
 - **O POSTE que anda 32,5 m durante a parada** é o que sobra da OS-264, e a
   OS-269 confirmou que não dá para contornar por tempo: com janela maior o
   atleta chega ao alvo que perseguia e o alvo já é outro (R1 fica em 16 m dos
