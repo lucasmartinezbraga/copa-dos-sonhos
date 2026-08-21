@@ -47,7 +47,7 @@ O catálogo vive em [`tools/auditoria/invariantes.js`](../tools/auditoria/invari
 
 ---
 
-## 3. Os sete níveis
+## 3. Os oito níveis
 
 Cada nível tem um oráculo diferente, um custo diferente e pega uma família de
 bug diferente. Rodar só um deles dá uma falsa sensação de cobertura.
@@ -165,6 +165,26 @@ a partida. Cada tela vira um PNG, que é a evidência.
 node tools/auditoria/fluxo.js --build=dist/index.html --out=reports/auditoria/N6-fluxo.json
 ```
 
+### N7 · Assistir — *a partida inteira, gravada e estudada*
+
+O último nível não tem oráculo: tem olho. `assistir.js` sobe o jogo no
+Chromium, joga do apito inicial ao final, **grava o vídeo** e dispara rajadas
+de prints em cima de cada lance (falta, escanteio, gol, cartão, impedimento) —
+no instante do evento e depois dele, que é onde o olho reclama. `folhas.js`
+transforma a gravação em folhas de contato: vinte quadros por imagem, na ordem
+do tempo, a partida inteira em ~12 folhas que uma pessoa varre inteiras.
+
+```bash
+node tools/auditoria/assistir.js --build=dist/index.html --velocidade=3 --ate=95
+node tools/auditoria/folhas.js --video=reports/auditoria/jogo/partida-completa.webm
+```
+
+Foi este nível — e só ele — que encontrou o defeito mais caro da suíte: os
+cinco gols de uma partida saindo **sem comemoração, sem flash e sem narração**,
+porque a primeira linha do tratamento de gol estourava e `_emit` engolia a
+exceção em silêncio. Nenhum agregado, nenhum invariante e nenhum alvo de
+calibração jamais veria isso. Alguém precisava assistir.
+
 ### Eixo transversal · Sondas de lance — *o que o jogador vê acontecer*
 
 Queixa de jogador é sobre **lance**, e lance não aparece em contador nenhum.
@@ -278,9 +298,22 @@ até 443 px da borda. Eram os chips de uma faixa com `overflow-x: auto` — não
 estavam estourando, estavam esperando o dedo. A regra passou a ignorar quem
 tem ancestral que rola de lado.
 
-A lição das quatro: quando um oráculo acusa demais, a pergunta certa não é
-"quanto afrouxo?", é **"o que ele está realmente vendo?"**. E o alarme falso
-não se apaga: vira comentário no código, para ninguém reintroduzi-lo.
+**O campo preto que era o corte de câmera.** Assistindo a partida inteira,
+dois dos quatro cartões apagavam o campo por completo — 0% de verde na área do
+gramado, medido nos 183 quadros. Parecia um defeito de desenho, e eu o
+registrei como tal. Medindo pixel a pixel por 40 s: 63 quadros pretos em 2.377,
+em rajadas de 350 ms, todas precedidas de `foul` → `falta_cobrada`. Era o corte
+de câmera da OS-267 — uma camada escrita a pedido do dono, funcionando
+exatamente como projetada.
+
+A lição das cinco: quando um oráculo acusa demais, a pergunta certa não é
+"quanto afrouxo?", é **"o que ele está realmente vendo?"**. E antes de
+consertar qualquer coisa que pareça um defeito de tela, **leia a camada que
+manda naquilo** — `mapa_de_camadas.js` existe para isso. Metade do que parece
+bug neste jogo é uma decisão de projeto com laudo escrito.
+
+E o alarme falso não se apaga: vira comentário no código, para ninguém
+reintroduzi-lo.
 
 ---
 
@@ -351,6 +384,8 @@ tools/auditoria/tela.js            nível N5 — Chromium, relógio de parede
 tools/auditoria/fluxo.js           nível N6 — telas em três tamanhos
 tools/auditoria/repro.js           repetição de um defeito, quadro a quadro
 tools/auditoria/quem_escreve.js    quem escreveu neste campo?
+tools/auditoria/assistir.js        nível N7 — assiste 90 minutos e grava
+tools/auditoria/folhas.js          folhas de contato da gravação
 tools/auditoria/relatorio.js       junta tudo num laudo em Markdown
 reports/auditoria/                 medições, laudos e capturas de tela
 ```

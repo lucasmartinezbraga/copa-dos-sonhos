@@ -37,6 +37,20 @@ node tools/auditoria/auditoria.js --build=dist/index.html --partidas=8 --workers
 
 Portão: zero S1, nenhum bloco com erro de carga.
 
+## Assistir a partida (nível N7)
+
+```bash
+# joga 90 minutos, grava o vídeo e dispara prints em cima de cada lance
+node tools/auditoria/assistir.js --build=dist/index.html --velocidade=3 --ate=95 \
+     --dir=reports/auditoria/jogo
+
+# a gravação inteira em folhas de contato: 20 quadros por imagem
+node tools/auditoria/folhas.js --video=reports/auditoria/jogo/partida-completa.webm
+```
+
+Foi este nível que achou o defeito mais caro da suíte — cinco gols sem
+comemoração, sem flash e sem narração — que nenhum agregado veria.
+
 ## Perguntas pontuais
 
 ```bash
@@ -69,5 +83,11 @@ node tools/auditoria/quem_escreve.js --build=$B --campo=dead --partida=0 --de=29
 | | `--de=Q --ate=Q` | janela de quadros |
 | | `--so_dead` | só escritas com `sim.dead > 0` |
 | `fluxo.js` | `--png=DIR` | onde salvar as capturas |
+| `assistir.js` | `--ate=MIN` | até que minuto de jogo assistir |
+| | `--velocidade=V` | botão do jogo (1, 2, 3, 6) |
+| | `--gravar=nao` | só prints, sem vídeo |
+| | `--passo-min=N` | print de rotina a cada N minutos de jogo |
+| `folhas.js` | `--intervalo=S` | segundos de vídeo entre quadros |
+| | `--colunas=C --linhas=L` | grade da folha |
 
 Todas aceitam `--build=` e `--out=`.

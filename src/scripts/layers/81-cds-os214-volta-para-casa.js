@@ -197,6 +197,27 @@ P.step = function (dt) {
   const passo = Math.max(1 / 240, Math.min(0.15, num(dt, 1 / 30)));
   const ativa = num(this.__os214Ate) > num(this.t) && num(this.dead) > 0;
 
+  /* §VISTO-13 · A JANELA SEGURAVA O PONTAPE TARDE DEMAIS.
+     Esta camada re-armava `dead` DEPOIS de `oldStep`. So que o nucleo consome
+     `pendingRestart` DENTRO do passo, no quadro em que `dead` chega a zero:
+     o pontape ja tinha saido quando a janela o segurava. Resultado medido:
+     o time nunca chegava organizado (era o defeito que esta camada foi escrita
+     para corrigir) e o jogo seguia rolando por ate 7 s com `dead = 0,12`
+     preso — relogio da partida parado e, na tela, o laco de render adiantando
+     tudo 3,5x. A auditoria chamava isso de faixa cinzenta (D8): 8,5 s de
+     simulacao por partida, pior episodio de 5,3 s.
+     Segurar ANTES do passo e o que a OS-77 e a OS-83 ja fazem nas esperas
+     delas. E a janela morre assim que a bola volta a rolar: se o pontape saiu,
+     nao ha mais o que esperar. */
+  try {
+    if (ativa && this.pendingRestart && num(this.dead) <= passo + 0.02) {
+      this.dead = passo + 0.05;
+    }
+    if (!this.pendingRestart && this.ball && (this.ball.owner || this.ball.traveling)) {
+      this.__os214Ate = 0; this.__os214Batedor = null; this.__os214Casa = false;
+    }
+  } catch (_) { }
+
   /* posicao no fim do quadro anterior: a caminhada sai DAQUI, nao do que o
      alvo tatico fez no meio do passo */
   let antes = null, folego = null;
@@ -247,7 +268,9 @@ P.step = function (dt) {
       });
       /* chegaram todos: solta a bola antes do prazo */
       if (!faltando) this.__os214Ate = 0;
-      else if (num(this.dead) <= 0.05) this.dead = 0.12;
+      /* §VISTO-13 · so segura enquanto o pontape nao saiu; sem isto a janela
+         continuava viva com a bola rolando */
+      else if (this.pendingRestart && num(this.dead) <= 0.05) this.dead = 0.12;
     }
     if (!(num(this.dead) > 0)) { this.__os214Ate = 0; this.__os214Batedor = null; this.__os214Casa = false; }
   } catch (_) { }

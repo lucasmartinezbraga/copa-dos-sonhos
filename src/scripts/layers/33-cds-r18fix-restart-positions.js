@@ -113,11 +113,46 @@
           })[0] || victim;
           armTaker(this, cand, sx, sy, 0.5, 1.8, true);
           var sim = this;
+          /* §VISTO-10 · A FALTA COMUM PASSA A SER BATIDA, NAO CARREGADA.
+             A R18.35 trouxe a falta comum para a maquina de bola parada: o
+             batedor caminha ate o ponto e a bola fica no ponto. Medido: bola a
+             0,46 m do ponto e cobrador a 0,05 m dela. Tudo certo — e ai o
+             reinicio so DEVOLVIA a posse e o cobrador saia driblando.
+
+             Medido em 96 partidas com a sonda de lance: de 2.285 faltas, 1.336
+             terminaram com o portador CARREGANDO a bola (58,5%) e so 929 com
+             ela voando. E a queixa do dono, na letra: "o jogador sai andando na
+             falta, nao sai batendo".
+
+             Agora o reinicio usa a mesma mecanica do ramo `short` do
+             `_freeKick`, que ja existe e ja e medido: entrega ao batedor e ele
+             TOCA para o companheiro mais proximo, onde ele estiver. Sem
+             teleporte de ninguem — o ramo `short` do nucleo reposiciona o
+             companheiro, e aqui de proposito nao se reposiciona. Sem alvo a
+             menos de 28 m, cai no comportamento antigo. */
+          var _alvo = null, _melhor = 1e9;
+          for (var _i = 0; _i < elegiveis.length; _i++) {
+            var _m = elegiveis[_i];
+            if (_m === cand) continue;
+            var _d = dist(_m.x, _m.y, sx, sy);
+            if (_d < _melhor) { _melhor = _d; _alvo = _m; }
+          }
+          if (_melhor > 28) _alvo = null;
+          var _time = victim.team;
           this.pendingRestart = function () {
             sim._giveBall(cand);
-            if (sim.ball.owner) sim.ball.owner.settle = 0.6;
+            if (!_alvo || typeof sim._startTravel !== 'function') {
+              if (sim.ball.owner) sim.ball.owner.settle = 0.6;
+              return;
+            }
+            sim.stats[_time].passes++;
+            sim._startTravel(cand, { x: _alvo.x, y: _alvo.y }, 'pass', function () {
+              sim.stats[_time].passOk++;
+              _alvo._setPieceDeliveryUntil = num(sim.t) + 2;
+              sim._receive(_alvo);
+            }, _alvo, 'short');
           };
-          this._emit('falta_cobrada', { by: cand, x: sx, y: sy });
+          this._emit('falta_cobrada', { by: cand, x: sx, y: sy, alvo: _alvo, distancia: +_melhor.toFixed(1) });
         }
       } catch (_) {}
       _r1835rota = null;

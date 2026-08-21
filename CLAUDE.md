@@ -177,6 +177,23 @@ ou render, rode também `tools/auditoria/tela.js` — a bateria de física não 
 o laço de render, e é lá que vivem o multiplicador de velocidade, o adianto de
 bola parada e a janela de cerimônia.
 
+E, antes de fechar rodada, **assista**:
+
+```bash
+node tools/auditoria/assistir.js --build=dist/index.html --ate=95   # grava a partida
+node tools/auditoria/folhas.js --video=.../partida-completa.webm    # estuda a gravação
+```
+
+Foi assim que se descobriu que os gols saíam sem comemoração, sem flash e sem
+narração: `G.cup.scorers` estourava na primeira linha do tratamento de gol e
+`_emit` engolia a exceção em silêncio. Nenhum agregado veria isso. Falhas de
+apresentação agora contam em `visualIntegrity.presentationFaults` — se esse
+número não for zero, alguma coisa na tela morreu sem avisar.
+
+**Amostra pequena mente.** Uma correção de falta pareceu subir os gols de 2,23
+para 2,44 em 48 partidas; em 200 o ganho sumiu. Para julgar placar, distribuição
+ou qualquer coisa que dependa de gol, use 200+ partidas pareadas.
+
 ## Como eu (Claude) trabalho aqui
 
 1. Leio o código e CLAUDE.md para entender limites

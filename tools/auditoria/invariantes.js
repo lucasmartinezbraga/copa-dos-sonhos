@@ -146,7 +146,7 @@ const CATALOGO = [
     porque: 'passOk>passes, onTarget>shots, goals>onTarget e afins sao aritmetica, nao gosto.' },
   { id: 'F4', classe: 'contador', tipo: 'lei', gravidade: 'S2',
     titulo: 'O motor acusa a si mesmo (visualIntegrity)',
-    porque: 'O proprio jogo conta teleportes, contatos falhados e faltas de viagem. Contador acima de zero e confissao.' },
+    porque: 'Teleporte, falta de viagem, falha vertical e falha de apresentacao sao defeito em qualquer quantidade. Contato reprovado pela fisicalidade NAO e: e o sistema de integridade fazendo o trabalho dele — o lance deixa de acontecer e a bola fica viva. So vira achado quando passa de 3% dos contatos, que e quando deixa de ser excecao.' },
 
   /* ===== N4-G · agregado (so faz sentido sobre a amostra inteira) ======= */
   { id: 'G1', classe: 'agregado', tipo: 'lei', gravidade: 'S3',
@@ -477,7 +477,10 @@ function criarObservador(sim, meta, opts) {
         if (Math.abs(c.y - FW / 2) > 3.66 + 0.3 || c.z > 2.44 + 0.3) {
           registrar('C16', { motivo: 'cruzou fora da baliza',
             yNoCruzamento: +c.y.toFixed(2), zNoCruzamento: +c.z.toFixed(2),
-            postes: [30.34, 37.66], travessao: 2.44 });
+            postes: [30.34, 37.66], travessao: 2.44,
+            /* o tipo do lance e o que separa "gol invalido" de "gol resolvido
+               fora da geometria" — sem isto o achado nao diz onde consertar */
+            lance: eventosRecentes.filter(e => t - e.quando <= 3).map(e => e.t).slice(-8) });
         }
         golPendente = null;
       } else if (t - golPendente.t > 0.4) {
@@ -775,11 +778,18 @@ function criarObservador(sim, meta, opts) {
         registrar('F2', { time: s, regra: 'xg >= 0', valores: [st.xg] });
       }
     }
-    /* F4 o motor acusando a si mesmo */
+    /* F4 o motor acusando a si mesmo.
+       Separado por natureza: o que e defeito em qualquer quantidade, e o que
+       so e defeito em excesso. Misturar os dois fazia toda partida acusar. */
     const vi = sim.visualIntegrity || {};
     const acusacoes = {};
-    for (const k of ['teleports', 'travelFaults', 'failedContacts']) {
+    for (const k of ['teleports', 'travelFaults', 'verticalFailures', 'presentationFaults', 'frameFaults', 'timelineFaults']) {
       if (Number(vi[k]) > 0) acusacoes[k] = Number(vi[k]);
+    }
+    const _cont = Number(vi.contacts) || 0, _falhos = Number(vi.failedContacts) || 0;
+    if (_cont > 50 && _falhos / _cont > 0.03) {
+      acusacoes.failedContacts = _falhos;
+      acusacoes.fracaoDeContatosReprovados = +(_falhos / _cont).toFixed(4);
     }
     if (Object.keys(acusacoes).length) registrar('F4', acusacoes);
 

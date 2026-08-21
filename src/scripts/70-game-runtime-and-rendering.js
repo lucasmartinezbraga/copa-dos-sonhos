@@ -197,6 +197,7 @@ let replayBuf = [];       // buffer circular de snapshots (posições) p/ replay
 let replay = null;        // { frames, idx, until } durante a reprodução
 let penScene = null;      // cena visual de cobrança de pênalti (jogo + shootout)
 let fkScene = null;       // cena visual de falta (barreira + cobrador + curva)
+let _recol = null, _recolAnt = null;   // §VISTO-17 · trajeto desenhado da recolocacao da bola
 let setPieceRequest = null; // cobrança aguardando gesto do usuário
 let shootoutState = null;   // disputa interativa e ordem escolhida
 let spChargeRAF = 0;
@@ -1985,7 +1986,16 @@ function startLoop() {
            Durante a janela de cerimonia (camada 85) a pausa roda em tempo de
            PAREDE: sem adianto e sem multiplicador de botao. */
         const _cerim = !!(window.__cdsCerimoniaAtiva && window.__cdsCerimoniaAtiva(sim));
-        const _espera = (sim && sim.dead > 0 && !slowmo && !_cerim) ? ADIANTA_PARADA : 1;
+        /* §VISTO-09 · O ADIANTO SO VALE ONDE O JOGO REALMENTE PAROU.
+           O nucleo congela o time em `dead > 0.4` e volta a jogar abaixo
+           disso: entre 0 e 0,4 a bola continua colada no portador, os 22
+           continuam andando e o relogio da partida fica parado. Adiantar 3,5x
+           essa faixa (10,5x no botao 3X) e o que faz o jogo ACELERAR SOZINHO
+           no meio de um drible. Medido em 96 partidas: 8,5 s de simulacao por
+           jogo nessa faixa, em 5,7 episodios, o pior deles de 5,3 s.
+           O adianto passa a usar o MESMO degrau do congelamento do nucleo, que
+           e a unica definicao de "o jogo parou" que existe no codigo. */
+        const _espera = (sim && sim.dead > 0.4 && !slowmo && !_cerim) ? ADIANTA_PARADA : 1;
         /* §OS-266 · a camera lenta VENCE a cerimonia: ela e mais especifica.
            Sem esta ordem, a janela da OS-263 anulava o fator de `slowmo` e a
            batida lenta do contato virava velocidade normal. */
@@ -2119,7 +2129,25 @@ function startLoop() {
     if (shotFx && !paused) stepShotFx(Math.min(0.05, dt) * (slowmo ? Math.min(G.speed, 1) * slowmo.f : G.speed));
     if (outMark && performance.now() >= outMark.until) outMark = null;
     paintField();                          // campo nunca congela (fix)
-    } catch (err) { try { if (window.console) window.__cdsDebugWarn('frame recuperada:', err && err.message); } catch (_) {} }
+    } catch (err) {
+      /* §VISTO-08 · QUADRO QUE FALHA VIRA TELA PRETA, E NINGUEM FICA SABENDO.
+         `paintField` limpa o canvas no inicio e desenha depois. Se qualquer
+         coisa estourar no meio, o quadro fica no PRETO — e este catch chamava
+         `__cdsDebugWarn`, que e mudo fora do modo de depuracao. Foi assim que
+         o campo sumiu inteiro em dois dos quatro cartoes de uma partida
+         assistida (0% de verde na area do campo, medido nos 183 quadros) sem
+         nenhum registro em lugar nenhum.
+         Mesma decisao do §VISTO-02: continua sem derrubar o jogo, e passa a
+         contar. `visualIntegrity` e onde o motor ja acusa a si mesmo. */
+      try {
+        const vi = sim && (sim.visualIntegrity || (sim.visualIntegrity = {}));
+        if (vi) {
+          vi.frameFaults = (vi.frameFaults || 0) + 1;
+          vi.frameLastFault = String((err && err.message) || err).slice(0, 180);
+        }
+      } catch (_) {}
+      try { if (window.console) window.__cdsDebugWarn('frame recuperada:', err && err.message); } catch (_) {}
+    }
     raf = requestAnimationFrame(step);
   };
   raf = requestAnimationFrame(step);
@@ -4137,9 +4165,43 @@ function paintField() {
   if (!rframe) drawLineVerdict(ctx);
 
   /* bola — enquanto o fantasma vive, ele É a bola na tela */
-  const b = rframe ? rframe.ball
+  let b = rframe ? rframe.ball
           : shotFx ? { x: shotFx.x / 105, y: shotFx.y / 68, z: shotFx.z }
           : st.ball;
+  /* §VISTO-17 · A BOLA NAO PISCA MAIS PARA O PONTO DO REINICIO.
+     Medido em 96 partidas: a bola e RECOLOCADA 77 vezes por jogo, mediana de
+     1,8 m, p90 de 23 m e pior caso de 99,9 m — e nada disso e desenhado. Ela
+     some de um ponto e aparece no outro, e e uma das coisas que mais separam
+     este jogo de uma transmissao.
+     O motor esta certo: alguem pegou a bola e a levou ate o ponto. O que
+     faltava era MOSTRAR o trajeto. Aqui a bola percorre a distancia em ate
+     meio segundo de parede, so no desenho — `sim.ball` continua exatamente
+     onde o motor a pos, e nenhum passo, sorteio ou contato muda.
+     A animacao morre assim que a bola volta a viajar: se o lance recomecou,
+     nao ha mais trajeto administrativo para mostrar. */
+  if (!rframe && !shotFx && sim) {
+    const _rnow = performance.now();
+    const _rdead = Number(sim.dead) || 0;
+    const _rviaj = !!(sim.ball && sim.ball.traveling);
+    if (_recolAnt && !_rviaj) {
+      const _dm = Math.hypot((b.x - _recolAnt.x) * 105, (b.y - _recolAnt.y) * 68);
+      if (_dm > 3 && _rdead > 0) {
+        _recol = { x0: _recolAnt.x, y0: _recolAnt.y, x1: b.x, y1: b.y,
+                   t0: _rnow, dur: Math.min(520, 200 + _dm * 8) };
+      }
+    }
+    _recolAnt = { x: b.x, y: b.y };
+    if (_recol) {
+      const _p = (_rnow - _recol.t0) / _recol.dur;
+      if (_p >= 1 || _rviaj || _rdead <= 0) _recol = null;
+      else {
+        const _e = _p < .5 ? 2 * _p * _p : 1 - Math.pow(-2 * _p + 2, 2) / 2;
+        b = { x: _recol.x0 + (_recol.x1 - _recol.x0) * _e,
+              y: _recol.y0 + (_recol.y1 - _recol.y0) * _e,
+              z: b.z };
+      }
+    }
+  }
   /* Mesma compressao de altura do palco 2.5D (ver alturaVisual em cds-ux-boot):
      1:1 ate 2,6 m, para a faixa da meta continuar fiel, e saturando acima
      disso para bola alta nao sumir no topo do canvas. */

@@ -1,1 +1,0 @@
-window.CDS_R18181_BUILD=Object.freeze({version:'R18.18.1',baseline:'R18.18',label:'SEGUNDA FASE E BOLA FORA NATURAL'});

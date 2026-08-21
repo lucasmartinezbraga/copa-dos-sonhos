@@ -260,6 +260,23 @@ class MatchSim {
         runT: R(0, 2)
       };
     });
+    /* §VISTO-07 · A NOTA NAO PASSA DE 10, E O LIMITE FICA NA PROPRIEDADE.
+       Uns quinze pontos do motor somam decimos em `p.rating` e nenhum limita.
+       Medido em 96 partidas: 102.643 quadros com nota acima de 10, atacante
+       chegando a 10,06 — e a nota e superficie visivel (ficha do jogador,
+       "craque da partida"). Limitar por passo nao resolve: as somas acontecem
+       DENTRO do passo e quem le depois ve o valor estourado. Limitando na
+       propria propriedade nao sobra caminho: qualquer `+=` de qualquer camada
+       passa por aqui. Nada no motor LE `rating` para decidir — so a tela le
+       para mostrar —, entao isto nao muda partida nenhuma. */
+    for (const p of players) {
+      let _nota = p.rating;
+      Object.defineProperty(p, 'rating', {
+        configurable: true, enumerable: true,
+        get() { return _nota; },
+        set(v) { const n = Number(v); _nota = !(n >= 0) ? 0 : (n > 10 ? 10 : n); },
+      });
+    }
     return {
       side, attackDir, fx: Object.assign({}, fx), baseFx: Object.assign({}, fx), styleKey, phase: 0,
       mood: { line: 0, risk: 1, far: 1, tackle: 1 },
@@ -382,6 +399,12 @@ class MatchSim {
       tm.attackDir *= -1;
       const g = tm.goal; tm.goal = tm.oppGoal; tm.oppGoal = g;
       for (const p of tm.players) {
+        /* §VISTO-06 · quem foi expulso nao troca de lado.
+           `_resetPositions` ja pula os expulsos; aqui eles eram espelhados
+           junto, e as duas rotinas passavam o intervalo inteiro discordando
+           sobre quem esta em campo. A auditoria vinha acusando isso todo jogo
+           (C4b): o expulso "andava" 40 a 70 m no quadro do intervalo. */
+        if (p.red) continue;
         p.hx = FL - p.hx;  p.hy = FW - p.hy;
         p.dhx = FL - p.dhx; p.dhy = FW - p.dhy;
         p.ahx = FL - p.ahx; p.ahy = FW - p.ahy;
@@ -405,8 +428,21 @@ class MatchSim {
   step(dt) {
     this.t += dt;
     this._stepDt = dt;
-    // beat (slow-mo) apenas escala a física visual; a lógica de tempo de jogo não
-    const slow = this.beat > 0 ? 0.4 : 1;
+    /* §VISTO-11 · A CAMERA LENTA VOLTA EM RAMPA, NAO EM DEGRAU.
+       `beat` escala a fisica da bola por 0,4 enquanto dura e voltava a 1 de um
+       quadro para o outro. Na tela isso e a bola andando 0,37 m por quadro e,
+       no quadro seguinte, 0,89 m — um salto de 2,5x no meio do voo, sem
+       contato nenhum, treze vezes por partida.
+       A auditoria vinha acusando isso como "bola acelera no ar sem contato"
+       (E2, 1.097 casos em 96 partidas) e a assinatura era sempre a mesma: de
+       ~16 m/s para ~39 m/s. Nao era a balistica: era o fim do beat.
+       A rampa devolve a velocidade nos ultimos 0,18 s do beat, que e curto o
+       bastante para nao diluir a enfase e longo o bastante para o olho nao ver
+       degrau. */
+    const _RAMPA_BEAT = 0.18;
+    const slow = this.beat > 0
+      ? 0.4 + 0.6 * (1 - Math.min(1, this.beat / _RAMPA_BEAT))
+      : 1;
     if (this.beat > 0) this.beat = Math.max(0, this.beat - dt);
     const pdt = dt * slow;
 
@@ -2108,6 +2144,33 @@ class MatchSim {
   }
 
   _goal(o, golaco) {
+    /* §VISTO-16 · GOL SO VALE COM A BOLA ENTRE AS TRAVES.
+       O desfecho do chute e decidido na TRAJETORIA PLANEJADA (OS-200). Se a
+       bola sofre um desvio no meio do voo, o plano morre mas a chamada de gol
+       segue marcada: medido em 96 partidas, quatro gols com a bola cruzando a
+       linha de 1,4 a 4,6 m FORA do poste. No pior deles a bola voava paralela
+       a linha de fundo, levava um toque e entrava pela lateral da rede.
+       A guarda so reprova o caso demonstravel — bola JA passada da linha e
+       fora da boca do gol no instante da marcacao. Penalti, falta e qualquer
+       desfecho resolvido antes do voo nao entram aqui (a bola ainda nao
+       cruzou), entao nada do que ja funciona muda. */
+    try {
+      const _g = this.teams[o.team].oppGoal, _b = this.ball;
+      if (_b && Number.isFinite(_b.x) && Number.isFinite(_b.y)) {
+        const _dir = _g.x > FL / 2 ? 1 : -1;
+        const _passou = (_b.x - _g.x) * _dir > 0.2;
+        const _foraDaBoca = Math.abs(_b.y - _g.y) > 3.66 + 0.35;
+        const _acimaDoTravessao = (_b.z || 0) > 2.44 + 0.35;
+        if (_passou && (_foraDaBoca || _acimaDoTravessao)) {
+          this.stats[o.team].shots = this.stats[o.team].shots || 0;
+          this._emit('miss', { by: o, motivo: _foraDaBoca ? 'fora do poste' : 'por cima',
+            y: +_b.y.toFixed(2), z: +(_b.z || 0).toFixed(2) });
+          _b.owner = null; _b.traveling = false;
+          this._goalKickOrRestart(1 - o.team);
+          return;
+        }
+      }
+    } catch (_) {}
     this.score[o.team]++;
     this.stats[o.team].goals++;
     this.stats[o.team].onTarget++;
@@ -2658,6 +2721,27 @@ class MatchSim {
     this.stats[team].shots++;
     this.stats[team].setPieceShots++;
     this.stats[team].penaltiesTaken++;
+    /* §VISTO-15 · A BOLA VAI PARA A MARCA DA CAL.
+       O penalti resolve por atributo e a bola nunca visitava a marca: no print
+       do lance ela ja aparecia dentro da rede enquanto a narracao dizia "vai
+       cobrar". Pos-la no ponto antes de resolver nao muda o desfecho (que sai
+       de `aimX/aimY` e das fichas, nao da posicao) e da ao lance o unico
+       cenario que ele nunca teve. */
+    try {
+      const _pg = tm.oppGoal;
+      const _dir = _pg.x > FL / 2 ? 1 : -1;
+      const _b = this.ball;
+      /* a bola so pode ser RECOLOCADA com o jogo parado: sem esta janela o
+         salto ate a marca vira "bola a 81 m/s" na auditoria, e na tela vira a
+         bola piscando. 0,35 s e o tempo de ela aparecer na marca antes de sair. */
+      this.dead = Math.max(Number(this.dead) || 0, 0.35);
+      if (_b) {
+        _b.owner = null; _b.traveling = false;
+        _b.x = clamp(_pg.x - _dir * 11, 1, FL - 1); _b.y = FW / 2; _b.z = 0;
+        _b.vx = 0; _b.vy = 0; _b.vz = 0;
+      }
+      if (taker) { taker.x = clamp(_pg.x - _dir * 13.2, 1, FL - 1); taker.y = FW / 2; }
+    } catch (_) {}
     this.beat = 0.7;
     const takerSkill = facet(taker,'pen') * (1 + ((taker.persistence && taker.persistence.setPieceBonus) || 0));
     const keeperSkill = gk ? facet(gk,'pen_gk') : 40;
@@ -2758,8 +2842,14 @@ class MatchSim {
      autoritativa. A margem so protege chamadas administrativas ainda no campo. */
   const _os74ForaFundo = _os74X !== null && (_os74X <= 0 || _os74X >= FL);
   const _os74TemLado = _os74Y !== null && (_os74ForaFundo || Math.abs(_os74Y - FW / 2) > 4);
-  const cy = _os74TemLado ? (_os74Y < FW / 2 ? 1.5 : FW - 1.5) : (_os74Sorteio ? 1.5 : FW - 1.5), sign=cy<FW/2?-1:1;
-    taker.x=clamp(g.x-dir*.8,1,FL-1);taker.y=cy;taker.settle=1.2;taker._setPieceRole='taker';
+  /* §VISTO-12 · O ESCANTEIO SAI DE DENTRO DO QUADRANTE.
+     Medido em 96 partidas: 551 de 551 escanteios com a bola a 2,27 m da
+     bandeirinha — o arco do escanteio tem 1 m de raio. O numero era constante
+     porque a geometria e fixa: batedor a 0,8 m da linha de fundo e 1,5 m da
+     lateral, mais o desencontro do pe. Encostar o batedor na quina resolve sem
+     mexer em mais nada do lance. */
+  const cy = _os74TemLado ? (_os74Y < FW / 2 ? 0.9 : FW - 0.9) : (_os74Sorteio ? 0.9 : FW - 0.9), sign=cy<FW/2?-1:1;
+    taker.x=clamp(g.x-dir*.5,0.5,FL-0.5);taker.y=cy;taker.settle=1.2;taker._setPieceRole='taker';
     const zones = routine==='near_post'
       ? [[5.2,-3.0],[8.8,2.0],[11.5,6.5]]
       : routine==='far_post'

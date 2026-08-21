@@ -56,28 +56,33 @@ Agora a falha continua sendo engolida e passa a ser contada em
 esse contador que entregou a segunda mina do item 1, trinta segundos depois de
 existir.
 
-## 3. O campo fica preto em metade dos cartões
+## 3. O campo fica preto em metade dos cartões — **NÃO É BUG**
 
 `01-campo-preto-no-cartao.png` — aos 7'03", durante uma cobrança de falta com
-cartão, o campo **desaparece por inteiro**: sem grama, sem linhas, sem os 22.
-Sobram um arco pontilhado, o rótulo do cobrador e um círculo.
-
-Medido nos 183 quadros da partida (`brilho-por-quadro.json`), varrendo o brilho
-e a fração de verde da área do campo:
+cartão, o campo desaparece por inteiro. Medido nos 183 quadros da partida
+(`brilho-por-quadro.json`), varrendo a fração de verde da área do campo:
 
 | minuto | quadro | verde na área do campo |
 |---|---|---|
 | 7,05' | cartão + 800 ms | **0,0 %** |
 | 13,04' | cartão + 800 ms | **0,0 %** |
-| 42,78' | cartão + 800 ms | 94,8 % (escurecido, como deve ser) |
-| 79,95' | cartão + 800 ms | 93,4 % (escurecido, como deve ser) |
+| 42,78' | cartão + 800 ms | 94,8 % (só escurece) |
+| 79,95' | cartão + 800 ms | 93,4 % (só escurece) |
 
-Dois dos quatro cartões apagam a tela; os dois que apagam são os que coincidem
-com a cena de falta. Não é artefato de captura: o placar, o painel lateral e o
-HUD desenham normalmente no mesmo quadro — só o campo some.
+**Eu registrei isto como defeito e estava errado.** Medindo o pixel a cada
+quadro por 40 s: 63 quadros pretos em 2.377, em rajadas de ~350 ms, todas
+precedidas por `foul` → `falta_cobrada`. É o **corte de câmera da OS-267** — a
+camada que o dono pediu com estas palavras: *"veja se é melhor fazer um corte
+no lance e voltar com tudo já reajustado"*. Escurece em 240 ms, segura 200 ms
+com o campo se reorganizando escondido, e volta em 320 ms.
 
-Não corrigido nesta rodada: mexer no desenho da cena de falta pede sonda de
-tela própria antes e depois, e não quis fazer isso no escuro.
+Os dois cartões que apagam a tela são os que coincidem com uma falta; os dois
+que só escurecem são cartões sem corte. Funciona exatamente como projetado.
+
+Fica o número, para decisão de projeto e não de conserto: são ~22 faltas por
+partida e o corte custa ~760 ms cada — perto de **17 s de tela escura por
+jogo**. Se isso for caro demais, a alavanca é a lista `CORTA` da camada 86.
+
 
 ## 4. O pênalti contava o final antes de acontecer · **CORRIGIDO**
 
@@ -93,41 +98,102 @@ O motor resolve a bola parada no instante em que a anuncia, então `penalty` e
 anúncio já diz quanto tempo a cerimônia merece; o desfecho passou a esperar
 esse tempo (§VISTO-05, `54-cds-os20-setpiece-hud.js`).
 
-## 5. O pontapé de saída não se organiza
+## 5. O pontapé de saída não se organizava · **CORRIGIDO**
 
-Visível em `02-...ANTES.png` e em todo reinício após gol: o adversário fica
-**dentro do círculo central**, encostado no batedor, e jogadores dos dois times
-ficam na metade errada. É o defeito que a própria OS-214/OS-264 diagnosticou e
-não conseguiu embarcar.
+O adversário ficava dentro do círculo central e os dois times misturados nas
+metades erradas. A camada OS-214 (*"o time volta para casa antes do pontapé"*)
+foi escrita exatamente para isso e **nunca funcionou** — por ordem de execução:
 
-Não corrigido: mudar posição no pontapé mexe no jogo, não só na tela, e isso
-pede a bateria rodando antes e depois.
+```js
+P.step = function (dt) {
+  ...
+  const r = oldStep.apply(this, arguments);   // o núcleo consome pendingRestart AQUI
+  ...
+  else if (num(this.dead) <= 0.05) this.dead = 0.12;   // e só agora segura
+```
 
-## 6. A falta perto do gol está boa
+O núcleo dispara o reinício **dentro** do passo, no quadro em que `dead` chega
+a zero. A camada segurava depois — quando o pontapé já tinha saído. O time
+continuava voltando para casa com a bola rolando, o relógio da partida parado e
+a tela adiantada 3,5×. A auditoria chamava isso de faixa cinzenta.
 
-`05-falta-perto-do-gol-bem-encenada.png` — vale registrar o que **não** está
-quebrado: barreira armada, arco de 9,15 m desenhado, cobrador nomeado,
-distância ("17 m do gol"), HUD com barra de tempo e narração coerente. O
-problema das faltas não é a cobrança perto da área; é a falta longe, que não
-vira cobrança nenhuma.
+Agora a janela segura **antes** do passo (como a OS-77 e a OS-83 já faziam) e
+morre assim que a bola volta a rolar.
+
+## 6. A falta longe do gol não era batida · **CORRIGIDO**
+
+Medido em 96 partidas: de 2.285 faltas, **1.336 terminavam com o jogador
+carregando a bola** (58,5%). O batedor caminhava até o ponto, a bola era posta
+no ponto — e o reinício apenas devolvia a posse. Agora ele toca para o
+companheiro mais próximo, com a mesma mecânica do ramo `short` do `_freeKick`.
+
+**58,5% → 0,2%** em 200 partidas.
+
+## 7. Outros oito, todos medidos
+
+| | o que era | depois |
+|---|---|---|
+| nota do atleta | passava de 10 (172.114 quadros em 200 partidas) | limite na própria propriedade — **0** |
+| chute acelerando no ar | de 16 para 39 m/s num quadro, 11×/jogo — era o fim da câmera lenta em degrau | rampa de 0,18 s — **0** |
+| escanteio | 100% saíam a 2,27 m da bandeirinha (o arco tem 1 m) | 1,53 m — **0 fora da tolerância** |
+| gol por fora da trave | 5 gols com a bola cruzando até 4,6 m fora do poste | guarda de geometria no `_goal` — **0** |
+| corpos sobrepostos | goleiro e atacante a 1 cm por mais de 1 s | goleiro entra na conta, piso de 0,55 m no duelo |
+| expulso no intervalo | espelhado junto com os outros 21 | pulado, como no `_resetPositions` |
+| pênalti | a bola nunca visitava a marca da cal | vai para a marca, com bola morta de 0,35 s |
+| bola piscando no reinício | 66 recolocações por jogo, até 100 m, nenhuma desenhada | o trajeto é percorrido em até meio segundo |
+
+## 8. A falta perto do gol está boa
+
+`05-falta-perto-do-gol-bem-encenada.png` — vale registrar o que **não** estava
+quebrado: barreira armada, arco de 9,15 m, cobrador nomeado, distância e HUD
+com barra de tempo. O problema nunca foi a cobrança perto da área.
 
 ---
 
-## As correções não tocaram o jogo
-
-As três correções são de apresentação. A prova é a própria auditoria, com a
-mesma amostra antes e depois:
+## O placar antes e depois — 200 partidas, mesmas sementes
 
 ```
-placares iguais : True
-agregado igual  : True
-violações iguais: True   3173 -> 3173
+                SEU HTML   CORRIGIDO
+  violações      177.254       1.255      -99,3%
+  falta carregada  59,8%        0,2%
+  faixa cinzenta    7,6 s       1,1 s     por partida
+  pior episódio     5,3 s       0,4 s
 ```
 
-## O que ficou pendente
+| regra | antes | depois |
+|---|---|---|
+| `A5` nota fora de 0..10 | 172.114 | **0** |
+| `E2` bola acelera no ar | 2.211 | **0** |
+| `C10` reinício fora do lugar | 1.142 | 19 |
+| `D8` bola morta com o jogo andando | 446 | **0** |
+| `C13` corpos sobrepostos | 120 | 35 |
+| `C4b` expulso no intervalo | 25 | **0** |
+| `C16` gol fora da baliza | 5 | **0** |
+| `B8` bola recolocada | 1.189 | 1.201 |
 
-| | por que não mexi |
-|---|---|
-| campo preto no cartão | é desenho de cena; precisa de sonda de tela antes/depois |
-| pontapé de saída | mexe em posição, e posição mexe em placar |
-| falta longe do gol sem cobrança | mesma razão: muda o jogo, não a tela |
+`B8` não muda porque a correção é de **desenho** — a auditoria roda fora do
+navegador e não vê o trajeto sendo percorrido. O motor continua recolocando a
+bola; o que mudou é que agora se vê ela indo.
+
+### Calibração: nada regrediu, uma métrica entrou
+
+| métrica | seu HTML | corrigido | faixa |
+|---|---|---|---|
+| gols por partida | 1,855 **fora** | 1,975 **fora** | 2,4 – 3,2 |
+| goleadas (`blowoutRate`) | 0,080 **fora** | **0,130 ok** | 0,09 – 0,19 |
+| chutes no alvo | 0,314 **fora** | 0,3227 **fora** | 0,34 – 0,47 |
+| 0×0 | 0,165 **fora** | 0,180 **fora** | 0,045 – 0,12 |
+| empates | 0,315 ok | 0,315 ok | 0,20 – 0,33 |
+| passes certos | 0,8116 ok | 0,8169 ok | 0,75 – 0,89 |
+
+**O jogo continua fazendo gol de menos** — isso é anterior às correções e não
+foi tocado: mexer nisso é calibração, e calibração não se faz assistindo.
+
+### Uma correção minha que a amostra grande derrubou
+
+Logo depois de fazer a falta virar cobrança, medi 48 partidas: gols de 2,23
+para 2,44, três métricas entrando na faixa. Em 200 partidas pareadas o ganho
+virou +0,12 e nada disso se sustentou. **Era ruído de amostra pequena** — a
+mesma armadilha que o projeto já tinha documentado em `33-cds-r18fix`. O erro
+padrão de gols por partida com n=48 é 0,23; o "ganho" cabia inteiro dentro
+dele. Fica registrado para não se repetir: placar exige 200+ partidas.

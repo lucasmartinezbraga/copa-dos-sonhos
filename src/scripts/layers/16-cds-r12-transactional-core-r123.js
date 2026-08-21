@@ -104,8 +104,17 @@ P._integrate=function(p,tx,ty,dt,freeze){
   {const _v1=Math.hypot(p.vx,p.vy);if(_v1>.25&&_v0>.25){const _a1=Math.atan2(p.vy,p.vx),_da=Math.atan2(Math.sin(_a1-cur),Math.cos(_a1-cur)),_max=finite(p.turn,1)*(14/(1.2+_v1)+6/(1+_v1*_v1))*dt;if(Math.abs(_da)>_max){const _c=cur+(_da>0?_max:-_max);p.vx=Math.cos(_c)*_v1;p.vy=Math.sin(_c)*_v1;}}}
   const nx=clamp(sx+p.vx*dt,0,FL),ny=clamp(sy+p.vy*dt,0,FW),ctx=this.__r122MoveFrame;if(ctx)ctx.planned.set(p,{x:nx,y:ny});else{p.x=nx;p.y=ny;}
 };
-P._resolveOverlaps=function(){const ctx=this.__r122MoveFrame;if(!ctx)return;const all=[];for(const tm of this.teams||[])for(const p of tm.players||[])if(p&&!p.red&&!p.isGK)all.push(p);const corr=new Map();for(const p of all)corr.set(p,{x:0,y:0});const b=this.ball||{x:0,y:0};
-  for(let i=0;i<all.length;i++)for(let j=i+1;j<all.length;j++){const p=all[i],q=all[j],pp=ctx.planned.get(p)||ctx.snap.get(p),qq=ctx.planned.get(q)||ctx.snap.get(q);let dx=qq.x-pp.x,dy=qq.y-pp.y,dd=Math.hypot(dx,dy);if(dd>=1.7)continue;if(dist(pp,b)<3&&dist(qq,b)<3)continue;if(dd<.05){const a=sideRand(this,0,Math.PI*2);dx=Math.cos(a);dy=Math.sin(a);dd=1;}const push=Math.min(.24,(1.7-dd)/2),nx=dx/dd,ny=dy/dd,cp=corr.get(p),cq=corr.get(q);cp.x-=nx*push;cp.y-=ny*push;cq.x+=nx*push;cq.y+=ny*push;state(this).diagnostics.overlapCorrections++;}
+/* §VISTO-14 · CORPO NAO ENTRA DENTRO DE CORPO.
+   Duas excecoes desta rotina deixavam atletas ocupando o mesmo ponto por mais
+   de um segundo, e a auditoria as pegava (C13): os goleiros ficavam de fora da
+   lista, e a dupla que estivesse a menos de 3 m da bola era ignorada por
+   inteiro. As duas excecoes tem razao de ser — ninguem quer empurrar goleiro
+   nem afastar quem esta disputando —, mas nenhuma delas precisa permitir
+   SOBREPOSICAO. Agora o goleiro entra na conta e nao recebe correcao (quem sai
+   de perto e o de linha), e no duelo o corpo a corpo continua valendo ate
+   0,55 m, que e a largura de um atleta. */
+P._resolveOverlaps=function(){const ctx=this.__r122MoveFrame;if(!ctx)return;const all=[];for(const tm of this.teams||[])for(const p of tm.players||[])if(p&&!p.red)all.push(p);const corr=new Map();for(const p of all)corr.set(p,{x:0,y:0});const b=this.ball||{x:0,y:0};
+  for(let i=0;i<all.length;i++)for(let j=i+1;j<all.length;j++){const p=all[i],q=all[j],pp=ctx.planned.get(p)||ctx.snap.get(p),qq=ctx.planned.get(q)||ctx.snap.get(q);let dx=qq.x-pp.x,dy=qq.y-pp.y,dd=Math.hypot(dx,dy);if(dd>=1.7)continue;const _duelo=dist(pp,b)<3&&dist(qq,b)<3;if(_duelo&&dd>=.55)continue;if(p.isGK&&q.isGK)continue;if(dd<.05){const a=sideRand(this,0,Math.PI*2);dx=Math.cos(a);dy=Math.sin(a);dd=1;}const _alvoD=_duelo?.55:1.7;const push=Math.min(.24,(_alvoD-dd)/2),nx=dx/dd,ny=dy/dd,cp=corr.get(p),cq=corr.get(q);if(!p.isGK){cp.x-=nx*push;cp.y-=ny*push;}if(!q.isGK){cq.x+=nx*push;cq.y+=ny*push;}state(this).diagnostics.overlapCorrections++;}
   for(const c of corr.values()){const L=Math.hypot(c.x,c.y);if(L>.30){c.x=c.x/L*.30;c.y=c.y/L*.30;}}commitMovement(this,ctx,corr);
 };
 function commitMovement(sim,ctx,corr){if(ctx.committed)return;ctx.committed=true;const dg=state(sim).diagnostics;dg.movementFrames++;for(const tm of sim.teams||[])for(const p of tm.players||[]){if(!p||p.red)continue;const s=ctx.snap.get(p)||{x:finite(p.x),y:finite(p.y)},n=ctx.planned.get(p)||s,c=corr&&corr.get(p)||{x:0,y:0};let x=clamp(n.x+c.x,0,FL),y=clamp(n.y+c.y,0,FW),raw=Math.hypot(x-s.x,y-s.y);dg.maxRawStep=Math.max(dg.maxRawStep,raw);const maxStep=Math.max(.20,finite(p.maxSpd,7)*ctx.dt*1.18+.12);if(raw>maxStep){const q=maxStep/raw;x=s.x+(x-s.x)*q;y=s.y+(y-s.y)*q;dg.movementClamps++;}const fs=Math.hypot(x-s.x,y-s.y);dg.maxFinalStep=Math.max(dg.maxFinalStep,fs);p.x=x;p.y=y;if(ctx.dt>0){p.vx=(x-s.x)/ctx.dt;p.vy=(y-s.y)/ctx.dt;
