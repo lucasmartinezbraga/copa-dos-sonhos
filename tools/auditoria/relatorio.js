@@ -23,6 +23,9 @@ const ler = p => (p && fs.existsSync(p)) ? JSON.parse(fs.readFileSync(p, 'utf8')
 const A = ler(argv.auditoria);
 const T = ler(argv.tela);
 const C = ler(argv.camadas);
+const N0 = ler(argv.n0);
+const N6 = ler(argv.n6);
+const TELAS = [argv.tela, argv.tela1x, argv.telaturbo].filter(Boolean).map(ler).filter(Boolean);
 const build = (A && A.build) || (T && T.build) || (C && C.build) || '?';
 const L = [];
 const P = s => L.push(s);
@@ -55,7 +58,35 @@ if (C) P(`- camadas: ${C.resumo.patch_perdido || 0} patch(es) perdido(s), ` +
   `${C.resumo.pilha_funda || 0} metodo(s) com 3+ donos, ${C.resumo.sem_guarda || 0} sem guarda`);
 if (T) P(`- tela: partida inteira projetada em **${T.custoDeTela.partidaInteiraMin} min** ` +
   `no botao ${T.velocidadeBotao}X; ${(T.orcamentoDeTela.fracaoParedeBolaMorta * 100).toFixed(1)}% do tempo de tela e bola parada`);
+if (N0) P(`- artefato: ${N0.blocos} blocos, ${(N0.bytes / 1048576).toFixed(2)} MB, ` +
+  `${N0.achados.length} achado(s) de documento`);
+if (N6) {
+  const erros = N6.telas.reduce((a, v) => a + v.erros.length + v.consoleErros.length, 0);
+  P(`- telas: 3 tamanhos percorridos, ${erros} erro(s) de script/console`);
+}
 P('');
+
+/* ---------------------------------------------- o achado que manda no laudo */
+if (A && A.economiaDoTempo && A.economiaDoTempo.deadComJogoAndando) {
+  const CZ = A.economiaDoTempo.deadComJogoAndando;
+  if (CZ.segundosPorPartida > 0) {
+    P('### A faixa cinzenta do `dead`');
+    P('');
+    P('Tres subsistemas discordam sobre o que `dead > 0` significa:');
+    P('');
+    P('| quem | o que faz com `dead > 0` |');
+    P('|---|---|');
+    P('| relogio da partida | **para** para qualquer `dead > 0` |');
+    P('| congelamento tatico | so entra em `dead > 0,4` |');
+    P('| laco de render | **adianta 3,5x** para qualquer `dead > 0` (10,5x no botao 3X) |');
+    P('');
+    P(`Na faixa \`0 < dead <= 0,4\` isso da, por partida: **${CZ.segundosPorPartida} s** de simulacao`);
+    P(`em **${CZ.episodiosPorPartida} episodios**, com a bola andando **${CZ.metrosDeBolaPorPartida} m**;`);
+    P(`o pior episodio dura **${CZ.maiorEpisodio} s**. Nesses trechos o jogo continua sendo jogado,`);
+    P('o relogio da partida fica parado e a tela acelera.');
+    P('');
+  }
+}
 
 /* ------------------------------------------------- 2. achados de partida */
 if (A && Object.keys(A.porRegra).length) {
@@ -89,6 +120,25 @@ if (A && Object.keys(A.porRegra).length) {
     }
     P('');
   }
+}
+
+/* ------------------------------------------------- legalidade do reinicio */
+if (A && A.legalidadeDoReinicio && Object.keys(A.legalidadeDoReinicio).length) {
+  P('## 2b. Legalidade do reinicio');
+  P('');
+  P('Distancia entre a bola e o ponto legal, no quadro em que o motor consome o reinicio.');
+  P('');
+  P('| reinicio | n | erro p50 | erro p90 | pior | fora da tolerancia |');
+  P('|---|---|---|---|---|---|');
+  for (const k of Object.keys(A.legalidadeDoReinicio)) {
+    const g = A.legalidadeDoReinicio[k];
+    P(`| ${k} | ${g.n} | ${g.erroP50} m | ${g.erroP90} m | ${g.erroMax} m | ${g.foraDaTolerancia} |`);
+  }
+  P('');
+  P('O pontape de saida fica **fora** desta tabela de proposito: entre a cerimonia do gol,');
+  P('a volta para casa e o proprio pontape, o instante do reinicio deixa de ser identificavel');
+  P('por `pendingRestart`, e um numero inventado seria pior que um buraco declarado.');
+  P('');
 }
 
 /* ---------------------------------------------------------- 3. o lance */
@@ -132,6 +182,23 @@ if (A && A.economiaDoTempo) {
   P('');
 }
 
+/* ------------------------------------------------- custo de tela por botao */
+if (TELAS.length > 1) {
+  P('## 3b. O custo de tela, botao a botao');
+  P('');
+  P('| botao | parede/simulacao | partida inteira | bola parada (tela) | bola parada (simulacao) | tremor | salto |');
+  P('|---|---|---|---|---|---|---|');
+  for (const t of TELAS.sort((a, b) => a.velocidadeBotao - b.velocidadeBotao)) {
+    const d = t.fluidez.desenho || {};
+    P(`| ${t.velocidadeBotao}X | ${t.custoDeTela.paredePorSimulacao} | ${t.custoDeTela.partidaInteiraMin} min | ` +
+      `${(t.orcamentoDeTela.fracaoParedeBolaMorta * 100).toFixed(1)}% | ` +
+      `${(t.orcamentoDeTela.fracaoSimBolaMorta * 100).toFixed(1)}% | ` +
+      `${d.fracaoTremor != null ? (d.fracaoTremor * 100).toFixed(2) + '%' : '-'} | ` +
+      `${d.fracaoSalto != null ? (d.fracaoSalto * 100).toFixed(2) + '%' : '-'} |`);
+  }
+  P('');
+}
+
 /* ----------------------------------------------------------- 4. ritmo */
 if (T) {
   P('## 4. Ritmo e fluidez (N5 — relogio de parede)');
@@ -152,6 +219,32 @@ if (T) {
     const p = T.pausas[k];
     P(`| ${k} | ${p.n} | ${p.paredeMsP50} ms | ${p.paredeMsP90} ms | ${p.paredeMsMax} ms | ${p.simSP50} s |`);
   }
+  P('');
+}
+
+/* ------------------------------------------------------------ 4b. telas */
+if (N6) {
+  P('## 4b. Fluxo de telas (N6)');
+  P('');
+  P('| tamanho | boot | erros | achados | campo na partida |');
+  P('|---|---|---|---|---|');
+  for (const v of N6.telas) {
+    const achados = [];
+    for (const t of v.telas) {
+      if (t.erro) { achados.push(`${t.tela}: ${t.erro}`); continue; }
+      if (t.rolagemHorizontal > 0) achados.push(`${t.tela}: rolagem +${t.rolagemHorizontal}px`);
+      if (t.estouram && t.estouram.length) achados.push(`${t.tela}: ${t.estouram.length} estourando`);
+      if (t.botoesCobertos && t.botoesCobertos.length) achados.push(`${t.tela}: ${t.botoesCobertos.length} botao coberto`);
+      if (t.alvosPequenos && t.alvosPequenos.length) achados.push(`${t.tela}: ${t.alvosPequenos.length} alvo < 32px`);
+      if (t.textoMiudo) achados.push(`${t.tela}: ${t.textoMiudo} texto < 11px`);
+    }
+    const campo = v.partida && v.partida.fracaoDaTelaComCampo != null
+      ? (v.partida.fracaoDaTelaComCampo * 100).toFixed(0) + '%' : '-';
+    P(`| ${v.nome} ${v.viewport} | ${v.bootMs} ms | ${v.erros.length + v.consoleErros.length} | ` +
+      `${achados.join('; ') || 'limpo'} | ${campo} |`);
+  }
+  P('');
+  P('Capturas em `reports/auditoria/tela/`.');
   P('');
 }
 
@@ -177,6 +270,26 @@ if (C) {
     for (const a of fundas.slice(0, 20)) P(`- \`${a.metodo}\` — ${a.camadas.length}x: ${a.camadas.join(' → ')}`);
     P('');
   }
+}
+
+/* --------------------------------------------------------- 5b. artefato */
+if (N0) {
+  P('## 5b. O artefato (N0)');
+  P('');
+  P(`${N0.build} · ${(N0.bytes / 1048576).toFixed(2)} MB · ${N0.blocos} blocos de script · ${N0.estilos} de estilo`);
+  P('');
+  if (!N0.achados.length) P('Nenhum achado de documento.');
+  else {
+    P('| grav. | achado | |');
+    P('|---|---|---|');
+    for (const a of N0.achados) {
+      const d = typeof a.detalhe === 'string' ? a.detalhe
+        : Array.isArray(a.detalhe) ? a.detalhe.slice(0, 3).map(x => typeof x === 'string' ? x : JSON.stringify(x)).join('; ')
+        : (a.detalhe && a.detalhe.valores ? `${a.detalhe.valores.length} valores, vence "${a.detalhe.venceOUltimo}"` : '');
+      P(`| ${a.gravidade} | ${a.titulo} | ${String(d).slice(0, 120)} |`);
+    }
+  }
+  P('');
 }
 
 /* ------------------------------------------------------ 6. calibracao */

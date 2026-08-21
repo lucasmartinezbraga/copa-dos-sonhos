@@ -1,0 +1,148 @@
+{
+  "ferramenta": "tools/auditoria/artefato.js",
+  "geradoEm": "2026-08-20T23:38:59.464Z",
+  "build": "auditado-R19.17.html",
+  "sha256": "b514442fb25283960ff155d653e3a0f6beb08e374692a7b67c0681f642477335",
+  "bytes": 2533267,
+  "blocos": 79,
+  "estilos": 9,
+  "maiores": [
+    {
+      "id": "script-2",
+      "ordem": 2,
+      "kb": 1223.1
+    },
+    {
+      "id": "cds-ux-boot",
+      "ordem": 16,
+      "kb": 152.3
+    },
+    {
+      "id": "cds-os200-balistica-real",
+      "ordem": 68,
+      "kb": 47.5
+    },
+    {
+      "id": "cds-r13-football-observer-cadence",
+      "ordem": 13,
+      "kb": 40.9
+    },
+    {
+      "id": "cds-physics-timeline-581",
+      "ordem": 3,
+      "kb": 39.5
+    }
+  ],
+  "achados": [
+    {
+      "gravidade": "S2",
+      "id": "N0-externo",
+      "titulo": "1 host(s) externos referenciados",
+      "detalhe": [
+        "https://flagcdn.com/"
+      ]
+    },
+    {
+      "gravidade": "S3",
+      "id": "N0-identidade",
+      "titulo": "40 escritas de CDS_BUILD_ID com 38 valores diferentes",
+      "detalhe": {
+        "valores": [
+          "R18.4",
+          "R18.5",
+          "R18.7",
+          "R18.8",
+          "R18.9",
+          "R18.10",
+          "R18.11",
+          "R18.13.2",
+          "R18.14.1",
+          "R18.15.1",
+          "R18.15.5",
+          "R18.16.1",
+          "R18.17.3.2",
+          "R18.18",
+          "R18.18.3",
+          "R18.40A",
+          "R18.84",
+          "R18.85",
+          "R18.86",
+          "R18.17.2",
+          "R18.17.3",
+          "R18.18.1",
+          "R18.18.2",
+          "R18.20",
+          "R18.43",
+          "R18.50",
+          "R19.00",
+          "R19.03",
+          "R19.04",
+          "R19.08",
+          "R19.10",
+          "R19.11",
+          "R19.12",
+          "R19.13",
+          "R19.14",
+          "R19.15",
+          "R19.16",
+          "R19.17"
+        ],
+        "venceOUltimo": "R19.17",
+        "titulos": [
+          "Copa dos Sonhos — R15.8",
+          "Copa dos Sonhos — R18.3",
+          "Copa dos Sonhos — R18.4",
+          "Copa dos Sonhos — R18.5",
+          "Copa dos Sonhos — R18.7",
+          "Copa dos Sonhos — R18.8",
+          "Copa dos Sonhos — R18.9",
+          "Copa dos Sonhos — R18.10",
+          "Copa dos Sonhos — R18.11",
+          "Copa dos Sonhos — R18.13.2",
+          "Copa dos Sonhos — R18.14.1",
+          "Copa dos Sonhos — R18.15.1",
+          "Copa dos Sonhos — R18.15.5",
+          "Copa dos Sonhos — R18.16.1",
+          "Copa dos Sonhos — R18.17.3.2",
+          "Copa dos Sonhos — R18.18",
+          "Copa dos Sonhos — R18.18.3",
+          "Copa dos Sonhos — R18.40A",
+          "Copa dos Sonhos — R18.84",
+          "Copa dos Sonhos — R18.85",
+          "Copa dos Sonhos — R18.86",
+          "Copa dos Sonhos — R18.17",
+          "Copa dos Sonhos — R18.17.2",
+          "Copa dos Sonhos — R18.17.3",
+          "Copa dos Sonhos — R18.18.1",
+          "Copa dos Sonhos — R18.18.2",
+          "Copa dos Sonhos — R18.20",
+          "Copa dos Sonhos — R18.43",
+          "Copa dos Sonhos — R18.49",
+          "Copa dos Sonhos — R19.00",
+          "Copa dos Sonhos — R19.03",
+          "Copa dos Sonhos — R19.04",
+          "Copa dos Sonhos — R19.08",
+          "Copa dos Sonhos — ",
+          "Copa dos Sonhos — R19.10",
+          "Copa dos Sonhos — R19.11",
+          "Copa dos Sonhos — R19.12",
+          "Copa dos Sonhos — R19.13",
+          "Copa dos Sonhos — R19.14",
+          "Copa dos Sonhos — R19.15",
+          "Copa dos Sonhos — R19.16",
+          "Copa dos Sonhos — R19.17"
+        ]
+      }
+    },
+    {
+      "gravidade": "S3",
+      "id": "N0-document-write",
+      "titulo": "usa document.write",
+      "detalhe": ""
+    }
+  ],
+  "resumo": {
+    "S2": 1,
+    "S3": 2
+  }
+}

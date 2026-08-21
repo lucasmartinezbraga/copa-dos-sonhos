@@ -1,0 +1,145 @@
+{
+  "ferramenta": "tools/auditoria/tela.js",
+  "geradoEm": "2026-08-21T00:01:07.970Z",
+  "build": "auditado-R19.17.html",
+  "janelaS": 90,
+  "velocidadeBotao": 6,
+  "partida": {
+    "simulados": 432.3,
+    "minuto": 31.2,
+    "placar": [
+      0,
+      0
+    ]
+  },
+  "custoDeTela": {
+    "paredePorSimulacao": 0.2082,
+    "partidaInteiraMin": 4.7,
+    "obs": "partidaInteiraMin projeta 1.366 s de simulacao no custo medido nesta janela"
+  },
+  "orcamentoDeTela": {
+    "fracaoParedeBolaMorta": 0.2612,
+    "fracaoSimBolaMorta": 0.1456,
+    "cerimoniaS": 14.7,
+    "obs": "se a fracao de PAREDE morta e muito maior que a de SIMULACAO morta, a espera esta sendo esticada na tela"
+  },
+  "pausas": {
+    "foul": {
+      "n": 6,
+      "paredeMsP50": 1971,
+      "paredeMsP90": 2087,
+      "paredeMsMax": 2087,
+      "simSP50": 2.95
+    },
+    "goal_kick": {
+      "n": 6,
+      "paredeMsP50": 1041,
+      "paredeMsP90": 1184,
+      "paredeMsMax": 1184,
+      "simSP50": 1.6
+    },
+    "offside": {
+      "n": 1,
+      "paredeMsP50": 775,
+      "paredeMsP90": 775,
+      "paredeMsMax": 775,
+      "simSP50": 0.78
+    },
+    "sem_evento": {
+      "n": 7,
+      "paredeMsP50": 114,
+      "paredeMsP90": 659,
+      "paredeMsMax": 659,
+      "simSP50": 2.28
+    },
+    "throw_in": {
+      "n": 7,
+      "paredeMsP50": 151,
+      "paredeMsP90": 328,
+      "paredeMsMax": 328,
+      "simSP50": 3.03
+    },
+    "yellow": {
+      "n": 1,
+      "paredeMsP50": 1988,
+      "paredeMsP90": 1988,
+      "paredeMsMax": 1988,
+      "simSP50": 3.43
+    }
+  },
+  "fluidez": {
+    "quadros": 8355,
+    "fpsMedio": 92.8,
+    "quadroMsMedio": 10.77,
+    "quadroMsPior": 315.7,
+    "passosDeSimulacao": 25937,
+    "fracaoQuadrosSemPasso": 0.2506,
+    "fracaoQuadrosCom2OuMais": 0.6245,
+    "obs": "passos por quadro medem a VELOCIDADE escolhida, nao a fluidez: no 3X e normal desenhar ~2 passos por quadro.",
+    "desenho": {
+      "disponivel": true,
+      "amostras": 183788,
+      "deslocamentoMedianoPx": 1.219,
+      "fracaoTremor": 0.0038,
+      "fracaoSalto": 0.0366,
+      "obs": "tremor = deslocamento desenhado que inverte de direcao entre quadros; salto = passada 4x acima da mediana. Esta e a medida de fluidez."
+    }
+  },
+  "eventosContagem": {
+    "kickoff": 1,
+    "match_phase": 269,
+    "action_prepare": 150,
+    "action_contact": 144,
+    "pass": 101,
+    "visual_contact": 168,
+    "pressure": 192,
+    "intercept": 11,
+    "shot_deferred": 7,
+    "shot_taken": 9,
+    "finish_choice": 9,
+    "miss": 6,
+    "goal_kick": 11,
+    "containment": 89,
+    "through": 6,
+    "tackle_attempt": 27,
+    "tackle": 15,
+    "cross": 11,
+    "low_cross_no_contact": 3,
+    "bad_pass": 11,
+    "run_break": 13,
+    "run_burst": 6,
+    "tackle_missed": 6,
+    "header_clear": 4,
+    "throw_in": 7,
+    "loose_duel": 2,
+    "offside_trap": 10,
+    "save": 3,
+    "looseControl": 12,
+    "intercept_attempt_aborted": 2,
+    "miscontrol_out": 1,
+    "dribble": 6,
+    "cross_livre": 1,
+    "cross_ruim": 4,
+    "foul": 7,
+    "falta_cobrada": 5,
+    "falta_atras_cobrada": 5,
+    "freekick_routine": 2,
+    "freekick": 1,
+    "gk_bad_distribution": 2,
+    "yellow": 1,
+    "action_interrupted": 6,
+    "offside": 1,
+    "offside_restart": 1,
+    "visual_contact_failed": 2,
+    "corner": 1,
+    "corner_delivery": 1,
+    "gk_sweep": 1,
+    "gk_claim": 1,
+    "manager_change": 1,
+    "blocked": 1
+  },
+  "erros": {
+    "pageerror": [],
+    "consoleError": []
+  }
+}

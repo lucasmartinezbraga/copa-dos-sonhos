@@ -92,6 +92,18 @@ const CATALOGO = [
     porque: 'Se o dono esta a metros da bola sem voo, a posse e ficticia: a marcacao persegue um fantasma.' },
   { id: 'C9', classe: 'regra', tipo: 'lei', gravidade: 'S2',
     titulo: 'Dono da bola expulso' },
+  { id: 'C10', classe: 'regra', tipo: 'lei', gravidade: 'S2',
+    titulo: 'Reinicio fora do lugar legal',
+    porque: 'Escanteio sai da quina, lateral da linha lateral, tiro de meta de dentro da area, penalti da marca. Reinicio no lugar errado e a regra de futebol mais visivel que existe.' },
+  { id: 'C11', classe: 'regra', tipo: 'lei', gravidade: 'S2',
+    titulo: 'Bola fora das linhas com o jogo rolando',
+    porque: 'A bola inteira passou a linha e ninguem apitou. Segue jogo fora do campo.' },
+  { id: 'C13', classe: 'regra', tipo: 'plausibilidade', gravidade: 'S3',
+    titulo: 'Corpos sobrepostos',
+    porque: 'Dois atletas ocupando o mesmo ponto por mais de um segundo: na tela um entra dentro do outro.' },
+  { id: 'C16', classe: 'regra', tipo: 'lei', gravidade: 'S1',
+    titulo: 'Gol sem a bola na baliza',
+    porque: 'Gol validado com a bola longe da linha ou fora das traves e placar inventado.' },
 
   /* ===== N2-D · vivacidade (o jogo trava?) ============================== */
   { id: 'D1', classe: 'vivacidade', tipo: 'invariante', gravidade: 'S1',
@@ -108,6 +120,9 @@ const CATALOGO = [
     titulo: 'Bola parada no gramado sem dono e sem reinicio' },
   { id: 'D7', classe: 'vivacidade', tipo: 'invariante', gravidade: 'S1',
     titulo: 'Partida nao termina no orcamento de passos' },
+  { id: 'D8', classe: 'vivacidade', tipo: 'lei', gravidade: 'S1',
+    titulo: 'Bola morta com o jogo andando',
+    porque: 'Tres subsistemas discordam do que `dead > 0` significa. O nucleo retorna cedo (sem fisica nem decisao) para QUALQUER dead > 0; o congelamento tatico so entra em dead > 0,4; e o laco de render adianta 3,5x sempre que dead > 0 (10,5x no botao 3X). Na faixa 0 < dead <= 0,4 o resultado e: a bola continua colada no portador por uma camada, os 22 continuam se movendo, o relogio da partida PARA e a tela ACELERA. E o defeito de sensacao mais caro do jogo.' },
 
   /* ===== N2-E · fisica ================================================== */
   { id: 'B8', classe: 'geometria', tipo: 'plausibilidade', gravidade: 'S3',
@@ -116,6 +131,9 @@ const CATALOGO = [
   { id: 'E1', classe: 'fisica', tipo: 'plausibilidade', gravidade: 'S3',
     titulo: 'Bola acima de 60 m/s (216 km/h)',
     porque: 'O chute mais forte ja medido no futebol fica perto de 51 m/s.' },
+  { id: 'E2', classe: 'fisica', tipo: 'plausibilidade', gravidade: 'S3',
+    titulo: 'Bola acelera no ar sem contato',
+    porque: 'Bola em voo so perde energia. Ganhar velocidade sem ninguem tocar nela e a integracao numerica vazando ou uma recolocacao disfarcada de fisica.' },
   { id: 'E4', classe: 'fisica', tipo: 'plausibilidade', gravidade: 'S3',
     titulo: 'Voo de bola longo demais',
     porque: 'Acima de 12 s no ar, a bola nao esta voando: esta esquecida num estado de viagem.' },
@@ -162,6 +180,12 @@ const LIM = {
   semEventoMax: 150,        // s de simulacao
   relogioParadoMax: 90,     // s de simulacao com a bola viva
   recolocacaoMax: 25,       // m — acima disto o reinicio nao e onde o lance parou
+  reinicioFolga: 2.0,       // m de tolerancia no ponto legal do reinicio
+  foraDeJogoMax: 1.0,       // s de simulacao com a bola alem da linha e o jogo rolando
+  sobreposicao: 0.45,       // m — abaixo disto os corpos se cruzam
+  sobreposicaoMax: 1.0,     // s de simulacao
+  deadVivo: 0.4,            // degrau do congelamento tatico no nucleo
+  deadVivoMin: 0.5,         // s de episodio ate virar achado
   posseMax: 45,             // s de simulacao com o mesmo dono
   bolaLargadaMax: 12,       // s de simulacao
   donoLonge: 3.5,           // m
@@ -213,6 +237,17 @@ function criarObservador(sim, meta, opts) {
       else eventosRecentes.push({ t: t, quando: Number(sim.t) || 0 });
       if (eventosRecentes.length > 12) eventosRecentes.shift();
       if (t === 'goal' && d && d.by) golsSeq.push({ time: d.by.team, minuto: Math.floor(sim.minute) });
+      if (t === 'goal') {
+        golT = Number(sim.t) || 0;
+        /* A conferencia e no CRUZAMENTO da linha, nao no quadro do evento —
+           depois de entrar, a bola segue para dentro da rede e sai de tras das
+           traves, e ler a posicao no `_emit` reprova gols legitimos.
+           E ela e ADIADA um quadro de proposito: o `_emit` acontece DENTRO do
+           `step`, e a contabilidade do cruzamento roda depois dele. Conferir
+           agora reprovaria justamente o gol cujo cruzamento e deste quadro —
+           que foi o segundo alarme falso deste oraculo. */
+        golPendente = { t: Number(sim.t) || 0 };
+      }
       if (t === 'foul' && d) abrirFalta(d);
       if (faltaAberta && (t === 'freekick' || t === 'penalty' || t === 'yellow' || t === 'red' ||
           t === 'falta_atras_cobrada' || t === 'falta_cobrada' || t === 'freekick_routine')) {
@@ -235,6 +270,21 @@ function criarObservador(sim, meta, opts) {
   const faltas = [];
   let faltaAberta = null;
   const recolocacoes = [];
+  const reinicios = [];                 // { tipo, erro }
+  let piscadas = 0;                     // janelas de dead sem reinicio nenhum
+  let foraDesde = null, golT = -99;
+  /* D8 — a faixa cinzenta do `dead`. */
+  const cinza = { quadros: 0, segundos: 0, episodios: 0, metrosDeBola: 0, maiorEpisodio: 0 };
+  let cinzaDesde = null, cinzaMetros = 0;
+  /* deslocamento da bola NESTE quadro, capturado antes de `bAnt` virar o
+     quadro atual. Ler `bAnt` depois disso mede sempre zero — foi assim que a
+     primeira versao de D8 nao achou nada que ela mesma tinha visto. */
+  let andouNoQuadro = 0;
+  let ultimoCruzamento = null;     // { y, z, t } — onde a bola passou a linha de gol
+  let golPendente = null;          // gol a conferir no proximo quadro
+  let velAnt = 0;                  // m/s do quadro anterior, para E2
+  let prAnt = false;               // havia reinicio pendente no quadro anterior?
+  const sobrepostos = new Map();        // "a:b" -> t de inicio
   let subsPorTime = [0, 0];
   const maxRestartFolga = 0.35;   // s de simulacao depois do reinicio em que salto ainda e legitimo
   let fimDeadT = -99;
@@ -256,6 +306,13 @@ function criarObservador(sim, meta, opts) {
     const minuto = Number(sim.minute);
 
     acompanharFalta(t, dead);
+    andouNoQuadro = 0;   /* o bloco da bola, logo abaixo, preenche este quadro */
+    /* O reinicio ACONTECE no quadro em que o motor consome `pendingRestart`.
+       Medir legalidade quando `dead` chega a zero pega tambem as piscadas da
+       faixa cinzenta, em que reinicio nenhum ocorreu. */
+    const _prAgora = !!sim.pendingRestart;
+    if (prAnt && !_prAgora) conferirReinicio(pausaAberta ? rotular(pausaAberta.eventos) : rotular(eventosRecentes.map(e => e.t)));
+    prAnt = _prAgora;
 
     /* ---- A3 estado ---- */
     if (!Number.isFinite(minuto) || !Number.isFinite(dead) ||
@@ -291,15 +348,22 @@ function criarObservador(sim, meta, opts) {
     /* ---- pausas de bola parada (SONDA, nao violacao) ---- */
     if (dead > 0 && !pausaAberta) {
       const rec = eventosRecentes.filter(e => t - e.quando <= 0.8).map(e => e.t);
-      pausaAberta = { inicio: t, eventos: rec.slice(), minuto: minuto, tempo: sim.half };
+      pausaAberta = { inicio: t, eventos: rec.slice(), minuto: minuto, tempo: sim.half,
+        teveRestart: !!sim.pendingRestart };
     } else if (dead <= 0 && pausaAberta) {
       const dur = t - pausaAberta.inicio;
       pausaAberta.duracaoSim = +dur.toFixed(3);
       pausaAberta.tipo = rotular(pausaAberta.eventos);
-      pausas.push(pausaAberta);
+      /* Uma janela de `dead` que nunca teve reinicio pendente NAO e uma pausa:
+         e a piscada da faixa cinzenta (D8). Contar as duas juntas inflava as
+         pausas por partida e inventava "reinicios ilegais" que nunca
+         aconteceram. */
+      if (pausaAberta.teveRestart) pausas.push(pausaAberta);
+      else piscadas++;
       pausaAberta = null;
       fimDeadT = t;
     }
+    if (pausaAberta && sim.pendingRestart) pausaAberta.teveRestart = true;
     /* ---- D1 bola morta eterna ---- */
     if (pausaAberta && t - pausaAberta.inicio > LIM.deadMax) {
       registrar('D1', { paradaHa: +(t - pausaAberta.inicio).toFixed(1) + ' s',
@@ -324,8 +388,26 @@ function criarObservador(sim, meta, opts) {
 
         if (bAnt) {
           const d = Math.hypot(b.x - bAnt.x, b.y - bAnt.y);
+          andouNoQuadro = d;
           const vel = dt > 0 ? d / dt : 0;
           const janelaAdmin = dead > 0 || bAnt.dead > 0 || (t - fimDeadT) < maxRestartFolga;
+          /* cruzamento das linhas de gol, interpolado no quadro.
+             `<= 0` e nao `< 0`: a bola passa exatamente por x = 0 com
+             frequencia suficiente para o teste estrito perder o cruzamento. */
+          for (const gx of [0, FL]) {
+            if (bAnt.x !== b.x && (bAnt.x - gx) * (b.x - gx) <= 0) {
+              const f = (gx - bAnt.x) / (b.x - bAnt.x);
+              ultimoCruzamento = { y: bAnt.y + (b.y - bAnt.y) * f,
+                z: (bAnt.z || 0) + ((b.z || 0) - (bAnt.z || 0)) * f, t: t };
+            }
+          }
+          /* E2 — a bola ganha velocidade no ar sem ninguem tocar nela */
+          if (b.traveling && (b.z || 0) > 0.15 && velAnt > 1 &&
+              vel > velAnt * 1.6 + 2 && (t - ultimoEventoT) > 0.08) {
+            registrar('E2', { de: +velAnt.toFixed(1) + ' m/s', para: +vel.toFixed(1) + ' m/s',
+              z: +(b.z || 0).toFixed(2), kind: b.kind });
+          }
+          velAnt = vel;
           if (b.traveling && vel > LIM.velBola && !janelaAdmin) {
             registrar('E1', { velocidade: +vel.toFixed(1) + ' m/s', kind: b.kind,
               de: [+bAnt.x.toFixed(1), +bAnt.y.toFixed(1)], para: [+b.x.toFixed(1), +b.y.toFixed(1)] });
@@ -386,6 +468,89 @@ function criarObservador(sim, meta, opts) {
         }
         bAnt = { x: b.x, y: b.y, z: b.z, dead: dead };
       }
+    }
+
+    /* ---- C16 o gol do quadro anterior, agora com o cruzamento contabilizado ---- */
+    if (golPendente) {
+      const c = ultimoCruzamento;
+      if (c && Math.abs(c.t - golPendente.t) <= 1.0) {
+        if (Math.abs(c.y - FW / 2) > 3.66 + 0.3 || c.z > 2.44 + 0.3) {
+          registrar('C16', { motivo: 'cruzou fora da baliza',
+            yNoCruzamento: +c.y.toFixed(2), zNoCruzamento: +c.z.toFixed(2),
+            postes: [30.34, 37.66], travessao: 2.44 });
+        }
+        golPendente = null;
+      } else if (t - golPendente.t > 0.4) {
+        registrar('C16', { motivo: 'gol sem cruzamento de linha' });
+        golPendente = null;
+      }
+    }
+
+    /* ---- D8 bola morta com o jogo andando ----
+       O nucleo ja desistiu do lance (retorna antes da fisica e da decisao),
+       mas alguem continua movendo a bola e o relogio esta parado. */
+    if (b && Number.isFinite(b.x)) {
+      const andou = andouNoQuadro;
+      const naFaixa = dead > 0 && dead <= LIM.deadVivo && andou > 0.05 && !b.traveling;
+      if (naFaixa) {
+        cinza.quadros++; cinza.segundos += dt; cinza.metrosDeBola += andou;
+        if (cinzaDesde == null) { cinzaDesde = t; cinzaMetros = 0; }
+        cinzaMetros += andou;
+      } else if (cinzaDesde != null) {
+        const dur = t - cinzaDesde;
+        cinza.episodios++;
+        if (dur > cinza.maiorEpisodio) cinza.maiorEpisodio = dur;
+        if (dur >= LIM.deadVivoMin) {
+          registrar('D8', { duracao: +dur.toFixed(2) + ' s', bolaAndou: +cinzaMetros.toFixed(1) + ' m',
+            relogioParadoEm: +(Number(sim.minute) || 0).toFixed(2),
+            adiantoDeTela: '3,5x sobre o botao' });
+        }
+        cinzaDesde = null;
+      }
+    }
+
+    /* ---- C11 bola fora das linhas com o jogo rolando ---- */
+    if (b && Number.isFinite(b.x)) {
+      const fora = b.x < -0.2 || b.x > FL + 0.2 || b.y < -0.2 || b.y > FW + 0.2;
+      if (fora && dead <= 0 && (t - golT) > 2) {
+        if (foraDesde == null) foraDesde = t;
+        else if (t - foraDesde > LIM.foraDeJogoMax) {
+          registrar('C11', { foraHa: +(t - foraDesde).toFixed(1) + ' s',
+            x: +b.x.toFixed(2), y: +b.y.toFixed(2), traveling: !!b.traveling,
+            dono: b.owner ? nomeDe(b.owner) : null });
+          foraDesde = t;
+        }
+      } else foraDesde = null;
+    }
+
+    /* ---- C13 corpos sobrepostos (a cada 6 quadros: 0,2 s) ---- */
+    if (quadro % 6 === 0) {
+      const todos = [];
+      for (let s2 = 0; s2 < 2; s2++) {
+        for (const p of sim.teams[s2].players) {
+          if (p && !p.red && Number.isFinite(p.x)) todos.push(p);
+        }
+      }
+      const vistos = new Set();
+      for (let a = 0; a < todos.length; a++) {
+        for (let b2 = a + 1; b2 < todos.length; b2++) {
+          const pa = todos[a], pb = todos[b2];
+          if (Math.abs(pa.x - pb.x) > LIM.sobreposicao) continue;
+          if (Math.hypot(pa.x - pb.x, pa.y - pb.y) > LIM.sobreposicao) continue;
+          const k = pa.team + ':' + pa.idx + '|' + pb.team + ':' + pb.idx;
+          vistos.add(k);
+          const desde = sobrepostos.get(k);
+          if (desde == null) sobrepostos.set(k, t);
+          else if (t - desde > LIM.sobreposicaoMax) {
+            registrar('C13', { a: nomeDe(pa), b: nomeDe(pb),
+              juntosHa: +(t - desde).toFixed(1) + ' s',
+              distancia: +Math.hypot(pa.x - pb.x, pa.y - pb.y).toFixed(2) + ' m',
+              mesmoTime: pa.team === pb.team });
+            sobrepostos.set(k, t);
+          }
+        }
+      }
+      for (const k of Array.from(sobrepostos.keys())) if (!vistos.has(k)) sobrepostos.delete(k);
     }
 
     /* ---- atletas ---- */
@@ -529,6 +694,43 @@ function criarObservador(sim, meta, opts) {
     }
   }
 
+  /* O PONTO LEGAL DE CADA REINICIO. Medido no quadro em que a bola volta a
+     rolar — nao antes, porque ate ali ela ainda esta sendo colocada. */
+  const QUINAS = [[0, 0], [0, FW], [FL, 0], [FL, FW]];
+  const MARCAS = [[11, FW / 2], [FL - 11, FW / 2]];
+  function conferirReinicio(tipo) {
+    const b = sim.ball;
+    if (!b || !Number.isFinite(b.x)) return;
+    let erro = null, ondeDeveria = null;
+    if (tipo === 'corner') {
+      erro = Math.min.apply(null, QUINAS.map(q => Math.hypot(b.x - q[0], b.y - q[1])));
+      ondeDeveria = 'quina do campo';
+    } else if (tipo === 'throw_in') {
+      erro = Math.min(Math.abs(b.y - 0), Math.abs(b.y - FW));
+      ondeDeveria = 'linha lateral';
+    } else if (tipo === 'goal_kick') {
+      const dentroX = Math.min(Math.max(0, b.x - 16.5), Math.max(0, (FL - 16.5) - b.x));
+      const dentroY = Math.max(0, Math.abs(b.y - FW / 2) - 20.15);
+      erro = Math.hypot(dentroX, dentroY);
+      ondeDeveria = 'grande area';
+    } else if (tipo === 'penalty') {
+      erro = Math.min.apply(null, MARCAS.map(q => Math.hypot(b.x - q[0], b.y - q[1])));
+      ondeDeveria = 'marca do penalti';
+    } else return;
+    /* O PONTAPE DE SAIDA FICA DE FORA, DE PROPOSITO.
+       Medi-lo daria 10 a 20 m de erro — e o numero seria mentira: entre a
+       cerimonia do gol (OS-263), a volta para casa (OS-214) e o proprio
+       pontape, o instante do reinicio deixa de ser identificavel por
+       `pendingRestart`. Ate existir uma marca explicita de "a bola voltou a
+       rolar no circulo", este oraculo nao tem como julgar. Buraco conhecido e
+       melhor que numero inventado. */
+    reinicios.push({ tipo, erro: +erro.toFixed(2) });
+    if (erro > LIM.reinicioFolga) {
+      registrar('C10', { reinicio: tipo, deveriaSairDe: ondeDeveria,
+        erro: +erro.toFixed(1) + ' m', bola: [+b.x.toFixed(1), +b.y.toFixed(1)] });
+    }
+  }
+
   function rotular(evs) {
     for (const p of PRIORIDADE) if (evs.indexOf(p) !== -1) return p;
     return evs.length ? evs[evs.length - 1] : 'sem_evento';
@@ -598,6 +800,25 @@ function criarObservador(sim, meta, opts) {
     return {
       violacoes, contagem, eventos, golsSeq,
       sondas: {
+        piscadasDeDead: piscadas,
+        deadComJogoAndando: {
+          segundos: +cinza.segundos.toFixed(1),
+          quadros: cinza.quadros,
+          episodios: cinza.episodios,
+          metrosDeBola: +cinza.metrosDeBola.toFixed(1),
+          maiorEpisodio: +cinza.maiorEpisodio.toFixed(2),
+        },
+        legalidadeDoReinicio: (function () {
+          const porTipo = Object.create(null);
+          for (const r of reinicios) (porTipo[r.tipo] = porTipo[r.tipo] || []).push(r.erro);
+          const out = {};
+          for (const k of Object.keys(porTipo).sort()) {
+            const v = porTipo[k];
+            out[k] = { n: v.length, p50: pct(v, .5), p90: pct(v, .9),
+              max: +Math.max.apply(null, v).toFixed(2), bruto: v };
+          }
+          return out;
+        })(),
         recolocacaoDaBola: recolocacoes.length ? {
           n: recolocacoes.length, p50: pct(recolocacoes, .5), p90: pct(recolocacoes, .9),
           max: +Math.max.apply(null, recolocacoes).toFixed(2),

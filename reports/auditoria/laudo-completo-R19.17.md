@@ -1,6 +1,6 @@
-# Laudo de auditoria — build-atual.html
+# Laudo de auditoria — auditado-R19.17.html
 
-Gerado em 2026-08-20 20:53 · sha256 `b514442fb2528396`
+Gerado em 2026-08-21 00:15 · sha256 `b514442fb2528396`
 
 Artefato auditado: `reference/auditado-R19.17.html`. Nas medicoes ele aparece pelo nome da
 copia de trabalho usada na rodada — o sha256 acima e o que identifica o bundle.
@@ -10,22 +10,77 @@ receita que o repete — sem receita, nao e achado, e impressao.
 
 ## 1. Veredito
 
-- **47203** violacoes em **4** regra(s) sobre 48 partidas
-- gravidade: S3=47148, S4=7, S2=48
-- partidas que terminaram: 48/48
+- **105294** violacoes em **9** regra(s) sobre 96 partidas
+- gravidade: S3=104378, S2=651, S1=254, S4=11
+- partidas que terminaram: 96/96
 - camadas: 27 patch(es) perdido(s), 33 metodo(s) com 3+ donos, 10 sem guarda
 - tela: partida inteira projetada em **8.3 min** no botao 3X; 25.1% do tempo de tela e bola parada
+- artefato: 79 blocos, 2.42 MB, 3 achado(s) de documento
+- telas: 3 tamanhos percorridos, 0 erro(s) de script/console
+
+### A faixa cinzenta do `dead`
+
+Tres subsistemas discordam sobre o que `dead > 0` significa:
+
+| quem | o que faz com `dead > 0` |
+|---|---|
+| relogio da partida | **para** para qualquer `dead > 0` |
+| congelamento tatico | so entra em `dead > 0,4` |
+| laco de render | **adianta 3,5x** para qualquer `dead > 0` (10,5x no botao 3X) |
+
+Na faixa `0 < dead <= 0,4` isso da, por partida: **8.5 s** de simulacao
+em **5.7 episodios**, com a bola andando **64.2 m**;
+o pior episodio dura **5.3 s**. Nesses trechos o jogo continua sendo jogado,
+o relogio da partida fica parado e a tela acelera.
 
 ## 2. Achados de simulacao (N2/N3)
 
 | gravidade | regra | ocorrencias | titulo |
 |---|---|---|---|
-| S2 | `F4` | 48 | O motor acusa a si mesmo (visualIntegrity) |
-| S3 | `A5` | 46833 | Nota do atleta fora de 0..10 |
-| S3 | `B8` | 315 | Recolocacao longa da bola no reinicio |
-| S4 | `C4b` | 7 | Expulso reposicionado na troca de lados |
+| S1 | `D8` | 250 | Bola morta com o jogo andando |
+| S1 | `C16` | 4 | Gol sem a bola na baliza |
+| S2 | `C10` | 557 | Reinicio fora do lugar legal |
+| S2 | `F4` | 94 | O motor acusa a si mesmo (visualIntegrity) |
+| S3 | `A5` | 102643 | Nota do atleta fora de 0..10 |
+| S3 | `E2` | 1097 | Bola acelera no ar sem contato |
+| S3 | `B8` | 578 | Recolocacao longa da bola no reinicio |
+| S3 | `C13` | 60 | Corpos sobrepostos |
+| S4 | `C4b` | 11 | Expulso reposicionado na troca de lados |
 
-### F4 · O motor acusa a si mesmo (visualIntegrity) (S2, 48x)
+### D8 · Bola morta com o jogo andando (S1, 250x)
+
+Tres subsistemas discordam do que `dead > 0` significa. O nucleo retorna cedo (sem fisica nem decisao) para QUALQUER dead > 0; o congelamento tatico so entra em dead > 0,4; e o laco de render adianta 3,5x sempre que dead > 0 (10,5x no botao 3X). Na faixa 0 < dead <= 0,4 o resultado e: a bola continua colada no portador por uma camada, os 22 continuam se movendo, o relogio da partida PARA e a tela ACELERA. E o defeito de sensacao mais caro do jogo.
+
+- partida 0, 1o tempo, 5.49' — `{"duracao":"4.77 s","bolaAndou":"31.2 m","relogioParadoEm":5.49,"adiantoDeTela":"3,5x sobre o botao"}`
+- partida 0, 1o tempo, 32.39' — `{"duracao":"4.27 s","bolaAndou":"26.8 m","relogioParadoEm":32.39,"adiantoDeTela":"3,5x sobre o botao"}`
+
+```bash
+node tools/auditoria/repro.js --build=<bundle> --partida=0 --regra=D8
+```
+
+### C16 · Gol sem a bola na baliza (S1, 4x)
+
+Gol validado com a bola longe da linha ou fora das traves e placar inventado.
+
+- partida 18, 1o tempo, 2.24' — `{"motivo":"cruzou fora da baliza","yNoCruzamento":28.45,"zNoCruzamento":0.95,"postes":[30.34,37.66],"travessao":2.44}`
+- partida 48, 1o tempo, 8.66' — `{"motivo":"cruzou fora da baliza","yNoCruzamento":29.9,"zNoCruzamento":0.96,"postes":[30.34,37.66],"travessao":2.44}`
+
+```bash
+node tools/auditoria/repro.js --build=<bundle> --partida=18 --regra=C16
+```
+
+### C10 · Reinicio fora do lugar legal (S2, 557x)
+
+Escanteio sai da quina, lateral da linha lateral, tiro de meta de dentro da area, penalti da marca. Reinicio no lugar errado e a regra de futebol mais visivel que existe.
+
+- partida 0, 1o tempo, 4.78' — `{"reinicio":"corner","deveriaSairDe":"quina do campo","erro":"2.3 m","bola":[1,66]}`
+- partida 0, 1o tempo, 5.1' — `{"reinicio":"corner","deveriaSairDe":"quina do campo","erro":"2.3 m","bola":[1,66]}`
+
+```bash
+node tools/auditoria/repro.js --build=<bundle> --partida=0 --regra=C10
+```
+
+### F4 · O motor acusa a si mesmo (visualIntegrity) (S2, 94x)
 
 O proprio jogo conta teleportes, contatos falhados e faltas de viagem. Contador acima de zero e confissao.
 
@@ -36,7 +91,7 @@ O proprio jogo conta teleportes, contatos falhados e faltas de viagem. Contador 
 node tools/auditoria/repro.js --build=<bundle> --partida=0 --regra=F4
 ```
 
-### A5 · Nota do atleta fora de 0..10 (S3, 46833x)
+### A5 · Nota do atleta fora de 0..10 (S3, 102643x)
 
 Nota e superficie visivel: aparece na ficha do jogador.
 
@@ -47,7 +102,18 @@ Nota e superficie visivel: aparece na ficha do jogador.
 node tools/auditoria/repro.js --build=<bundle> --partida=3 --regra=A5
 ```
 
-### B8 · Recolocacao longa da bola no reinicio (S3, 315x)
+### E2 · Bola acelera no ar sem contato (S3, 1097x)
+
+Bola em voo so perde energia. Ganhar velocidade sem ninguem tocar nela e a integracao numerica vazando ou uma recolocacao disfarcada de fisica.
+
+- partida 0, 1o tempo, 3.38' — `{"de":"16 m/s","para":"39.5 m/s","z":0.85,"kind":"shot"}`
+- partida 0, 1o tempo, 5.49' — `{"de":"16.1 m/s","para":"39.8 m/s","z":0.82,"kind":"shot"}`
+
+```bash
+node tools/auditoria/repro.js --build=<bundle> --partida=0 --regra=E2
+```
+
+### B8 · Recolocacao longa da bola no reinicio (S3, 578x)
 
 No quadro do reinicio a bola muda de lugar de graca. Ate uns metros isso e o arbitro acertando o ponto; dezenas de metros e o lance recomecando noutro lugar, e o olho ve a bola piscar.
 
@@ -58,7 +124,18 @@ No quadro do reinicio a bola muda de lugar de graca. Ate uns metros isso e o arb
 node tools/auditoria/repro.js --build=<bundle> --partida=0 --regra=B8
 ```
 
-### C4b · Expulso reposicionado na troca de lados (S4, 7x)
+### C13 · Corpos sobrepostos (S3, 60x)
+
+Dois atletas ocupando o mesmo ponto por mais de um segundo: na tela um entra dentro do outro.
+
+- partida 3, 1o tempo, 30.88' — `{"a":"Babington (ST)","b":"Luqué (RW)","juntosHa":"1 s","distancia":"0 m","mesmoTime":false}`
+- partida 4, 2o tempo, 86.78' — `{"a":"Gallego (CAM)","b":"Enrique (RM)","juntosHa":"1.2 s","distancia":"0.06 m","mesmoTime":false}`
+
+```bash
+node tools/auditoria/repro.js --build=<bundle> --partida=3 --regra=C13
+```
+
+### C4b · Expulso reposicionado na troca de lados (S4, 11x)
 
 `_switchSides` espelha todos os atletas, inclusive os expulsos, enquanto `_resetPositions` os pula. Ninguem ve, mas as duas rotinas discordam sobre quem esta em campo.
 
@@ -69,43 +146,66 @@ node tools/auditoria/repro.js --build=<bundle> --partida=0 --regra=B8
 node tools/auditoria/repro.js --build=<bundle> --partida=12 --regra=C4b
 ```
 
+## 2b. Legalidade do reinicio
+
+Distancia entre a bola e o ponto legal, no quadro em que o motor consome o reinicio.
+
+| reinicio | n | erro p50 | erro p90 | pior | fora da tolerancia |
+|---|---|---|---|---|---|
+| corner | 551 | 2.27 m | 2.27 m | 56.46 m | 551 |
+| goal_kick | 1261 | 0 m | 0 m | 0 m | 0 |
+| penalty | 2 | 6.47 m | 6.47 m | 6.47 m | 2 |
+| throw_in | 1497 | 0.68 m | 1.51 m | 2.04 m | 2 |
+
+O pontape de saida fica **fora** desta tabela de proposito: entre a cerimonia do gol,
+a volta para casa e o proprio pontape, o instante do reinicio deixa de ser identificavel
+por `pendingRestart`, e um numero inventado seria pior que um buraco declarado.
+
 ## 3. O lance de falta
 
 | pergunta | medida |
 |---|---|
-| faltas por partida | 23.5 |
+| faltas por partida | 23.8 |
 | sem contato visivel antes do apito | 0.5% |
-| distancia infrator-vitima no apito | p50 1.22 m · p90 1.78 m |
+| distancia infrator-vitima no apito | p50 1.21 m · p90 1.79 m |
 | espera ate a bola voltar a rolar | p50 2.03 s · p90 5.03 s |
-| bola no ponto da falta no reinicio | p50 0.46 m · p90 0.86 m |
-| **saiu andando em vez de bater** | **58.3%** |
+| bola no ponto da falta no reinicio | p50 0.46 m · p90 0.87 m |
+| **saiu andando em vez de bater** | **58.5%** |
 
-Desfechos: carregou=658, batida=462, apito=7, reiniciado=2
+Desfechos: carregou=1336, batida=929, apito=16, reiniciado=4
 
 ### A bola que pisca
 
-No quadro do reinicio a bola muda de lugar de graca: **78.4 vezes por partida**,
-p50 1.78 m, p90 23.91 m, pior caso 99.9 m — **688 saltos acima de 10 m**
+No quadro do reinicio a bola muda de lugar de graca: **77.4 vezes por partida**,
+p50 1.79 m, p90 22.98 m, pior caso 99.9 m — **1357 saltos acima de 10 m**
 na amostra. Nada disso e desenhado: ela some de um ponto e aparece no outro.
 
 ### Economia da bola parada (simulacao)
 
-13.9% da simulacao e bola morta, em 64.7 pausas por partida.
+13.8% da simulacao e bola morta, em 65 pausas por partida.
 
 | reinicio | por partida | pausa media (sim) | pior |
 |---|---|---|---|
-| corner | 5.83 | 5.705 s | 8.433 s |
-| foul | 18.15 | 2.467 s | 5.033 s |
-| goal | 2.23 | 8.024 s | 8.367 s |
-| goal_kick | 12.9 | 1.465 s | 3.5 s |
+| corner | 5.74 | 5.711 s | 8.433 s |
+| foul | 18.52 | 2.417 s | 5.033 s |
+| goal | 2.05 | 7.994 s | 8.367 s |
+| goal_kick | 13.14 | 1.464 s | 3.5 s |
 | halftime | 1 | 3.818 s | 4.433 s |
-| injury | 0.38 | 2.079 s | 5.033 s |
-| kickoff | 1 | 3.354 s | 4.4 s |
-| offside | 2.96 | 1.756 s | 3.3 s |
-| penalty | 0.04 | 0.88 s | 1.033 s |
-| red | 0.29 | 2.517 s | 5.033 s |
-| throw_in | 15.65 | 3.154 s | 4.533 s |
-| yellow | 4.29 | 2.482 s | 5.033 s |
+| injury | 0.34 | 2.01 s | 5.033 s |
+| kickoff | 1 | 3.4 s | 4.4 s |
+| offside | 3.06 | 1.72 s | 3.3 s |
+| penalty | 0.02 | 0.88 s | 1.033 s |
+| red | 0.31 | 2.043 s | 5.033 s |
+| throw_in | 15.59 | 3.128 s | 4.533 s |
+| yellow | 4.24 | 2.529 s | 5.033 s |
+
+## 3b. O custo de tela, botao a botao
+
+| botao | parede/simulacao | partida inteira | bola parada (tela) | bola parada (simulacao) | tremor | salto |
+|---|---|---|---|---|---|---|
+| 1X | 0.9267 | 21.1 min | 11.1% | 18.5% | 0.01% | 0.60% |
+| 3X | 0.3653 | 8.3 min | 25.1% | 20.9% | 0.21% | 2.39% |
+| 6X | 0.2082 | 4.7 min | 26.1% | 14.6% | 0.38% | 3.66% |
 
 ## 4. Ritmo e fluidez (N5 — relogio de parede)
 
@@ -122,6 +222,16 @@ Janela medida: 120s no botao 3X.
 | sem_evento | 5 | 437 ms | 577 ms | 577 ms | 4.52 s |
 | throw_in | 3 | 322 ms | 324 ms | 324 ms | 3.12 s |
 | yellow | 1 | 2233 ms | 2233 ms | 2233 ms | 5.03 s |
+
+## 4b. Fluxo de telas (N6)
+
+| tamanho | boot | erros | achados | campo na partida |
+|---|---|---|---|---|
+| desktop 1366x768 | 2758 ms | 0 | inicio: 16 texto < 11px; partida: 17 texto < 11px | 50% |
+| tablet 820x1180 | 2720 ms | 0 | inicio: 16 texto < 11px; partida: 20 texto < 11px | 34% |
+| celular 390x844 | 2834 ms | 0 | inicio: 15 texto < 11px; apos-montar-time: 1 alvo < 32px; partida: 19 texto < 11px | 22% |
+
+Capturas em `reports/auditoria/tela/`.
 
 ## 5. Camadas (N1 — analise estatica)
 
@@ -182,27 +292,37 @@ Janela medida: 120s no botao 3X.
 - `substitute` — 3x: cds-r10-engine-closure → cds-r184-certificacao-honesta → cds-r1821-tempo-e-pausas
 - `_decide` — 7x: cds-r12-transactional-core-r123 → cds-r13-football-observer-cadence → cds-r14-engine → cds-r1810-reception-intelligence → cds-r1818-offensive-progression → cds-r18181-second-phase-natural-out → cds-r1820-chance-intelligence
 
+## 5b. O artefato (N0)
+
+auditado-R19.17.html · 2.42 MB · 79 blocos de script · 9 de estilo
+
+| grav. | achado | |
+|---|---|---|
+| S2 | 1 host(s) externos referenciados | https://flagcdn.com/ |
+| S3 | 40 escritas de CDS_BUILD_ID com 38 valores diferentes | 38 valores, vence "R19.17" |
+| S3 | usa document.write |  |
+
 ## 6. Calibracao de design
 
 | metrica | medido | faixa | |
 |---|---|---|---|
-| goalsPerMatch | 2.229 | 2.4 .. 3.2 | **fora** |
-| shotsPerMatch | 22.479 | 20 .. 30 | ok |
-| xgPerMatch | 2.285 | 2.3 .. 3.5 | **fora** |
-| onTargetRate | 0.3123 | 0.34 .. 0.47 | **fora** |
-| passCompletion | 0.8181 | 0.75 .. 0.89 | ok |
-| foulsPerMatch | 23.521 | 16 .. 28 | ok |
-| yellowsPerMatch | 4.771 | 2.4 .. 5.6 | ok |
-| redsPerMatch | 0.313 | 0.06 .. 0.3 | **fora** |
-| cornersPerMatch | 5.833 | 5 .. 11.5 | ok |
-| drawRate | 0.2917 | 0.2 .. 0.33 | ok |
+| goalsPerMatch | 2.052 | 2.4 .. 3.2 | **fora** |
+| shotsPerMatch | 21.646 | 20 .. 30 | ok |
+| xgPerMatch | 2.182 | 2.3 .. 3.5 | **fora** |
+| onTargetRate | 0.309 | 0.34 .. 0.47 | **fora** |
+| passCompletion | 0.8135 | 0.75 .. 0.89 | ok |
+| foulsPerMatch | 23.802 | 16 .. 28 | ok |
+| yellowsPerMatch | 4.813 | 2.4 .. 5.6 | ok |
+| redsPerMatch | 0.323 | 0.06 .. 0.3 | **fora** |
+| cornersPerMatch | 5.74 | 5 .. 11.5 | ok |
+| drawRate | 0.3021 | 0.2 .. 0.33 | ok |
 | zeroZeroRate | 0.125 | 0.045 .. 0.12 | **fora** |
-| blowoutRate | 0.125 | 0.09 .. 0.19 | ok |
-| averageEndingStamina | 65.1607 | 64 .. 83 | ok |
+| blowoutRate | 0.1146 | 0.09 .. 0.19 | ok |
+| averageEndingStamina | 65.1173 | 64 .. 83 | ok |
 
 ## 7. Caminhos que nunca executaram
 
-Eventos que o codigo sabe emitir e que 48 partidas nunca produziram:
+Eventos que o codigo sabe emitir e que 96 partidas nunca produziram:
 
 - `ai_shape`
 - `ai_shift`

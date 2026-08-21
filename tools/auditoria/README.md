@@ -4,27 +4,32 @@ Suíte de avaliação de bugs. A metodologia — por que cada nível existe, o q
 cada um pega e o que nenhum deles pega — está em
 [`docs/METODOLOGIA-DE-BUGS.md`](../../docs/METODOLOGIA-DE-BUGS.md).
 
-## Rodada completa
+## Rodada completa (os sete níveis)
 
 ```bash
 B=dist/index.html
+R=reports/auditoria
 
-node tools/auditoria/mapa_de_camadas.js --build=$B --out=reports/auditoria/N1-camadas.json
-node tools/auditoria/auditoria.js       --build=$B --partidas=48 --workers=8 \
-     --out=reports/auditoria/N2-simulacao-48.json
-node tools/auditoria/tela.js            --build=$B --segundos=150 \
-     --out=reports/auditoria/N5-tela-3x.json
+node tools/auditoria/artefato.js        --build=$B --out=$R/N0-artefato.json
+node tools/auditoria/mapa_de_camadas.js --build=$B --out=$R/N1-camadas.json
+node tools/auditoria/auditoria.js       --build=$B --partidas=96 --workers=8 --out=$R/N2-simulacao-96.json
+node tools/auditoria/auditoria.js       --build=$B --partidas=48 --workers=8 --elenco=paridade --out=$R/N4-paridade-48.json
+node tools/auditoria/tela.js            --build=$B --segundos=150 --out=$R/N5-tela-3x.json
+node tools/auditoria/tela.js            --build=$B --segundos=90 --velocidade=1 --out=$R/N5-tela-1x.json
+node tools/auditoria/tela.js            --build=$B --segundos=90 --velocidade=6 --out=$R/N5-tela-turbo.json
+node tools/auditoria/fluxo.js           --build=$B --out=$R/N6-fluxo.json
 
 node tools/auditoria/relatorio.js \
-     --auditoria=reports/auditoria/N2-simulacao-48.json \
-     --tela=reports/auditoria/N5-tela-3x.json \
-     --camadas=reports/auditoria/N1-camadas.json \
-     --out=reports/auditoria/laudo.md
+     --auditoria=$R/N2-simulacao-96.json \
+     --tela=$R/N5-tela-3x.json --tela1x=$R/N5-tela-1x.json --telaturbo=$R/N5-tela-turbo.json \
+     --camadas=$R/N1-camadas.json --n0=$R/N0-artefato.json --n6=$R/N6-fluxo.json \
+     --artefato=$B --out=$R/laudo.md
 ```
 
 ## Rodada de commit (~1 min)
 
 ```bash
+node tools/auditoria/artefato.js --build=dist/index.html
 python3 tools/verify.py
 node tests/browser_smoke.js dist/index.html
 node tools/auditoria/auditoria.js --build=dist/index.html --partidas=8 --workers=8
@@ -43,6 +48,9 @@ node tools/auditoria/repro.js --build=$B --partida=3 --regra=E1
 
 # a auditoria está mudando o jogo que ela mede?
 node tools/auditoria/auditoria.js --build=$B --verificar-neutralidade
+
+# quem escreveu neste campo, e de qual camada?
+node tools/auditoria/quem_escreve.js --build=$B --campo=dead --partida=0 --de=2900 --ate=3000
 ```
 
 ## Opções
@@ -57,5 +65,9 @@ node tools/auditoria/auditoria.js --build=$B --verificar-neutralidade
 | | `--velocidade=V` | força o botão (1, 2, 3, 6) |
 | `repro.js` | `--partida=I` `--regra=ID` `--quadro=Q` `--janela=N` | |
 | `mapa_de_camadas.js` | `--metodo=NOME` | pilha de um método só |
+| `quem_escreve.js` | `--campo=CAMINHO` | `dead`, `minute`, `ball.x`, `teams.0.fx.line` |
+| | `--de=Q --ate=Q` | janela de quadros |
+| | `--so_dead` | só escritas com `sim.dead > 0` |
+| `fluxo.js` | `--png=DIR` | onde salvar as capturas |
 
 Todas aceitam `--build=` e `--out=`.

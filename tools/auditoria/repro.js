@@ -83,7 +83,7 @@ sim._emit = function (t, d) {
 
 console.log('');
 console.log(`=== JANELA EM VOLTA DO QUADRO ${alvo} (+-${JANELA}) ===`);
-console.log('quadro   min   dead  bola x     y     z    v(m/s) viaj dono                    evento');
+console.log('quadro   min   dead  pend wait  bola x     y     z    v(m/s) viaj dono                 evento');
 let passos = 0;
 while (!sim.isOver() && passos < INV.LIM.passosMax) {
   const bAnt = sim.ball ? { x: sim.ball.x, y: sim.ball.y } : null;
@@ -99,12 +99,14 @@ while (!sim.isOver() && passos < INV.LIM.passosMax) {
     String(quadro).padStart(6) + ' ' +
     (Number(sim.minute) || 0).toFixed(1).padStart(6) + ' ' +
     (Number(sim.dead) || 0).toFixed(2).padStart(6) + '  ' +
+    (sim.pendingRestart ? ' PR ' : '  . ') +
+    (sim.waiting ? ' W  ' : ' .  ') +
     (b ? b.x.toFixed(1).padStart(6) : '     -') +
     (b ? b.y.toFixed(1).padStart(6) : '     -') +
     (b ? b.z.toFixed(2).padStart(6) : '     -') +
     v.toFixed(1).padStart(8) +
     (b && b.traveling ? '   S ' : '   . ') +
-    dono.padEnd(24) + (quadro === alvo ? '<<< ' : '    ') + evs);
+    dono.padEnd(21) + (quadro === alvo ? '<<< ' : '    ') + evs);
 }
 console.log('');
 console.log('receita desta janela:');

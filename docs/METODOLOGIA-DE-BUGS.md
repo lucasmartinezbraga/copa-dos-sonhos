@@ -47,17 +47,22 @@ O catálogo vive em [`tools/auditoria/invariantes.js`](../tools/auditoria/invari
 
 ---
 
-## 3. Os seis níveis
+## 3. Os sete níveis
 
 Cada nível tem um oráculo diferente, um custo diferente e pega uma família de
 bug diferente. Rodar só um deles dá uma falsa sensação de cobertura.
 
 ### N0 · Artefato — *o bundle é montável e carrega?*
 
-Pega: erro de sintaxe, bloco perdido no manifesto, símbolo que sumiu do escopo,
-build que não reproduz a partir de `src/`.
+Antes de perguntar se o jogo joga certo, pergunte se o arquivo está inteiro.
+Pega: erro de sintaxe bloco a bloco, cabeçalho que o navegador exige (doctype,
+charset nos primeiros 1024 bytes, viewport — o build já quebrou no mobile por
+isso), blocos que declaram no escopo global sem IIFE, identidade do build
+(quantas camadas escrevem `CDS_BUILD_ID` e qual vence), referências a host
+externo num bundle que se diz autocontido, e ids repetidos no documento.
 
 ```bash
+node tools/auditoria/artefato.js --build=dist/index.html
 python3 tools/verify.py
 node tests/browser_smoke.js dist/index.html
 ```
@@ -88,10 +93,16 @@ se o código que você está prestes a mexer é o que roda.
 
 ### N2 · Quadro — *o estado é legal em todo quadro?*
 
-O observador embrulha `step` e inspeciona ~30 oráculos por quadro: coordenada
+O observador embrulha `step` e inspeciona ~40 oráculos por quadro: coordenada
 não finita, bola fora do mundo, teleporte acima do orçamento de passo da
 R18.99, expulso em campo, dono da bola longe da bola, relógio parado, bola
 morta que não reinicia, contador que regride.
+
+E as leis de futebol que só se vêem no quadro certo: reinício fora do lugar
+legal (escanteio sai da quina, lateral da linha, tiro de meta de dentro da
+área, pênalti da marca), bola além da linha com o jogo rolando, corpos
+sobrepostos, gol validado com a bola longe da baliza — e o oráculo que rendeu
+o achado mais caro desta suíte, **bola morta com o jogo andando** (`D8`).
 
 ```bash
 node tools/auditoria/auditoria.js --build=dist/index.html --partidas=24 --workers=8
@@ -139,6 +150,20 @@ pausa por tipo de reinício em ms de parede; orçamento do tempo de tela (quanto
 tremor (deslocamento que inverte de direção entre quadros) e salto (passada 4×
 acima da mediana). Contar passo de simulação por quadro mede a *velocidade
 escolhida*, não a fluidez; só o desenho mede fluidez.
+
+### N6 · Fluxo — *as telas, no navegador, em três tamanhos*
+
+Era o maior buraco declarado desta metodologia. Sobe a página em desktop,
+tablet e celular (com toque), percorre home → draft → partida e pergunta em
+cada tela: erro de script, `console.error`, rolagem horizontal, elemento
+estourando a janela (ignorando faixas que rolam de propósito), id repetido no
+DOM vivo, botão coberto por outro elemento no próprio centro, alvo de toque
+menor que 32 px, texto abaixo de 11 px, e quanto da tela o campo ocupa durante
+a partida. Cada tela vira um PNG, que é a evidência.
+
+```bash
+node tools/auditoria/fluxo.js --build=dist/index.html --out=reports/auditoria/N6-fluxo.json
+```
 
 ### Eixo transversal · Sondas de lance — *o que o jogador vê acontecer*
 
@@ -201,6 +226,19 @@ bug" em "está aqui, olhe".
 **2. Localizar o dono.** `mapa_de_camadas.js --metodo=X` diz qual camada
 executa. Corrigir no core um método que a camada 12 substituiu não muda nada.
 
+Quando o defeito é um **valor** e não um método — um campo que está errado sem
+que se saiba quem o escreveu — a pergunta é outra, e tem ferramenta própria:
+
+```bash
+node tools/auditoria/quem_escreve.js --build=dist/index.html --campo=dead \
+  --partida=0 --de=2900 --ate=3000
+```
+
+Ela troca o campo por um par get/set instrumentado e conta as escritas por
+origem. Foi assim que se descobriu quem re-armava `dead` com a bola rolando —
+uma pergunta que nenhuma leitura de código teria respondido em tempo hábil,
+porque onze camadas escrevem nesse campo.
+
 **3. Corrigir em `src/`, nunca em `dist/`.** Build, verify, smoke.
 
 **4. Re-medir a MESMA amostra.** Mesmas sementes, mesmo número de partidas,
@@ -228,8 +266,21 @@ velocidade — e, no lugar, criar uma sonda para a própria recolocação (`B8`)
 porque 31 m de salto instantâneo são um defeito **de apresentação** que
 merecia nome próprio.
 
-A lição das duas: quando um oráculo acusa demais, a pergunta certa não é
-"quanto afrouxo?", é **"o que ele está realmente vendo?"**.
+**Os nove ids repetidos que não existiam.** O nível N0 acusou `bt-start`,
+`bt-about` e outros sete duplicados. Nenhum era duplicado: a busca varria o
+arquivo inteiro, e `id="bt-start"` aparece também dentro de *template string*
+de JavaScript — markup futuro, não markup repetido. A checagem passou a varrer
+só o documento sem `<script>`; e o teste de verdade, o do DOM vivo, foi para o
+N6, onde há navegador para respondê-lo.
+
+**As doze pílulas estourando a tela do celular.** O N6 acusou botões passando
+até 443 px da borda. Eram os chips de uma faixa com `overflow-x: auto` — não
+estavam estourando, estavam esperando o dedo. A regra passou a ignorar quem
+tem ancestral que rola de lado.
+
+A lição das quatro: quando um oráculo acusa demais, a pergunta certa não é
+"quanto afrouxo?", é **"o que ele está realmente vendo?"**. E o alarme falso
+não se apaga: vira comentário no código, para ninguém reintroduzi-lo.
 
 ---
 
@@ -237,9 +288,10 @@ A lição das duas: quando um oráculo acusa demais, a pergunta certa não é
 
 | quando | o que roda | tempo | portão |
 |---|---|---|---|
-| a cada commit | `verify.py` + `browser_smoke.js` + auditoria com `--partidas=8` | ~1 min | zero S1; nenhum bloco com erro de carga |
+| a cada commit | `artefato.js` + `verify.py` + `browser_smoke.js` + auditoria com `--partidas=8` | ~1 min | zero S1; nenhum bloco com erro de carga |
 | ao mexer no motor/física | acima + `--partidas=48` + `tools/fisica/bateria.js` | ~5 min | zero S1; S2 não pode aumentar; agregados comparados com a medição anterior |
 | ao mexer em ritmo, pausa ou render | acima + `tela.js` nas velocidades 1X e 3X | ~10 min | custo de tela e pausas por tipo comparados com a medição anterior |
+| ao mexer em tela, CSS ou fluxo | acima + `fluxo.js` nos três tamanhos | ~12 min | zero erro de script; nenhum elemento estourando fora de faixa que rola |
 | antes de fechar rodada | tudo, `--partidas=200`, mais `mapa_de_camadas` | ~30 min | zero S1; laudo gerado e commitado em `reports/auditoria/` |
 
 **Neutralidade da própria auditoria.** O observador não pode mudar o jogo. A
@@ -259,11 +311,13 @@ diferente, a auditoria está medindo a si mesma e todo resultado é suspeito.
 Dizer isto é parte do método — cobertura que se supõe é pior que buraco
 conhecido:
 
-- **Fluxo de telas**: draft, escalação, navegação da Copa. Só o `browser_smoke`
-  toca nisso, e superficialmente.
-- **Mobile**: nada aqui roda em viewport de celular nem em toque.
 - **Copa inteira**: a auditoria roda partidas isoladas. Bug de chaveamento,
   classificação, pênaltis de mata-mata e persistência entre partidas fica fora.
+- **Fluxo profundo**: o N6 percorre home → draft → partida. Escolher onze
+  jogadores, trocar formação, navegar a Copa até a final — nada disso é
+  percorrido por robô; o que existe é a tela medida em três tamanhos.
+- **Contraste e cor**: o N6 mede tamanho de texto e alvo de toque, não
+  contraste nem daltonismo.
 - **Áudio e efeito visual**: nenhum oráculo.
 - **Gosto**: a metodologia mede se a falta parou o jogo por 2,0 s. Se 2,0 s é o
   número certo, é decisão de projeto — a medida só garante que a discussão
@@ -289,11 +343,14 @@ conhecido:
 ```
 docs/METODOLOGIA-DE-BUGS.md        este documento
 tools/auditoria/nucleo.js          carga do bundle (inteira ou parcial)
+tools/auditoria/artefato.js        nível N0 — o HTML em si
+tools/auditoria/mapa_de_camadas.js nível N1 — análise estática das camadas
 tools/auditoria/invariantes.js     catálogo de oráculos + observador
 tools/auditoria/auditoria.js       runner N2/N3/N4 (paralelo)
-tools/auditoria/tela.js            sonda N5 (Chromium, relógio de parede)
-tools/auditoria/mapa_de_camadas.js análise estática N1
+tools/auditoria/tela.js            nível N5 — Chromium, relógio de parede
+tools/auditoria/fluxo.js           nível N6 — telas em três tamanhos
 tools/auditoria/repro.js           repetição de um defeito, quadro a quadro
+tools/auditoria/quem_escreve.js    quem escreveu neste campo?
 tools/auditoria/relatorio.js       junta tudo num laudo em Markdown
-reports/auditoria/                 medições e laudos
+reports/auditoria/                 medições, laudos e capturas de tela
 ```

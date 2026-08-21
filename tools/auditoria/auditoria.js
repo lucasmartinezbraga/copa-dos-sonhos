@@ -77,6 +77,9 @@ function rodarFatia(indices, opts) {
   const falta = { n: 0, semContato: 0, dists: [], esperas: [], saidas: [], noPonto: [],
     desfechos: Object.create(null), amostras: [] };
   const recolocacao = [];
+  const legal = Object.create(null);
+  const cinza = { segundos: 0, quadros: 0, episodios: 0, metrosDeBola: 0, maiorEpisodio: 0 };
+  let piscadas = 0;
   const vi = Object.create(null);
   const assinaturas = Object.create(null);
 
@@ -97,7 +100,17 @@ function rodarFatia(indices, opts) {
       acc.n += c.n; acc.somaSim += c.somaSim;
       acc.amostras.push(c.p50, c.p90, c.max);
     }
+    piscadas += s.piscadasDeDead || 0;
+    if (s.deadComJogoAndando) {
+      const c = s.deadComJogoAndando;
+      cinza.segundos += c.segundos; cinza.quadros += c.quadros;
+      cinza.episodios += c.episodios; cinza.metrosDeBola += c.metrosDeBola;
+      if (c.maiorEpisodio > cinza.maiorEpisodio) cinza.maiorEpisodio = c.maiorEpisodio;
+    }
     if (s.recolocacaoDaBola && s.recolocacaoDaBola.n) recolocacao.push(...s.recolocacaoDaBola.bruto);
+    for (const k of Object.keys(s.legalidadeDoReinicio || {})) {
+      (legal[k] = legal[k] || []).push(...s.legalidadeDoReinicio[k].bruto);
+    }
     const F = (s.falta || {});
     if (F.n) {
       falta.n += F.n; falta.semContato += F.semContatoVisivel || 0;
@@ -111,7 +124,7 @@ function rodarFatia(indices, opts) {
       if (Number.isFinite(v2)) vi[k] = (vi[k] || 0) + v2;
     }
   }
-  return { partidas, violacoes, contagem, eventos, cerimonia, vi, assinaturas, falta, recolocacao,
+  return { partidas, violacoes, contagem, eventos, cerimonia, vi, assinaturas, falta, recolocacao, legal, cinza, piscadas,
     segundosMortos: +segundosMortos.toFixed(1), segundosTotais: +segundosTotais.toFixed(1), pausas };
 }
 
@@ -258,11 +271,29 @@ if (process.env.CDS_AUD_FATIA) {
       economiaDoTempo: {
         segundosSimuladosPorPartida: +(r.segundosTotais / total).toFixed(1),
         segundosMortosPorPartida: +(r.segundosMortos / total).toFixed(1),
+        deadComJogoAndando: {
+          segundosPorPartida: +(r.cinza.segundos / total).toFixed(1),
+          episodiosPorPartida: +(r.cinza.episodios / total).toFixed(1),
+          metrosDeBolaPorPartida: +(r.cinza.metrosDeBola / total).toFixed(1),
+          maiorEpisodio: +r.cinza.maiorEpisodio.toFixed(2),
+          obs: 'segundos de simulacao com 0 < dead <= 0,4 e a bola andando: nucleo fora do lance, relogio parado, tela adiantada 3,5x',
+        },
+        piscadasDeDeadPorPartida: +(r.piscadas / total).toFixed(1),
         fracaoBolaMorta: +(r.segundosMortos / Math.max(1e-9, r.segundosTotais)).toFixed(4),
         pausasPorPartida: +(r.pausas / total).toFixed(1),
         cerimonia,
       },
       lanceDeFalta: resumoFalta(r.falta, total),
+      legalidadeDoReinicio: (function () {
+        const out = {};
+        for (const k of Object.keys(r.legal).sort()) {
+          const v = r.legal[k];
+          out[k] = { n: v.length, erroP50: INV.pct(v, .5), erroP90: INV.pct(v, .9),
+            erroMax: +Math.max.apply(null, v).toFixed(2),
+            foraDaTolerancia: v.filter(x => x > INV.LIM.reinicioFolga).length };
+        }
+        return out;
+      })(),
       recolocacaoDaBola: r.recolocacao.length ? {
         n: r.recolocacao.length, porPartida: +(r.recolocacao.length / total).toFixed(1),
         p50: INV.pct(r.recolocacao, .5), p90: INV.pct(r.recolocacao, .9),
@@ -306,7 +337,8 @@ if (process.env.CDS_AUD_FATIA) {
     const acc = { partidas: [], violacoes: [], contagem: {}, eventos: {}, cerimonia: {}, vi: {},
       assinaturas: {}, segundosMortos: 0, segundosTotais: 0, pausas: 0,
       falta: { n: 0, semContato: 0, dists: [], esperas: [], saidas: [], noPonto: [],
-        desfechos: {}, amostras: [] }, recolocacao: [] };
+        desfechos: {}, amostras: [] }, recolocacao: [], legal: {},
+      cinza: { segundos: 0, quadros: 0, episodios: 0, metrosDeBola: 0, maiorEpisodio: 0 }, piscadas: 0 };
     let vivos = W;
     /* a carga e lida uma vez no pai so para o inventario de blocos */
     const { sha, blocos } = N.blocosDoBundle(build);
@@ -329,6 +361,11 @@ if (process.env.CDS_AUD_FATIA) {
         for (const k of Object.keys(m.falta.desfechos)) acc.falta.desfechos[k] = (acc.falta.desfechos[k] || 0) + m.falta.desfechos[k];
         if (acc.falta.amostras.length < 24) acc.falta.amostras.push(...m.falta.amostras.slice(0, 6));
         acc.recolocacao.push(...m.recolocacao);
+        for (const k of Object.keys(m.legal)) (acc.legal[k] = acc.legal[k] || []).push(...m.legal[k]);
+        acc.piscadas += m.piscadas;
+        acc.cinza.segundos += m.cinza.segundos; acc.cinza.quadros += m.cinza.quadros;
+        acc.cinza.episodios += m.cinza.episodios; acc.cinza.metrosDeBola += m.cinza.metrosDeBola;
+        if (m.cinza.maiorEpisodio > acc.cinza.maiorEpisodio) acc.cinza.maiorEpisodio = m.cinza.maiorEpisodio;
         Object.assign(acc.assinaturas, m.assinaturas);
         acc.segundosMortos += m.segundosMortos;
         acc.segundosTotais += m.segundosTotais;
@@ -395,6 +432,14 @@ function resumoLegivel(s) {
     L.push(`  ${r.gravidade}  ${id}  ${String(r.n).padStart(6)}x  ${r.titulo}`);
   }
   L.push('');
+  const CZ = s.economiaDoTempo.deadComJogoAndando;
+  if (CZ) {
+    L.push('');
+    L.push(`FAIXA CINZENTA (dead>0 com a bola andando): ${CZ.segundosPorPartida}s/jogo em ` +
+      `${CZ.episodiosPorPartida} episodios, ${CZ.metrosDeBolaPorPartida} m de bola, pior episodio ${CZ.maiorEpisodio}s`);
+    L.push(`  janelas de dead sem reinicio nenhum (piscadas): ${s.economiaDoTempo.piscadasDeDeadPorPartida}/jogo`);
+  }
+  L.push('');
   L.push(`bola morta: ${(s.economiaDoTempo.fracaoBolaMorta * 100).toFixed(1)}% da simulacao, ` +
     `${s.economiaDoTempo.pausasPorPartida} pausas por partida`);
   for (const k of Object.keys(s.economiaDoTempo.cerimonia)) {
@@ -411,6 +456,15 @@ function resumoLegivel(s) {
     L.push(`  bola no ponto da falta no reinicio  : p50 ${f.bolaNoPontoM.p50} m  p90 ${f.bolaNoPontoM.p90} m`);
     L.push(`  desfecho: ${Object.entries(f.desfechos).map(([k, v]) => k + ':' + v).join('  ')}`);
     L.push(`  SAIU ANDANDO em vez de bater        : ${(f.fracaoCarregou * 100).toFixed(1)}%`);
+  }
+  if (s.legalidadeDoReinicio && Object.keys(s.legalidadeDoReinicio).length) {
+    L.push('');
+    L.push('legalidade do reinicio (erro ate o ponto legal, em m):');
+    for (const k of Object.keys(s.legalidadeDoReinicio)) {
+      const g = s.legalidadeDoReinicio[k];
+      L.push(`  ${k.padEnd(12)} n=${String(g.n).padStart(5)}  p50 ${String(g.erroP50).padStart(6)}  ` +
+        `p90 ${String(g.erroP90).padStart(6)}  max ${String(g.erroMax).padStart(7)}  fora ${g.foraDaTolerancia}`);
+    }
   }
   if (s.recolocacaoDaBola && s.recolocacaoDaBola.n) {
     const R = s.recolocacaoDaBola;
