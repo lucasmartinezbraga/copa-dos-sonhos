@@ -60,33 +60,53 @@ P._startTravel=function(actor,target,kind,onArrive,receiver,travelKind,meta){
    Não força passe nem chute. Apenas bloqueia por uma janela curta a roleta
    contextual da R12 quando existe um passe objetivamente superior, deixando
    R13 + motor-base escolherem a ação final pelo fluxo normal. */
-const oldDecide=P._decide;
-P._decide=function(o){
-  if(!o||o.isGK||!this.ball||this.ball.owner!==o||this.__r14Pending||finite(this.dead)>0||this.pendingRestart||this.waiting)return oldDecide.apply(this,arguments);
-  const tm=this.teams&&this.teams[o.team];if(!tm)return oldDecide.apply(this,arguments);
+/* D11 · O SORTEIO E O CENSOR VIRARAM UMA COISA SÓ.
+   ---------------------------------------------------------------------------
+   Isto aqui era um `_decide` que rodava por FORA da camada 16 e, quando via
+   uma alternativa boa ao chute, envenenava `tm.__r122LastContextShot` com o
+   instante atual — o que fazia o `if` da camada 16 falhar. Duas camadas se
+   comunicando por um campo mutável com nome de release, e nenhuma das duas
+   documentando o contrato.
+
+   MEDIDO antes de mexer (tools/fisica/ramos.js, 12 partidas):
+     515,17 decisões examinadas por partida
+     264,67 VETOS aplicados  =  51,4% delas
+
+   Metade das decisões do jogo passava por aqui. A regra real de quando um
+   jogador chuta estava repartida entre um arquivo que sorteava e outro que
+   anulava sem citá-lo.
+
+   Agora é um PREDICADO PURO: sem efeito colateral, sem RNG, sem estado
+   compartilhado. A camada 16 o consulta no momento exato do sorteio, e o `if`
+   de lá passa a dizer a regra inteira em um lugar só.
+
+   O que mudou de comportamento: o veto deixou de PERSISTIR por 1,15 s. Aquela
+   persistência não era regra de futebol — era efeito colateral de envenenar um
+   campo que também serve de auto-limite da camada 16. Agora a exceção vale no
+   instante em que ela é verdadeira, que é o que o nome sempre prometeu. */
+P._r183ExcecaoAoChuteContextual=function(o){
+  if(!o||o.isGK||!this.ball||this.ball.owner!==o||this.__r14Pending||finite(this.dead)>0||this.pendingRestart||this.waiting)return false;
+  const tm=this.teams&&this.teams[o.team];if(!tm)return false;
   const dg=diag(this);dg.decisionChecks++;
   let best=null,safe=null;
   try{best=normalizeCandidate(this._bestPass&&this._bestPass(o),o);}catch(_){}
   try{const opps=(this.teams[1-o.team]&&this.teams[1-o.team].players||[]).filter(activePlayer);safe=normalizeCandidate(this._safePass&&this._safePass(o,opps),o);}catch(_){}
   const candidates=[];if(best)candidates.push(best);if(safe&&(!best||safe.m!==best.m))candidates.push(safe);
-  if(candidates.length){
-    candidates.sort((a,b)=>passValue(this,o,b)-passValue(this,o,a));
-    const pick=candidates[0],pv=passValue(this,o,pick),risk=finite(pick.risk,9),progress=finite(pick.progressM,0);
-    const g=tm.oppGoal,dtg=dist(o.x,o.y,g.x,g.y),pressure=nearestOpponent(this,o),sv=shotValue(this,o,dtg,pressure);
-    const iq=attr(o,'decisao',68),space=receiverSpace(this,pick.m);
-    const clearChance=!!pick.intoBox&&risk<(iq>=82?2.35:2.05)&&pv>.58;
-    const cleanProgress=progress>8&&risk<(iq>=82?1.75:1.48)&&space>3.4&&pv>sv+(iq>=82?.12:.22);
-    const pressureOutlet=pressure<2.35&&risk<1.12&&space>2.8&&pv>sv-.02;
-    const inward=edgeY(o.y)<4.9&&edgeY(pick.m.y)>edgeY(o.y)+2.4&&risk<1.8;
-    if(clearChance||cleanProgress||pressureOutlet||inward){
-      /* R12 só pode tentar chute contextual se t-last > 1.15. Marcar o
-         instante atual veta unicamente essa roleta; o restante da cadeia
-         de decisão continua intacto e ainda pode chutar pelo motor-base. */
-      tm.__r122LastContextShot=Math.max(finite(tm.__r122LastContextShot,-99),finite(this.t));
-      dg.smartShotVetoes=(dg.smartShotVetoes||0)+1;
-    }
-  }
-  return oldDecide.apply(this,arguments);
+  if(!candidates.length)return false;
+  candidates.sort((a,b)=>passValue(this,o,b)-passValue(this,o,a));
+  const pick=candidates[0],pv=passValue(this,o,pick),risk=finite(pick.risk,9),progress=finite(pick.progressM,0);
+  const g=tm.oppGoal,dtg=dist(o.x,o.y,g.x,g.y),pressure=nearestOpponent(this,o),sv=shotValue(this,o,dtg,pressure);
+  const iq=attr(o,'decisao',68),space=receiverSpace(this,pick.m);
+  /* AS QUATRO EXCECOES. Elas sempre foram a especificacao real; so nao
+     estavam escritas ao lado do sorteio que anulavam. */
+  const chanceClara      = !!pick.intoBox && risk<(iq>=82?2.35:2.05) && pv>.58;
+  const progressaoLimpa  = progress>8 && risk<(iq>=82?1.75:1.48) && space>3.4 && pv>sv+(iq>=82?.12:.22);
+  const saidaSobPressao  = pressure<2.35 && risk<1.12 && space>2.8 && pv>sv-.02;
+  const movimentoParaDentro = edgeY(o.y)<4.9 && edgeY(pick.m.y)>edgeY(o.y)+2.4 && risk<1.8;
+  const veta = chanceClara||progressaoLimpa||saidaSobPressao||movimentoParaDentro;
+  if(veta)dg.smartShotVetoes=(dg.smartShotVetoes||0)+1;
+  void dtg;
+  return veta;
 };
 
 /* R18.3-C · perfis naturais de voo. O destino e a duração permanecem os

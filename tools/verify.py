@@ -36,6 +36,31 @@ def falhar(msg: str) -> None:
     raise SystemExit(f"ERRO: {msg}")
 
 
+def arquivos_orfaos() -> list[str]:
+    """Arquivos em src/ que o manifesto NAO usa.
+
+    Existe porque eu (Claude) perdi uma rodada editando
+    `src/scripts/layers/63-cds-os20-setpiece-hud.js`, buildando, e vendo o
+    sha256 nao mudar: o manifesto aponta para `54-cds-os20-setpiece-hud.js`, e
+    o 63 era sobra do src anterior. Arquivo orfao nao quebra nada — ele so
+    aceita edicao e a joga fora, em silencio, que e o pior jeito de falhar.
+    """
+    import json as _json
+    import re as _re
+    man = _json.loads((ROOT / "manifests" / "build-manifest.json").read_text(encoding="utf-8"))
+    usados = set(_re.findall(r'"(src/[^"]+)"', _json.dumps(man)))
+    orfaos = []
+    for base in ("src/scripts", "src/scripts/layers", "src/styles", "src/styles/layers"):
+        d = ROOT / base
+        if not d.is_dir():
+            continue
+        for f in sorted(d.iterdir()):
+            rel = f"{base}/{f.name}"
+            if f.is_file() and rel not in usados:
+                orfaos.append(rel)
+    return orfaos
+
+
 def main() -> None:
     manifest = json.loads((ROOT / "manifests/build-manifest.json").read_text(encoding="utf-8"))
 
@@ -84,6 +109,14 @@ def main() -> None:
     if cp.returncode:
         sys.stderr.write(cp.stderr)
         falhar("teste de balistica reprovou")
+    orfaos = arquivos_orfaos()
+    if orfaos:
+        print(f"AVISO: {len(orfaos)} arquivo(s) em src/ fora do manifesto — editar ali nao muda o build")
+        for o in orfaos[:6]:
+            print(f"  - {o}")
+        if len(orfaos) > 6:
+            print(f"  ... e mais {len(orfaos) - 6}")
+
     print("OK: balistica validada")
 
 

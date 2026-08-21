@@ -25,6 +25,9 @@ const $ = s => document.querySelector(s);
    1.366 s de simulacao, entao 3X entrega ~7,6 min — perto dos ~8,2 min que o
    jogo tinha antes, e na faixa de "key highlights" do Football Manager. TURBO
    segue para quem quer varrer a Copa. */
+/* OS-203 · quanto a bola parada corre a mais que o jogo. */
+const ADIANTA_PARADA = 3.5;
+
 const SPEEDS = [
   { k: '1X',    v: 1.0 },   // ~22,8 min por partida
   { k: '2X',    v: 2.0 },   // ~11,4 min
@@ -182,7 +185,13 @@ function _unlockAudio(ev) {
 let feed = [], minorCd = 0, finished = false;
 let isKO = false, myMatch = null, mySide = 0, matchTeams = null;
 let trailPts = [], goalFlash = null, latestEvent = null;
+/* §OS-222 · estufamento da rede no gol: { x, y, z, t0, dir } */
+let redeEstufa = null;
 let _prevScreen = {};   // #anti-cardume (visual): posição de tela do frame anterior, por jogador
+/* §OS-208 · posicao DESENHADA do quadro anterior, para o teto de passo do
+   desenho. Diferente de `_prevScreen`, que so serve ao balanco: este guarda
+   o que foi realmente pintado, porque e contra isso que o salto e medido. */
+let _prevDraw = Object.create(null), _prevDrawT = 0, _posHalf = 0;
 let celebration = null;   // overlay dramático de gol (nome + placar + confete)
 let replayBuf = [];       // buffer circular de snapshots (posições) p/ replay de gol
 let replay = null;        // { frames, idx, until } durante a reprodução
@@ -212,6 +221,63 @@ let momHist = [], momT = 0, keyEvents = [];
 let vfx = [], passNarrCd = 0;
 let playerMotions = [];  // saltos, cabeceios e mergulhos puramente visuais
 let camX = 320, camY = 207;                       // câmera suave (§17)
+/* §OS-244 · TENTATIVA REVERTIDA — LIMITE DE ACELERACAO DA CAMERA.
+   -------------------------------------------------------------------------
+   Fechar a camera (OS-243) triplicou o movimento dela na tela: velocidade
+   media 1,10 -> 3,91 px/quadro e solavanco 0,219 -> 0,663, medido alternando
+   o zoom na MESMA partida. A hipotese era que o seguidor exponencial puro
+   (`camX += (alvo - camX) * 0,055`), sem teto de aceleracao, dava um puxao
+   sempre que a bola era RECOLOCADA e o alvo saltava.
+
+   Implementei o teto e ele reprovou por falta de evidencia:
+
+     · com teto nos dois sentidos, o tranco caiu (pico 77 -> 9,6) mas a bola
+       passou a sair do quadro em 1,02% dos quadros contra 0,12% -- inercia
+       adicionada a um sistema de primeira ordem produz overshoot;
+     · isentando a FREADA, o overshoot sumiu (bola fora 0,03%) e o teto passou
+       a nao reduzir mais o tranco de forma consistente;
+     · medindo por CONTAGEM em vez de maximo -- porque o pico de uma janela e
+       evento unico e oscila demais --, duas janelas pareadas discordaram mais
+       entre si do que os tratamentos discordaram entre si:
+
+           sem teto:  147 e 137 quadros com tranco >3px
+           com teto:  122 e 182
+
+   Sem efeito demonstravel, nao entra. Fica o metodo registrado: a camera se
+   mede pela matriz publicada em `__CDS_SCREEN.m` (`_camView` e local ao
+   modulo), e o par de metricas que importa e tranco CONTRA bola fora do
+   quadro -- otimizar um sozinho troca um defeito por outro. */
+let _camT = 0;                                    // §OS-223 · relógio da câmera
+/* §OS-227 · interpolacao de passo fixo: estado anterior + fracao pendente */
+let interpPrev = null, interpAlpha = 0;
+function capturaInterp(sim) {
+  try {
+    /* guarda NORMALIZADO e por CHAVE: `getState()` entrega copias novas a cada
+       quadro, entao identidade de objeto nao serve para reencontrar ninguem */
+    const m = interpPrev || (interpPrev = { p: Object.create(null), b: { x: 0, y: 0, z: 0 } });
+    for (const k in m.p) delete m.p[k];
+    for (const tm of sim.teams) for (const q of tm.players) {
+      if (!q || q.red) continue;
+      const k = (q.team != null ? q.team : '?') + ':' +
+                ((q.ref && (q.ref.id != null ? 'i' + q.ref.id : q.ref.n)) || q.idx);
+      m.p[k] = [q.x / 105, q.y / 68];
+    }
+    const b = sim.ball; m.b.x = b.x / 105; m.b.y = b.y / 68; m.b.z = b.z || 0;
+  } catch (_) { interpPrev = null; }
+}
+/* Mistura para o DESENHO. Devolve a posicao do objeto na fracao pendente do
+   passo. Sem estado anterior (primeiro quadro, replay) devolve o atual. */
+function interpXY(chave, x, y) {
+  if (!interpPrev || interpAlpha <= 0) return [x, y];
+  const a = interpPrev.p[chave];
+  if (!a) return [x, y];
+  const dx = x - a[0], dy = y - a[1];
+  /* recolocacao administrativa (0,057 normalizado = 6 m) nao se interpola:
+     misturar os dois lados de um teletransporte poe o corpo no nada */
+  if (Math.hypot(dx * 105, dy * 68) > 6) return [x, y];
+  return [a[0] + dx * interpAlpha, a[1] + dy * interpAlpha];
+}
+let _camLX = 0, _camLY = 0;                       // §OS-226 · antecipação com inércia
 
 /* ==========================================================================
    FASE 13A · P0-3 · PONTE ÚNICA DE APRESENTAÇÃO PELA TIMELINE FÍSICA
@@ -388,11 +454,30 @@ function isPortraitPhone(){
     && window.matchMedia('(orientation: portrait)').matches
     && !window.matchMedia('(min-width: 900px)').matches;
 }
+/* §OS-243 · O ZOOM DA CAMERA PASSA A SER AJUSTAVEL EM EXECUCAO.
+   -------------------------------------------------------------------------
+   Pedido do dono: "fecha a camera e me mostra".
+
+   O atleta e desenhado com `r = 13 * s`: 26 px de altura. Depois de dar
+   articulacao, proporcao e pulo ao boneco, ficou claro que o maior limitador
+   de percepcao que restava nao era detalhe nenhum -- era o TAMANHO. Nenhuma
+   animacao aparece num corpo de 26 px.
+
+   `CDS_ZOOM` substitui o zoom-base em qualquer orientacao, o que permite
+   fotografar o MESMO lance em varios enquadramentos e comparar, em vez de
+   escolher um numero no escuro. Sem ela, o comportamento e o de antes. */
 function camBaseZoom(){
+  const _ov = Number(window.CDS_ZOOM);
+  if (isFinite(_ov) && _ov >= 1 && _ov <= 4) return _ov;
   if (isPortraitPhone()) return 1.22;    // retrato: ação maior; a interface fica abaixo por rolagem
   /* OS-57 · tela larga: um pouco mais aberta que o paisagem de celular, porque
      o contexto tatico cabe e importa. */
-  try{ if (window.matchMedia('(min-width: 900px)').matches) return 1.30; }catch(_){}
+  /* §OS-243 · o desktop fechou de 1,30 para 2,00. A 1,30 o atleta tem 30 px
+     de altura e nenhuma animacao se ve; a 2,00 sao ~47 px, com o quadro ainda
+     indo do circulo central a linha de fundo. Medido na escada de zoom:
+     1,30 -> 30 px · 1,70 -> 40 · 2,10 -> 49 · 2,60 -> 61, e a partir de 2,4
+     o contexto tatico comeca a sair do quadro. */
+  try{ if (window.matchMedia('(min-width: 900px)').matches) return 2.00; }catch(_){}
   return 1.35;                           // paisagem: câmera de TV
 }
 /* PONTO 3 · flag de ressincronização do canvas em telas de alta densidade —
@@ -459,10 +544,17 @@ window.__quickMatch = function (iA, iB) {
   const mkT = (s, color, flag) => { const { lineup, bench } = autoLineup(s, '4-3-3', 0); return { squad: s, name: s.c, flag, color, lineup, bench }; };
   const A = mkT(db.squads[iA == null ? 40 : iA], '#ffcb45', '⭐');
   const B = mkT(db.squads[iB == null ? 120 : iB], '#e84040', '🔥');
+  /* §VISTO-04 · a porta de observacao tem de mostrar o MESMO jogo que a Copa.
+     Sem `G.cup`, o tratamento de gol morria na tabela de artilharia; sem um
+     `myMatch` que exista no banco, morria no nome dos times. As duas causas
+     estao corrigidas na origem (§VISTO-01 e §VISTO-03), e aqui o contexto
+     minimo passa a existir de qualquer forma — quem assiste por esta porta
+     precisa ver o que o jogador ve, senao toda observacao mente. */
   myMatch = { h: 'QA', a: 'QB' }; isKO = false; mySide = 0; teamColors = [A.color, B.color];
+  if (!G.cup) G.cup = { scorers: {}, phase: 'groups', playerSid: 'QA', __observacao: true };
   feed=[]; finished=false; tab='campo'; acc=0; lastT=0; paused=false;
-  trailPts=[]; goalFlash=null; shotFx=null; outMark=null; celebration=null; replay=null; replayBuf=[]; penScene=null; fkScene=null; setPieceRequest=null; shootoutState=null; breakOv=null; slowmo=null; latestEvent=null; minorCd=0; statsT=0; momHist=[]; momT=0; keyEvents=[]; playerMotions=[];
-  endOfPlay._done = false; fastForwardFullTime._done = false; /* PONTO 4: novo jogo, nova janela de compressão */ camX = 320; camY = 207;
+  trailPts=[]; goalFlash=null; redeEstufa=null; shotFx=null; outMark=null; celebration=null; replay=null; replayBuf=[]; penScene=null; fkScene=null; setPieceRequest=null; shootoutState=null; breakOv=null; slowmo=null; latestEvent=null; minorCd=0; statsT=0; momHist=[]; momT=0; keyEvents=[]; playerMotions=[];
+  endOfPlay._done = false; fastForwardFullTime._done = false; /* PONTO 4: novo jogo, nova janela de compressão */ camX = 320; camY = 207; _camLX = 0; _camLY = 0;
   sim = new MatchSim(A, B, { onEvent, onSetPiece: openSetPieceMinigame }); sim.setInteractive(0);
   G.screen = 'match'; render(A, B); startLoop();
   return A.name + ' x ' + B.name;
@@ -1140,10 +1232,10 @@ function open() {
   matchTeams = [A, B];
 
   feed=[]; finished=false; tab='campo'; acc=0; lastT=0; paused=false;
-  trailPts=[]; goalFlash=null; shotFx=null; outMark=null; celebration=null; replay=null; replayBuf=[]; penScene=null; fkScene=null; setPieceRequest=null; shootoutState=null; breakOv=null; slowmo=null; latestEvent=null; minorCd=0; statsT=0; momHist=[]; momT=0; keyEvents=[]; playerMotions=[];
+  trailPts=[]; goalFlash=null; redeEstufa=null; shotFx=null; outMark=null; celebration=null; replay=null; replayBuf=[]; penScene=null; fkScene=null; setPieceRequest=null; shootoutState=null; breakOv=null; slowmo=null; latestEvent=null; minorCd=0; statsT=0; momHist=[]; momT=0; keyEvents=[]; playerMotions=[];
   endOfPlay._done = false;
   fastForwardFullTime._done = false;  /* PONTO 4: novo jogo, nova janela de compressão */
-  camX = 320; camY = 207;
+  camX = 320; camY = 207; _camLX = 0; _camLY = 0;
 
   sim = new MatchSim(A, B, { onEvent, onSetPiece: openSetPieceMinigame });
   sim.setInteractive(mySide);
@@ -1525,12 +1617,46 @@ function onEvent(e) {
     }
     return;
   }
-  if (e.type === 'dribble' && e.by) { fxAt(e.by, 'ring', 0.7); fxAt(e.by, 'dust', 0.6);
+  /* §OS-218 · AS PARTICULAS DE ROTINA SAEM DE CENA.
+     Elas nasceram quando o boneco nao tinha gesto: a faisca era a unica coisa
+     que dizia "houve um bote aqui". Hoje o corpo diz -- `standing_tackle`,
+     `intercept`, `block`, `header`, `dribble_failure` e o resto sao desenhados
+     de verdade desde a OS-210/213, com pose e envelope proprios.
+     O que sobrou foi redundancia em cima de evento FREQUENTE: 46,6 botes,
+     ~20 interceptacoes, ~20 cruzamentos e 23 chutes por partida, cada um
+     cuspindo um brilho. Sao mais de cem estouros por partida sobre um campo
+     que ja mostra o lance. Ficam so os raros, que informam em vez de repetir:
+     gol, defesa, cartao, falta, lenda em chamas, chute para fora, escanteio. */
+  if (false && e.type === 'dribble' && e.by) { fxAt(e.by, 'ring', 0.7); fxAt(e.by, 'dust', 0.6);
     if (e.flair && e.move) { const nm = e.by.ref ? lastWord(e.by.ref.n, 12) : ''; latestEvent = { txt: `✨ <b>${esc(nm)}</b> — ${e.move}!`, min: Math.floor(sim.minute) }; }
   }
-  if (e.type === 'tackle' && e.by) { fxAt(e.by, 'star', 0.7); motionAt(e.by, 'tackle', 0.5); }
-  if (e.type === 'intercept' && e.by) fxAt(e.by, 'cut', 0.6);
-  if (e.type === 'foul' && e.on) { fxAt(e.on, 'foul', 1.1); playUXSound('foul'); }
+  if (e.type === 'tackle' && e.by) { motionAt(e.by, 'tackle', 0.5); }
+  /* §OS-218 · a pose de interceptacao ja e desenhada (§D39) */
+  if (e.type === 'foul' && e.on) {
+    fxAt(e.on, 'foul', 1.1); playUXSound('foul');
+    /* §OS-266 · A FALTA PRECISA DE UMA BATIDA LENTA NO CONTATO.
+       RELATO, depois da OS-263 ja ter dado a PAUSA: "a falta esta acontecendo
+       do nada". A pausa resolveu o "nao da tempo de sentir que parou"; nao
+       resolveu o "do nada", que e outra coisa -- e ANTECIPACAO.
+
+       Rastreado quadro a quadro, o motor faz tudo certo: emite
+       `tackle_attempt` antes, os dois corpos estao a 1,11 m (contato de
+       verdade), o faltoso roda `standing_tackle` por 13 quadros e a vitima
+       `fouled` por 25. Nada disso e invisivel por falta de gesto.
+
+       E invisivel por falta de TEMPO. Os 0,52 s de simulacao do `fouled` valem
+       173 ms de parede no 3X que e o padrao: o corpo cai e levanta antes de o
+       olho registrar que houve contato. O apito chega junto com o lance, e nao
+       depois dele.
+
+       A alavanca ja existia e estava no lugar errado: a OS-88 poe camera lenta
+       na COBRANCA da falta -- que e o momento burocratico -- e nao no contato,
+       que e o momento que se julga. Aqui ela entra onde importa.
+
+       Apresentacao pura: `slowmo` reduz o passo do DESENHO, nao o da
+       simulacao. Os mesmos `sim.step` acontecem, espalhados no relogio. */
+    slowmo = { until: performance.now() + 650, f: 0.40 };
+  }
   if (e.type === 'save' && e.gk) {
     fxAt(e.gk, 'save', 0.9);
     motionAt(e.gk, 'dive', 0.9, (sim.ball.y - e.gk.y) >= 0 ? 1 : -1);
@@ -1539,10 +1665,17 @@ function onEvent(e) {
   if (e.type === 'gk_claim_miss' && e.gk) motionAt(e.gk, 'claim', 0.8);
   if (e.type === 'post') fxAt({ x: sim.ball.x, y: sim.ball.y }, 'post', 0.9);
   if (e.type === 'blocked') fxAt({ x: sim.ball.x, y: sim.ball.y }, 'block', 0.7);
-  if (e.type === 'cross' && e.by) { fxAt(e.by, 'arrow', 0.7); motionAt(e.by, 'kick', 0.42); }
-  if (e.type === 'shot_taken' && e.by) { fxAt(e.by, 'ring', 0.5); motionAt(e.by, 'kick', 0.42); }   // #impacto: anel + pose de chute
-  if (e.type === 'run_break' && e.by) fxAt(e.by, 'arrow', 0.5);   // infiltração: seta de movimento
-  if (e.type === 'header_clear' && e.by) { fxAt(e.by, 'head', 0.6); motionAt(e.by, 'jump', 0.68); }
+  if (e.type === 'cross' && e.by) { motionAt(e.by, 'kick', 0.42); }
+  if (e.type === 'shot_taken' && e.by) { motionAt(e.by, 'kick', 0.42); }   /* §OS-218 · a pose de chute basta */
+  /* §OS-218 · a infiltracao se le na corrida, nao numa seta */
+  if (e.type === 'header_clear' && e.by) { motionAt(e.by, 'jump', 0.68); }
+  /* §OS-224 · O CABECEIO AO GOL NAO PULAVA. `header_clear` (o corte) tinha o
+     salto de sempre; `header_shot` -- que e o lance mais alto do jogo, a
+     cabecada na area -- tinha so a pose, sem tirar o corpo do chao. Com o arco
+     de verdade da OS-219 a bola agora CAI na area, e um cabeceio sem salto
+     debaixo dela fica gritante. Salta um pouco mais que o corte, porque
+     atacar a bola exige mais que afastar. */
+  if (e.type === 'header_shot' && e.by) { motionAt(e.by, 'jump', 0.74); }
   if (e.type === 'corner' && e.by) fxAt(e.by, 'corner', 1.15);
   /* §OS-84 · o marcador de 'fora' nascia no pé do CHUTADOR, a ~25 m do gol.
      Passa a nascer onde a bola cruzou a linha de fundo, e a bola passa a
@@ -1584,14 +1717,49 @@ function onEvent(e) {
   if (e.type === 'goal' && e.by) {
     const sid = e.by.team === 0 ? myMatch.h : myMatch.a;
     const key = sid + ':' + e.by.ref.n;
-    const sc = G.cup.scorers;
-    (sc[key] = sc[key] || { n: e.by.ref.n, sid, gols: 0 }).gols++;
+    /* §VISTO-01 · A ARTILHARIA NAO PODE MATAR O GOL.
+       `G.cup` e nulo em toda partida que nao seja da Copa — inclusive na
+       `__quickMatch`, que e a porta de observacao do proprio projeto. A linha
+       antiga era `const sc = G.cup.scorers`, e ela estoura ANTES do flash, da
+       rede estufando, da comemoracao e da narracao. Como `_emit` engole a
+       excecao (ver §VISTO-02), o gol saia sem apresentacao NENHUMA: so o numero
+       do placar mudava.
+       Medido assistindo: dois gols seguidos, 3,2 s de prints depois de cada um,
+       zero overlay, zero narracao, e `onEvent` estourando nos dois.
+       A tabela de artilharia e o item MENOS importante desta funcao; ela agora
+       e opcional e fica por ultimo em risco, nao em primeiro. */
+    const sc = (G.cup && G.cup.scorers) || null;
+    if (sc) (sc[key] = sc[key] || { n: e.by.ref.n, sid, gols: 0 }).gols++;
     goalFlash = { team: e.by.team, alpha: 1.0 };
+    /* §OS-222 · A REDE ESTUFA. Ela e desenhada no palco PRE-RENDERIZADO
+       (`CDS_F25D.grass`), entao e estatica por construcao: a bola entrava e
+       nada acontecia. O gol e o momento que o dono mais olha, e a rede parada
+       tira o peso dele. O estufamento vai por cima, no canvas vivo, ancorado
+       onde a bola cruzou a linha. */
+    try {
+      const _gg = sim.teams[e.by.team].oppGoal;
+      redeEstufa = { x: _gg.x / 105, y: clamp(sim.ball.y / 68, .40, .60),
+                     z: Math.max(0, sim.ball.z || 0), t0: performance.now(),
+                     dir: _gg.x > 52.5 ? 1 : -1 };
+    } catch (_) { }
     armShotFx('goal', e.by);   /* §OS-84 · a bola entra na rede antes do overlay */
     // Comemoração: sempre exibida, independente da velocidade do jogo.
     // O replay só aparece se houver frames gravados; caso contrário vai direto para confete.
     // A duração mínima é 2800ms para garantir que o overlay seja visível mesmo em TURBO.
-    const H = G.db.byId[myMatch.h], A = G.db.byId[myMatch.a];
+    /* §VISTO-03 · O NOME DOS TIMES NAO PODE VIR SO DA COPA.
+       `G.db.byId[myMatch.h]` devolve `undefined` sempre que `myMatch` nao
+       aponta para uma chave real do banco — e a `__quickMatch`, que e a porta
+       de observacao do projeto, usa 'QA'/'QB'. Ler `.c` de `undefined` estoura
+       no MESMO ponto do §VISTO-01, com o mesmo efeito: gol sem flash, sem rede
+       estufando, sem comemoracao e sem narracao.
+       Este overlay so precisa do nome dos dois times, e a partida ja sabe os
+       dois. A Copa passa a ser a fonte PREFERIDA, nao a unica. */
+    const H = (G.db && G.db.byId && G.db.byId[myMatch.h]) || null;
+    const A = (G.db && G.db.byId && G.db.byId[myMatch.a]) || null;
+    const nomeDoTime = (i, reg) => (reg && reg.c) ||
+      (sim.teams[i] && (sim.teams[i].name || (sim.teams[i].squad && sim.teams[i].squad.c))) ||
+      (i === 0 ? 'Casa' : 'Visitante');
+    const hNome = nomeDoTime(0, H), aNome = nomeDoTime(1, A);
     const isMine = (e.by.team === mySide);
     // A cena dedicada já é o replay da bola parada. Reusar o buffer do campo
     // mostrava, depois do gol, uma jogada anterior que não continha a cobrança.
@@ -1623,7 +1791,7 @@ function onEvent(e) {
     celebration = {
       scorer: e.by.ref.n, team: e.by.team, color: sim.teams[e.by.team].color,
       min: Math.floor(sim.minute), mine: isMine,
-      hName: H.c, aName: A.c,
+      hName: hNome, aName: aNome,
       start: celebStart,
       replayUntil: celebStart + replayMs,
       until: celebStart + celebDur,
@@ -1751,13 +1919,130 @@ function startLoop() {
        no último lance segurava o cartão de resultado por 6–9 segundos. */
     const matchOver = !finished && sim && sim.isOver();
     if (matchOver) fastForwardFullTime(now);
+    /* §OS-211 · O TIME VOLTA PARA CASA DEBAIXO DO CONFETE.
+       ------------------------------------------------------------------
+       RELATO: "depois que rola o gol o jogo comeca do nada com os jogadores
+       espalhados no campo". MEDIDO com tools/fisica/tela/validar-lances.js,
+       em 5 pontapes de saida: NENHUM tinha os dois times na propria metade
+       (pior invasao 31,5 m, media de 4,2 jogadores do lado errado) e nenhum
+       tinha o time armado (distancia media ao posto de formacao 19,27 m,
+       pior caso 69,1 m).
+
+       A causa nao e o `_resetPositions`: ele poe todo mundo na formacao. E a
+       R15, que — com razao — converteu esse teletransporte em CAMINHADA, mas
+       com teto de 2,2 s. Depois de um gol o time inteiro esta na area
+       adversaria, e voltar sao 40-70 m: a 6,4 m/s isso pede uns 11 s. O
+       pontape saia no segundo 2,2, com o time no meio do caminho.
+
+       Subir o teto e a tentacao errada — a propria R15 mediu que alongar
+       bola morta desloca a proporcao entre jogo corrido e bola parada dentro
+       dos mesmos 90 minutos, e os gols cairam 14,6%.
+
+       Mas a comemoracao ja E uma pausa: o laco a bloqueia por >= 2,8 s e
+       nesse tempo `sim.step` nao roda. Sao segundos de relogio de parede em
+       que o jogador esta vendo confete e NADA acontece no gramado. E o
+       tempo exato de que a caminhada precisa, e ele e de graca: bola morta
+       nao move o relogio da partida (`dead > 0` nao incrementa `minute`).
+
+       Entao: durante a comemoracao, a simulacao continua enquanto a bola
+       estiver MORTA — e so enquanto. No instante em que `dead` zera, o passo
+       para e o jogo espera o overlay como antes. Nenhum passo de jogo vivo
+       acontece atras do confete. */
+    if (!finished && !paused && celebrating && !penActive && !matchOver &&
+        sim && sim.dead > 0) {
+      const h = 1 / 60; let g = 0;
+      acc += dt * G.speed * ADIANTA_PARADA;
+      while (acc >= h && g++ < 500 && sim.dead > 0) { sim.step(h); acc -= h; }
+      if (!(sim.dead > 0)) acc = 0;   // acabou a pausa: nada de vazar passo vivo
+    }
     if (!finished && !paused && !celebrating && !penActive) {
       if (!matchOver) {
-        acc += dt * (slowmo ? Math.min(G.speed, 1) * slowmo.f : G.speed);
+        /* OS-203 · A ESPERA ANDA MAIS RAPIDO QUE O JOGO.
+           Medido: 12,2% da partida (166 s de 1.361) e bola parada — tiro de
+           meta, lateral, arrumacao de escanteio, reinicio de falta. Nao e
+           futebol, e espera, e e o tipo de trecho em que quem assiste sente
+           que nada acontece.
+
+           Comemoracao de gol e minijogo de bola parada NAO entram aqui: o
+           bloco inteiro ja e barrado por `celebrating` e `penActive` acima,
+           entao o que sobra e so a espera burocratica. Camera lenta tambem
+           fica de fora — ela existe justamente para alguem olhar.
+
+           Isto e SO apresentacao: o simulador recebe os mesmos passos, na
+           mesma ordem. O resultado da partida nao muda em nada. */
+        /* §OS-263 · A CERIMONIA NAO E BUROCRACIA.
+           A linha abaixo adiantava TODA bola parada 3,5x, em cima do
+           multiplicador do botao -- 10,5x o tempo real no padrao de 3X. Para
+           a burocracia (tiro de meta, arrumacao de lateral, recolocar a bola)
+           isso e certo e e o que a OS-203 mediu. Para a CERIMONIA e o
+           contrario: a falta, o cartao, o penalti e o gol sao justamente os
+           momentos em que uma transmissao demora, e adiantar corta a parte que
+           faz o lance existir.
+           MEDIDO na partida inteira (tools/fisica/tela/a-partida-inteira.js),
+           94 minutos e 64 reinicios no 3X padrao: a falta parava o jogo por
+           300 ms medianos. Dezoito quadros -- o olho nao registra, e dai o
+           relato "eh como se tudo acontecesse de forma continua".
+           Durante a janela de cerimonia (camada 85) a pausa roda em tempo de
+           PAREDE: sem adianto e sem multiplicador de botao. */
+        const _cerim = !!(window.__cdsCerimoniaAtiva && window.__cdsCerimoniaAtiva(sim));
+        const _espera = (sim && sim.dead > 0 && !slowmo && !_cerim) ? ADIANTA_PARADA : 1;
+        /* §OS-266 · a camera lenta VENCE a cerimonia: ela e mais especifica.
+           Sem esta ordem, a janela da OS-263 anulava o fator de `slowmo` e a
+           batida lenta do contato virava velocidade normal. */
+        const _mult = slowmo ? Math.min(G.speed, 1) * slowmo.f
+                    : (_cerim ? Math.min(G.speed, 1) : G.speed);
+        acc += dt * _mult * _espera;
         const h = 1/60; let g = 0;
+        /* §OS-227 · O JOGO DESENHAVA O ESTADO DISCRETO DA SIMULACAO.
+           O laco e de passo FIXO: `acc += dt*speed` e depois roda quantos
+           passos de 1/60 couberem. O numero de passos por quadro DESENHADO
+           varia -- as vezes 1, as vezes 2, as vezes 3 -- e o que sobra em
+           `acc` e simplesmente ignorado ate o quadro seguinte.
+           Consequencia: um atleta a velocidade CONSTANTE avanca 1 ou 2 passos
+           por quadro na tela, alternando. Isso e jitter de quantizacao, e ele
+           esta em TUDO que se move -- corpo, bola, camera -- o tempo todo. Nao
+           e um bug de nenhuma camada: e a falta da interpolacao que todo laco
+           de passo fixo precisa ter.
+           A correcao e a classica: guarda o estado ANTES dos passos, e o
+           desenho mostra a mistura entre ele e o estado depois, na fracao que
+           `acc` deixou pendente. A simulacao nao muda em nada -- os mesmos
+           passos, na mesma ordem. Muda o que se ve entre eles. */
+        /* §OS-228 · ONDE CAPTURAR O ESTADO ANTERIOR — TRES VARIANTES MEDIDAS.
+           A escolha aqui e EMPIRICA, e o registro existe para ninguem refazer
+           a varredura. Sonda `tools/fisica/tela/passada-parada.js`, 150 s:
+
+             antes da RAJADA (esta)         tremor 4,16%   salto 32,7%
+             antes de CADA passo            tremor 7,75%   salto 55,0%
+             antes do ULTIMO passo          tremor 6,35%   salto 44,8%
+
+           A segunda e a terceira sao a formula de livro (o estado guardado
+           fica exatamente um passo atras, que e o que `alpha` cobre) e as duas
+           mediram PIOR que a primeira. Duas explicacoes possiveis, nenhuma
+           verificada: o custo da captura extra vira variacao de tempo de
+           quadro, e/ou a sonda -- que conta reversao de deslocamento
+           DESENHADO -- premia o desenho mais lento, porque menos deslocamento
+           por quadro e menos chance de reverter.
+           Fica a que mede melhor, com a ressalva escrita. Quem for mexer aqui
+           precisa de uma sonda que separe SUAVIDADE de ATRASO; a atual nao
+           separa. */
+        if (g === 0 && acc >= h) capturaInterp(sim);
+        /* §OS-267c · O ADIANTO DO CORTE NAO PODE ATRAVESSAR O REINICIO.
+           Este laco e de passo FIXO e roda MUITOS passos por quadro desenhado.
+           O corte era consultado uma vez, ANTES do laco -- entao a guarda de
+           "so adianta se ainda ha bola morta com folga" era avaliada uma vez e
+           o laco seguia consumindo. Com o adianto de 9x sobre o 3X do botao,
+           um unico quadro come 0,45 s de simulacao: a cobranca saia DENTRO do
+           laco e a imagem voltava com a bola ja longe do ponto.
+           Medido: o build sem o corte da F2 36/36 com pior 1,31 m em duas
+           passadas; com o corte, pior de 10 a 22 m em toda variante. Nao era a
+           sonda -- era o corte engolindo a batida, que e exatamente o defeito
+           que ele veio consertar.
+           O bloco da comemoracao (:1924) ja fazia certo, testando `sim.dead`
+           DENTRO da condicao. Aqui faltava. */
         while (acc >= h && g++ < 500) {
           sim.step(h); acc -= h; minorCd = Math.max(0, minorCd - h);
         }
+        if (g > 0) interpAlpha = Math.max(0, Math.min(1, acc / h));
       } else {
         /* Jogo encerrado: zera o acumulador para o relógio não "vazar" passos
            extras de simulação enquanto os overlays finais se despedem. */
@@ -1793,7 +2078,20 @@ function startLoop() {
       else advanceFkScene(dt);
     }
     if (breakOv && now >= breakOv.until) breakOv = null;
-    if (slowmo && now >= slowmo.until) slowmo = null;
+    /* §OS-266b · A BATIDA LENTA ACABA QUANDO NAO HA MAIS O QUE VER.
+       A camera lenta da falta multiplica por 26 a duracao de tudo o que estiver
+       na tela naquele instante -- inclusive a bola PARADA FORA DO CAMPO,
+       esperando o lateral. A sanidade pegou: 48 quadros com a bola em x = -2,8,
+       contra ZERO no build sem esta OS, nos mesmos 43 minutos.
+       Nao e falso positivo: bola parada fora do campo em camera lenta e tempo de
+       tela gasto com nada. A lentidao existe para o CONTATO; assim que a bola
+       sai, ela perdeu o assunto. */
+    if (slowmo) {
+      const _bs = sim && sim.ball;
+      const _fora = _bs && !_bs.traveling &&
+        (_bs.x < -0.5 || _bs.x > (FL || 105) + 0.5 || _bs.y < -0.5 || _bs.y > (FW || 68) + 0.5);
+      if (now >= slowmo.until || _fora) slowmo = null;
+    }
     playerMotions = playerMotions.filter(m => m.until > now);
     // após o fim, o loop segue só para animar overlays (shootout/comemoração)
     if (celebration) {
@@ -3023,10 +3321,49 @@ function bindControls() {
 
 /* ─── CANVAS ──────────────────────────────────────────────────────────── */
 let _cdsChipFrame = 0; /* OS-62 · vira a cada quadro para zerar a ocupacao dos chips */
-const CW=1024, CH=500, M=14;
+/* D24 · A ALTURA DO MUNDO LOGICO ACOMPANHA O QUADRO.
+   ---------------------------------------------------
+   `CH` era 500 fixo. O canvas tinha proporcao 1024:500 = 2,048 e o quadro do
+   jogo fica entre 1,17 e 1,66 conforme a resolucao — sempre MAIS ALTO. A
+   sobra virava faixa preta, de 22% a 46% do quadro.
+
+   Nao da para resolver isso com outro valor fixo: com proporcao fixa o vazio e
+   `1 - min(A,Acaixa)/max(A,Acaixa)`, e as caixas vao de 1,174 a 1,655 (razao
+   0,709). Nenhum A fixo fica abaixo de 4% nas quatro; o melhor possivel deixa
+   15,8% nas pontas.
+
+   Entao `CH` passa a ser calculado a partir da caixa, em `syncCanvasResolution`.
+   Isso e seguro por causa de duas coisas medidas:
+
+     · A FORMA DO CAMPO NAO DEPENDE DE CH. A projecao do palco 2.5D faz
+       `vn = (fy - M) / fH` — normaliza a altura logica antes de projetar. Quem
+       decide o desenho e fW, topY, bottomY e R0.
+     · A FAIXA DA PROJECAO E FIXA (camada 21). Antes `bottomY = CH - 3` e
+       `topY = M + 34` faziam a faixa CRESCER com CH; foi isso que quebrou a
+       tela numa tentativa anterior, com o gramado virando um trapezio torto.
+
+   O que sobra de altura vira ceu e arquibancada, que o palco ja desenha de 0
+   ate standBot. Preto vira estadio.
+
+   `fH` deixa de ser const pelo mesmo motivo; `cy` ja le CH em tempo de
+   chamada. A chave do palco (`M + ':' + fW + 'x' + fH`) muda junto, entao a
+   camada 21 se reconstroi sozinha. */
+const CW=1024, M=14;
+let CH=500;
 const cx = x => M + x*(CW-M*2);
 const cy = y => M + y*(CH-M*2);
-const fW = CW-M*2, fH = CH-M*2;
+const fW = CW-M*2;
+let fH = CH-M*2;
+/* Faixa sa para CH: 1024/2,44 ate 1024/1,25. Fora dela o enquadramento deixa
+   de fazer sentido — janela extremamente larga nao precisa de arquibancada
+   ate o teto, e janela quase quadrada esticaria o ceu sem ganho. */
+const CH_MIN = 420, CH_MAX = 820;
+function definirCH(novo){
+  const v = Math.max(CH_MIN, Math.min(CH_MAX, Math.round(novo / 4) * 4));
+  if (v === CH) return false;
+  CH = v; fH = CH - M*2;
+  return true;
+}
 
 /* ============================================================================
    PONTO 3 · CANVAS EM TELAS DE ALTA DENSIDADE — syncCanvasResolution()
@@ -3053,10 +3390,15 @@ function syncCanvasResolution(cv){
   try{
     const rect = cv.getBoundingClientRect();
     const cssW = rect.width || CW;                       // 0 => usa o lógico
+    const cssH = rect.height || 0;
+    /* D24 · a altura lógica acompanha a CAIXA. Quantizada em passos de 4 para
+       não realocar o backing store a cada subpixel do layout, e só quando a
+       caixa tem altura real (durante a montagem ela pode vir 0). */
+    const mudouCH = (cssH > 8 && cssW > 8) ? definirCH(CW * cssH / cssW) : false;
     const dpr  = Math.min(window.devicePixelRatio || 1, 2.5);
     let k = clamp((cssW * dpr) / CW, .75, 2.5);
     k = Math.round(k * 20) / 20;                         // quantiza (passos .05)
-    if (cv._k === k) return;                             // nada mudou: não realoca
+    if (cv._k === k && !mudouCH) return;                 // nada mudou: não realoca
     cv._k = k;
     cv.width  = Math.max(1, Math.round(CW * k));
     cv.height = Math.max(1, Math.round(CH * k));
@@ -3105,6 +3447,17 @@ function paintField() {
      gramado continua abrindo a panoramica. */
   const desktopFullField = false;
   const visualNow = performance.now();
+  /* §OS-223 · A CAMERA ANDAVA NO RELOGIO ERRADO, COMO A PASSADA ANDAVA.
+     `camX += (tx - camX) * 0.055` e um ganho POR QUADRO: a 30 fps a camera
+     persegue metade do que persegue a 60, e num quadro longo ela simplesmente
+     fica para tras. E a mesma familia de defeito que a OS-215 corrigiu na
+     passada -- o que muda e que aqui o resultado nao e perna tremendo, e a
+     bola escapando do enquadramento.
+     Agora o ganho e convertido para o tempo REAL do quadro: 0,055 por quadro
+     a 60 fps vira a mesma constante de tempo em qualquer framerate. */
+  const _dtCam = Math.max(1 / 240, Math.min(0.25, (visualNow - (_camT || visualNow - 16.7)) / 1000));
+  _camT = visualNow;
+  const _ganho = k => 1 - Math.pow(1 - k, _dtCam * 60);
   const rframe = (replay && celebration && visualNow >= (celebration.start || 0) && visualNow < celebration.replayUntil)
     ? replay.frames[Math.min(Math.floor(replay.idx), replay.frames.length - 1)] : null;
   ctx.save();
@@ -3112,15 +3465,49 @@ function paintField() {
     if (rframe) {
       let tx = cx(rframe.ball.x), ty = cy(rframe.ball.y);
       if (window.CDS_F25D) { const _pj = window.CDS_F25D.project(tx, ty); tx = _pj.x; ty = _pj.y; }
-      camX += (tx - camX) * 0.12; camY += (ty - camY) * 0.12;
+      const _g12 = _ganho(0.12);
+      camX += (tx - camX) * _g12; camY += (ty - camY) * _g12;
     } else if (sim) {
       /* §OS-84 · com a bola do motor congelada, a câmera parava e a bola saía
          do quadro. Enquanto o fantasma vive, ele é o alvo da câmera. */
       const sb = shotFx ? { x: shotFx.x / 105, y: shotFx.y / 68 } : sim.getState().ball;
-      let tx = cx(sb.x), ty = cy(sb.y);
+      /* §OS-223 · A CAMERA PASSA A ANTECIPAR, COMO CAMERA DE TRANSMISSAO.
+         Perseguir a posicao ATUAL da bola significa, por definicao, estar
+         sempre atras dela: quanto mais rapido o lance, mais a bola vive na
+         borda do quadro. Cameraman nenhum faz isso -- ele aponta para onde a
+         bola VAI. A projecao usa a velocidade que o motor ja publica, limitada
+         a 9 m para nao enquadrar campo vazio num chutao. */
+      let _ax = sb.x, _ay = sb.y;
+      try {
+        const _bb = sim.ball;
+        if (_bb && !shotFx) {
+          const _vx = Number(_bb.vx) || 0, _vy = Number(_bb.vy) || 0;
+          const _v = Math.hypot(_vx, _vy);
+          let _lx = 0, _ly = 0;
+          if (_v > 1) {
+            const _lead = Math.min(9, _v * 0.42) / _v;
+            _lx = _vx * _lead; _ly = _vy * _lead;
+          }
+          /* §OS-226 · A ANTECIPACAO TEM DE NASCER, NAO APARECER.
+             A primeira versao aplicava o vetor de lead cru. Com a bola parada
+             o lead e ZERO, e no quadro em que ela sai ele vira 9 m de uma vez:
+             a camera dava um tranco no instante exato da cobranca -- que e o
+             momento mais olhado da partida, ainda por cima debaixo da camera
+             lenta da OS-88. Bug meu, introduzido junto com a melhoria.
+             O lead agora tem inercia propria, mais lenta que a da camera:
+             ele cresce e some sem degrau, e a camera nunca recebe um alvo
+             que saltou. */
+          _camLX += (_lx - _camLX) * _ganho(0.06);
+          _camLY += (_ly - _camLY) * _ganho(0.06);
+          _ax = clamp((_bb.x + _camLX) / 105, 0, 1);
+          _ay = clamp((_bb.y + _camLY) / 68, 0, 1);
+        }
+      } catch (_) { }
+      let tx = cx(_ax), ty = cy(_ay);
       if (window.CDS_F25D) { const _pj = window.CDS_F25D.project(tx, ty); tx = _pj.x; ty = _pj.y; }
-      camX += (tx - camX) * 0.055;
-      camY += (ty - camY) * 0.055;
+      const _g55 = _ganho(0.055);
+      camX += (tx - camX) * _g55;
+      camY += (ty - camY) * _g55;
     }
     /* PONTO 2 · MISTURA FECHADA↔PANORÂMICA:
        1. camOverviewT persegue o alvo (camHold ? 1 : 0) com ganho .16/frame —
@@ -3138,15 +3525,39 @@ function paintField() {
     const z = zClose + (1 - zClose) * tEase;
     const vw = CW / z, vh = CH / z;
     const cpx = Math.max(vw / 2, Math.min(CW - vw / 2, camX));
-    const cpy = Math.max(vh / 2, Math.min(CH - vh / 2, camY));
+    /* D24 · A CAMERA SE ENQUADRA NA FAIXA DO GRAMADO, NAO NA CAIXA.
+       -------------------------------------------------------------
+       `camY` persegue a posicao PROJETADA da bola (ver o `project` logo
+       acima), que vive entre topY e bottomY. O limite, porem, era a altura do
+       canvas inteiro — e enquanto a faixa ocupava quase todo o canvas isso deu
+       na mesma. Quando o canvas fica mais alto que a faixa, o limite passa a
+       cortar o campo justamente embaixo, que foi o que a tentativa com CH=619
+       mostrou.
+       Agora o limite e a propria faixa. Se a vista for mais alta que ela, os
+       dois lados se cruzam e a camera assenta no CENTRO da faixa — o gramado
+       inteiro em quadro, e o que sobra acima e arquibancada. */
+    let cpy;
+    const _fx = window.CDS_F25D && window.CDS_F25D.faixa && window.CDS_F25D.faixa();
+    if (_fx && _fx.ready) {
+      const lo = _fx.topY + vh / 2, hi = _fx.bottomY - vh / 2;
+      cpy = lo > hi ? (_fx.topY + _fx.bottomY) / 2 : Math.max(lo, Math.min(hi, camY));
+    } else {
+      cpy = Math.max(vh / 2, Math.min(CH - vh / 2, camY));
+    }
     ctx.translate(CW / 2, CH / 2);
     ctx.scale(z, z);
     ctx.translate(-cpx, -cpy);
     _camView = { z: z, cpx: cpx, cpy: cpy };   /* §OS-84 · para projetar texto fora do zoom */
+    /* §OS-259 · o zoom da camera passa a ser PUBLICO. A camada 2,5D desenha as
+       guias (rastro, trajetoria, seta) dentro desta transformacao e nao tinha
+       como saber por quanto elas seriam multiplicadas. Mesma razao da OS-243:
+       guia e interface, e interface tem tamanho de TELA. */
+    try { window.__CDS_CAMZ = z; } catch (_) { }
   } else {
     camX = CW / 2;
     camY = CH / 2;
     _camView = { z: 1, cpx: CW / 2, cpy: CH / 2 };
+    try { window.__CDS_CAMZ = 1; } catch (_) { }
   }
 
   /* gramado listrado (delegado ao palco 2.5D quando presente) */
@@ -3202,8 +3613,10 @@ function paintField() {
     ? rframe.p.map(pl => ({ x: pl.x, y: pl.y, color: pl.c, num: pl.num, slot: pl.gk ? 'GK' : '', hasBall: pl.ball, n: pl.n||'', timelineId:replay&&replay.timelineId, yellow: 0, red: false }))
     : null;
 
-  /* rastro da bola (só ao vivo) — mais visível, com brilho */
-  if (!rframe) { if (window.CDS_F25D) { window.CDS_F25D.trail(ctx, trailPts, cx, cy); } else { ctx.save(); ctx.shadowColor = 'rgba(255,215,50,.9)';
+  /* §OS-217 · RASTRO REMOVIDO a pedido do dono. `trailPts` continua sendo
+     alimentado (`trackTrail`) porque o replay e outras camadas o consultam;
+     o que sai e o DESENHO dele. */
+  if (false) { if (window.CDS_F25D) { window.CDS_F25D.trail(ctx, trailPts, cx, cy); } else { ctx.save(); ctx.shadowColor = 'rgba(255,215,50,.9)';
     trailPts.forEach((tp, i) => {
       const f = 1 - i / trailPts.length;
       ctx.shadowBlur = 9 * f;
@@ -3216,13 +3629,76 @@ function paintField() {
   /* jogadores — agrupa por "time" (ao vivo) ou lista única (replay) */
   let groups = playersToDraw
     ? [{ color: null, players: playersToDraw }]
-    : st.teams.map(t => ({ color: t.color, players: t.players }));
+    : st.teams.map(t => ({ color: t.color, players: t.players, side: t.side }));
   if (window.CDS_F25D) {
     const _all = [];
-    for (const g of groups) for (const pl of g.players) { if (g.color && pl.color == null) pl.color = g.color; _all.push(pl); }
+    /* §OS-209 · o LADO viaja junto com o atleta. `getState()` publica `side` no
+       time e nada no jogador, entao ao fundir os dois grupos numa lista unica
+       (para ordenar por y) a informacao de time se perdia -- e e ela que
+       desempata a chave de desenho. Ver o bloco da chave, abaixo. */
+    for (const g of groups) for (const pl of g.players) { if (g.color && pl.color == null) pl.color = g.color; if (pl.__lado == null) pl.__lado = g.side; _all.push(pl); }
     _all.sort((a, b) => a.y - b.y);
     groups = [{ color: null, players: _all }];
   }
+  /* §OS-207 · O TREMOR DA BOLA PARADA.
+     O balanco #anti-cardume abaixo foi calibrado para quem CORRE: amplitude
+     ate 2,2 px oscilando a 14-24 rad/s, proporcional ao deslocamento de tela
+     do quadro. Ele entra no desenho, e `CDS_F25D.body` deriva a passada do
+     deslocamento DESENHADO (`d.vms`, :20703 do bundle) — entao o balanco
+     realimenta a propria cadencia das pernas.
+     Correndo isso e ruido (a §D41 mediu 2% de `mv`). Na bola parada, que e
+     quando todo mundo CAMINHA a ~1 m/s ate o posto do escanteio ou da falta,
+     o deslocamento real por quadro cai para a mesma ordem de grandeza do
+     balanco — e ele deixa de ser tempero para virar a maior parte do sinal.
+     E o tremor que se ve enquanto o time se arma para a cobranca.
+     Bola parada nao tem cardume para quebrar: ninguem esta correndo em bloco.
+     O balanco desliga com a bola morta e volta com ela rolando. */
+  /* §OS-216 · O BALANCO SAI DE CENA.
+     Ele nasceu para quebrar o "bloco andando junto" e naquele momento era a
+     unica coisa que fazia isso. Hoje cada atleta ja tem constante de reacao
+     propria (`p.react`), fator de deslize individual (`p._slideF`) e fase de
+     passada propria: o bloco se desfaz por fisica, nao por decoracao.
+     O que restava do balanco era ruido de alta frequencia em 22 corpos ao
+     mesmo tempo -- a OS-207 ja o desligara na bola parada (tremor 7,69% ->
+     5,32%) e a OS-215 mostrou que ele realimentava a propria passada.
+     Fica `_semCardume` como interruptor, agora sempre ligado, para que a
+     reversao seja de uma linha se algum dia a medicao pedir. */
+  const _semCardume = true;
+  /* §OS-220 · posicao de TELA da bola, uma vez por quadro. E o unico dado que
+     faltava para o atleta poder olhar para ela: `CDS_F25D.body` recebe so o
+     proprio boneco e nao tem como saber onde o jogo esta acontecendo. */
+  let _bolaTelaX = null, _bolaTelaY = null;
+  try {
+    const _bb = (shotFx ? { x: shotFx.x / 105, y: shotFx.y / 68 } : st.ball);
+    if (_bb) {
+      let _bxr = cx(_bb.x), _byr = cy(_bb.y);
+      /* §OS-261 · o Y da bola tambem. So o X bastava para o atleta OLHAR para
+         ela; o mergulho precisa da direcao inteira, porque o corpo do goleiro
+         tem de se deitar ao longo da linha do voo -- e nesta camera a linha do
+         gol e quase vertical na tela, entao um giro fixo de 90 graus deitava o
+         corpo atravessado ao proprio deslocamento. */
+      if (window.CDS_F25D) { const _pj = window.CDS_F25D.project(_bxr, _byr); _bxr = _pj.x; _byr = _pj.y; }
+      _bolaTelaX = _bxr; _bolaTelaY = _byr;
+    }
+  } catch (_) { }
+  /* §OS-208 · estado do teto de passo do DESENHO. Ver o bloco no laco abaixo.
+     `_pos` guarda a posicao desenhada do quadro anterior; ela e descartada
+     inteira quando a cena muda de dono (replay, comemoracao, intervalo),
+     porque ali o corte e legitimo e perseguir seria pior que saltar. */
+  const _trocaDeCena = !!(playersToDraw || rframe || celebration || (sim && sim.half !== _posHalf));
+  if (_trocaDeCena) { _prevDraw = Object.create(null); _posHalf = sim ? sim.half : 0; }
+  const _pos = _prevDraw;
+  const _posT = _prevDrawT || (visualNow - 16);
+  _prevDrawT = visualNow;
+  /* px por metro do campo desenhado, para o teto ser em metros de verdade */
+  const _pxPorM = Math.max(1, (G.CW - 2 * G.M) / (FL || 105));
+  const MUITO_LONGE_PX = 34 * _pxPorM;   // trocou de metade do campo: nao se anima
+  const _velVis = (slowmo ? Math.min(G.speed, 1) * slowmo.f : G.speed) || 1;
+  /* §OS-260 · a velocidade de EXIBICAO passa a ser publica. A maquina de
+     animacao conta em segundos de SIMULACAO e a mistura de pose conta em
+     segundos de PAREDE; sem este numero a segunda nao tem como saber por
+     quanto a primeira foi encolhida. */
+  try { window.__CDS_VELVIS = _velVis; } catch (_) { }
   for (const tmSt of groups) {
     const C = tmSt.color || (tmSt.players[0] && tmSt.players[0].color) || '#2e9bff';
     const perPlayerColor = !tmSt.color;   // no replay cada jogador traz sua cor
@@ -3236,21 +3712,87 @@ function paintField() {
       // com ritmo próprio por jogador (fase pelo número). Só no DESENHO — a posição
       // real (física) não muda, o equilíbrio fica intacto — mas quebra o efeito de
       // "bloco andando junto": cada um oscila no seu tempo enquanto corre.
-      let _rx = cx(p.x), _ry = cy(p.y);
+      /* §OS-209 · A CHAVE DE DESENHO ERA SO O NOME.
+         Tres caches do desenho indexavam o atleta pelo nome: `_prevScreen`
+         (balanco), `dirCache` (a passada, dentro de `CDS_F25D.body`) e
+         `__CDS_SCREEN.p` (posicao de tela, lida pela OS-21). Dois homonimos em
+         campo -- e o banco tem homonimos -- dividiam passada, balanco e
+         posicao a partida INTEIRA: as pernas de um andavam com a velocidade do
+         outro, e a marca de tela de um saia em cima do outro.
+         A ponte de animacao ja tinha achado e corrigido esta mesma colisao
+         para os ids DELA ("22 jogadores viravam 17 estados"), mas os tres
+         caches do desenho ficaram por nome. Agora todos usam a mesma chave
+         qualificada por time, e a ponte publica com ela. */
+      const _pkBase = (p.ref && (p.ref.id != null ? 'i' + p.ref.id : p.ref.n)) || p.n || ('#' + (p.num || 0));
+      const _chave = (p.__lado != null ? p.__lado : (p.team != null ? p.team : '?')) + ':' + _pkBase;
+      /* §OS-227 · o corpo e desenhado na fracao pendente do passo, nao no
+         ultimo passo fechado. E o que tira o jitter de quantizacao. */
+      const _ip = interpXY(_chave, p.x, p.y);
+      let _rx = cx(_ip[0]), _ry = cy(_ip[1]);
+      /* §OS-208 · O CORPO NAO TELETRANSPORTA, MESMO QUANDO A FICHA TELEPORTA.
+         ---------------------------------------------------------------------
+         MEDIDO com `tools/fisica/tela/passada-parada.js`, que le a posicao
+         DESENHADA de verdade: com a bola morta, 58% das amostras (atleta x
+         quadro) tinham deslocamento acima do fisicamente possivel, media
+         0,65 m e maximo 4,59 m — a 3X, ja descontando o botao de velocidade.
+
+         A causa nao e um bug de fisica: sao as RECOLOCACOES ADMINISTRATIVAS.
+         Troca de campo, formacao inicial, reinicio apos gol e o snap do
+         batedor no quadro da cobranca poem o atleta noutro lugar de uma vez,
+         de proposito. A R18.99 catalogou isso e decidiu — com razao — nao
+         tocar: `SALTO_ADMIN` existe justamente para o motor poder recolocar
+         quem ele precisa recolocar.
+
+         O erro estava em deixar essa decisao vazar para a TELA. O motor pode
+         recolocar uma ficha; o corpo desenhado nao pode aparecer noutro lugar.
+         Aqui o desenho persegue a posicao real com teto de passo: no jogo
+         normal ele esta sempre em cima dela (o passo real nunca chega ao
+         teto, entao nao existe atraso), e num salto administrativo o corpo
+         CORRE ate a posicao nova em vez de piscar la.
+
+         O teto e generoso de proposito — o dobro do sprint — para que nenhuma
+         corrida real fique devendo. Quem dispara e so o que ja era impossivel.
+         Acima de MUITO_LONGE nao ha o que animar (o atleta trocou de metade
+         do campo): ali o corte e honesto e o desenho acompanha. */
+      if (_pos) {
+        const _pkPos = (p.ref && p.ref.id != null ? 'i' + p.ref.id : (p.ref && p.ref.n) || p.n) + '#' + (p.num || 0);
+        const _dst = _pos[_pkPos];
+        const _dtV = Math.max(0.001, Math.min(0.25, (visualNow - _posT) / 1000));
+        if (_dst) {
+          const _ex = _rx - _dst.x, _ey = _ry - _dst.y, _eL = Math.hypot(_ex, _ey);
+          const _tetoPx = 15 * _dtV * _velVis * _pxPorM;   // 15 m/s = 2x o sprint
+          if (_eL > _tetoPx && _eL < MUITO_LONGE_PX) {
+            _rx = _dst.x + _ex / _eL * _tetoPx;
+            _ry = _dst.y + _ey / _eL * _tetoPx;
+          }
+        }
+        _pos[_pkPos] = { x: _rx, y: _ry };
+      }
       /* §OS-89 · passada do cobrador de falta, so no desenho */
+      /* §OS-207 · A PASSADA NAO VOLTAVA: ELA SUMIA.
+         `_k` subia ate 1 no primeiro terco e FICAVA em 1 pelos 66% restantes
+         (277 ms dos 420), e no quadro em que `_e` cruzava 1 o offset caia a
+         zero de uma vez. O desenho saltava de volta ate `_L` metros — o mesmo
+         vetor jogador->bola que armou a passada, ate 6 m — e isso acontece
+         embaixo do `slowmo` de 0,35x que a OS-88 liga justamente para o dono
+         OLHAR a cobranca. Era o pulo que ele via na hora de bater a falta.
+         Agora o pe avanca, encosta e o corpo volta ao eixo fisico de forma
+         continua: em `_e = 1` o offset ja E zero, entao nao ha quadro de
+         salto. Mesma licenca de antes — desenho, nunca fisica. */
       if (fkStep && p.ref && p.ref.id === fkStep.id) {
         const _e = (visualNow - fkStep.t0) / fkStep.dur;
         if (_e >= 1) fkStep = null;
         else if (_e >= 0) {
-          /* sobe rapido e assenta: o pe chega na bola no primeiro terco */
-          const _k = _e < .34 ? (_e / .34) : 1;
+          const _k = _e < .34 ? (_e / .34)              /* avanca sobre a bola */
+                   : _e < .52 ? 1                        /* contato */
+                   : 1 - (_e - .52) / .48;               /* recompoe, sem corte */
           _rx = cx(p.x + fkStep.dx * _k); _ry = cy(p.y + fkStep.dy * _k);
         }
       }
-      const _pk = p.ref && p.ref.n;
+      const _pk = _chave;
       if (_pk) {
         const _pp = _prevScreen[_pk];
-        if (_pp) {
+        if (_pp && !_semCardume) {
           const _dx = _rx - _pp.x, _dy = _ry - _pp.y, _sp = Math.hypot(_dx, _dy);
           if (_sp > 0.06) {
             const _ang = Math.atan2(_dy, _dx) + Math.PI / 2, _mv = Math.min(1, _sp / 2.2), _tt = performance.now() / 1000;
@@ -3269,7 +3811,21 @@ function paintField() {
         actionWave = Math.sin(Math.PI * phase);
         if (motion.type === 'jump') { y -= actionWave * 11; r += actionWave * 3.2; }
         else if (motion.type === 'claim') { y -= actionWave * 8; r += actionWave * 4; }
-        else if (motion.type === 'dive') { y += motion.dir * actionWave * 27; x += actionWave * 3; divePose = true; }
+        else if (motion.type === 'dive') {
+          /* §OS-261 · UMA AUTORIDADE SO PARA O MERGULHO.
+             Este caminho e o LEGADO (`activeMotion`) e ele deitava o goleiro
+             por conta propria, sem consultar a maquina de estados da R14.
+             Resultado medido no rastro: a R14 dizia `gk_parry` (uma palma, em
+             pe) durante 600 ms e o legado marcava `divePose`, entao o desenho
+             pegava a POSE EM PE e girava 90 graus. E por isso que, ampliado,
+             o goleiro parecia um homem em pe deitado na grama.
+             A doutrina do projeto ja e clara em todo o resto: a R14 manda
+             quando existe, o legado e queda para builds sem a camada. Aqui
+             ela nunca foi aplicada. O deslocamento e o voo passam a sair da
+             camada 2,5D, junto com o giro e os membros. */
+          const _Agk = window.__CDS_ANIM_BY_KEY && window.__CDS_ANIM_BY_KEY[_chave];
+          if (!_Agk) { y += motion.dir * actionWave * 27; x += actionWave * 3; divePose = true; }
+        }
       }
 
       // A sombra fica no gramado; o corpo se separa dela no salto/pulo.
@@ -3279,12 +3835,18 @@ function paintField() {
       else ctx.ellipse(groundX,groundY+5,r*(1+actionWave*.18),r*.72,0,0,Math.PI*2);
       ctx.fillStyle='#000'; ctx.fill(); ctx.restore();
 
-      // aura (dono da bola)
-      if (p.hasBall) {
-        ctx.save(); ctx.globalAlpha=.28;
-        ctx.beginPath(); ctx.arc(x,y,r+9,0,Math.PI*2);
-        ctx.fillStyle=pc; ctx.fill(); ctx.restore();
-      }
+      /* §D47 · A AURA DO PORTADOR ERA UM DISCO DE LAMA.
+         Era um circulo CHEIO de raio r+9 (quase o dobro do atleta), na cor do
+         time, a 28% de alfa, desenhado na altura do CORPO. Cor de time a 28%
+         sobre grama nao le como a cor do time: le como marrom sujo, e o disco
+         cobre o jogador que ele deveria destacar. Visto ampliando um quadro do
+         jogo — o boneco sumia dentro da propria marca.
+
+         Agora e um ANEL no CHAO, no mesmo plano e com a mesma proporcao da
+         sombra que ja existe logo acima. Marca quem tem a bola sem tapar
+         ninguem, e como esta no gramado ela nao compete com o corpo. */
+      /* §OS-217 · ANEL DO PORTADOR REMOVIDO a pedido do dono. A seta acima da
+         cabeca segue marcando quem tem a bola. */
 
       // aura de LENDA: anel dourado pulsante (r>=92); brilho forte se em chamas
       const isLegend = p.ref && p.ref.legend;
@@ -3309,9 +3871,12 @@ function paintField() {
         if(!_sc){ _sc = window.__CDS_SCREEN = { p:Object.create(null), m:[1,0,0,1,0,0] }; }
         const _mm = ctx.getTransform ? ctx.getTransform() : null;
         if(_mm){ _sc.m[0]=_mm.a;_sc.m[1]=_mm.b;_sc.m[2]=_mm.c;_sc.m[3]=_mm.d;_sc.m[4]=_mm.e;_sc.m[5]=_mm.f; }
-        _sc.p[(p.ref&&p.ref.n)||p.n||('#'+(p.num||0))] = { x:groundX, y:groundY, r:r, s:_ps };
+        _sc.p[_chave] = { x:groundX, y:groundY, r:r, s:_ps };
       }catch(_){}
-      if (window.CDS_F25D) { window.CDS_F25D.body(ctx, { x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall, key: (p.ref&&p.ref.n)||p.n||('#'+(p.num||0)), act: p._act||'', pose: (motion&&motion.type)||'', wave: actionWave }); } else {
+      if (window.CDS_F25D) { /* §OS-242 · a altura estimada do atleta ja existe no perfil e nunca chegava
+         ao desenho; agora chega, e o campo passa a ter onze portes. */
+      const _altCm = p.ref && p.ref.profileV3 && p.ref.profileV3.heightCmSim;
+      window.CDS_F25D.body(ctx, { x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall, key: _chave, act: p._act||'', pose: (motion&&motion.type)||'', wave: actionWave, ballX: _bolaTelaX, ballY: _bolaTelaY, alturaCm: _altCm }); } else {
       // corpo: no mergulho do goleiro vira uma elipse lateral, deixando o pulo
       // legível sem alterar a posição física usada pelo motor.
       ctx.beginPath();
@@ -3332,14 +3897,46 @@ function paintField() {
         ctx.stroke(); ctx.restore();
       }
 
-      // cartão amarelo (flag no ombro)
-      if (p.yellow>=1) { ctx.fillStyle='#ffcb45'; ctx.fillRect(x+r-6,y-r-3,5,7); }
+      /* §D47 · SETA DO PORTADOR, acima da cabeca.
+         O anel de chao que substituiu o disco de lama ficava debaixo da placa
+         de nome — que e desenhada justamente nos jogadores perto da bola, ou
+         seja, sempre no portador. Marca invisivel nao e marca. Acima da cabeca
+         nao ha nada que colida, e e onde todo jogo de futebol poe. */
+      if (p.hasBall) {
+        const _sy = y - r * 1.62, _sw = Math.max(3.2, r * .42);
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x, _sy + _sw);
+        ctx.lineTo(x - _sw, _sy - _sw * .5);
+        ctx.lineTo(x + _sw, _sy - _sw * .5);
+        ctx.closePath();
+        ctx.fillStyle = pc; ctx.fill();
+        ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.stroke();
+        ctx.restore();
+      }
 
-      // número da camisa
+      /* cartão amarelo (flag no ombro)
+         §OS-259 · era 5x7 px FIXOS em `x+r-6` — quase meio raio de altura, e
+         nao encostava no ombro de ninguem: na folha de quadros do desarme
+         aparece como um tijolo amarelo flutuando ao lado do grupo. Agora sai
+         do porte do atleta e encosta no ombro. */
+      if (p.yellow>=1) { ctx.fillStyle='#ffcb45';
+        ctx.fillRect(x + r*0.58, y - r*0.86, Math.max(2, r*0.22), Math.max(3, r*0.34)); }
+
+      /* §OS-259 · O NUMERO DA CAMISA TAPAVA O TRONCO INTEIRO.
+         Era `min(12, 10*r/13)` px desenhado em `(x, y)` -- o CENTRO do corpo.
+         Com `r` na casa de 13, a altura da caixa do texto batia com o RAIO do
+         atleta: o numero cobria o torso de ombro a cintura.
+         Isso nao e detalhe de acabamento. O torso e onde `inc` (a inclinacao) e
+         o balanco dos bracos se leem; ampliando um quadro do chute, o que se ve
+         e um "13" e duas pernas, e nada mais. A OS-258 pode acertar o gesto que
+         ele continua invisivel debaixo da propria identificacao.
+         Agora e ~0,5 r de corpo, na altura do PEITO (e nao no centro), que e
+         onde numero de camisa fica. Continua legivel e deixa o corpo aparecer. */
       ctx.fillStyle = numCol;
-      ctx.font = `bold ${Math.max(7, Math.min(12, 10 * r / 13)).toFixed(1)}px Arial,sans-serif`;
+      ctx.font = `bold ${Math.max(5.5, Math.min(8.5, 6.6 * r / 13)).toFixed(1)}px Arial,sans-serif`;
       ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText(p.num||'', x, y);
+      ctx.fillText(p.num||'', x, y - r * 0.18);
 
       // sobrenome em pill escuro — INTELIGENTE: só perto da bola (ou em 1X),
       // pra 22 chips não virarem poluição no movimento (leitura estilo FM)
@@ -3354,28 +3951,43 @@ function paintField() {
          ocupacao: desce em degraus e, se nao couber, omite — melhor um nome a
          menos do que dois ilegiveis. */
       const nm = lastWord(p.n, 9);
-      ctx.font = `bold 7.5px Arial,sans-serif`;
+      /* §OS-243 · A PLACA NAO PODE CRESCER COM A LENTE.
+         O chip e desenhado DENTRO da transformacao da camera, entao ele
+         escalava junto com o zoom: fechando a camera de 1,30 para 2,10 o nome
+         quase dobrava de corpo e passava a competir com o jogador que ele
+         identifica. Texto de interface tem de ter tamanho constante em TELA.
+         Dividir por `z` cancela exatamente a escala aplicada acima. */
+      const _cz = (_camView && _camView.z) || 1;
+      ctx.font = `bold ${(7.5 / _cz).toFixed(2)}px Arial,sans-serif`;
       const tw = ctx.measureText(nm).width;
-      const pw = tw + 8, ph2 = 11, pxc = Math.max(M + pw/2 + 2, Math.min(CW - M - pw/2 - 2, x));
+      const pw = tw + 8 / _cz, ph2 = 11 / _cz, pxc = Math.max(M + pw/2 + 2, Math.min(CW - M - pw/2 - 2, x));
       if (!window.__cdsChips || window.__cdsChips.n !== _cdsChipFrame) {
         window.__cdsChips = { n: _cdsChipFrame, r: [] };
       }
       const _oc = window.__cdsChips.r;
       const _bate = (ax, ay) => _oc.some(q =>
         Math.abs(ax - q.x) < (pw + q.w) / 2 - 1 && Math.abs(ay - q.y) < (ph2 + q.h) / 2 - 1);
-      let py2 = y + r + 2, _ok = !_bate(pxc, py2 + ph2 / 2);
+      /* §OS-259 · A PLACA DE NOME FICAVA EM CIMA DAS CHUTEIRAS.
+         `y + r + 2` e o pe do CIRCULO, mas o atleta 2,5D nao e um circulo: as
+         pernas descem ate cerca de 1,4 r abaixo do centro, e a sombra vai a
+         0,98 r com meia altura de 0,34 r. A placa caia exatamente sobre os pes.
+         Perna e o membro que carrega `esc` e `estica` -- ou seja, a placa
+         cobria a metade do corpo onde o chute, o carrinho e a passada se leem.
+         Desce para depois da sombra; a lista de ocupacao ja resolve empilhamento
+         a partir dai. */
+      let py2 = y + r * 1.52 + 2 / _cz, _ok = !_bate(pxc, py2 + ph2 / 2);
       for (let _t = 0; !_ok && _t < 3; _t++) {
-        py2 += 12;
+        py2 += 12 / _cz;
         _ok = !_bate(pxc, py2 + ph2 / 2);
       }
       if (_ok) {
         _oc.push({ x: pxc, y: py2 + ph2 / 2, w: pw, h: ph2 });
         ctx.fillStyle = 'rgba(4,8,18,.78)';
         ctx.beginPath();
-        ctx.roundRect(pxc - pw/2, py2, pw, ph2, 6);
+        ctx.roundRect(pxc - pw/2, py2, pw, ph2, 6 / _cz);
         ctx.fill();
         ctx.fillStyle = '#fff';
-        ctx.fillText(nm, pxc, py2 + ph2/2 + 0.5);
+        ctx.fillText(nm, pxc, py2 + ph2/2 + 0.5 / _cz);
       }
       }
     }
@@ -3415,6 +4027,25 @@ function paintField() {
     let x = cx(v.x), y = cy(v.y);
     if (window.CDS_F25D) { const _pj = window.CDS_F25D.project(x, y); x = _pj.x; y = _pj.y; }
     ctx.save(); ctx.globalAlpha = a;
+    /* §OS-259 · OS EFEITOS SAO INTERFACE E CRESCIAM COM A LENTE.
+       Todo este laco desenha em pixels FIXOS -- '17px Arial' na luva, 14 no
+       escudo, raios de 10 a 18, cartoes de 12x17 -- mas roda DENTRO da
+       transformacao da camera. Com o zoom em 2,1 cada um desses numeros
+       dobra, e o efeito passa a ser maior do que o atleta que ele comenta.
+
+       Visto na folha de quadros da DEFESA: o emoji de luva do evento `save`
+       vira um par de luvas do tamanho do tronco do goleiro, flutuando a uma
+       altura de corpo acima dele, por 300 ms -- exatamente por cima do
+       mergulho que a OS-257 acabou de fazer existir. Parecia bug de desenho
+       das maos do goleiro; e o efeito.
+
+       A contra-escala em volta do ponto projetado resolve o laco INTEIRO de
+       uma vez, em vez de acertar numero por numero: qualquer efeito novo
+       nasce com tamanho de tela sem precisar lembrar disso. Mesmo principio
+       da OS-243 (placa de nome) e das duas correcoes acima (numero da camisa
+       e seta da trajetoria). */
+    const _vz = (typeof window.__CDS_CAMZ === 'number' && window.__CDS_CAMZ > 0) ? window.__CDS_CAMZ : 1;
+    if (_vz !== 1) { ctx.translate(x, y); ctx.scale(1 / _vz, 1 / _vz); ctx.translate(-x, -y); }
     if (v.type === 'ring') {                     // drible: onda dupla expansiva
       ctx.strokeStyle = `rgba(125,240,255,${a})`; ctx.lineWidth = 2.5;
       ctx.beginPath(); ctx.arc(x, y, 16 + (1-a)*16, 0, Math.PI*2); ctx.stroke();
@@ -3426,12 +4057,26 @@ function paintField() {
         ctx.beginPath(); ctx.moveTo(x+8*Math.cos(an),y+8*Math.sin(an));
         ctx.lineTo(x+(15+(1-a)*7)*Math.cos(an),y+(15+(1-a)*7)*Math.sin(an)); ctx.stroke(); }
     } else if (v.type === 'foul') {              // falta
-      ctx.font='bold 22px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText('❌', x, y - 24 - (1-a)*8);
+      /* §OS-265 · O ❌ ERA O ELEMENTO MAIS ALTO DA TELA NUMA FALTA.
+         22 px -- o maior de todos os efeitos deste laco, contra 14 do escudo e
+         12x17 do cartao -- e um simbolo que le como ERRO, nao como falta.
+         Ampliando um quadro da falta, o que domina o enquadramento e um X
+         vermelho gigante; o bote do faltoso e a queda da vitima, que a OS-258
+         acabou de fazer existir, ficam por baixo dele.
+         Vira a linguagem que o resto ja usa: marcador pequeno, acima da
+         cabeca, na altura dos cartoes. O apito e a PAUSA (OS-263) sao o que
+         anuncia a falta -- o simbolo so confirma. */
+      ctx.font='bold 12px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('⚠', x, y - 30 - (1-a)*8);
     } else if (v.type === 'save') {              // defesa
-      ctx.strokeStyle='#ffcb45'; ctx.lineWidth=3;
-      ctx.beginPath(); ctx.arc(x, y, 22, -1.1, 1.1); ctx.stroke();
-      ctx.font='bold 17px Arial'; ctx.textAlign='center'; ctx.fillText('🧤', x, y-30);
+      /* §OS-262 · o arco dourado de raio 22 ficava CENTRADO no goleiro, por
+         quase um segundo, atravessando o corpo dele -- um risco de ouro que
+         nao aponta para nada, bem em cima do unico gesto que se queria ver. E
+         a luva era um emoji flutuando solto acima da cabeca. O aviso desce
+         para o tamanho e o lugar dos outros (acima da cabeca, como o cartao) e
+         o arco sai. */
+      ctx.font='bold 13px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('🧤', x, y - 30 - (1-a)*8);
     } else if (v.type === 'post') {              // trave
       ctx.font='bold 20px Arial'; ctx.textAlign='center'; ctx.fillText('💥', x, y-20);
     } else if (v.type === 'card') {
@@ -3451,8 +4096,13 @@ function paintField() {
     } else if (v.type === 'block') {             // bloqueio de chute
       ctx.strokeStyle='#ffcb45'; ctx.lineWidth=3;
       ctx.beginPath(); ctx.arc(x, y, 10+(1-a)*8, 0, Math.PI*2); ctx.stroke();
+      /* §OS-259 · o escudo era um emoji CHEIO de 14 px em cima do peito, e o
+         efeito de bloqueio dura meio segundo: na folha de quadros do chute ele
+         apagou o autor de +84 ms a +585 ms -- justamente o gesto que se queria
+         ver. O anel fica (e stroke, nao tapa nada); o escudo sobe para a altura
+         dos cartoes, que e onde os outros avisos ja moram. */
       ctx.font='bold 14px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText('🛡️', x, y);
+      ctx.fillText('🛡️', x, y - 30 - (1-a)*8);
     } else if (v.type === 'arrow') {             // cruzamento
       ctx.strokeStyle=`rgba(255,203,69,${a})`; ctx.lineWidth=2.5;
       ctx.beginPath(); ctx.moveTo(x-10,y); ctx.lineTo(x+12,y); ctx.stroke();
@@ -3497,7 +4147,44 @@ function paintField() {
   const bx=cx(b.x), by=cy(b.y)-_zVis*22;
   if (window.CDS_F25D) {
     const _tv = (!rframe && bT && bT.traveling && bT.target) ? { tx: cx(bT.target.x), ty: cy(bT.target.y), kind: bT.kind } : null;
-    window.CDS_F25D.ball(ctx, { gx: cx(b.x), gy: cy(b.y), z: b.z || 0, tv: _tv });
+    /* §OS-227 · a bola e o objeto que mais anda por quadro, entao o jitter de
+       quantizacao aparece nela primeiro. */
+    let _bix = b.x, _biy = b.y;
+    if (interpPrev && interpAlpha > 0) {
+      const _dbx = b.x - interpPrev.b.x, _dby = b.y - interpPrev.b.y;
+      if (Math.hypot(_dbx * 105, _dby * 68) < 12) {
+        _bix = interpPrev.b.x + _dbx * interpAlpha;
+        _biy = interpPrev.b.y + _dby * interpAlpha;
+      }
+    }
+    window.CDS_F25D.ball(ctx, { gx: cx(_bix), gy: cy(_biy), z: b.z || 0, tv: _tv });
+    /* §OS-222 · o estufamento entra DEPOIS da bola: ela empurra a rede, e nao
+       o contrario. Dura 620 ms -- o tempo de um impacto se ler -- e sai por si,
+       sem depender de ninguem limpar. */
+    if (redeEstufa) {
+      const _re = (visualNow - redeEstufa.t0) / 620;
+      if (_re >= 1) redeEstufa = null;
+      else {
+        /* sobe rapido e volta devagar, como pano tensionado */
+        const _k = _re < .18 ? (_re / .18) : Math.pow(1 - (_re - .18) / .82, 1.6);
+        const _pr = window.CDS_F25D.project(cx(redeEstufa.x), cy(redeEstufa.y));
+        const _rx = _pr.x, _ry = _pr.y;
+        const _amp = 13 * _k * _pr.s;
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.strokeStyle = 'rgba(225,240,255,' + (0.34 * _k).toFixed(3) + ')';
+        ctx.lineWidth = 1.1 * _pr.s;
+        for (let _i = -2; _i <= 2; _i++) {
+          const _o = _i * 5.5 * _pr.s;
+          ctx.beginPath();
+          ctx.moveTo(_rx, _ry + _o - 11 * _pr.s);
+          ctx.quadraticCurveTo(_rx + redeEstufa.dir * _amp, _ry + _o - 6 * _pr.s,
+                               _rx, _ry + _o);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+    }
   } else {
   // #brilho da bola — halo suave que facilita seguir a jogada
   ctx.save();
@@ -3557,6 +4244,20 @@ function paintField() {
     ctx.fillText(replay&&replay.source==='physics_timeline'?'REPLAY · TIMELINE':'REPLAY', 30, 34);
     ctx.restore();
   }
+
+  /* §OS-267 · O VEU DO CORTE. Desenhado por cima de tudo e FORA do zoom da
+     camera, como as outras sobreposicoes de tela cheia. Nao e um efeito: e a
+     unica coisa que separa "a cobranca saiu do nada" de "a transmissao voltou
+     com o lance montado". */
+  try {
+    const _cv = window.__cdsCorte && window.__cdsCorte(sim);
+    if (_cv && _cv.veu > 0.002) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(3,7,14,' + _cv.veu.toFixed(3) + ')';
+      ctx.fillRect(0, 0, CW, CH);
+      ctx.restore();
+    }
+  } catch (_) { }
 
   // OVERLAY DE INTERVALO/PRORROGAÇÃO (pausa dramática com aviso de troca de lado)
   if (breakOv && performance.now() < breakOv.until) {
