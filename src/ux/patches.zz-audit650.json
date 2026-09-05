@@ -1,0 +1,17 @@
+[
+  {
+    "id": "ATL-016-030-feed-motion-state",
+    "from": "if (window.CDS_F25D) { window.CDS_F25D.body(ctx, { x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall, key: (p.ref&&p.ref.n)||p.n||('#'+(p.num||0)) }); }",
+    "to": "if (window.CDS_F25D) { window.CDS_F25D.body(ctx, { x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, motionType: motion&&motion.type, actionWave, speed: G.speed, hasBall: !!p.hasBall, key: (p.ref&&p.ref.n)||p.n||('#'+(p.num||0)) }); }"
+  },
+  {
+    "id": "ATL-021-030-event-pose-hook",
+    "from": "function onEvent(e) {\n  const __phys=physicalTag(e);",
+    "to": "function onEvent(e) {\n  if(window.__cdsVisualEvent) window.__cdsVisualEvent(e);\n  const __phys=physicalTag(e);"
+  },
+  {
+    "id": "UX-031-035-draft-emergency-reroll",
+    "from": "function renderDraft(keepList) {\n  const d = G.draft; if (!d) return;",
+    "to": "function renderDraft(keepList) {\n  const d = G.draft; if (!d) return;\n  const __missing=d.slots&&d.slots.filter(s=>!s.p)||[];\n  const __available=(d.cur&&d.cur.pl)||[];\n  const __canFinish=__missing.some(sl=>__available.some(p=>canPlay(p,sl.pos)));\n  if(filled()===10&&d.rerolls<=0&&!__canFinish&&!d.__emergencyRerollUsed){\n    d.__emergencyRerollUsed=true; d.rerolls=1;\n    setTimeout(()=>toast('Reroll de emergência liberado para completar o 11.'),0);\n  }"
+  }
+]
