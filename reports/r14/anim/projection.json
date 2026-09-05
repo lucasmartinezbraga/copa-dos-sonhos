@@ -1,0 +1,55 @@
+{
+ "ok": true,
+ "erro": null,
+ "checks": [
+  {
+   "nome": "projeção finita em toda a malha",
+   "pass": true,
+   "detalhe": "0 pontos não-finitos"
+  },
+  {
+   "nome": "escala diminui com a profundidade",
+   "pass": true,
+   "detalhe": "0 pares invertidos"
+  },
+  {
+   "nome": "ordenação por profundidade é monotônica",
+   "pass": true,
+   "detalhe": "0 inversões"
+  },
+  {
+   "nome": "existe eixo de fuga e ele não deriva",
+   "pass": true,
+   "detalhe": "eixo em x=512.00, desvio 0.00e+0px"
+  },
+  {
+   "nome": "campo converge ao fundo (trapézio)",
+   "pass": true,
+   "detalhe": "perto 1100.7 vs longe 715.0"
+  },
+  {
+   "nome": "razão de perspectiva ~ R0 declarado",
+   "pass": true,
+   "detalhe": "razão 0.6495"
+  },
+  {
+   "nome": "projeção contínua (sem descontinuidade)",
+   "pass": true,
+   "detalhe": "maior salto 4.77px"
+  },
+  {
+   "nome": "API 2.5D completa",
+   "pass": true,
+   "detalhe": ""
+  },
+  {
+   "nome": "CDS_F25D é congelado",
+   "pass": true,
+   "detalhe": "true"
+  }
+ ],
+ "pageErrors": [],
+ "passed": 9,
+ "total": 9,
+ "pass": true
+}

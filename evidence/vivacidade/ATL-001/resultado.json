@@ -1,0 +1,29 @@
+{
+  "id": "ATL-001",
+  "titulo": "Corpo do atleta dirigido pela máquina de estados",
+  "status": "PASS",
+  "prioridade": "P0",
+  "sha256_r14": "205170caa29271f5b550818991102937c45394c98f960a54ee65e113528eb80f",
+  "data": "2026-07-22T18:40:35.174557+00:00",
+  "defeito": "A máquina de estados da Fase 3 rodava, mas CDS_F25D.body ainda derivava a pose de o.pose/o.act/o.wave — o sistema antigo do motionAt. A Fase 3 era instrumentação sem efeito visual.",
+  "correcao": "A ponte publica o estado por atleta em __CDS_ANIM_BY_KEY, usando a MESMA chave de desenho que body() e o dirCache já usam. body() passa a derivar kicking/tackling/heading/dribbling do estado, com queda para o caminho antigo. animWave() dá o envelope por FASE: a preparação sobe até o pico, o CONTATO é o pico (tick em que a bola sai), a continuidade desce, a recuperação zera.",
+  "resultado_observado": {
+    "atletas_com_estado": 22,
+    "estados_distintos": 20,
+    "fases_visitadas": [
+      "pass_prepare",
+      "pass_contact",
+      "pass_followthrough",
+      "pass_recover"
+    ],
+    "browser_smoke": "4/4 viewports, 0 erros"
+  },
+  "gates": {
+    "cenarios_animacao": "29/29",
+    "cenarios_r13": "25/25",
+    "smoke_estatico": "13/13",
+    "invariantes_projecao": "9/9",
+    "r13_byte_identica": "363d9a91… OK"
+  },
+  "pendente": "Legibilidade visual de cada estado exige olho humano — PENDENTE."
+}

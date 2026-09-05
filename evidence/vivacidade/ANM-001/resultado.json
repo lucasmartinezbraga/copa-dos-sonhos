@@ -1,0 +1,72 @@
+{
+  "id": "ANM-001",
+  "titulo": "Máquina de estados de animação por atleta",
+  "status": "PASS",
+  "prioridade": "P0",
+  "sha256_r14": "2191fbfa5721b9874fbf14e4d7e2a77935f141e1199152de37cad01d87524b79",
+  "data": "2026-07-22T18:31:20.452899+00:00",
+  "defeito": "motionAt() empurrava poses numa lista GLOBAL de no máximo 10 entradas (playerMotions.shift()), com janela em performance.now() e uma única rampa 0..1. Sem estados de locomoção, sem prioridade, sem interrupção e sem vínculo com as fases da ação — a pose de um atleta podia ser truncada por outro entrar na lista.",
+  "correcao": "src/ux/60-anim-state-machine.js: um controlador por atleta, 63 estados em 5 tiers (locomoção < com bola < defesa < ação comprometida < goleiro). Estados de AÇÃO são dirigidos pelo contrato da Fase 2, então o quadro de contato coincide com a saída da bola por construção. src/ux/61-anim-bridge.js liga os eventos do motor ao controlador; é apresentação pura, envolve _emit só para observar.",
+  "cenarios_dirigidos": {
+    "passed": 29,
+    "total": 29,
+    "arquivo": "reports/r14/anim/states.json",
+    "grupos": [
+      "locomocao",
+      "contrato",
+      "prioridade",
+      "interrupcao",
+      "goleiro",
+      "com_bola",
+      "cobertura",
+      "independencia"
+    ]
+  },
+  "teste_de_mutacao": {
+    "proposito": "provar que os cenários detectam quebra, em vez de passar por inércia",
+    "mutantes": [
+      {
+        "mutacao": "remove a regra de prioridade por tier",
+        "resultado": "27/29 FALHA"
+      },
+      {
+        "mutacao": "interrupt() vira no-op",
+        "resultado": "25/29 FALHA"
+      },
+      {
+        "mutacao": "preparo ignora a duração do contrato",
+        "resultado": "25/29 FALHA"
+      }
+    ]
+  },
+  "prova_no_navegador": {
+    "arquivo": "reports/r14/anim/browser.json",
+    "atletas_com_estado": 22,
+    "estados_distintos": 20,
+    "ticks": 12029,
+    "fases_da_acao_visitadas": [
+      "pass_prepare",
+      "pass_contact",
+      "pass_followthrough",
+      "pass_recover"
+    ],
+    "amostra": {
+      "atleta": "0:s1p5",
+      "state": "pass_prepare",
+      "phase": 0.1792,
+      "actionId": "a1"
+    },
+    "veredito": "PASS"
+  },
+  "defeitos_encontrados_pelo_proprio_teste": [
+    "controlador só nascia por evento: quem apenas corria ficava sem estado",
+    "idOf sem o time colidia entre as equipes (p.idx é por time) — 22 atletas viravam 17 estados"
+  ],
+  "gates": {
+    "cenarios_dirigidos_r13": "25/25",
+    "smoke_estatico": "13/13",
+    "browser_smoke": "4/4 viewports, 0 erros",
+    "r13_byte_identica": "363d9a91… OK"
+  },
+  "pendente": "Legibilidade VISUAL de cada estado exige olho humano — permanece PENDENTE por definição (3 observadores)."
+}
