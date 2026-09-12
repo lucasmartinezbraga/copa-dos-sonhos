@@ -1,0 +1,98 @@
+# 04-acessibilidade  (23 controles)
+# Leitor de tela, contraste, navegação por teclado.
+#
+# Marque:  [x] passou   [!] falhou   [?] não consegui avaliar
+# Deixe [ ] no que não testar — fica PENDENTE, e tudo bem.
+# Build a testar: COPA DOS SONHOS - R14 - MOTOR VIVO.html
+
+[ ] VFX-040  Sem dependência exclusiva de cor
+    > cenário: Gol, cartão, impedimento e seleção.
+    > aceite:  Forma, texto ou ícone complementa a cor.
+
+[ ] VFX-041  Contraste de VFX
+    > cenário: Campo claro/escuro e uniformes variados.
+    > aceite:  Feedback permanece perceptível sem brilho excessivo.
+
+[ ] A11Y-001  Navegação completa por teclado
+    > cenário: Percorrer menus, draft, formação, táticas e pós-jogo.
+    > aceite:  Toda ação essencial alcançável sem mouse.
+
+[ ] A11Y-002  Ordem de foco
+    > cenário: Tabular cada tela.
+    > aceite:  Ordem segue leitura visual e não entra em elementos ocultos.
+
+[ ] A11Y-004  Escape fecha modais
+    > cenário: Abrir configurações, ajuda e confirmações.
+    > aceite:  Esc fecha modal e devolve foco ao acionador.
+
+[ ] A11Y-005  Enter/Espaço ativam controles
+    > cenário: Focar botões customizados.
+    > aceite:  Comportamento equivalente ao clique.
+
+[ ] A11Y-006  Rótulos acessíveis
+    > cenário: Inspecionar controles sem texto visível.
+    > aceite:  Todos possuem nome acessível único e descritivo.
+
+[ ] A11Y-007  Estados acessíveis
+    > cenário: Tabs, seleção, pausa e velocidade.
+    > aceite:  Estado selecionado/expandido/pressionado é exposto.
+
+[ ] A11Y-008  Anúncio de placar
+    > cenário: Gol válido e anulado.
+    > aceite:  Mudança é anunciada uma vez sem interromper navegação excessivamente.
+
+[ ] A11Y-009  Anúncio de erro
+    > cenário: Forçar erro de save.
+    > aceite:  Mensagem recebe foco ou live region adequada.
+
+[ ] A11Y-010  Semântica de títulos
+    > cenário: Inspecionar todas as telas.
+    > aceite:  Hierarquia lógica sem saltos arbitrários.
+
+[ ] A11Y-011  Contraste de texto
+    > cenário: Medir textos e botões.
+    > aceite:  Atende 4,5:1 normal e 3:1 grande, salvo exceções justificadas.
+
+[ ] A11Y-012  Contraste de componentes
+    > cenário: Foco, bordas e controles.
+    > aceite:  Atende 3:1 contra adjacências relevantes.
+
+[ ] A11Y-013  Cor não é única informação
+    > cenário: Times, status, momentum, cartões.
+    > aceite:  Ícone, texto, padrão ou posição complementa a cor.
+
+[ ] A11Y-017  Sem flashes perigosos
+    > cenário: Executar gols, VFX e turbo.
+    > aceite:  Nenhum flash acima de limites de frequência/área.
+
+[ ] A11Y-018  Alternativa textual ao momentum
+    > cenário: Usar leitor de tela.
+    > aceite:  Tendência possui texto/valor acessível.
+
+[ ] A11Y-019  Alternativa à informação espacial
+    > cenário: Formação e campo.
+    > aceite:  Lista de jogadores, posição e estado disponível fora do mapa visual.
+
+[ ] A11Y-020  Feedback de drag por teclado
+    > cenário: Mover jogador sem arrastar.
+    > aceite:  Existe alternativa de seleção e troca por teclado.
+
+[ ] A11Y-021  Idioma do documento
+    > cenário: Inspecionar HTML.
+    > aceite:  lang correto e textos em português consistentes.
+
+[ ] A11Y-022  Texto de links/botões
+    > cenário: Revisar nomes acessíveis.
+    > aceite:  Evita rótulos vagos repetidos sem contexto.
+
+[ ] A11Y-023  Tempo ajustável
+    > cenário: Mensagens/overlays temporizados.
+    > aceite:  Informação essencial não desaparece antes de ser lida ou pode ser revisitada.
+
+[ ] A11Y-024  Áudio não obrigatório
+    > cenário: Desativar som.
+    > aceite:  Nenhuma informação essencial depende exclusivamente de áudio.
+
+[ ] A11Y-025  Leitor de tela no fluxo principal
+    > cenário: Completar novo jogo até pós-jogo.
+    > aceite:  Fluxo P0 completável com nomes, estados e mensagens compreensíveis.

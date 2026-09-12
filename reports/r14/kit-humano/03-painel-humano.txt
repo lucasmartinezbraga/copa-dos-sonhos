@@ -1,0 +1,234 @@
+# 03-painel-humano  (57 controles)
+# Precisa de 3 observadores independentes; cada um preenche sua cópia.
+#
+# Marque:  [x] passou   [!] falhou   [?] não consegui avaliar
+# Deixe [ ] no que não testar — fica PENDENTE, e tudo bem.
+# Build a testar: COPA DOS SONHOS - R14 - MOTOR VIVO.html
+
+[ ] CAD-005  Saída curta: legibilidade humana
+    > cenário: Observar goleiro e primeira linha iniciando sob pressão moderada, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Pelo menos 2 de 3 identificam corretamente a fase e a intenção principal sem consultar logs.
+
+[ ] CAD-010  Circulação no meio: legibilidade humana
+    > cenário: Observar posse estabilizada entre zagueiros, volantes e meias, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Pelo menos 2 de 3 identificam corretamente a fase e a intenção principal sem consultar logs.
+
+[ ] CAD-015  Progressão pelo corredor: legibilidade humana
+    > cenário: Observar lateral, ponta e meia avançando por um lado, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Pelo menos 2 de 3 identificam corretamente a fase e a intenção principal sem consultar logs.
+
+[ ] CAD-020  Ataque posicional: legibilidade humana
+    > cenário: Observar equipe instalada contra bloco organizado, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Pelo menos 2 de 3 identificam corretamente a fase e a intenção principal sem consultar logs.
+
+[ ] CAD-025  Transição ofensiva: legibilidade humana
+    > cenário: Observar recuperação com espaço e defesa adversária desorganizada, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Pelo menos 2 de 3 identificam corretamente a fase e a intenção principal sem consultar logs.
+
+[ ] CAD-030  Transição defensiva: legibilidade humana
+    > cenário: Observar perda da bola com jogadores à frente, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Pelo menos 2 de 3 identificam corretamente a fase e a intenção principal sem consultar logs.
+
+[ ] CAD-035  Pressão alta: legibilidade humana
+    > cenário: Observar equipe tentando recuperar perto da área rival, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Pelo menos 2 de 3 identificam corretamente a fase e a intenção principal sem consultar logs.
+
+[ ] CAD-040  Bloco médio: legibilidade humana
+    > cenário: Observar linhas compactas aguardando no meio-campo, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Pelo menos 2 de 3 identificam corretamente a fase e a intenção principal sem consultar logs.
+
+[ ] CAD-045  Bloco baixo: legibilidade humana
+    > cenário: Observar equipe protegendo a própria área, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Pelo menos 2 de 3 identificam corretamente a fase e a intenção principal sem consultar logs.
+
+[ ] FOR-035  Equilibrado: identidade observável
+    > cenário: Comparar 28 aparições neutras e clipes cegos; identidade esperada: alternância razoável entre circulação, pressão e proteção.
+    > aceite:  Métricas e observação distinguem o estilo sem regra direta de placar.
+
+[ ] FOR-037  Pressão: identidade observável
+    > cenário: Comparar 28 aparições neutras e clipes cegos; identidade esperada: maior pressão no campo rival com cobertura.
+    > aceite:  Métricas e observação distinguem o estilo sem regra direta de placar.
+
+[ ] FOR-039  Direto: identidade observável
+    > cenário: Comparar 28 aparições neutras e clipes cegos; identidade esperada: menos circulação curta e mais jogo vertical.
+    > aceite:  Métricas e observação distinguem o estilo sem regra direta de placar.
+
+[ ] FOR-041  Contra-ataque: identidade observável
+    > cenário: Comparar 28 aparições neutras e clipes cegos; identidade esperada: bloco preparado para acelerar após recuperação.
+    > aceite:  Métricas e observação distinguem o estilo sem regra direta de placar.
+
+[ ] FOR-043  Bloco baixo: identidade observável
+    > cenário: Comparar 28 aparições neutras e clipes cegos; identidade esperada: menor volume ofensivo e proteção territorial.
+    > aceite:  Métricas e observação distinguem o estilo sem regra direta de placar.
+
+[ ] FOR-045  Alas: identidade observável
+    > cenário: Comparar 28 aparições neutras e clipes cegos; identidade esperada: uso de amplitude e ultrapassagens.
+    > aceite:  Métricas e observação distinguem o estilo sem regra direta de placar.
+
+[ ] FOR-047  Tiki: identidade observável
+    > cenário: Comparar 28 aparições neutras e clipes cegos; identidade esperada: circulação curta, apoios e paciência.
+    > aceite:  Métricas e observação distinguem o estilo sem regra direta de placar.
+
+[ ] ATL-043  Cores distinguem equipes
+    > cenário: Uniformes semelhantes e campo distante.
+    > aceite:  Observadores distinguem equipes em pelo menos 95% dos frames críticos.
+
+[ ] UX-001  Carregamento: compreensão imediata
+    > cenário: Abrir a tela sem instrução prévia e pedir a 3 usuários que indiquem a ação principal; foco em feedback de progresso e falha.
+    > aceite:  Pelo menos 2/3 identificam a ação principal em até 5 s.
+
+[ ] UX-003  Tela inicial: compreensão imediata
+    > cenário: Abrir a tela sem instrução prévia e pedir a 3 usuários que indiquem a ação principal; foco em hierarquia de jogar, continuar e configurações.
+    > aceite:  Pelo menos 2/3 identificam a ação principal em até 5 s.
+
+[ ] UX-005  Seleção de modo: compreensão imediata
+    > cenário: Abrir a tela sem instrução prévia e pedir a 3 usuários que indiquem a ação principal; foco em clareza das opções e consequências.
+    > aceite:  Pelo menos 2/3 identificam a ação principal em até 5 s.
+
+[ ] UX-007  Draft: compreensão imediata
+    > cenário: Abrir a tela sem instrução prévia e pedir a 3 usuários que indiquem a ação principal; foco em sorteio, escolha, reroll e estado do elenco.
+    > aceite:  Pelo menos 2/3 identificam a ação principal em até 5 s.
+
+[ ] UX-009  Elenco: compreensão imediata
+    > cenário: Abrir a tela sem instrução prévia e pedir a 3 usuários que indiquem a ação principal; foco em titulares, reservas e posições.
+    > aceite:  Pelo menos 2/3 identificam a ação principal em até 5 s.
+
+[ ] UX-011  Formação: compreensão imediata
+    > cenário: Abrir a tela sem instrução prévia e pedir a 3 usuários que indiquem a ação principal; foco em campo, troca de jogadores e compatibilidade.
+    > aceite:  Pelo menos 2/3 identificam a ação principal em até 5 s.
+
+[ ] UX-013  Táticas: compreensão imediata
+    > cenário: Abrir a tela sem instrução prévia e pedir a 3 usuários que indiquem a ação principal; foco em mentalidade, estilo e instruções.
+    > aceite:  Pelo menos 2/3 identificam a ação principal em até 5 s.
+
+[ ] UX-015  Adversário: compreensão imediata
+    > cenário: Abrir a tela sem instrução prévia e pedir a 3 usuários que indiquem a ação principal; foco em leitura de formação, força e ameaças.
+    > aceite:  Pelo menos 2/3 identificam a ação principal em até 5 s.
+
+[ ] UX-017  Pré-jogo: compreensão imediata
+    > cenário: Abrir a tela sem instrução prévia e pedir a 3 usuários que indiquem a ação principal; foco em resumo e início da partida.
+    > aceite:  Pelo menos 2/3 identificam a ação principal em até 5 s.
+
+[ ] UX-019  Intervalo: compreensão imediata
+    > cenário: Abrir a tela sem instrução prévia e pedir a 3 usuários que indiquem a ação principal; foco em estatísticas, ajustes e retorno.
+    > aceite:  Pelo menos 2/3 identificam a ação principal em até 5 s.
+
+[ ] UX-021  Pós-jogo: compreensão imediata
+    > cenário: Abrir a tela sem instrução prévia e pedir a 3 usuários que indiquem a ação principal; foco em resultado, notas e eventos.
+    > aceite:  Pelo menos 2/3 identificam a ação principal em até 5 s.
+
+[ ] UX-023  Fase de grupos: compreensão imediata
+    > cenário: Abrir a tela sem instrução prévia e pedir a 3 usuários que indiquem a ação principal; foco em tabela, rodada e classificação.
+    > aceite:  Pelo menos 2/3 identificam a ação principal em até 5 s.
+
+[ ] UX-025  Chaveamento: compreensão imediata
+    > cenário: Abrir a tela sem instrução prévia e pedir a 3 usuários que indiquem a ação principal; foco em caminho do mata-mata e confronto atual.
+    > aceite:  Pelo menos 2/3 identificam a ação principal em até 5 s.
+
+[ ] UX-027  Configurações: compreensão imediata
+    > cenário: Abrir a tela sem instrução prévia e pedir a 3 usuários que indiquem a ação principal; foco em áudio, velocidade, visual e acessibilidade.
+    > aceite:  Pelo menos 2/3 identificam a ação principal em até 5 s.
+
+[ ] UX-029  Salvar/carregar: compreensão imediata
+    > cenário: Abrir a tela sem instrução prévia e pedir a 3 usuários que indiquem a ação principal; foco em lista, data, versão e confirmação.
+    > aceite:  Pelo menos 2/3 identificam a ação principal em até 5 s.
+
+[ ] UX-031  Ajuda/tutorial: compreensão imediata
+    > cenário: Abrir a tela sem instrução prévia e pedir a 3 usuários que indiquem a ação principal; foco em explicação contextual sem bloquear fluxo.
+    > aceite:  Pelo menos 2/3 identificam a ação principal em até 5 s.
+
+[ ] UX-033  Placar: leitura em um olhar
+    > cenário: Partida em desktop e mobile.
+    > aceite:  Usuário identifica seleções, placar e tempo em até 3 s.
+
+[ ] UX-040  Momentum: interpretação
+    > cenário: Mudanças de domínio.
+    > aceite:  Usuários entendem tendência sem confundir com probabilidade garantida de gol.
+
+[ ] BLK-040  Reprodução visual dos piores locks
+    > cenário: Gerar clips em 1X e 0.5X dos 10 piores casos da sonda.
+    > aceite:  Três observadores confirmam que os casos corrigidos não aparentam congelamento ou repetição artificial.
+
+[ ] OBS-001  Partida não aparenta congelar
+    > cenário: Três observadores assistem partidas completas em 1X sem telemetria.
+    > aceite:  Nenhum observador registra episódio de bola/jogador imóvel sem causa por mais de 3 s percebidos.
+
+[ ] OBS-002  Drible é reconhecido sem narração
+    > cenário: Mostrar clips aleatórios de condução, corte e drible.
+    > aceite:  >=90% das ações de drible são reconhecidas corretamente pelos três observadores.
+
+[ ] OBS-003  Chute é reconhecido antes da trajetória
+    > cenário: Ocultar parte final do lance e mostrar preparação/contato.
+    > aceite:  >=90% reconhecem chute e intensidade aproximada sem depender da seta.
+
+[ ] OBS-004  Passe e cruzamento são distinguíveis
+    > cenário: Mostrar ações sem texto do evento.
+    > aceite:  >=85% distinguem passe curto, lançamento e cruzamento.
+
+[ ] OBS-005  Defesas do goleiro são distinguíveis
+    > cenário: Mostrar encaixe, espalma, mergulho e defesa com os pés.
+    > aceite:  >=85% classificam corretamente cada tipo.
+
+[ ] OBS-006  A causa da mudança de posse é legível
+    > cenário: Mostrar 30 turnovers sem log.
+    > aceite:  >=90% identificam passe errado, desarme, interceptação ou defesa responsável.
+
+[ ] OBS-007  Bola nunca parece colada ou teleportada
+    > cenário: Assistir filmstrip e partida normal.
+    > aceite:  Zero ocorrência confirmada por dois ou mais observadores.
+
+[ ] OBS-008  Cadência 1X parece futebolística
+    > cenário: Comparar com a versão 2D de referência sem identificar versão.
+    > aceite:  Mediana >=4/5 e não inferior à referência em mais de 0,5 ponto.
+
+[ ] OBS-009  Movimentação sem bola é percebida
+    > cenário: Observar ataques posicionais e transições.
+    > aceite:  Mediana >=4/5 para apoio, desmarque, recomposição e marcação.
+
+[ ] OBS-010  4-2-4 ofensivo recebe resposta defensiva visível
+    > cenário: Assistir cenário dirigido.
+    > aceite:  Todos identificam cobertura, marcação ou superioridade explorada; nenhum atacante fica sistemicamente ignorado.
+
+[ ] OBS-011  Bloco baixo não produz jogo morto
+    > cenário: Assistir 10 minutos de posse contra retranca.
+    > aceite:  Nenhum período repetitivo >8 s reais sem progressão, disputa ou intenção aparente.
+
+[ ] OBS-012  Pressão alta parece coordenada
+    > cenário: Assistir saída curta contra pressão.
+    > aceite:  Mediana >=4/5 e movimentos dos pressionadores têm relação com bola e opções.
+
+[ ] OBS-013  Direção e alvo de chute são legíveis
+    > cenário: Mostrar finalizações em diferentes ângulos.
+    > aceite:  >=90% identificam o setor do gol antes do desfecho ou no contato.
+
+[ ] OBS-014  Profundidade 2.5D ajuda e não confunde
+    > cenário: Observar jogadores perto/longe e bolas altas.
+    > aceite:  Mediana >=4/5; zero relato recorrente de bola na arquibancada ou ordem invertida.
+
+[ ] OBS-015  Câmera mantém contexto tático
+    > cenário: Assistir ataques, transições e bolas paradas.
+    > aceite:  Mediana >=4/5 para ver portador, opções imediatas e linha defensiva.
+
+[ ] OBS-016  Mobile permite completar o fluxo
+    > cenário: Três usuários completam home→setup→draft→partida→pós-jogo em Android/iOS.
+    > aceite:  100% completam sem botão morto, scroll bloqueado ou controle inacessível.
+
+[ ] OBS-017  Controles de velocidade são compreendidos
+    > cenário: Usuários alternam pause, 1X, 2X e TURBO.
+    > aceite:  100% conseguem e entendem o estado ativo sem instrução externa.
+
+[ ] OBS-018  Informação não depende apenas de cor
+    > cenário: Testar escala de cinza/alto contraste.
+    > aceite:  Eventos, seleção e estado continuam identificáveis por forma, texto ou movimento.
+
+[ ] OBS-019  Comparação cega 2D x R14
+    > cenário: Mostrar mesmos seeds em ordem aleatória.
+    > aceite:  R14 não perde para 2D em fluidez/legibilidade; qualquer derrota sistemática bloqueia release.
+
+[ ] OBS-020  Aceite final dos três observadores
+    > cenário: Revisar os 20 piores clips e uma partida completa.
+    > aceite:  Três aprovações independentes ou registro explícito de FAIL com timestamps; sem decisão por consenso forçado.
+
+[ ] REL-009  Validação humana final
+    > cenário: Executar painel cego e partida completa.
+    > aceite:  Nenhum bloqueador perceptivo; critérios P0 humanos aprovados individualmente.

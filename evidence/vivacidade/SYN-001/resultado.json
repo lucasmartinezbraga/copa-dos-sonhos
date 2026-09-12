@@ -1,0 +1,75 @@
+{
+  "id": "SYN-001",
+  "titulo": "Contrato de ação: a bola só sai no contato",
+  "status": "PASS",
+  "prioridade": "P0",
+  "sha256_r14": "7dc258d5e030d59d908b20ec00e445fdd721b9981bb02f17febd44d66d6b3904",
+  "data": "2026-07-22T18:14:28.189297+00:00",
+  "defeito": "_startTravel fazia b.owner=null; b.traveling=true no MESMO tick da decisão. A bola partia no instante da escolha, sem preparação — nenhuma pose de chute podia tocá-la, porque quando o evento chegava ao render ela já havia saído.",
+  "correcao": "src/r14/10-action-contract.js separa DECIDIR de EXECUTAR. _pass/_cross/_shoot passam a agendar um contrato (preparação -> contato -> continuidade -> recuperação); a bola só sai no contato. Durante o preparo o portador mantém a bola e pode ser desarmado, produzindo interrupted em vez de ação fantasma. O motor segue autoritativo: o contrato não escolhe desfecho, apenas atrasa a MESMA ação já decidida e a descreve.",
+  "procedimento": "node tools/ux/probe_balllock.js --start=0 --end=200; validação do contrato contra templates/action-contract.schema.json",
+  "resultado_observado": {
+    "acoes_por_partida": {
+      "prepared": 199,
+      "contacted": 198,
+      "interrupted": 1,
+      "forced": 0
+    },
+    "por_tipo": {
+      "pass": 178,
+      "shot": 14,
+      "cross": 7
+    },
+    "conforme_schema": true,
+    "amostra": {
+      "actionId": "a199",
+      "actor": "Hilario",
+      "action": "pass",
+      "target": "Vicente",
+      "foot": "R",
+      "start": 401.133,
+      "contact": 401.333,
+      "end": 401.553,
+      "prepareDuration": 0.2,
+      "followThroughDuration": 0.1,
+      "recoveryDuration": 0.12,
+      "outcome": "contact",
+      "interrupted": false
+    }
+  },
+  "gates": {
+    "cenarios_dirigidos": "25/25",
+    "smoke_estatico": "13/13",
+    "ppgRange": 0.5,
+    "maxAbsGoalDiffPerMatch": 0.5,
+    "noDominantStyle": true,
+    "parkIdentity": true,
+    "tikiIdentity": true,
+    "r13_byte_identica": "363d9a91… OK"
+  },
+  "efeito_colateral_medido": {
+    "travas_200_seeds": {
+      "sem_contrato": 168,
+      "com_contrato": 237
+    },
+    "travas_2_jogadores": {
+      "sem_contrato": 18,
+      "com_contrato": 61
+    },
+    "pior_trava": {
+      "sem_contrato": 6.0,
+      "com_contrato": 6.6
+    },
+    "travas_maior_igual_10s": {
+      "sem_contrato": 0,
+      "com_contrato": 0
+    },
+    "dwellMax_medio": {
+      "candidata": 8.12,
+      "sem_contrato": 2.91,
+      "com_contrato": 2.58
+    },
+    "leitura": "A CONTAGEM sobe porque o preparo segura a bola ~0,2s a mais por ação, o que aumenta o tempo dentro do raio de 4m. A PATOLOGIA cai: dwellMax médio 2,91 -> 2,58s e a composição migra de dwell puro para misto/pingpong, ou seja, a bola troca de pé dentro da janela em vez de congelar. Zero travas >=10s nos dois. É disputa em espaço curto, não paralisia — mas é uma troca real e fica registrada como tal."
+  },
+  "forced_zero": "Nenhuma ação precisou da guarda de segurança (forced=0): toda preparação chega ao contato ou é limpamente interrompida."
+}

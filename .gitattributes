@@ -1,0 +1,8 @@
+# A R13.0 é validada por SHA-256 byte-a-byte. Qualquer tradução de fim de linha
+# no checkout quebra o gate de reprodutibilidade em Windows. Estas árvores são
+# tratadas como binárias para efeito de fim de linha.
+src/r13/**   -text
+src/ux/**    -text
+src/2_5d/**  -text
+dist/**      -text
+manifests/** -text

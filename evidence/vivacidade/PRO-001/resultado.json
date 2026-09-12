@@ -1,0 +1,26 @@
+{
+  "id": "PRO-001",
+  "titulo": "Invariantes da projeção 2.5D",
+  "status": "PASS",
+  "prioridade": "P1",
+  "sha256_r14": "205170caa29271f5b550818991102937c45394c98f960a54ee65e113528eb80f",
+  "data": "2026-07-22T18:40:35.174557+00:00",
+  "procedimento": "python tools/r14/browser_projection_probe.py — malha de 21x21 pontos sobre o campo inteiro, no navegador",
+  "resultado_observado": {
+    "passed": 9,
+    "total": 9,
+    "arquivo": "reports/r14/anim/projection.json",
+    "invariantes": [
+      "projeção finita em toda a malha",
+      "escala diminui com a profundidade",
+      "ordenação por profundidade monotônica",
+      "existe eixo de fuga e ele não deriva (x=512,00, desvio 0)",
+      "campo converge ao fundo (1100,7 perto vs 715,0 longe)",
+      "razão de perspectiva 0,6495",
+      "projeção contínua (maior salto 4,77px)",
+      "API 2.5D completa",
+      "CDS_F25D congelado"
+    ]
+  },
+  "nota_metodologica": "A primeira versão do teste reprovou o eixo central por 2,81px. A álgebra da projeção é x(fx,v)=C+(fx-C)*s(v), logo existe EXATAMENTE UM fx invariante. O teste assumia canvas de 1000px e amostrava colunas não simétricas ao eixo real. Resolvendo C numericamente a partir de duas amostras, o desvio é ZERO e o eixo cai em x=512 (canvas de 1024). O defeito era do teste; a projeção estava correta. Registrado porque um teste que 'quase passa' merece explicação, não arredondamento do limite."
+}

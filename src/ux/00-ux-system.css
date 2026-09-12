@@ -1,0 +1,105 @@
+/* ============================================================================
+ * Copa dos Sonhos · Camada UX (redesign) · Sistema base
+ * ----------------------------------------------------------------------------
+ * Camada ADITIVA sobre a R13.0. Reaproveita os tokens existentes (:root do
+ * bundle) e acrescenta escala de espaçamento, acessibilidade (foco visível,
+ * movimento reduzido), áreas seguras e a limpeza dos overlays de dev na visão
+ * do jogador. Não altera o motor. Construída no candidato RC-UX; a R13.0 segue
+ * byte-idêntica.
+ * ========================================================================== */
+
+:root {
+  /* Grid de 8 px (doc 04) */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px;
+  /* Raios consistentes */
+  --r-sm: 10px; --r-md: 14px; --r-lg: var(--r, 18px); --r-pill: 999px;
+  /* Movimento 120–220 ms (doc 04) */
+  --dur-fast: 120ms; --dur-mid: 180ms; --dur-slow: 220ms;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  /* Foco/risco semânticos */
+  --focus: var(--azul, #38bdf8);
+  --risk: var(--rosa, #fb7185);
+  /* Alturas seguras de toque */
+  --touch: 44px;
+}
+
+/* ─── Acessibilidade: foco de teclado sempre visível (doc 04 / item 165) ─── */
+:where(a, button, [role="button"], input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+/* não mostrar o anel em clique de mouse quando :focus-visible é suportado */
+:where(a, button, [role="button"]):focus:not(:focus-visible) { outline: none; }
+
+/* ─── Movimento reduzido (doc 04 / item 158/160) ───────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─── Guarda de overflow horizontal (nenhuma tela rola de lado) ─────────── */
+html, body { max-width: 100%; overflow-x: hidden; }
+img, canvas, svg, video { max-width: 100%; }
+
+/* ─── Áreas seguras (notch/gestos) para barras fixas conhecidas ─────────── */
+@supports (padding: max(0px)) {
+  .match-top, .hud-top, .home-nav-v2 {
+    padding-left: max(var(--sp-3), env(safe-area-inset-left));
+    padding-right: max(var(--sp-3), env(safe-area-inset-right));
+  }
+}
+
+/* ─── Limpeza dos overlays de DEV na visão do jogador ──────────────────────
+ * Ferramentas de desenvolvimento (Tática 5.0, IA do Treinador, Lab Físico,
+ * Auditor Pré-2.5D) poluíam todas as telas — sobrepondo conteúdo no mobile.
+ * Ficam OCULTAS por padrão e reaparecem com ?dev=1 (ou localStorage cds_dev),
+ * que adiciona a classe .cds-dev ao <html>. Nada é removido; só some da visão
+ * do jogador. */
+html:not(.cds-dev) #p47btn,
+html:not(.cds-dev) #p47box,
+html:not(.cds-dev) #p9btn,
+html:not(.cds-dev) #p9box,
+html:not(.cds-dev) #p13lab,
+html:not(.cds-dev) #p13labbtn,
+html:not(.cds-dev) #cds-pre25d-audit-btn,
+html:not(.cds-dev) [id$="labbtn"],
+html:not(.cds-dev) [id$="-audit-btn"] {
+  display: none !important;
+}
+
+/* Selo discreto de modo dev quando ligado */
+html.cds-dev::after {
+  content: "DEV";
+  position: fixed; right: 8px; top: 8px; z-index: 2147483001;
+  font: 700 9px/1 var(--f-ui); letter-spacing: .12em;
+  color: #04121f; background: var(--ouro); padding: 3px 6px; border-radius: var(--r-pill);
+  pointer-events: none; opacity: .85;
+}
+
+/* ═══ A11: ACESSIBILIDADE ═══════════════════════════════════════════════════ */
+/* Região lida por leitor de tela, visualmente oculta (A11-011..015) */
+.cds-sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+/* Alto contraste / forced-colors do SO (A11-016..020): garante bordas visíveis
+   na cromo da UI (o canvas da partida não é estilizável, mas os controles sim). */
+@media (forced-colors: active) {
+  button, .rrbtn, .spd, .spdbtn, .chip, .home-mode-v2, .row, .bchip {
+    border: 1px solid ButtonText !important;
+    forced-color-adjust: none;
+  }
+  .gold, .ovr-hi, .dot.ovr-hi { color: Highlight !important; }
+  :focus-visible { outline: 2px solid Highlight !important; outline-offset: 2px; }
+}
+@media (prefers-contrast: more) {
+  button, .rrbtn, .spd, .spdbtn, .chip { outline: 1px solid currentColor; outline-offset: 1px; }
+}

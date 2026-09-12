@@ -1,0 +1,74 @@
+[
+ {
+  "id": "r14-buildup-decide-ceiling",
+  "priority": "P0",
+  "audit_ids": "BLK-001..040",
+  "rationale": "TRAVA DA BOLA / POSSE ATIVA SEM DECISÃO. O portão de decisão do portador é `this.decideT -= dt; if (... && this.decideT <= 0) this._decide(owner)`. A atualização de fase da R13 reescreve decideT a CADA tick. Nas fases transition_attack e final_third ela aplica um TETO (Math.min), que só pode antecipar a decisão. Na fase build_up aplica clamp13(v,.10,.44) — e clamp13=(v,a,b)=>Math.max(a,Math.min(b,v)) impõe um PISO de 0.10. O contador decresce 1/30≈0.033 por tick e é imediatamente devolvido a 0.10, então decideT<=0 nunca ocorre: em build_up o portador NUNCA decide. A posse só termina quando a defesa vence um desarme, dezenas de segundos depois. Reproduzido de forma determinística na seed 870000 (4-1-4-1 press x 4-3-1-2 park), 71.13': dono único por 23.2s com settle<=0, traveling=false e decideT fixo em 0.10, sem uma única chamada a _decide. O conserto restaura a intenção original — a escada de cadência transition_attack .20 < final_third .31 < build_up .44 — trocando o piso por teto, igual aos dois irmãos. Não é teleporte, não força passe e não escolhe o desfecho: apenas devolve ao motor o direito de decidir.",
+  "from": "else if(attacking==='build_up')sim.decideT=clamp13(finite13(sim.decideT,.25),.10,.44);",
+  "to": "else if(attacking==='build_up')sim.decideT=Math.min(finite13(sim.decideT,.25),.44);"
+ },
+ {
+  "id": "r14-style-recalibration",
+  "priority": "P0",
+  "audit_ids": "BAL-001",
+  "rationale": "Recalibração dos pesos de estilo sobre o motor consertado. O golden R13.0 foi derivado com o portador congelado em build_up; liberada a decisão, os estilos ganharam volume de forma desigual (wings +0,536 ppg, balanced -0,500, direct -0,393) e ppgRange passou de 0,571 para 0,821. Estes overrides re-derivam o equilíbrio no motor que efetivamente decide.",
+  "from": "const STYLE_KEYS = Object.keys(STYLE_FX);",
+  "to": "STYLE_FX.direct.cross=1.05; STYLE_FX.park.cross=1.3; STYLE_FX.wings.cross=1.85;\nconst STYLE_KEYS = Object.keys(STYLE_FX);"
+ },
+ {
+  "id": "r14-pressing-intent",
+  "priority": "P0",
+  "audit_ids": "MOV-001",
+  "rationale": "MOVIMENTAÇÃO — NINGUÉM DÁ BOTE. Medido em 30 partidas: a velocidade do adversário mais próximo da bola CAI conforme ele se aproxima — 5,15 m/s a 12m+, 4,28 a 7-12m, 3,68 a 4-7m, 3,21 a 2-4m e apenas 2,68 a 0-2m. O defensor chega TROTANDO no desarme. Em _integrate (versão viva da camada R12; a do bundle base é código morto, substituída por P._integrate), `duty` só inclui _breaking, _burst, o portador e o receptor de um passe — quem PRESSIONA não entra e recebe o esforço 'respirado' de 0,5 a 1,0. Aqui quem persegue uma bola que não é do seu time ganha dever de bola. AJUSTE: o raio de perseguição começou em 6m e fazia VÁRIOS defensores irem juntos na bola — o comprimento ocupado pelo time caiu de 44,1m (R13.0) para 32,5m, o amontoamento relatado. Restrito ao pressionador designado mais quem está praticamente em cima da bola (2,5m), que é quem de fato disputa.",
+  "from": "const duty=p._breaking||p._burst||p===this.ball.owner||(this.ball.traveling&&this.ball.receiver===p);let effort;",
+  "to": "const _bb=this.ball,_dB=_bb?Math.hypot(finite(p.x)-finite(_bb.x),finite(p.y)-finite(_bb.y)):1e9;p.__chase=!p.isGK&&!!_bb&&_dB<14&&(!_bb.owner||_bb.owner.team!==p.team)&&(p===this.teams[p.team]._presser||_dB<2.5);const duty=p._breaking||p._burst||p===this.ball.owner||p.__chase||(this.ball.traveling&&this.ball.receiver===p);let effort;"
+ },
+ {
+  "id": "r14-pressing-approach",
+  "priority": "P0",
+  "audit_ids": "MOV-001",
+  "rationale": "Par do r14-pressing-intent. Dar esforço 1 ao perseguidor não muda nada sozinho porque `desired=Math.min(vmax,d*3.2)` limita a 3,2 m/s a um metro do alvo — o freio de aproximação vale mesmo quando o alvo é a BOLA, onde o certo é chegar acelerando. Quem persegue passa a usar d*9: a 1m ainda quer 9 m/s, a 0,3m cai para 2,7, então o freio continua existindo para não ultrapassar. Os demais mantêm d*3.2 intacto.",
+  "from": "desired=Math.min(vmax,d*3.2)",
+  "to": "desired=Math.min(vmax,d*(p.__chase?9:3.2))"
+ },
+ {
+  "id": "r14-shadow-lane",
+  "priority": "P0",
+  "audit_ids": "MOV-004",
+  "rationale": "MEIO-CAMPO FEIO: MAIS DE UM PERSEGUE O PORTADOR. Em _defendTarget três papéis são puxados para a bola por construção: o presser vai EXATAMENTE nela ([b.x,b.y]); o _cover fica a 8,5m dela; e o _shadow — que deveria FECHAR A LINHA DE PASSE — recebe lerp(bola, atacante, 0.35), ou seja 65% do caminho EM DIREÇÃO À BOLA. Somados, três defensores convergem no portador e o meio-campo esvazia. O papel do shadow é cobrir o corredor de passe, o que se faz perto do ATACANTE e não da bola: passa a 0.62, ficando na linha em vez de em cima do portador. presser e cover não mudam — a disputa continua tendo dono.",
+  "from": "      return [clamp(lerp(b.x, tgt.x, 0.35), 2, FL - 2), clamp(lerp(b.y, tgt.y, 0.35), 2, FW - 2)];",
+  "to": "      return [clamp(lerp(b.x, tgt.x, 0.62), 2, FL - 2), clamp(lerp(b.y, tgt.y, 0.62), 2, FW - 2)];"
+ },
+ {
+  "id": "r14-skill-dribble-spread",
+  "priority": "P0",
+  "audit_ids": "CAL-001",
+  "rationale": "HABILIDADE NÃO FAZ DIFERENÇA. duelProb com duelSpread 10,5 é sensível — 20 pontos de vantagem dão ~87% de vitória. Mas o resultado é cortado por clamp(raw,.20,.72) (.84 para elite): um driblador muito superior nunca passa de 72%, e um ruim nunca cai abaixo de 20%. O clamp achata todo mundo perto do meio. Piso .20->.12 (mais difícil passar pela zaga com pouco drible) e teto .72->.86 / elite .84->.92 (o craque de drible decide). A curva entre os extremos continua a mesma.",
+  "from": "p=clamp(raw,.20,elite?.84:.72)",
+  "to": "p=clamp(raw,.12,elite?.92:.86)"
+ },
+ {
+  "id": "r14-skill-tackle-spread",
+  "priority": "P0",
+  "audit_ids": "CAL-001",
+  "rationale": "Par do anterior, no lado da defesa. winP=clamp(.48+(pd-pa)/180+(desarme-70)/260,.34,.72): os divisores 180 e 260 achatam o atributo — 30 pontos de desarme movem só 0,115 de probabilidade. Divisores para 120 e 170 (atributo pesa ~50% mais) e clamp para [.30,.82], de modo que um zagueiro muito superior de fato rouba e um fraco de fato falha. Base .48 sobe para .52: passar pela zaga fica mais difícil no geral, como pedido.",
+  "from": "winP=clamp(.48+(pd-pa)/180+(attr(d,'desarme')-70)/260,.34,.72)",
+  "to": "winP=clamp(.52+(pd-pa)/120+(attr(d,'desarme')-70)/170,.30,.82)"
+ },
+ {
+  "id": "r14-throwin-walk",
+  "priority": "P1",
+  "audit_ids": "MOV-002",
+  "rationale": "LATERAL COBRADO POR NINGUÉM. O cobrador é escolhido e mandado à linha, mas a reposição usava dead=.72 fixo. Primeira correção fez dead acompanhar a distância com teto de 3,2s — insuficiente: o cobrador ANDA (~4,2 m/s), então qualquer um a mais de ~13m ainda não chega e a bola sai sozinha. Agora ele também SPRINTA até a linha (_breaking dá esforço 1 em _integrate) e o teto sobe para 4,5s. A 6,5 m/s, 20m levam 3,1s e cabem na janela.",
+  "from": "this.poss=team;this.dead=.72;",
+  "to": "this.poss=team;this.dead=.72;if(taker){var _dL=Math.hypot(finite13(taker.x)-x,finite13(taker.y)-boundary);taker._breaking=taker._breaking||{throwInDuty:true};this.dead=clamp13(.72+_dL/6.5,.72,4.5);}"
+ },
+ {
+  "id": "_exp-clock",
+  "priority": "EXPERIMENTO",
+  "audit_ids": "DENS-001",
+  "rationale": "EXPERIMENTO: clockRate 0.24 -> 0.12 dobra o tempo de fisica por partida.",
+  "from": "clockRate: 0.24",
+  "to": "clockRate: 0.20"
+ }
+]
