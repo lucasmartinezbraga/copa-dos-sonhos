@@ -1,0 +1,25 @@
+{
+  "id": "A11Y-011",
+  "titulo": "Contraste de texto abaixo da WCAG AA em rótulos de ano",
+  "status": "FAIL",
+  "prioridade": "P1",
+  "sha256_r14": "205170caa29271f5b550818991102937c45394c98f960a54ee65e113528eb80f",
+  "data": "2026-07-22T23:49:07.270588+00:00",
+  "procedimento": "browser_pixel_probe.py — captura a tela e lê o pixel dos CANTOS da caixa de cada nó de texto (onde não há glifo), comparando com a cor computada do texto.",
+  "resultado_esperado": "4,5:1 para texto normal, 3:1 para texto grande",
+  "resultado_observado": {
+    "reprovados": 5,
+    "avaliados": 15,
+    "pior": "3,65:1",
+    "casos": {
+      "1970": "3,65:1",
+      "2026": "3,71:1",
+      "1994": "3,75:1",
+      "1998": "3,81:1",
+      "1986": "4,30:1"
+    }
+  },
+  "por_que_as_tentativas_anteriores_falharam": "Duas medições por ESTILOS COMPUTADOS erraram antes: a 1a lia só backgroundColor e subia até o fundo escuro da página, reprovando 3 elementos que estão sobre gradiente dourado (falso positivo, pior 1,06:1); a 2a usava os pontos do gradiente e reprovava 12, pegando o ponto mais escuro de um gradiente ancestral que não está atrás do texto. O pixel renderizado não tem esse problema: o que está na tela é o que se mede. Os números agora caem na faixa 3,6–4,3, que é onde defeito real de contraste vive — perto do limite, invisível a olho destreinado.",
+  "correcao_sugerida": "Clarear os rótulos de ano ou escurecer o fundo atrás deles até 4,5:1. É CSS, não motor.",
+  "nao_corrigido": true
+}

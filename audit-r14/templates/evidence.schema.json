@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Evidência de controle R14",
+  "type": "object",
+  "required": [
+    "id",
+    "candidate_sha256",
+    "result",
+    "executed_at",
+    "environment",
+    "evidence"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "candidate_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "result": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "BLOCKED",
+        "N/A"
+      ]
+    },
+    "executed_at": {
+      "type": "string"
+    },
+    "environment": {
+      "type": "object"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "metrics": {
+      "type": "object"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "bug_or_commit": {
+      "type": "string"
+    }
+  }
+}
