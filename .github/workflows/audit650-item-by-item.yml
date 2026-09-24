@@ -1,0 +1,134 @@
+name: Auditoria 650 — correção item por item
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: audit650-itemized-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-verify-60:
+    if: (github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository) && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout da candidata
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          fetch-depth: 1
+          show-progress: false
+
+      - name: Validar sintaxe das fontes itemizadas
+        run: |
+          python3 -m py_compile tools/build_ux.py tools/audit650/itemized_verify.py
+          node --check src/ux/55-audit650-item-fixes.js
+          node --check src/ux/95-audit650-a11y.js
+          python3 -m json.tool src/ux/patches.zz-audit650.json >/dev/null
+          python3 -m json.tool src/ux/token-patches.audit650.json >/dev/null
+
+      - name: Reconstruir RC-UX pela fonte oficial
+        id: build
+        continue-on-error: true
+        run: |
+          mkdir -p reports
+          set -o pipefail
+          python3 tools/build_ux.py 2>&1 | tee reports/AUDITORIA-650-BUILD-ITEMIZADO.txt
+          test "$(grep -o 'function spPerspective' 'dist/COPA DOS SONHOS - RC-UX.html' | wc -l)" -eq 0
+          grep -q "2.3.0-audit650-itemized" "dist/COPA DOS SONHOS - RC-UX.html"
+
+      - name: Publicar diagnóstico do build
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: auditoria-650-build-diagnostico-${{ github.run_number }}
+          path: reports/AUDITORIA-650-BUILD-ITEMIZADO.txt
+          retention-days: 7
+
+      - name: Interromper após falha de reconstrução
+        if: steps.build.outcome == 'failure'
+        run: exit 1
+
+      - name: Verificar os 60 FAIL individualmente
+        run: python3 tools/audit650/itemized_verify.py
+
+      - name: Instalar Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Executar partidas na build reconstruída
+        run: |
+          export CDS_CHROMIUM="$(node -e "console.log(require('playwright').chromium.executablePath())")"
+          node tools/ux/audit_match.js \
+            --build="dist/COPA DOS SONHOS - RC-UX.html" \
+            --matches=2 \
+            --label=audit650-itemized \
+            --out=reports/ux/audit-match-audit650-itemized
+
+      - name: Gate dinâmico do núcleo e da projeção
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          data=json.loads(Path('reports/ux/audit-match-audit650-itemized/match-audit.json').read_text())
+          failures=[]
+          if data.get('errors'): failures.append(f"page/console errors={data['errors']}")
+          for m in data.get('matches',[]):
+              i=m.get('index'); inv=m.get('invariants') or {}; end=m.get('end') or {}
+              if not end.get('over'): failures.append(f'match {i}: did not finish')
+              if end.get('canonical')!='CONSISTENT': failures.append(f"match {i}: canonical={end.get('canonical')}")
+              if inv.get('ballAboveStands',0)!=0: failures.append(f"match {i}: ballAboveStands={inv.get('ballAboveStands')}")
+              if inv.get('nonFiniteVisual',0)!=0: failures.append(f"match {i}: nonFiniteVisual={inv.get('nonFiniteVisual')}")
+              if any(not g.get('sync') for g in inv.get('goalChecks',[])): failures.append(f'match {i}: score DOM mismatch')
+              hard=end.get('hard') or {}
+              for k in ('ballTeleports','playerTeleports','nonFinite','ownerNoContact','invalidTimelines'):
+                  if hard.get(k,0)!=0: failures.append(f'match {i}: {k}={hard.get(k)}')
+          if failures: raise SystemExit('\n'.join(failures))
+          print(json.dumps({'verdict':'PASS_DYNAMIC_ITEMIZED','matches':len(data.get('matches',[]))},ensure_ascii=False))
+          PY
+
+      - name: Congelar identidade da build
+        run: |
+          sha256sum "dist/COPA DOS SONHOS - RC-UX.html" | tee reports/AUDITORIA-650-ITEMIZADA-SHA256.txt
+          git rev-parse HEAD | tee reports/AUDITORIA-650-ITEMIZADA-SOURCE-COMMIT.txt
+
+      - name: Publicar build e evidências na branch
+        run: |
+          git config user.name "audit650-itemized-bot"
+          git config user.email "audit650-itemized-bot@users.noreply.github.com"
+          git add \
+            "dist/COPA DOS SONHOS - RC-UX.html" \
+            reports/AUDITORIA-650-BUILD-ITEMIZADO.txt \
+            reports/AUDITORIA-650-ITEM-A-ITEM.json \
+            reports/AUDITORIA-650-ITEM-A-ITEM.md \
+            reports/AUDITORIA-650-ITEMIZADA-SHA256.txt \
+            reports/AUDITORIA-650-ITEMIZADA-SOURCE-COMMIT.txt \
+            reports/ux/audit-match-audit650-itemized \
+            evidence
+          if git diff --cached --quiet; then
+            echo "Build/evidências já estavam atualizadas."
+          else
+            git commit -m "fix: reconstrói e prova tecnicamente os 60 FAIL item por item"
+            git push origin HEAD:${{ github.head_ref || github.ref_name }}
+          fi
+
+      - name: Anexar pacote de evidências
+        uses: actions/upload-artifact@v4
+        with:
+          name: auditoria-650-item-a-item
+          path: |
+            reports/AUDITORIA-650-BUILD-ITEMIZADO.txt
+            reports/AUDITORIA-650-ITEM-A-ITEM.json
+            reports/AUDITORIA-650-ITEM-A-ITEM.md
+            reports/AUDITORIA-650-ITEMIZADA-SHA256.txt
+            reports/ux/audit-match-audit650-itemized/
+            evidence/
+          retention-days: 30

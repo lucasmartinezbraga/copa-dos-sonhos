@@ -1,0 +1,99 @@
+/* ============================================================================
+ * Copa dos Sonhos · Redesign · HUD DE PARTIDA
+ * Placar broadcast compacto, velocidades premium, barra de stats/momentum
+ * legível e, no mobile, overlays organizados sobre o campo (field-first).
+ * Não toca o motor nem o canvas do campo.
+ * ========================================================================== */
+
+/* ─── HEADER / PLACAR (broadcast) ─────────────────────────────────────── */
+.mh {
+  background: linear-gradient(180deg, rgba(12,22,42,.92), rgba(7,12,22,.92));
+  border-bottom: 1px solid var(--hud-line);
+  box-shadow: 0 1px 0 rgba(56,225,255,.12), 0 10px 30px rgba(0,0,0,.35);
+  padding: 10px 16px;
+}
+.mh-flag {
+  display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px;
+  background: rgba(56,225,255,.06); border: 1px solid var(--glass-brd);
+  overflow: hidden; box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+}
+.mh-flag svg, .mh-flag img { width: 24px; height: auto; border-radius: 3px; }
+.mh-name { font: 800 14px var(--f-cond); letter-spacing: .6px; text-transform: uppercase; }
+.mh-form { font: 700 10px var(--f-cond); letter-spacing: 1.4px; color: var(--neon); opacity: .9; }
+.mh-center { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.mh-sc {
+  font: 900 34px var(--f-display); letter-spacing: 3px; line-height: 1; color: #fff;
+  padding: 4px 16px; border-radius: 12px;
+  background: linear-gradient(180deg, rgba(10,18,34,.9), rgba(6,12,22,.95));
+  border: 1px solid var(--hud-line); box-shadow: 0 0 22px rgba(56,225,255,.14), inset 0 1px 0 rgba(255,255,255,.06);
+  text-shadow: 0 0 20px rgba(255,203,69,.25);
+}
+.mh-ck { font: 800 12px var(--f-cond); letter-spacing: 2px; color: var(--ouro); padding: 2px 10px; border-radius: 999px; background: rgba(255,203,69,.08); }
+.mh-ck.urgent { color: var(--rosa) !important; background: rgba(251,113,133,.12); }
+
+/* ─── VELOCIDADES (pills premium) ─────────────────────────────────────── */
+.spd-row {
+  display: flex; gap: 6px; justify-content: center; padding: 8px 12px;
+  background: rgba(7,12,22,.6); border-bottom: 1px solid var(--linha);
+}
+.spd {
+  min-width: 46px; min-height: 34px; padding: 6px 12px; border-radius: 10px;
+  border: 1px solid var(--glass-brd); background: rgba(20,34,60,.5); color: var(--txt);
+  font: 800 12px var(--f-cond); letter-spacing: 1px; cursor: pointer;
+  transition: all var(--dur-fast) var(--ease);
+}
+.spd:hover { border-color: var(--hud-line); transform: translateY(-1px); }
+.spd.on {
+  background: linear-gradient(180deg, #ffe38a, var(--ouro) 55%, var(--ouro2)); color: #241a00;
+  border-color: transparent; box-shadow: 0 6px 16px rgba(255,203,69,.3), inset 0 1px 0 rgba(255,255,255,.5);
+}
+#bt-pause { color: var(--neon); }
+
+/* ─── BARRA DE STATS + MOMENTUM ───────────────────────────────────────── */
+.statsb { background: rgba(7,12,22,.6); border-bottom: 1px solid var(--linha); padding: 9px 14px 10px; }
+.poss-track, .sb-track { border-radius: 999px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); height: 8px !important; }
+.poss-label { font: 800 11px var(--f-cond); letter-spacing: .5px; }
+.quick-stat .sbn, .sb-nums .sbn {
+  font: 700 11px var(--f-cond); letter-spacing: .6px; color: var(--mut); text-transform: uppercase;
+  padding: 3px 8px; border-radius: 8px; background: rgba(56,225,255,.04); border: 1px solid rgba(120,170,220,.1);
+}
+.quick-stat .sbn b, .sb-nums .sbn b { color: var(--txt); font-weight: 900; }
+.momentum-strip { border: 1px solid rgba(120,170,220,.12); border-radius: 10px; padding: 4px 8px; background: rgba(5,11,22,.5); }
+.momentum-strip > span { color: var(--neon); font: 800 9px var(--f-cond); letter-spacing: 1.6px; text-transform: uppercase; }
+
+/* ─── ABAS ────────────────────────────────────────────────────────────── */
+.mtabs { background: rgba(7,12,22,.7); border-bottom: 1px solid var(--hud-line); }
+
+/* ─── MOBILE: faixa de HUD compacta acima do campo (field-first, sem overlap)
+ * O layout base flutuava .statsb (canto sup. esq.) e .spd-row (canto sup. dir.),
+ * que se sobrepunham e ficavam apertados. Aqui os dois voltam ao fluxo como uma
+ * faixa fina e organizada logo abaixo do placar; o campo segue dominando. */
+@media (max-width: 899px) {
+  #app:has(#fieldcv) .mh {
+    padding: 8px 12px; padding-top: max(8px, env(safe-area-inset-top));
+    background: linear-gradient(180deg, rgba(9,16,30,.96), rgba(8,14,26,.92));
+    border-bottom: 1px solid var(--hud-line); box-shadow: none;
+  }
+  #app:has(#fieldcv) .mh-sc { font-size: 24px; padding: 2px 12px; }
+  #app:has(#fieldcv) .mh-flag { width: 28px; height: 28px; }
+  #app:has(#fieldcv) .mh-name { font-size: 12px; max-width: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* velocidades: faixa fina no fluxo, centralizada */
+  #app:has(#fieldcv) .spd-row {
+    position: static !important; inset: auto !important; width: auto !important;
+    justify-content: center; gap: 6px; padding: 6px 10px;
+    background: rgba(6,11,22,.72); border-bottom: 1px solid var(--linha);
+  }
+  #app:has(#fieldcv) .spd { min-width: 42px; min-height: 32px; padding: 5px 10px; font-size: 11px; }
+
+  /* stats: faixa fina no fluxo (posse + números); momentum vai pro painel */
+  #app:has(#fieldcv) .statsb {
+    position: static !important; inset: auto !important; width: auto !important;
+    display: flex; align-items: center; gap: 10px; padding: 6px 12px;
+    background: rgba(6,11,22,.6); border-bottom: 1px solid var(--linha);
+  }
+  #app:has(#fieldcv) .poss-wrap, #app:has(#fieldcv) .sb-poss { flex: 1; min-width: 0; }
+  #app:has(#fieldcv) .quick-stat, #app:has(#fieldcv) .sb-nums { display: flex; gap: 6px; flex: 0 0 auto; }
+  #app:has(#fieldcv) .quick-stat .sbn:nth-child(2) { display: none; } /* economiza espaço: só chutes+escanteios */
+  #app:has(#fieldcv) .momentum-strip { display: none; }               /* momentum fica na aba/painel */
+}
