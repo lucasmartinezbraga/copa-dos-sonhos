@@ -1,0 +1,1042 @@
+{
+  "version": "5.9.3-R13.0",
+  "build": "/home/user/copa-dos-sonhos/dist/COPA DOS SONHOS - V5.9.3-R13.0 - FUTEBOL OBSERVAVEL E CADENCIADO.html",
+  "sha256": "363d9a915a732ae99a889dab05e7f01485d58b140d64e4778ad8d5825f9818a8",
+  "passed": 25,
+  "total": 25,
+  "failures": [],
+  "results": [
+    {
+      "name": "carrega a camada R13",
+      "pass": true,
+      "detail": "5.9.3-R13.0"
+    },
+    {
+      "name": "velocidade normal é 1.0",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "catálogo contém as 17 formações",
+      "pass": true,
+      "detail": [
+        "4-3-3",
+        "4-4-2",
+        "4-2-3-1",
+        "3-5-2",
+        "5-3-2",
+        "4-3-1-2",
+        "4-1-4-1",
+        "4-3-2-1",
+        "4-2-2-2",
+        "4-5-1",
+        "3-4-3",
+        "3-4-2-1",
+        "5-2-3",
+        "5-4-1",
+        "4-2-4",
+        "3-1-4-2",
+        "4-1-2-1-2"
+      ]
+    },
+    {
+      "name": "todas as formações montam onze válido",
+      "pass": true,
+      "detail": [
+        {
+          "formation": "4-3-3",
+          "players": 11,
+          "goalkeepers": 1
+        },
+        {
+          "formation": "4-4-2",
+          "players": 11,
+          "goalkeepers": 1
+        },
+        {
+          "formation": "4-2-3-1",
+          "players": 11,
+          "goalkeepers": 1
+        },
+        {
+          "formation": "3-5-2",
+          "players": 11,
+          "goalkeepers": 1
+        },
+        {
+          "formation": "5-3-2",
+          "players": 11,
+          "goalkeepers": 1
+        },
+        {
+          "formation": "4-3-1-2",
+          "players": 11,
+          "goalkeepers": 1
+        },
+        {
+          "formation": "4-1-4-1",
+          "players": 11,
+          "goalkeepers": 1
+        },
+        {
+          "formation": "4-3-2-1",
+          "players": 11,
+          "goalkeepers": 1
+        },
+        {
+          "formation": "4-2-2-2",
+          "players": 11,
+          "goalkeepers": 1
+        },
+        {
+          "formation": "4-5-1",
+          "players": 11,
+          "goalkeepers": 1
+        },
+        {
+          "formation": "3-4-3",
+          "players": 11,
+          "goalkeepers": 1
+        },
+        {
+          "formation": "3-4-2-1",
+          "players": 11,
+          "goalkeepers": 1
+        },
+        {
+          "formation": "5-2-3",
+          "players": 11,
+          "goalkeepers": 1
+        },
+        {
+          "formation": "5-4-1",
+          "players": 11,
+          "goalkeepers": 1
+        },
+        {
+          "formation": "4-2-4",
+          "players": 11,
+          "goalkeepers": 1
+        },
+        {
+          "formation": "3-1-4-2",
+          "players": 11,
+          "goalkeepers": 1
+        },
+        {
+          "formation": "4-1-2-1-2",
+          "players": 11,
+          "goalkeepers": 1
+        }
+      ]
+    },
+    {
+      "name": "lateral é contabilizado uma vez",
+      "pass": true,
+      "detail": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "lateral emite evento visível",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "lateral percorre trajetória aérea física",
+      "pass": true,
+      "detail": {
+        "throwTravel": true,
+        "airborne": true
+      }
+    },
+    {
+      "name": "as 17 formações são lidas pela ocupação espacial",
+      "pass": true,
+      "detail": [
+        {
+          "formation": "4-3-3",
+          "threats": 3,
+          "covered": 3,
+          "shape": {
+            "threats": 3,
+            "lastLine": 3,
+            "lanes": [
+              2,
+              0,
+              1
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "4-4-2",
+          "threats": 4,
+          "covered": 3,
+          "shape": {
+            "threats": 4,
+            "lastLine": 4,
+            "lanes": [
+              2,
+              1,
+              1
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "4-2-3-1",
+          "threats": 4,
+          "covered": 3,
+          "shape": {
+            "threats": 4,
+            "lastLine": 4,
+            "lanes": [
+              3,
+              1,
+              0
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "3-5-2",
+          "threats": 4,
+          "covered": 2,
+          "shape": {
+            "threats": 3,
+            "lastLine": 3,
+            "lanes": [
+              2,
+              1,
+              0
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "5-3-2",
+          "threats": 4,
+          "covered": 3,
+          "shape": {
+            "threats": 4,
+            "lastLine": 4,
+            "lanes": [
+              2,
+              1,
+              1
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "4-3-1-2",
+          "threats": 3,
+          "covered": 3,
+          "shape": {
+            "threats": 3,
+            "lastLine": 3,
+            "lanes": [
+              2,
+              1,
+              0
+            ],
+            "localOverload": false
+          }
+        },
+        {
+          "formation": "4-1-4-1",
+          "threats": 3,
+          "covered": 2,
+          "shape": {
+            "threats": 3,
+            "lastLine": 3,
+            "lanes": [
+              1,
+              1,
+              1
+            ],
+            "localOverload": false
+          }
+        },
+        {
+          "formation": "4-3-2-1",
+          "threats": 3,
+          "covered": 2,
+          "shape": {
+            "threats": 3,
+            "lastLine": 3,
+            "lanes": [
+              2,
+              1,
+              0
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "4-2-2-2",
+          "threats": 4,
+          "covered": 3,
+          "shape": {
+            "threats": 4,
+            "lastLine": 4,
+            "lanes": [
+              3,
+              1,
+              0
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "4-5-1",
+          "threats": 3,
+          "covered": 2,
+          "shape": {
+            "threats": 3,
+            "lastLine": 3,
+            "lanes": [
+              1,
+              1,
+              1
+            ],
+            "localOverload": false
+          }
+        },
+        {
+          "formation": "3-4-3",
+          "threats": 4,
+          "covered": 3,
+          "shape": {
+            "threats": 5,
+            "lastLine": 5,
+            "lanes": [
+              2,
+              1,
+              2
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "3-4-2-1",
+          "threats": 4,
+          "covered": 3,
+          "shape": {
+            "threats": 5,
+            "lastLine": 5,
+            "lanes": [
+              3,
+              1,
+              1
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "5-2-3",
+          "threats": 4,
+          "covered": 3,
+          "shape": {
+            "threats": 4,
+            "lastLine": 4,
+            "lanes": [
+              2,
+              1,
+              1
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "5-4-1",
+          "threats": 4,
+          "covered": 2,
+          "shape": {
+            "threats": 5,
+            "lastLine": 5,
+            "lanes": [
+              2,
+              1,
+              2
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "4-2-4",
+          "threats": 4,
+          "covered": 4,
+          "shape": {
+            "threats": 4,
+            "lastLine": 4,
+            "lanes": [
+              2,
+              1,
+              1
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "3-1-4-2",
+          "threats": 4,
+          "covered": 3,
+          "shape": {
+            "threats": 4,
+            "lastLine": 4,
+            "lanes": [
+              2,
+              1,
+              1
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "4-1-2-1-2",
+          "threats": 3,
+          "covered": 3,
+          "shape": {
+            "threats": 3,
+            "lastLine": 3,
+            "lanes": [
+              2,
+              1,
+              0
+            ],
+            "localOverload": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "nenhuma formação deixa a resposta defensiva inerte",
+      "pass": true,
+      "detail": [
+        {
+          "formation": "4-3-3",
+          "threats": 3,
+          "covered": 3,
+          "shape": {
+            "threats": 3,
+            "lastLine": 3,
+            "lanes": [
+              2,
+              0,
+              1
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "4-4-2",
+          "threats": 4,
+          "covered": 3,
+          "shape": {
+            "threats": 4,
+            "lastLine": 4,
+            "lanes": [
+              2,
+              1,
+              1
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "4-2-3-1",
+          "threats": 4,
+          "covered": 3,
+          "shape": {
+            "threats": 4,
+            "lastLine": 4,
+            "lanes": [
+              3,
+              1,
+              0
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "3-5-2",
+          "threats": 4,
+          "covered": 2,
+          "shape": {
+            "threats": 3,
+            "lastLine": 3,
+            "lanes": [
+              2,
+              1,
+              0
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "5-3-2",
+          "threats": 4,
+          "covered": 3,
+          "shape": {
+            "threats": 4,
+            "lastLine": 4,
+            "lanes": [
+              2,
+              1,
+              1
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "4-3-1-2",
+          "threats": 3,
+          "covered": 3,
+          "shape": {
+            "threats": 3,
+            "lastLine": 3,
+            "lanes": [
+              2,
+              1,
+              0
+            ],
+            "localOverload": false
+          }
+        },
+        {
+          "formation": "4-1-4-1",
+          "threats": 3,
+          "covered": 2,
+          "shape": {
+            "threats": 3,
+            "lastLine": 3,
+            "lanes": [
+              1,
+              1,
+              1
+            ],
+            "localOverload": false
+          }
+        },
+        {
+          "formation": "4-3-2-1",
+          "threats": 3,
+          "covered": 2,
+          "shape": {
+            "threats": 3,
+            "lastLine": 3,
+            "lanes": [
+              2,
+              1,
+              0
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "4-2-2-2",
+          "threats": 4,
+          "covered": 3,
+          "shape": {
+            "threats": 4,
+            "lastLine": 4,
+            "lanes": [
+              3,
+              1,
+              0
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "4-5-1",
+          "threats": 3,
+          "covered": 2,
+          "shape": {
+            "threats": 3,
+            "lastLine": 3,
+            "lanes": [
+              1,
+              1,
+              1
+            ],
+            "localOverload": false
+          }
+        },
+        {
+          "formation": "3-4-3",
+          "threats": 4,
+          "covered": 3,
+          "shape": {
+            "threats": 5,
+            "lastLine": 5,
+            "lanes": [
+              2,
+              1,
+              2
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "3-4-2-1",
+          "threats": 4,
+          "covered": 3,
+          "shape": {
+            "threats": 5,
+            "lastLine": 5,
+            "lanes": [
+              3,
+              1,
+              1
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "5-2-3",
+          "threats": 4,
+          "covered": 3,
+          "shape": {
+            "threats": 4,
+            "lastLine": 4,
+            "lanes": [
+              2,
+              1,
+              1
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "5-4-1",
+          "threats": 4,
+          "covered": 2,
+          "shape": {
+            "threats": 5,
+            "lastLine": 5,
+            "lanes": [
+              2,
+              1,
+              2
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "4-2-4",
+          "threats": 4,
+          "covered": 4,
+          "shape": {
+            "threats": 4,
+            "lastLine": 4,
+            "lanes": [
+              2,
+              1,
+              1
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "3-1-4-2",
+          "threats": 4,
+          "covered": 3,
+          "shape": {
+            "threats": 4,
+            "lastLine": 4,
+            "lanes": [
+              2,
+              1,
+              1
+            ],
+            "localOverload": true
+          }
+        },
+        {
+          "formation": "4-1-2-1-2",
+          "threats": 3,
+          "covered": 3,
+          "shape": {
+            "threats": 3,
+            "lastLine": 3,
+            "lanes": [
+              2,
+              1,
+              0
+            ],
+            "localOverload": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "cobertura coletiva converge contra todas as formações",
+      "pass": true,
+      "detail": {
+        "rate": 0.7580645161290323,
+        "formationCoverage": [
+          {
+            "formation": "4-3-3",
+            "threats": 3,
+            "covered": 3,
+            "shape": {
+              "threats": 3,
+              "lastLine": 3,
+              "lanes": [
+                2,
+                0,
+                1
+              ],
+              "localOverload": true
+            }
+          },
+          {
+            "formation": "4-4-2",
+            "threats": 4,
+            "covered": 3,
+            "shape": {
+              "threats": 4,
+              "lastLine": 4,
+              "lanes": [
+                2,
+                1,
+                1
+              ],
+              "localOverload": true
+            }
+          },
+          {
+            "formation": "4-2-3-1",
+            "threats": 4,
+            "covered": 3,
+            "shape": {
+              "threats": 4,
+              "lastLine": 4,
+              "lanes": [
+                3,
+                1,
+                0
+              ],
+              "localOverload": true
+            }
+          },
+          {
+            "formation": "3-5-2",
+            "threats": 4,
+            "covered": 2,
+            "shape": {
+              "threats": 3,
+              "lastLine": 3,
+              "lanes": [
+                2,
+                1,
+                0
+              ],
+              "localOverload": true
+            }
+          },
+          {
+            "formation": "5-3-2",
+            "threats": 4,
+            "covered": 3,
+            "shape": {
+              "threats": 4,
+              "lastLine": 4,
+              "lanes": [
+                2,
+                1,
+                1
+              ],
+              "localOverload": true
+            }
+          },
+          {
+            "formation": "4-3-1-2",
+            "threats": 3,
+            "covered": 3,
+            "shape": {
+              "threats": 3,
+              "lastLine": 3,
+              "lanes": [
+                2,
+                1,
+                0
+              ],
+              "localOverload": false
+            }
+          },
+          {
+            "formation": "4-1-4-1",
+            "threats": 3,
+            "covered": 2,
+            "shape": {
+              "threats": 3,
+              "lastLine": 3,
+              "lanes": [
+                1,
+                1,
+                1
+              ],
+              "localOverload": false
+            }
+          },
+          {
+            "formation": "4-3-2-1",
+            "threats": 3,
+            "covered": 2,
+            "shape": {
+              "threats": 3,
+              "lastLine": 3,
+              "lanes": [
+                2,
+                1,
+                0
+              ],
+              "localOverload": true
+            }
+          },
+          {
+            "formation": "4-2-2-2",
+            "threats": 4,
+            "covered": 3,
+            "shape": {
+              "threats": 4,
+              "lastLine": 4,
+              "lanes": [
+                3,
+                1,
+                0
+              ],
+              "localOverload": true
+            }
+          },
+          {
+            "formation": "4-5-1",
+            "threats": 3,
+            "covered": 2,
+            "shape": {
+              "threats": 3,
+              "lastLine": 3,
+              "lanes": [
+                1,
+                1,
+                1
+              ],
+              "localOverload": false
+            }
+          },
+          {
+            "formation": "3-4-3",
+            "threats": 4,
+            "covered": 3,
+            "shape": {
+              "threats": 5,
+              "lastLine": 5,
+              "lanes": [
+                2,
+                1,
+                2
+              ],
+              "localOverload": true
+            }
+          },
+          {
+            "formation": "3-4-2-1",
+            "threats": 4,
+            "covered": 3,
+            "shape": {
+              "threats": 5,
+              "lastLine": 5,
+              "lanes": [
+                3,
+                1,
+                1
+              ],
+              "localOverload": true
+            }
+          },
+          {
+            "formation": "5-2-3",
+            "threats": 4,
+            "covered": 3,
+            "shape": {
+              "threats": 4,
+              "lastLine": 4,
+              "lanes": [
+                2,
+                1,
+                1
+              ],
+              "localOverload": true
+            }
+          },
+          {
+            "formation": "5-4-1",
+            "threats": 4,
+            "covered": 2,
+            "shape": {
+              "threats": 5,
+              "lastLine": 5,
+              "lanes": [
+                2,
+                1,
+                2
+              ],
+              "localOverload": true
+            }
+          },
+          {
+            "formation": "4-2-4",
+            "threats": 4,
+            "covered": 4,
+            "shape": {
+              "threats": 4,
+              "lastLine": 4,
+              "lanes": [
+                2,
+                1,
+                1
+              ],
+              "localOverload": true
+            }
+          },
+          {
+            "formation": "3-1-4-2",
+            "threats": 4,
+            "covered": 3,
+            "shape": {
+              "threats": 4,
+              "lastLine": 4,
+              "lanes": [
+                2,
+                1,
+                1
+              ],
+              "localOverload": true
+            }
+          },
+          {
+            "formation": "4-1-2-1-2",
+            "threats": 3,
+            "covered": 3,
+            "shape": {
+              "threats": 3,
+              "lastLine": 3,
+              "lanes": [
+                2,
+                1,
+                0
+              ],
+              "localOverload": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "superioridade por corredor é detectada sem depender do 4-2-4",
+      "pass": true,
+      "detail": {
+        "threats": 4,
+        "lastLine": 4,
+        "lanes": [
+          2,
+          1,
+          1
+        ],
+        "localOverload": true
+      }
+    },
+    {
+      "name": "superioridade espacial aciona o jogador de sobra",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "bola dominada acompanha o corpo",
+      "pass": true,
+      "detail": 0.9967657725998111
+    },
+    {
+      "name": "4-2-4 recebe quatro referências físicas",
+      "pass": true,
+      "detail": {
+        "overload": true,
+        "markers": 4
+      }
+    },
+    {
+      "name": "4-2-4 aciona cobertura extra",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "marcadores recebem alvo do lado do gol",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "cobertura 4-2-4 converge no campo",
+      "pass": true,
+      "detail": {
+        "covered": 4
+      }
+    },
+    {
+      "name": "escanteio preserva defesa de descanso",
+      "pass": true,
+      "detail": {
+        "advanced": 2,
+        "rest": 2
+      }
+    },
+    {
+      "name": "papéis de escanteio são limpos após o corte",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "núcleo transacional permanece consistente",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "partida R13 permanece determinística",
+      "pass": true,
+      "detail": {
+        "stepsA": 12227,
+        "stepsB": 12227
+      }
+    },
+    {
+      "name": "partida percorre fases de cadência",
+      "pass": true,
+      "detail": {
+        "variety": [
+          8,
+          8
+        ],
+        "changes": 320
+      }
+    },
+    {
+      "name": "auditoria interna aprova orientação da bola",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "auditoria interna aprova linha organizada",
+      "pass": true,
+      "detail": 5.045314143613888
+    },
+    {
+      "name": "partida completa produz lateral",
+      "pass": true,
+      "detail": 6
+    }
+  ]
+}

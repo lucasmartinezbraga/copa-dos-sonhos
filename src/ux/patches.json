@@ -1,0 +1,197 @@
+[
+ {
+  "id": "cam-target-replay",
+  "from": "      const tx = cx(rframe.ball.x), ty = cy(rframe.ball.y);",
+  "to": "      let tx = cx(rframe.ball.x), ty = cy(rframe.ball.y);\n      if (window.CDS_F25D) { const _pj = window.CDS_F25D.project(tx, ty); tx = _pj.x; ty = _pj.y; }"
+ },
+ {
+  "id": "cam-target-live",
+  "from": "      const tx = cx(sb.x), ty = cy(sb.y);",
+  "to": "      let tx = cx(sb.x), ty = cy(sb.y);\n      if (window.CDS_F25D) { const _pj = window.CDS_F25D.project(tx, ty); tx = _pj.x; ty = _pj.y; }"
+ },
+ {
+  "id": "grass",
+  "from": "  /* gramado listrado */\n  const nS = 8, sw = fW/nS;\n  for (let i=0;i<nS;i++) {\n    ctx.fillStyle = i%2===0 ? '#1b7a36' : '#177030';\n    ctx.fillRect(M+i*sw, M, sw, fH);\n  }",
+  "to": "  /* gramado listrado (delegado ao palco 2.5D quando presente) */\n  if (window.CDS_F25D) { window.CDS_F25D.grass(ctx, M, fW, fH); } else {\n  const nS = 8, sw = fW/nS;\n  for (let i=0;i<nS;i++) {\n    ctx.fillStyle = i%2===0 ? '#1b7a36' : '#177030';\n    ctx.fillRect(M+i*sw, M, sw, fH);\n  } }"
+ },
+ {
+  "id": "pitch-markings",
+  "from": "  /* marcações */\n  ctx.strokeStyle = 'rgba(255,255,255,.62)'; ctx.lineWidth = 1.5;\n  ctx.strokeRect(M, M, fW, fH);\n  ctx.beginPath(); ctx.moveTo(CW/2,M); ctx.lineTo(CW/2,CH-M); ctx.stroke();\n  // círculo central\n  ctx.beginPath(); ctx.arc(CW/2, CH/2, (9.15/68)*fH, 0, Math.PI*2); ctx.stroke();\n  ctx.fillStyle='rgba(255,255,255,.7)'; ctx.beginPath(); ctx.arc(CW/2,CH/2,2.5,0,Math.PI*2); ctx.fill();\n  // áreas de penalti\n  const paW=(16.5/105)*fW, paH=(40.32/68)*fH;\n  ctx.strokeRect(M,(CH-paH)/2,paW,paH);\n  ctx.strokeRect(CW-M-paW,(CH-paH)/2,paW,paH);\n  // áreas pequenas\n  const gaW=(5.5/105)*fW, gaH=(18.32/68)*fH;\n  ctx.strokeRect(M,(CH-gaH)/2,gaW,gaH);\n  ctx.strokeRect(CW-M-gaW,(CH-gaH)/2,gaW,gaH);\n  // pênaltis\n  const psW=(11/105)*fW;\n  ctx.fillStyle='rgba(255,255,255,.7)';\n  ctx.beginPath(); ctx.arc(M+psW,CH/2,2.5,0,Math.PI*2); ctx.fill();\n  ctx.beginPath(); ctx.arc(CW-M-psW,CH/2,2.5,0,Math.PI*2); ctx.fill();\n  // arcos de canto\n  const ca=5;\n  ctx.beginPath(); ctx.arc(M,M,ca,0,Math.PI/2); ctx.stroke();\n  ctx.beginPath(); ctx.arc(CW-M,M,ca,Math.PI/2,Math.PI); ctx.stroke();\n  ctx.beginPath(); ctx.arc(M,CH-M,ca,-Math.PI/2,0); ctx.stroke();\n  ctx.beginPath(); ctx.arc(CW-M,CH-M,ca,Math.PI,3*Math.PI/2); ctx.stroke();\n  // goleiras\n  const goalH=(7.32/68)*fH;\n  ctx.fillStyle='rgba(255,255,255,.9)';\n  ctx.fillRect(M-7,(CH-goalH)/2,7,goalH);\n  ctx.fillRect(CW-M,(CH-goalH)/2,7,goalH);\n  ctx.strokeStyle='rgba(255,255,255,.4)'; ctx.lineWidth=.8;\n  ctx.strokeRect(M-7,(CH-goalH)/2,7,goalH);\n  ctx.strokeRect(CW-M,(CH-goalH)/2,7,goalH);",
+  "to": "  if (!window.CDS_F25D) {\n  /* marcações */\n  ctx.strokeStyle = 'rgba(255,255,255,.62)'; ctx.lineWidth = 1.5;\n  ctx.strokeRect(M, M, fW, fH);\n  ctx.beginPath(); ctx.moveTo(CW/2,M); ctx.lineTo(CW/2,CH-M); ctx.stroke();\n  // círculo central\n  ctx.beginPath(); ctx.arc(CW/2, CH/2, (9.15/68)*fH, 0, Math.PI*2); ctx.stroke();\n  ctx.fillStyle='rgba(255,255,255,.7)'; ctx.beginPath(); ctx.arc(CW/2,CH/2,2.5,0,Math.PI*2); ctx.fill();\n  // áreas de penalti\n  const paW=(16.5/105)*fW, paH=(40.32/68)*fH;\n  ctx.strokeRect(M,(CH-paH)/2,paW,paH);\n  ctx.strokeRect(CW-M-paW,(CH-paH)/2,paW,paH);\n  // áreas pequenas\n  const gaW=(5.5/105)*fW, gaH=(18.32/68)*fH;\n  ctx.strokeRect(M,(CH-gaH)/2,gaW,gaH);\n  ctx.strokeRect(CW-M-gaW,(CH-gaH)/2,gaW,gaH);\n  // pênaltis\n  const psW=(11/105)*fW;\n  ctx.fillStyle='rgba(255,255,255,.7)';\n  ctx.beginPath(); ctx.arc(M+psW,CH/2,2.5,0,Math.PI*2); ctx.fill();\n  ctx.beginPath(); ctx.arc(CW-M-psW,CH/2,2.5,0,Math.PI*2); ctx.fill();\n  // arcos de canto\n  const ca=5;\n  ctx.beginPath(); ctx.arc(M,M,ca,0,Math.PI/2); ctx.stroke();\n  ctx.beginPath(); ctx.arc(CW-M,M,ca,Math.PI/2,Math.PI); ctx.stroke();\n  ctx.beginPath(); ctx.arc(M,CH-M,ca,-Math.PI/2,0); ctx.stroke();\n  ctx.beginPath(); ctx.arc(CW-M,CH-M,ca,Math.PI,3*Math.PI/2); ctx.stroke();\n  // goleiras\n  const goalH=(7.32/68)*fH;\n  ctx.fillStyle='rgba(255,255,255,.9)';\n  ctx.fillRect(M-7,(CH-goalH)/2,7,goalH);\n  ctx.fillRect(CW-M,(CH-goalH)/2,7,goalH);\n  ctx.strokeStyle='rgba(255,255,255,.4)'; ctx.lineWidth=.8;\n  ctx.strokeRect(M-7,(CH-goalH)/2,7,goalH);\n  ctx.strokeRect(CW-M,(CH-goalH)/2,7,goalH);\n  }"
+ },
+ {
+  "id": "depth-sort",
+  "from": "  const groups = playersToDraw\n    ? [{ color: null, players: playersToDraw }]\n    : st.teams.map(t => ({ color: t.color, players: t.players }));",
+  "to": "  let groups = playersToDraw\n    ? [{ color: null, players: playersToDraw }]\n    : st.teams.map(t => ({ color: t.color, players: t.players }));\n  if (window.CDS_F25D) {\n    const _all = [];\n    for (const g of groups) for (const pl of g.players) { if (g.color && pl.color == null) pl.color = g.color; _all.push(pl); }\n    _all.sort((a, b) => a.y - b.y);\n    groups = [{ color: null, players: _all }];\n  }"
+ },
+ {
+  "id": "player-project",
+  "from": "      const groundX=_rx, groundY=_ry;\n      let x=groundX, y=groundY, r=13, divePose=false, actionWave=0;",
+  "to": "      let groundX=_rx, groundY=_ry, _ps=1;\n      if (window.CDS_F25D) { const _pj=window.CDS_F25D.project(_rx,_ry); groundX=_pj.x; groundY=_pj.y; _ps=_pj.s; }\n      let x=groundX, y=groundY, r=13*_ps, divePose=false, actionWave=0;"
+ },
+ {
+  "id": "player-shadow",
+  "from": "      ctx.beginPath(); ctx.ellipse(groundX,groundY+5,r*(1+actionWave*.18),r*.72,0,0,Math.PI*2);",
+  "to": "      ctx.beginPath();\n      if (window.CDS_F25D) ctx.ellipse(groundX,groundY+r*.98,r*.82*(1+actionWave*.18),r*.34,0,0,Math.PI*2);\n      else ctx.ellipse(groundX,groundY+5,r*(1+actionWave*.18),r*.72,0,0,Math.PI*2);"
+ },
+ {
+  "id": "player-body",
+  "from": "      // corpo: no mergulho do goleiro vira uma elipse lateral, deixando o pulo\n      // legível sem alterar a posição física usada pelo motor.\n      ctx.beginPath();\n      if (divePose) ctx.ellipse(x,y,r*1.42,r*.72,Math.PI/2,0,Math.PI*2);\n      else ctx.arc(x,y,r,0,Math.PI*2);\n      ctx.fillStyle = p.slot==='GK' ? gkC : pc; ctx.fill();\n\n      // borda\n      ctx.lineWidth = p.hasBall ? 2.5 : 1.5;\n      ctx.strokeStyle = p.hasBall ? '#fff' : 'rgba(255,255,255,.42)';\n      ctx.stroke();",
+  "to": "      // corpo: delegado ao atleta em pé 2.5D quando presente (apresentação)\n      if (window.CDS_F25D) { window.CDS_F25D.body(ctx, { x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall, key: (p.ref&&p.ref.n)||p.n||('#'+(p.num||0)), act: p._act||'', pose: (motion&&motion.type)||'', wave: actionWave }); } else {\n      // corpo: no mergulho do goleiro vira uma elipse lateral, deixando o pulo\n      // legível sem alterar a posição física usada pelo motor.\n      ctx.beginPath();\n      if (divePose) ctx.ellipse(x,y,r*1.42,r*.72,Math.PI/2,0,Math.PI*2);\n      else ctx.arc(x,y,r,0,Math.PI*2);\n      ctx.fillStyle = p.slot==='GK' ? gkC : pc; ctx.fill();\n\n      // borda\n      ctx.lineWidth = p.hasBall ? 2.5 : 1.5;\n      ctx.strokeStyle = p.hasBall ? '#fff' : 'rgba(255,255,255,.42)';\n      ctx.stroke(); }"
+ },
+ {
+  "id": "pill-dist-project",
+  "from": "      const _bs = st.ball;\n      const _bd = Math.hypot(x - cx(_bs.x), y - cy(_bs.y));",
+  "to": "      const _bs = st.ball;\n      let _bpx = cx(_bs.x), _bpy = cy(_bs.y);\n      if (window.CDS_F25D) { const _bp = window.CDS_F25D.project(_bpx, _bpy); _bpx = _bp.x; _bpy = _bp.y; }\n      const _bd = Math.hypot(x - _bpx, y - _bpy);"
+ },
+ {
+  "id": "traj-project",
+  "from": "    const x1=cx(bT.from.x), y1=cy(bT.from.y), x2=cx(bT.target.x), y2=cy(bT.target.y);\n    ctx.save();\n    if (bT.kind === 'shot') {\n      ctx.strokeStyle='rgba(255,255,255,.75)'; ctx.lineWidth=2; ctx.setLineDash([]);\n    } else {\n      ctx.strokeStyle='rgba(255,220,40,.9)'; ctx.lineWidth=2; ctx.setLineDash([7,6]);\n    }\n    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();\n    // ponta de seta\n    const ang=Math.atan2(y2-y1,x2-x1);\n    ctx.setLineDash([]);\n    ctx.fillStyle = bT.kind==='shot' ? 'rgba(255,255,255,.85)' : 'rgba(255,220,40,.95)';\n    ctx.beginPath();\n    ctx.moveTo(x2,y2);\n    ctx.lineTo(x2-9*Math.cos(ang-0.42), y2-9*Math.sin(ang-0.42));\n    ctx.lineTo(x2-9*Math.cos(ang+0.42), y2-9*Math.sin(ang+0.42));\n    ctx.closePath(); ctx.fill();\n    ctx.restore();",
+  "to": "    if (window.CDS_F25D) {\n      window.CDS_F25D.traj(ctx, { fx: bT.from.x, fy: bT.from.y, tx: bT.target.x, ty: bT.target.y,\n        gx: bT.x, gy: bT.y, z: bT.z || 0, kind: bT.kind, cx, cy });\n    } else {\n    const x1=cx(bT.from.x), y1=cy(bT.from.y), x2=cx(bT.target.x), y2=cy(bT.target.y);\n    ctx.save();\n    if (bT.kind === 'shot') {\n      ctx.strokeStyle='rgba(255,255,255,.75)'; ctx.lineWidth=2; ctx.setLineDash([]);\n    } else {\n      ctx.strokeStyle='rgba(255,220,40,.9)'; ctx.lineWidth=2; ctx.setLineDash([7,6]);\n    }\n    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();\n    // ponta de seta\n    const ang=Math.atan2(y2-y1,x2-x1);\n    ctx.setLineDash([]);\n    ctx.fillStyle = bT.kind==='shot' ? 'rgba(255,255,255,.85)' : 'rgba(255,220,40,.95)';\n    ctx.beginPath();\n    ctx.moveTo(x2,y2);\n    ctx.lineTo(x2-9*Math.cos(ang-0.42), y2-9*Math.sin(ang-0.42));\n    ctx.lineTo(x2-9*Math.cos(ang+0.42), y2-9*Math.sin(ang+0.42));\n    ctx.closePath(); ctx.fill();\n    ctx.restore(); }"
+ },
+ {
+  "id": "vfx-project",
+  "from": "    const x = cx(v.x), y = cy(v.y);",
+  "to": "    let x = cx(v.x), y = cy(v.y);\n    if (window.CDS_F25D) { const _pj = window.CDS_F25D.project(x, y); x = _pj.x; y = _pj.y; }"
+ },
+ {
+  "id": "trail-arc",
+  "from": "  if (!rframe) { ctx.save(); ctx.shadowColor = 'rgba(255,215,50,.9)';\n    trailPts.forEach((tp, i) => {\n      const f = 1 - i / trailPts.length;\n      ctx.shadowBlur = 9 * f;\n      ctx.fillStyle = `rgba(255,226,80,${f * 0.75})`;\n      ctx.beginPath(); ctx.arc(cx(tp.x), cy(tp.y), Math.max(0, 4.6 - i * .5), 0, Math.PI*2); ctx.fill();\n    });\n    ctx.restore();\n  }",
+  "to": "  if (!rframe) { if (window.CDS_F25D) { window.CDS_F25D.trail(ctx, trailPts, cx, cy); } else { ctx.save(); ctx.shadowColor = 'rgba(255,215,50,.9)';\n    trailPts.forEach((tp, i) => {\n      const f = 1 - i / trailPts.length;\n      ctx.shadowBlur = 9 * f;\n      ctx.fillStyle = `rgba(255,226,80,${f * 0.75})`;\n      ctx.beginPath(); ctx.arc(cx(tp.x), cy(tp.y), Math.max(0, 4.6 - i * .5), 0, Math.PI*2); ctx.fill();\n    });\n    ctx.restore();\n  } }"
+ },
+ {
+  "id": "ball-pro",
+  "from": "  // #brilho da bola — halo suave que facilita seguir a jogada\n  ctx.save();\n  const _bhalo = ctx.createRadialGradient(bx, by, 0, bx, by, 15);\n  _bhalo.addColorStop(0, 'rgba(255,238,140,.5)'); _bhalo.addColorStop(1, 'rgba(255,238,140,0)');\n  ctx.fillStyle = _bhalo; ctx.beginPath(); ctx.arc(bx, by, 15, 0, Math.PI*2); ctx.fill();\n  ctx.restore();\n  ctx.save(); ctx.globalAlpha=.28;\n  ctx.beginPath(); ctx.arc(cx(b.x),cy(b.y)+3,5,0,Math.PI*2);\n  ctx.fillStyle='#000'; ctx.fill(); ctx.restore();\n  ctx.beginPath(); ctx.arc(bx,by,7,0,Math.PI*2);\n  const bg=ctx.createRadialGradient(bx-2.5,by-2.5,0,bx,by,7);\n  bg.addColorStop(0,'#ffffff'); bg.addColorStop(1,'#c8c8c8');\n  ctx.fillStyle=bg; ctx.fill();\n  ctx.strokeStyle='#444'; ctx.lineWidth=.8; ctx.stroke();\n  // costura\n  ctx.strokeStyle='rgba(80,80,80,.5)'; ctx.lineWidth=.5;\n  ctx.beginPath(); ctx.arc(bx,by,4,0,Math.PI*2); ctx.stroke();",
+  "to": "  if (window.CDS_F25D) {\n    const _tv = (!rframe && bT && bT.traveling && bT.target) ? { tx: cx(bT.target.x), ty: cy(bT.target.y), kind: bT.kind } : null;\n    window.CDS_F25D.ball(ctx, { gx: cx(b.x), gy: cy(b.y), z: b.z || 0, tv: _tv });\n  } else {\n  // #brilho da bola — halo suave que facilita seguir a jogada\n  ctx.save();\n  const _bhalo = ctx.createRadialGradient(bx, by, 0, bx, by, 15);\n  _bhalo.addColorStop(0, 'rgba(255,238,140,.5)'); _bhalo.addColorStop(1, 'rgba(255,238,140,0)');\n  ctx.fillStyle = _bhalo; ctx.beginPath(); ctx.arc(bx, by, 15, 0, Math.PI*2); ctx.fill();\n  ctx.restore();\n  ctx.save(); ctx.globalAlpha=.28;\n  ctx.beginPath(); ctx.arc(cx(b.x),cy(b.y)+3,5,0,Math.PI*2);\n  ctx.fillStyle='#000'; ctx.fill(); ctx.restore();\n  ctx.beginPath(); ctx.arc(bx,by,7,0,Math.PI*2);\n  const bg=ctx.createRadialGradient(bx-2.5,by-2.5,0,bx,by,7);\n  bg.addColorStop(0,'#ffffff'); bg.addColorStop(1,'#c8c8c8');\n  ctx.fillStyle=bg; ctx.fill();\n  ctx.strokeStyle='#444'; ctx.lineWidth=.8; ctx.stroke();\n  // costura\n  ctx.strokeStyle='rgba(80,80,80,.5)'; ctx.lineWidth=.5;\n  ctx.beginPath(); ctx.arc(bx,by,4,0,Math.PI*2); ctx.stroke(); }"
+ },
+ {
+  "id": "trail-z",
+  "from": "  trailPts.unshift({ x: b.x, y: b.y });",
+  "to": "  trailPts.unshift({ x: b.x, y: b.y, z: b.z || 0 });"
+ },
+ {
+  "id": "num-depth-scale",
+  "from": "      ctx.font = `bold 10px Arial,sans-serif`;\n      ctx.textAlign='center'; ctx.textBaseline='middle';\n      ctx.fillText(p.num||'', x, y);",
+  "to": "      ctx.font = `bold ${Math.max(7, Math.min(12, 10 * r / 13)).toFixed(1)}px Arial,sans-serif`;\n      ctx.textAlign='center'; ctx.textBaseline='middle';\n      ctx.fillText(p.num||'', x, y);"
+ },
+ {
+  "id": "pill-clamp-decl",
+  "from": "      const pw = tw + 8, ph2 = 11, py2 = y + r + 2;",
+  "to": "      const pw = tw + 8, ph2 = 11, py2 = y + r + 2, pxc = Math.max(M + pw/2 + 2, Math.min(CW - M - pw/2 - 2, x));"
+ },
+ {
+  "id": "pill-clamp-rect",
+  "from": "      ctx.roundRect(x - pw/2, py2, pw, ph2, 6);",
+  "to": "      ctx.roundRect(pxc - pw/2, py2, pw, ph2, 6);"
+ },
+ {
+  "id": "pill-clamp-text",
+  "from": "      ctx.fillText(nm, x, py2 + ph2/2 + 0.5);",
+  "to": "      ctx.fillText(nm, pxc, py2 + ph2/2 + 0.5);"
+ },
+ {
+  "id": "score-resync",
+  "from": "  el.textContent=`${ph} ${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;",
+  "to": "  el.textContent=`${ph} ${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;\n  const scEl=$('#score'); const scTxt=`${sim.score[0]}–${sim.score[1]}`;\n  if (scEl && scEl.textContent !== scTxt) scEl.textContent = scTxt;"
+ },
+ {
+  "id": "pose-tackle",
+  "from": "  if (e.type === 'tackle' && e.by) fxAt(e.by, 'star', 0.7);",
+  "to": "  if (e.type === 'tackle' && e.by) { fxAt(e.by, 'star', 0.7); motionAt(e.by, 'tackle', 0.5); }"
+ },
+ {
+  "id": "pose-shot",
+  "from": "  if (e.type === 'shot_taken' && e.by) fxAt(e.by, 'ring', 0.5);   // #impacto: anel de força no chute",
+  "to": "  if (e.type === 'shot_taken' && e.by) { fxAt(e.by, 'ring', 0.5); motionAt(e.by, 'kick', 0.42); }   // #impacto: anel + pose de chute"
+ },
+ {
+  "id": "pose-cross",
+  "from": "  if (e.type === 'cross' && e.by) fxAt(e.by, 'arrow', 0.7);",
+  "to": "  if (e.type === 'cross' && e.by) { fxAt(e.by, 'arrow', 0.7); motionAt(e.by, 'kick', 0.42); }"
+ },
+ {
+  "id": "pose-freekick",
+  "from": "  if (e.type === 'legend' && e.by) fxAt(e.by, 'fire', 1.6);",
+  "to": "  if (e.type === 'legend' && e.by) fxAt(e.by, 'fire', 1.6);\n  if (e.type === 'freekick' && e.by) motionAt(e.by, 'kick', 0.46);   // pose de cobrança de falta no 2.5D"
+ },
+ {
+  "id": "a11y-announce",
+  "from": "    keyEvents.push(physicalDecorate({min:Math.floor(sim.minute),ic,side,txt:(nm?nm+' ':'')+e.type},e));\n    paintTimeline();",
+  "to": "    keyEvents.push(physicalDecorate({min:Math.floor(sim.minute),ic,side,txt:(nm?nm+' ':'')+e.type},e));\n    paintTimeline();\n    if(window.__cdsAnnounce)window.__cdsAnnounce((nm?nm+' ':'')+(e.type==='goal'?('gol, '+sim.score[0]+' a '+sim.score[1]):e.type==='yellow'?'cartão amarelo':e.type==='red'?'cartão vermelho':'substituição'), e.type==='goal');"
+ },
+ {
+  "id": "pose-pass",
+  "from": "  if (e.type === 'pass') {\n    if (passNarrCd <= 0 && vrand() < 0.6) {",
+  "to": "  if (e.type === 'pass') {\n    if (e.by) motionAt(e.by, 'kick', 0.32);\n    if (passNarrCd <= 0 && vrand() < 0.6) {"
+ },
+ {
+  "id": "draft-canprogress",
+  "from": "function canPlay(player, slot){ return player.elig.indexOf(slot) !== -1; }",
+  "to": "function canPlay(player, slot){ return player.elig.indexOf(slot) !== -1; }\nfunction _draftCanProgress(d){\n  if(!d||!d.cur||!d.cur.pl) return true;\n  const taken = pickedIds();\n  const avail = d.cur.pl.filter(p=>!taken.has(p.id));\n  return d.slots.filter(s=>!s.p).every(s=> avail.some(p=>canPlay(p,s.pos)));\n}"
+ },
+ {
+  "id": "draft-emergency",
+  "from": "  const team = d.cur;\n  const nPick = Math.min(filled() + 1, 11);",
+  "to": "  const team = d.cur;\n  // UX-031: nunca trava — sem peça compatível p/ um slot vazio e sem rerolls,\n  // concede reroll de EMERGÊNCIA (roleta enviesada p/ time compatível em rollTeam).\n  if (d.cur && filled() < 11 && d.rerolls <= 0 && !_draftCanProgress(d)) {\n    d.rerolls = 1; toast('Reroll de emergência: elenco sem peça compatível.');\n  }\n  const nPick = Math.min(filled() + 1, 11);"
+ },
+ {
+  "id": "draft-reroll-bias",
+  "from": "  if (!pool.length) { d.used = new Set(); pool = all.slice(); }\n  d.cur = rnd(pool);",
+  "to": "  if (!pool.length) { d.used = new Set(); pool = all.slice(); }\n  // UX-031: havendo slots vazios, prioriza times que TÊM peça compatível (evita travar)\n  const _need = d.slots.filter(s=>!s.p).map(s=>s.pos);\n  if (_need.length) {\n    const _taken = pickedIds();\n    const _good = pool.filter(t => (t.pl||[]).some(p=>!_taken.has(p.id) && _need.some(pos=>canPlay(p,pos))));\n    if (_good.length) pool = _good;\n  }\n  d.cur = rnd(pool);"
+ },
+ {
+  "id": "mob-doctype-top",
+  "from": "<!-- MOTOR VISUAL 2.0 · ENGINE 5.7.3 -->\n<!DOCTYPE html>\n",
+  "to": "<!DOCTYPE html>\n<!-- MOTOR VISUAL 2.0 · ENGINE 5.7.3 -->\n"
+ },
+ {
+  "id": "mob-inline-fonts-open",
+  "from": "<!-- TIPOGRAFIA: preconnects do Google Fonts removidos — as fontes agora são\n     100% embutidas no <style>\n",
+  "to": "<!-- TIPOGRAFIA: fontes 100% embutidas; nenhum request externo participa do boot. -->\n<style id=\"cds-inline-fonts\">\n"
+ },
+ {
+  "id": "mob-inline-fonts-close",
+  "from": " (ver bloco FONTES EMBUTIDAS), então não existe\n     mais NENHUM request externo neste arquivo. -->\n",
+  "to": "\n</style>\n"
+ },
+ {
+  "id": "mob-touch-action",
+  "from": "  touch-action:none;\n",
+  "to": "  touch-action:manipulation;\n"
+ },
+ {
+  "id": "mob-button-type-home",
+  "from": "<button aria-label=\"Abrir o Desafio de Faltas\" class=\"home-mode-v2\" data-go=\"freekick\">\n",
+  "to": "<button type=\"button\" aria-label=\"Abrir o Desafio de Faltas\" class=\"home-mode-v2\" data-go=\"freekick\">\n"
+ },
+ {
+  "id": "mob-boot-bridge",
+  "from": "</div></div>\n<script>\n",
+  "to": "</div></div>\n<script id=\"cds-mobile-boot-bridge\">\n/* Ponte mínima carregada ANTES do bundle pesado.\n   Garante resposta imediata aos botões da home e memoriza a tela solicitada\n   enquanto banco/motor terminam o boot. Não decide futebol. */\n(function (root) {\n  'use strict';\n  var lastTouchAt = -1e9;\n  function closestAction(target) {\n    return target && target.closest ? target.closest('#bt-start,#bt-about,[data-go]') : null;\n  }\n  function routeFor(el) {\n    if (!el) return null;\n    if (el.id === 'bt-start') return 'setup';\n    if (el.id === 'bt-about') return 'howto';\n    return el.getAttribute('data-go');\n  }\n  function paintPending(route) {\n    root.__CDS_PENDING_ROUTE = route || 'home';\n    var app = document.getElementById('app');\n    if (app) {\n      app.innerHTML = '<div id=\"boot-loading\" role=\"status\" aria-live=\"polite\" style=\"min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:28px;background:#070b14;color:#fff;font:16px/1.5 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;text-align:center\"><div><b style=\"display:block;color:#ffcb45;font-size:19px;margin-bottom:8px\">Iniciando Copa dos Sonhos…</b><span style=\"color:#aebbd0\">Preparando a tela solicitada. Não é necessário tocar novamente.</span></div></div>';\n    }\n    try { if (typeof root.__CDS_BOOT_NOW === 'function') root.__CDS_BOOT_NOW(); } catch (_) {}\n  }\n  function intercept(ev) {\n    var el = closestAction(ev.target);\n    if (!el) return;\n    /* Com o jogo pronto, deixa o listener funcional normal executar. */\n    if (root.UI && typeof root.UI.go === 'function' && root.G && root.G.db) return;\n    var route = routeFor(el);\n    if (!route) return;\n    ev.preventDefault();\n    ev.stopPropagation();\n    paintPending(route);\n  }\n  document.addEventListener('touchend', function (ev) {\n    lastTouchAt = Date.now();\n    intercept(ev);\n  }, { capture: true, passive: false });\n  document.addEventListener('click', function (ev) {\n    if (Date.now() - lastTouchAt < 700) {\n      var el = closestAction(ev.target);\n      if (el && !(root.UI && root.G && root.G.db)) { ev.preventDefault(); ev.stopPropagation(); }\n      return;\n    }\n    intercept(ev);\n  }, true);\n})(window);\n</script>\n<style id=\"cds-mobile-input-fix\">\nbutton,.btn,[role=\"button\"],[data-go]{touch-action:manipulation;-webkit-touch-callout:none}\nbutton:disabled,[aria-disabled=\"true\"]{touch-action:auto}\n</style>\n<script>\n"
+ },
+ {
+  "id": "mob-tap-and-click",
+  "from": "  const b = e.target.closest('[data-go]');\n  if (b) go(b.dataset.go);\n});\n\n/* Tap móvel tolerante: o botão dispara no pointerup mesmo quando o WebView\n   deixa de sintetizar o click. Um deslocamento maior que 14px cancela a ação. */\nfunction bindMobileTap(el, action) {\n  if (!el) return;\n  let pid = null, x0 = 0, y0 = 0, moved = false, firedAt = -1e9;\n  el.addEventListener('pointerdown', ev => {\n    if (ev.pointerType === 'mouse') return;\n    pid = ev.pointerId; x0 = ev.clientX; y0 = ev.clientY; moved = false;\n    try { el.setPointerCapture(pid); } catch (_) {}\n  }, { passive: true });\n  el.addEventListener('pointermove', ev => {\n    if (ev.pointerId !== pid) return;\n    if (Math.hypot(ev.clientX - x0, ev.clientY - y0) > 14) moved = true;\n  }, { passive: true });\n  const end = ev => {\n    if (ev.pointerId !== pid) return;\n    const fire = !moved;\n    pid = null;\n    if (fire) { firedAt = performance.now(); action(ev); }\n  };\n  el.addEventListener('pointerup', end, { passive: true });\n  el.addEventListener('pointercancel', ev => { if (ev.pointerId === pid) pid = null; }, { passive: true });\n  el.addEventListener('click', ev => {\n    if (performance.now() - firedAt < 600) { ev.preventDefault(); return; }\n    action(ev);\n",
+  "to": "  const target = e.target && e.target.closest ? e.target : null;\n  const b = target ? target.closest('[data-go]') : null;\n  if (b) { e.preventDefault(); go(b.dataset.go); }\n});\n\n/* Tap móvel robusto: CLICK é a fonte principal. touchend existe apenas como\n   fallback para WebViews que não sintetizam click. Sem pointer capture e sem\n   cancelar a ação por microdeslocamentos naturais do dedo. */\nfunction bindMobileTap(el, action) {\n  if (!el || el.__cdsTapBound) return;\n  el.__cdsTapBound = true;\n  let touchFiredAt = -1e9;\n  const invoke = ev => {\n    if (el.disabled || el.getAttribute('aria-disabled') === 'true') return;\n    action(ev);\n  };\n  el.addEventListener('touchend', ev => {\n    if (ev.changedTouches && ev.changedTouches.length !== 1) return;\n    touchFiredAt = performance.now();\n    ev.preventDefault();\n    invoke(ev);\n  }, { passive: false });\n  el.addEventListener('click', ev => {\n    if (performance.now() - touchFiredAt < 700) {\n      ev.preventDefault();\n      return;\n    }\n    invoke(ev);\n"
+ },
+ {
+  "id": "mob-button-type-screen",
+  "from": "            <button class=\"home-mode-v2\" data-go=\"freekick\" aria-label=\"Abrir o Desafio de Faltas\">\n",
+  "to": "            <button type=\"button\" class=\"home-mode-v2\" data-go=\"freekick\" aria-label=\"Abrir o Desafio de Faltas\">\n"
+ },
+ {
+  "id": "mob-boot-ready-route",
+  "from": "      go('home');\n",
+  "to": "      document.documentElement.dataset.cdsBoot = 'ready';\n      const requestedRoute = window.__CDS_PENDING_ROUTE;\n      window.__CDS_PENDING_ROUTE = null;\n      if (requestedRoute === 'freekick' || SCREENS[requestedRoute]) go(requestedRoute);\n      else go('home');\n"
+ },
+ {
+  "id": "mob-boot-now-export",
+  "from": "}\n/* Gatilhos redundantes — todos idempotentes graças ao _bootStarted: */\n",
+  "to": "}\nwindow.__CDS_BOOT_NOW = bootGame;\n/* Gatilhos redundantes — todos idempotentes graças ao _bootStarted: */\n"
+ },
+ {
+  "id": "fix-goalflash-stuck",
+  "from": "  if (goalFlash && goalFlash.alpha > 0.01) {\n    ctx.fillStyle = 'rgba(255,255,255,' + (goalFlash.alpha * 0.5) + ')';\n    ctx.fillRect(0, 0, CW, CH);\n  }",
+  "to": "  if (goalFlash && goalFlash.alpha > 0.01) {\n    // O decaimento vivia no laço da SIMULAÇÃO. Com o jogo pausado —\n    // celebração, replay, intervalo — a simulação para, o alpha congela e o\n    // véu branco fica na tela para sempre, lavando as cores do campo.\n    // Aqui ele decai por tempo REAL, então some mesmo com o jogo parado.\n    const _now = performance.now();\n    if (goalFlash._wt) goalFlash.alpha = Math.max(0, goalFlash.alpha - (_now - goalFlash._wt) / 1000 * 1.6);\n    goalFlash._wt = _now;\n    if (goalFlash.alpha > 0.01) {\n      ctx.fillStyle = 'rgba(255,255,255,' + (goalFlash.alpha * 0.5) + ')';\n      ctx.fillRect(0, 0, CW, CH);\n    }\n  }"
+ }
+]

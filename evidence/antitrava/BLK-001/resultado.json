@@ -1,0 +1,45 @@
+{
+  "id": "BLK-001",
+  "titulo": "Trava da bola / posse ativa sem decisão",
+  "status": "PASS",
+  "prioridade": "P0",
+  "sha256_candidata_recebida": "08716e3df6f7a08a052090343ef79d13551aea3fee7d4f2669788f51546b492f",
+  "sha256_r14": "0230a6ffe90f3ecda3b731e215216e21a7445b47e644c8882f84ce9eb05605c2",
+  "commit": "0e6699d",
+  "data": "2026-07-22T16:29:57.304682+00:00",
+  "ambiente": "Windows 11, Node v24.18.0 portátil, Python 3.11.8, motor puro (sem render)",
+  "procedimento": "node tools/ux/probe_balllock.js --build=<html> --csv=tools/r13/COPA_DOS_SONHOS_P0-6_R12.3_PARTIDAS.csv --start=0 --end=200 (mesmos limiares da config: raio 4,0 m / 3,0 s)",
+  "causa_raiz": "Fase build_up aplicava clamp13(decideT,.10,.44) a cada tick — piso onde as fases irmãs usam teto (Math.min). decideT nunca atingia <=0 e _decide nunca era chamado.",
+  "resultado_esperado": "zero travas críticas; nenhuma posse ativa indefinidamente sem decisão",
+  "resultado_observado": {
+    "antes": {
+      "partidas": 200,
+      "travas": 1415,
+      "travas2p": 1048,
+      "pior": 47.8
+    },
+    "depois": {
+      "partidas": 200,
+      "travas": 168,
+      "travas2p": 18,
+      "pior": 6.0
+    },
+    "travas_maior_igual_10s": {
+      "antes": 400,
+      "depois": 0
+    },
+    "travas_maior_igual_20s": {
+      "antes": 51,
+      "depois": 0
+    }
+  },
+  "reproducao_deterministica": "seed 870000, 4-1-4-1 press x 4-3-1-2 park, 71.13' — dono único 23,2s com decideT fixo em 0.10 e zero chamadas a _decide",
+  "arquivos_associados": [
+    "reports/r14/ball-lock/baseline-r14-candidata.json",
+    "reports/r14/ball-lock/r14-motor-vivo.json",
+    "reports/r14/ball-lock/trace-seed0.json",
+    "reports/r14/differences/R13-R14-200-seeds.md",
+    "src/r14/patches-engine.json"
+  ],
+  "observacoes": "R13.0 congelada e byte-idêntica (363d9a91…). Cenários dirigidos 25/25 e smoke estático 13/13 na R14 recalibrada; smoke de navegador 4/4 viewports. Gate de balanço de estilos APROVA após recalibração — ver BAL-001."
+}

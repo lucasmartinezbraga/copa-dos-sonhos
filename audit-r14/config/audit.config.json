@@ -1,0 +1,45 @@
+{
+  "audit_version": "R14-800-v1.0",
+  "candidate": "candidate/_R14.html",
+  "matrix": "matriz/AUDITORIA-MESTRA-R14-800-ITENS.json",
+  "evidence_root": "evidence",
+  "thresholds": {
+    "ball_lock_radius_m": 4.0,
+    "ball_lock_p0_seconds": 3.0,
+    "single_owner_p99_seconds": 2.5,
+    "single_owner_max_seconds": 4.0,
+    "mobile_fps_1x_median": 45,
+    "mobile_fps_turbo_median": 30,
+    "mobile_p95_frame_ms": 33,
+    "heap_growth_three_matches_pct": 15
+  },
+  "repo_tools": {
+    "verify_r13": "tools/verify_r13.py",
+    "balllock_probe": "tools/ux/probe_balllock.js",
+    "scenarios": "tools/r13/test_r130_scenarios.js",
+    "static_smoke": "tools/r13/static_smoke_r130.js",
+    "golden_csv": "tools/r13/COPA_DOS_SONHOS_P0-6_R12.3_PARTIDAS.csv"
+  },
+  "viewports": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 810
+    },
+    {
+      "name": "tablet",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "mobile-portrait",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "name": "mobile-landscape",
+      "width": 844,
+      "height": 390
+    }
+  ]
+}

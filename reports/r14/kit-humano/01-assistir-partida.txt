@@ -1,0 +1,1134 @@
+# 01-assistir-partida  (282 controles)
+# Assistir partidas no desktop e julgar o que aparece na tela.
+#
+# Marque:  [x] passou   [!] falhou   [?] não consegui avaliar
+# Deixe [ ] no que não testar — fica PENDENTE, e tudo bem.
+# Build a testar: COPA DOS SONHOS - R14 - MOTOR VIVO.html
+
+[ ] CAD-001  Saída curta: duração da fase
+    > cenário: Observar goleiro e primeira linha iniciando sob pressão moderada, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  A fase dura tempo suficiente para ser reconhecida, sem congelar ou se prolongar artificialmente.
+
+[ ] CAD-002  Saída curta: aceleração contextual
+    > cenário: Observar goleiro e primeira linha iniciando sob pressão moderada, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Acelera quando surge espaço real e desacelera quando o espaço fecha; não usa velocidade constante.
+
+[ ] CAD-003  Saída curta: micro-pausas de decisão
+    > cenário: Observar goleiro e primeira linha iniciando sob pressão moderada, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Existem ajustes corporais e leitura de jogo, mas nenhuma parada sem causa superior a 0,8 s.
+
+[ ] CAD-004  Saída curta: reação coletiva
+    > cenário: Observar goleiro e primeira linha iniciando sob pressão moderada, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Ao mudar a fase, ao menos duas linhas reagem de forma coordenada dentro de 1,2 s lógicos.
+
+[ ] CAD-006  Circulação no meio: duração da fase
+    > cenário: Observar posse estabilizada entre zagueiros, volantes e meias, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  A fase dura tempo suficiente para ser reconhecida, sem congelar ou se prolongar artificialmente.
+
+[ ] CAD-007  Circulação no meio: aceleração contextual
+    > cenário: Observar posse estabilizada entre zagueiros, volantes e meias, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Acelera quando surge espaço real e desacelera quando o espaço fecha; não usa velocidade constante.
+
+[ ] CAD-008  Circulação no meio: micro-pausas de decisão
+    > cenário: Observar posse estabilizada entre zagueiros, volantes e meias, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Existem ajustes corporais e leitura de jogo, mas nenhuma parada sem causa superior a 0,8 s.
+
+[ ] CAD-009  Circulação no meio: reação coletiva
+    > cenário: Observar posse estabilizada entre zagueiros, volantes e meias, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Ao mudar a fase, ao menos duas linhas reagem de forma coordenada dentro de 1,2 s lógicos.
+
+[ ] CAD-011  Progressão pelo corredor: duração da fase
+    > cenário: Observar lateral, ponta e meia avançando por um lado, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  A fase dura tempo suficiente para ser reconhecida, sem congelar ou se prolongar artificialmente.
+
+[ ] CAD-012  Progressão pelo corredor: aceleração contextual
+    > cenário: Observar lateral, ponta e meia avançando por um lado, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Acelera quando surge espaço real e desacelera quando o espaço fecha; não usa velocidade constante.
+
+[ ] CAD-013  Progressão pelo corredor: micro-pausas de decisão
+    > cenário: Observar lateral, ponta e meia avançando por um lado, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Existem ajustes corporais e leitura de jogo, mas nenhuma parada sem causa superior a 0,8 s.
+
+[ ] CAD-014  Progressão pelo corredor: reação coletiva
+    > cenário: Observar lateral, ponta e meia avançando por um lado, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Ao mudar a fase, ao menos duas linhas reagem de forma coordenada dentro de 1,2 s lógicos.
+
+[ ] CAD-016  Ataque posicional: duração da fase
+    > cenário: Observar equipe instalada contra bloco organizado, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  A fase dura tempo suficiente para ser reconhecida, sem congelar ou se prolongar artificialmente.
+
+[ ] CAD-017  Ataque posicional: aceleração contextual
+    > cenário: Observar equipe instalada contra bloco organizado, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Acelera quando surge espaço real e desacelera quando o espaço fecha; não usa velocidade constante.
+
+[ ] CAD-018  Ataque posicional: micro-pausas de decisão
+    > cenário: Observar equipe instalada contra bloco organizado, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Existem ajustes corporais e leitura de jogo, mas nenhuma parada sem causa superior a 0,8 s.
+
+[ ] CAD-019  Ataque posicional: reação coletiva
+    > cenário: Observar equipe instalada contra bloco organizado, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Ao mudar a fase, ao menos duas linhas reagem de forma coordenada dentro de 1,2 s lógicos.
+
+[ ] CAD-021  Transição ofensiva: duração da fase
+    > cenário: Observar recuperação com espaço e defesa adversária desorganizada, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  A fase dura tempo suficiente para ser reconhecida, sem congelar ou se prolongar artificialmente.
+
+[ ] CAD-022  Transição ofensiva: aceleração contextual
+    > cenário: Observar recuperação com espaço e defesa adversária desorganizada, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Acelera quando surge espaço real e desacelera quando o espaço fecha; não usa velocidade constante.
+
+[ ] CAD-023  Transição ofensiva: micro-pausas de decisão
+    > cenário: Observar recuperação com espaço e defesa adversária desorganizada, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Existem ajustes corporais e leitura de jogo, mas nenhuma parada sem causa superior a 0,8 s.
+
+[ ] CAD-024  Transição ofensiva: reação coletiva
+    > cenário: Observar recuperação com espaço e defesa adversária desorganizada, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Ao mudar a fase, ao menos duas linhas reagem de forma coordenada dentro de 1,2 s lógicos.
+
+[ ] CAD-026  Transição defensiva: duração da fase
+    > cenário: Observar perda da bola com jogadores à frente, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  A fase dura tempo suficiente para ser reconhecida, sem congelar ou se prolongar artificialmente.
+
+[ ] CAD-027  Transição defensiva: aceleração contextual
+    > cenário: Observar perda da bola com jogadores à frente, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Acelera quando surge espaço real e desacelera quando o espaço fecha; não usa velocidade constante.
+
+[ ] CAD-028  Transição defensiva: micro-pausas de decisão
+    > cenário: Observar perda da bola com jogadores à frente, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Existem ajustes corporais e leitura de jogo, mas nenhuma parada sem causa superior a 0,8 s.
+
+[ ] CAD-029  Transição defensiva: reação coletiva
+    > cenário: Observar perda da bola com jogadores à frente, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Ao mudar a fase, ao menos duas linhas reagem de forma coordenada dentro de 1,2 s lógicos.
+
+[ ] CAD-031  Pressão alta: duração da fase
+    > cenário: Observar equipe tentando recuperar perto da área rival, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  A fase dura tempo suficiente para ser reconhecida, sem congelar ou se prolongar artificialmente.
+
+[ ] CAD-032  Pressão alta: aceleração contextual
+    > cenário: Observar equipe tentando recuperar perto da área rival, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Acelera quando surge espaço real e desacelera quando o espaço fecha; não usa velocidade constante.
+
+[ ] CAD-033  Pressão alta: micro-pausas de decisão
+    > cenário: Observar equipe tentando recuperar perto da área rival, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Existem ajustes corporais e leitura de jogo, mas nenhuma parada sem causa superior a 0,8 s.
+
+[ ] CAD-034  Pressão alta: reação coletiva
+    > cenário: Observar equipe tentando recuperar perto da área rival, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Ao mudar a fase, ao menos duas linhas reagem de forma coordenada dentro de 1,2 s lógicos.
+
+[ ] CAD-036  Bloco médio: duração da fase
+    > cenário: Observar linhas compactas aguardando no meio-campo, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  A fase dura tempo suficiente para ser reconhecida, sem congelar ou se prolongar artificialmente.
+
+[ ] CAD-037  Bloco médio: aceleração contextual
+    > cenário: Observar linhas compactas aguardando no meio-campo, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Acelera quando surge espaço real e desacelera quando o espaço fecha; não usa velocidade constante.
+
+[ ] CAD-038  Bloco médio: micro-pausas de decisão
+    > cenário: Observar linhas compactas aguardando no meio-campo, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Existem ajustes corporais e leitura de jogo, mas nenhuma parada sem causa superior a 0,8 s.
+
+[ ] CAD-039  Bloco médio: reação coletiva
+    > cenário: Observar linhas compactas aguardando no meio-campo, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Ao mudar a fase, ao menos duas linhas reagem de forma coordenada dentro de 1,2 s lógicos.
+
+[ ] CAD-041  Bloco baixo: duração da fase
+    > cenário: Observar equipe protegendo a própria área, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  A fase dura tempo suficiente para ser reconhecida, sem congelar ou se prolongar artificialmente.
+
+[ ] CAD-042  Bloco baixo: aceleração contextual
+    > cenário: Observar equipe protegendo a própria área, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Acelera quando surge espaço real e desacelera quando o espaço fecha; não usa velocidade constante.
+
+[ ] CAD-043  Bloco baixo: micro-pausas de decisão
+    > cenário: Observar equipe protegendo a própria área, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Existem ajustes corporais e leitura de jogo, mas nenhuma parada sem causa superior a 0,8 s.
+
+[ ] CAD-044  Bloco baixo: reação coletiva
+    > cenário: Observar equipe protegendo a própria área, em velocidade normal 1.0x, com câmera e VFX definitivos.
+    > aceite:  Ao mudar a fase, ao menos duas linhas reagem de forma coordenada dentro de 1,2 s lógicos.
+
+[ ] BOL-001  Bola controlada orientada ao corpo
+    > cenário: Portador muda direção em baixa e alta velocidade.
+    > aceite:  Divergência acima de 45° em menos de 2% das amostras controladas.
+
+[ ] BOL-002  Contato real no passe curto
+    > cenário: Passe de até 12 m com receptor frontal.
+    > aceite:  Bola sai do pé no frame de ação, sem lacuna nem antecipação visível.
+
+[ ] BOL-003  Contato real no passe longo
+    > cenário: Lançamento acima de 25 m.
+    > aceite:  Origem coincide com pé de apoio/ação e não com centro do avatar.
+
+[ ] BOL-004  Passe rasteiro desacelera
+    > cenário: Passe de 15–25 m em gramado livre.
+    > aceite:  Velocidade diminui progressivamente; não desliza em velocidade constante.
+
+[ ] BOL-013  Bola aérea no terço distante
+    > cenário: Lançamento alto próximo à arquibancada visual.
+    > aceite:  A bola permanece dentro do teto de projeção do palco; não invade arquibancada.
+
+[ ] BOL-020  Recuperação física da posse
+    > cenário: Atleta alcança bola livre.
+    > aceite:  Posse só muda quando distância e tempo de contato são plausíveis.
+
+[ ] BOL-025  Origem do arremesso
+    > cenário: Bola sai em cinco pontos diferentes da linha.
+    > aceite:  Reposição ocorre no ponto equivalente, limitado apenas por regra documentada.
+
+[ ] BOL-032  Origem no quadrante correto
+    > cenário: Saída pela esquerda e direita.
+    > aceite:  Bola posicionada no lado correspondente.
+
+[ ] BOL-033  Corridas pré-cobrança
+    > cenário: Marcação mista com atacantes na área.
+    > aceite:  Há disputa por espaço; atletas não ficam estáticos ou sobrepostos.
+
+[ ] BOL-040  Reposicionamento para tiro de meta
+    > cenário: Equipes em bloco alto e baixo.
+    > aceite:  Jogadores assumem estrutura coerente sem teleporte visível.
+
+[ ] BOL-045  Continuidade após tiro de meta
+    > cenário: Recepção curta ou disputa longa.
+    > aceite:  Sem corte de câmera, pausa ou posse forçada.
+
+[ ] BOL-047  Câmera unificada de falta
+    > cenário: Falta direta e indireta.
+    > aceite:  Permanece no palco 2.5D; não há corte para perspectiva antiga.
+
+[ ] BOL-048  Barreira posicionada
+    > cenário: Falta frontal e lateral.
+    > aceite:  Distância regulamentar visual e jogadores não sobrepostos.
+
+[ ] BOL-051  Reação da barreira
+    > cenário: Chute direto.
+    > aceite:  Jogadores saltam/reagem no momento da cobrança, sem antecipação grosseira.
+
+[ ] BOL-054  Câmera unificada de pênalti
+    > cenário: Gerar pênalti durante partida.
+    > aceite:  Cena usa palco 2.5D e mantém identidade visual do jogo.
+
+[ ] BOL-055  Posicionamento pré-cobrança
+    > cenário: Batedor, goleiro e demais atletas.
+    > aceite:  Todos ocupam posições legais sem sobreposição.
+
+[ ] BOL-056  Contato do chute no pênalti
+    > cenário: Cobrança em diferentes lados.
+    > aceite:  Bola sai no contato do pé e não teleporta.
+
+[ ] BOL-064  Estrutura após saída
+    > cenário: Passe para trás e pressão adversária.
+    > aceite:  Linhas expandem gradualmente, sem corrida caótica ao mesmo ponto.
+
+[ ] IA-001  Compactação vertical do bloco
+    > cenário: Ataque circula da defesa ao terço final.
+    > aceite:  Bloco ajusta profundidade sem buracos sistemáticos acima de 18 m entre linhas adjacentes.
+
+[ ] IA-002  Compactação horizontal
+    > cenário: Bola alterna entre corredor esquerdo, centro e direito.
+    > aceite:  Equipe desliza para o lado da bola e mantém lado oposto protegido por dentro.
+
+[ ] IA-004  Lateral acompanha a linha
+    > cenário: Bola no lado oposto e atacante aberto.
+    > aceite:  Não mantém atacante em condição por atraso recorrente sem motivo.
+
+[ ] IA-005  Volante protege zona central
+    > cenário: Zagueiro sai para pressionar.
+    > aceite:  Volante ou defensor cobre a zona antes de o rival explorar o corredor central.
+
+[ ] IA-007  Lado oposto fecha por dentro
+    > cenário: Ataque progride pelo corredor lateral.
+    > aceite:  Extremo e lateral opostos estreitam sem abandonar completamente a largura.
+
+[ ] IA-011  Proteção do corredor central
+    > cenário: Rival possui dois meias entrelinhas.
+    > aceite:  Ao menos um volante ou zagueiro controla a zona e linha de passe.
+
+[ ] IA-014  Recuo diante de corrida nas costas
+    > cenário: Atacante acelera e passador tem tempo.
+    > aceite:  Linha recua proporcionalmente antes do passe, sem recuo infinito.
+
+[ ] IA-015  Subida com passador pressionado
+    > cenário: Passador rival de costas e sob pressão.
+    > aceite:  Linha encurta em bloco e pode gerar impedimento orgânico.
+
+[ ] IA-019  Reação a inversão longa
+    > cenário: Bola muda de corredor em passe longo.
+    > aceite:  Bloco oposto reage antes da recepção ou dentro de 1,5 s lógicos.
+
+[ ] IA-023  Controle do corredor de passe
+    > cenário: Atacante sem bola entre defensor e gol.
+    > aceite:  Defensor reduz linha de passe mesmo sem colar no atacante.
+
+[ ] IA-026  Não seguir atacante irrelevante
+    > cenário: Atacante recua para longe do gol.
+    > aceite:  Defensor preserva estrutura quando a perseguição criaria espaço perigoso.
+
+[ ] IA-031  Marcação sem colisão de atletas
+    > cenário: Dois defensores convergem.
+    > aceite:  Não ocupam exatamente o mesmo ponto por mais de 0,3 s.
+
+[ ] IA-035  Sobrecarga 4-2-4 por ocupação
+    > cenário: Quatro atacantes ocupam última linha.
+    > aceite:  Resposta ocorre sem condição hard-coded e taxa permanece dentro do gate.
+
+[ ] IA-039  Pressão orientada para lateral
+    > cenário: Portador próximo ao corredor.
+    > aceite:  Abordagem usa linha lateral como defensor adicional.
+
+[ ] IA-044  Pressão sem stamina infinita
+    > cenário: Sequência longa de posse rival.
+    > aceite:  Intensidade varia e não permanece máxima continuamente.
+
+[ ] IA-046  Amplitude na construção
+    > cenário: Posse com zagueiros.
+    > aceite:  Equipe abre o campo conforme formação e estilo.
+
+[ ] IA-048  Ocupação entrelinhas
+    > cenário: Meias atacam espaço entre meio e defesa.
+    > aceite:  Jogadores alternam altura e não formam uma única linha.
+
+[ ] IA-057  Corridas de apoio na transição
+    > cenário: Recuperação com superioridade.
+    > aceite:  Portador recebe opções em largura, profundidade e apoio.
+
+[ ] IA-061  Recomposição do lado oposto
+    > cenário: Perda após inversão.
+    > aceite:  Lado fraco fecha por dentro e protege profundidade.
+
+[ ] IA-066  Resposta a vantagem no placar
+    > cenário: IA vence após 70 minutos.
+    > aceite:  Reduz risco de forma gradual, sem parar de atacar completamente.
+
+[ ] IA-067  Resposta a desvantagem
+    > cenário: IA perde após 70 minutos.
+    > aceite:  Aumenta risco e presença sem desmontar toda a defesa.
+
+[ ] FOR-001  3-4-3: estrutura-base
+    > cenário: Iniciar partida neutra com atletas de laboratório e observar posse, defesa e reinícios.
+    > aceite:  Onze atletas ocupam funções distintas, sem amontoamento sistemático ou posição fora do campo.
+
+[ ] FOR-003  4-2-4: estrutura-base
+    > cenário: Iniciar partida neutra com atletas de laboratório e observar posse, defesa e reinícios.
+    > aceite:  Onze atletas ocupam funções distintas, sem amontoamento sistemático ou posição fora do campo.
+
+[ ] FOR-005  4-5-1: estrutura-base
+    > cenário: Iniciar partida neutra com atletas de laboratório e observar posse, defesa e reinícios.
+    > aceite:  Onze atletas ocupam funções distintas, sem amontoamento sistemático ou posição fora do campo.
+
+[ ] FOR-007  3-5-2: estrutura-base
+    > cenário: Iniciar partida neutra com atletas de laboratório e observar posse, defesa e reinícios.
+    > aceite:  Onze atletas ocupam funções distintas, sem amontoamento sistemático ou posição fora do campo.
+
+[ ] FOR-009  5-2-3: estrutura-base
+    > cenário: Iniciar partida neutra com atletas de laboratório e observar posse, defesa e reinícios.
+    > aceite:  Onze atletas ocupam funções distintas, sem amontoamento sistemático ou posição fora do campo.
+
+[ ] FOR-011  4-1-2-1-2: estrutura-base
+    > cenário: Iniciar partida neutra com atletas de laboratório e observar posse, defesa e reinícios.
+    > aceite:  Onze atletas ocupam funções distintas, sem amontoamento sistemático ou posição fora do campo.
+
+[ ] FOR-013  4-3-3: estrutura-base
+    > cenário: Iniciar partida neutra com atletas de laboratório e observar posse, defesa e reinícios.
+    > aceite:  Onze atletas ocupam funções distintas, sem amontoamento sistemático ou posição fora do campo.
+
+[ ] FOR-015  3-1-4-2: estrutura-base
+    > cenário: Iniciar partida neutra com atletas de laboratório e observar posse, defesa e reinícios.
+    > aceite:  Onze atletas ocupam funções distintas, sem amontoamento sistemático ou posição fora do campo.
+
+[ ] FOR-017  4-4-2: estrutura-base
+    > cenário: Iniciar partida neutra com atletas de laboratório e observar posse, defesa e reinícios.
+    > aceite:  Onze atletas ocupam funções distintas, sem amontoamento sistemático ou posição fora do campo.
+
+[ ] FOR-019  4-1-4-1: estrutura-base
+    > cenário: Iniciar partida neutra com atletas de laboratório e observar posse, defesa e reinícios.
+    > aceite:  Onze atletas ocupam funções distintas, sem amontoamento sistemático ou posição fora do campo.
+
+[ ] FOR-021  4-3-1-2: estrutura-base
+    > cenário: Iniciar partida neutra com atletas de laboratório e observar posse, defesa e reinícios.
+    > aceite:  Onze atletas ocupam funções distintas, sem amontoamento sistemático ou posição fora do campo.
+
+[ ] FOR-023  4-2-2-2: estrutura-base
+    > cenário: Iniciar partida neutra com atletas de laboratório e observar posse, defesa e reinícios.
+    > aceite:  Onze atletas ocupam funções distintas, sem amontoamento sistemático ou posição fora do campo.
+
+[ ] FOR-025  5-3-2: estrutura-base
+    > cenário: Iniciar partida neutra com atletas de laboratório e observar posse, defesa e reinícios.
+    > aceite:  Onze atletas ocupam funções distintas, sem amontoamento sistemático ou posição fora do campo.
+
+[ ] FOR-027  4-3-2-1: estrutura-base
+    > cenário: Iniciar partida neutra com atletas de laboratório e observar posse, defesa e reinícios.
+    > aceite:  Onze atletas ocupam funções distintas, sem amontoamento sistemático ou posição fora do campo.
+
+[ ] FOR-029  4-2-3-1: estrutura-base
+    > cenário: Iniciar partida neutra com atletas de laboratório e observar posse, defesa e reinícios.
+    > aceite:  Onze atletas ocupam funções distintas, sem amontoamento sistemático ou posição fora do campo.
+
+[ ] FOR-031  3-4-2-1: estrutura-base
+    > cenário: Iniciar partida neutra com atletas de laboratório e observar posse, defesa e reinícios.
+    > aceite:  Onze atletas ocupam funções distintas, sem amontoamento sistemático ou posição fora do campo.
+
+[ ] FOR-033  5-4-1: estrutura-base
+    > cenário: Iniciar partida neutra com atletas de laboratório e observar posse, defesa e reinícios.
+    > aceite:  Onze atletas ocupam funções distintas, sem amontoamento sistemático ou posição fora do campo.
+
+[ ] FOR-051  4-2-4 ofensivo tem risco real
+    > cenário: Usar mentalidade ofensiva contra bloco organizado.
+    > aceite:  Cria sobrecarga, mas expõe espaços e não vira formação dominante.
+
+[ ] FOR-053  Três zagueiros preservam largura
+    > cenário: Testar 3-4-3, 3-5-2, 3-1-4-2 e 3-4-2-1.
+    > aceite:  Alas oferecem largura e zagueiros cobrem corredor sem formar bloco amorfo.
+
+[ ] FOR-054  Dois atacantes coordenam alturas
+    > cenário: Testar formações com dupla de ataque.
+    > aceite:  Atacantes alternam apoio/profundidade e não ocupam o mesmo ponto.
+
+[ ] REG-007  Armadilha de impedimento contextual
+    > cenário: Passador pressionado e linha compacta.
+    > aceite:  Tentativas surgem das condições; referência próxima de 3/jogo sem taxa absurda.
+
+[ ] REG-026  Posição-base em posse rival distante
+    > cenário: Bola no meio-campo.
+    > aceite:  Goleiro ajusta profundidade sem sair excessivamente.
+
+[ ] REG-027  Ajuste lateral ao ângulo da bola
+    > cenário: Bola muda de corredor.
+    > aceite:  Goleiro acompanha o ângulo e permanece balanceado.
+
+[ ] REG-030  Alcance físico de defesa
+    > cenário: Chutes em nove zonas do gol.
+    > aceite:  Defesa só ocorre quando corpo/mãos alcançam a trajetória.
+
+[ ] REG-031  Mergulho lateral próprio
+    > cenário: Chute no canto baixo.
+    > aceite:  Usa pose de goleiro, com corpo orientado e sombra coerente.
+
+[ ] REG-032  Mergulho alto
+    > cenário: Chute no canto superior.
+    > aceite:  Elevação e extensão correspondem ao ponto da bola.
+
+[ ] REG-045  Tempo de retenção
+    > cenário: Goleiro segura com equipe vencendo/perdendo.
+    > aceite:  Tempo varia dentro de limite e não paralisa jogo.
+
+[ ] REG-050  Pênalti: permanência na linha
+    > cenário: Antes da cobrança.
+    > aceite:  Goleiro respeita posição inicial adotada pela regra.
+
+[ ] REG-052  Pênalti: alcance
+    > cenário: Bola em cantos e alturas diferentes.
+    > aceite:  Defesa só quando alcance físico permite.
+
+[ ] REG-054  Sem animação de jogador de linha
+    > cenário: Executar todas as ações de goleiro.
+    > aceite:  Goleiro usa conjunto próprio em defesa, saída, soco e distribuição.
+
+[ ] REG-055  Retorno à posição após ação
+    > cenário: Goleiro defende e jogo continua.
+    > aceite:  Retorna ao gol de forma contínua e coerente com a bola.
+
+[ ] CAM-002  Linhas laterais projetadas
+    > cenário: Percorrer toda a lateral próxima e distante.
+    > aceite:  Linhas formam limites contínuos e coincidem com detecção lógica.
+
+[ ] CAM-003  Linhas de fundo projetadas
+    > cenário: Percorrer ambas as metas.
+    > aceite:  Sem desalinhamento entre gol, área e limite físico.
+
+[ ] CAM-004  Círculo central
+    > cenário: Saída e jogo corrido.
+    > aceite:  Geometria não deforma de modo incompatível com perspectiva.
+
+[ ] CAM-005  Áreas e marca do pênalti
+    > cenário: Comparar perto/longe.
+    > aceite:  Posições correspondem ao campo lógico e mantêm legibilidade.
+
+[ ] CAM-006  Escala de atleta por profundidade
+    > cenário: Mover mesmo avatar da linha próxima à distante.
+    > aceite:  Escala varia monotonicamente, sem saltos e dentro dos limites definidos.
+
+[ ] CAM-007  Escala da bola por profundidade
+    > cenário: Passe da faixa próxima à distante.
+    > aceite:  Bola reduz/aumenta com profundidade sem desaparecer ou inflar.
+
+[ ] CAM-008  Escala de sombras
+    > cenário: Atletas e bola em diferentes profundidades.
+    > aceite:  Sombras acompanham escala e não ficam maiores no fundo.
+
+[ ] CAM-009  Escala de números
+    > cenário: Atletas atravessam o campo.
+    > aceite:  Número reduz com profundidade e permanece legível sem dominar o avatar.
+
+[ ] CAM-010  Escala de VFX
+    > cenário: Impactos perto e longe.
+    > aceite:  VFX respeitam profundidade e não cobrem atletas distantes.
+
+[ ] CAM-011  Ordenação de profundidade
+    > cenário: Atletas se cruzam em diagonais.
+    > aceite:  Objeto mais próximo aparece à frente; sem troca tardia ou piscada.
+
+[ ] CAM-012  Oclusão bola-atleta
+    > cenário: Bola passa atrás e à frente.
+    > aceite:  Camada muda conforme profundidade; bola não some indevidamente.
+
+[ ] CAM-013  Oclusão com gol e rede
+    > cenário: Chute entra e goleiro mergulha.
+    > aceite:  Bola, goleiro, postes e rede têm ordem coerente.
+
+[ ] CAM-014  Teto vertical de bola alta
+    > cenário: Lançamentos e chutes altos no terço distante.
+    > aceite:  Nunca invade arquibancada/interface e mantém arco visível.
+
+[ ] CAM-015  Continuidade em bordas do palco
+    > cenário: Bola e atletas próximos aos quatro limites.
+    > aceite:  Nada é cortado antes de sair logicamente; nomes não vazam para fora.
+
+[ ] CAM-016  Enquadramento da partida inteira
+    > cenário: Jogo corrido em todos os terços.
+    > aceite:  Bola e zona relevante permanecem visíveis sem esconder o HUD.
+
+[ ] CAM-017  Transição suave entre terços
+    > cenário: Ataque vai de uma área à outra.
+    > aceite:  Sem salto brusco, atraso excessivo ou enjoo.
+
+[ ] CAM-018  Antecipação moderada da bola
+    > cenário: Lançamento longo.
+    > aceite:  Câmera acompanha destino sem abandonar origem antes do contato.
+
+[ ] CAM-019  Reação a contra-ataque
+    > cenário: Mudança rápida de direção.
+    > aceite:  Acelera de modo controlado e mantém portador visível.
+
+[ ] CAM-020  Reação a rebote inesperado
+    > cenário: Bola muda de direção.
+    > aceite:  Corrige enquadramento sem teleporte de câmera.
+
+[ ] CAM-021  Enquadramento de cruzamento
+    > cenário: Bola vai da lateral à área.
+    > aceite:  Inclui cobrador, trajetória e zona de disputa.
+
+[ ] CAM-022  Enquadramento de chute longo
+    > cenário: Finalização de fora.
+    > aceite:  Mostra contato e destino do chute.
+
+[ ] CAM-023  Enquadramento de 1x1
+    > cenário: Atacante entra na área.
+    > aceite:  Atacante, goleiro e gol permanecem legíveis.
+
+[ ] CAM-024  Enquadramento pós-gol
+    > cenário: Bola cruza linha e placar atualiza.
+    > aceite:  Mantém gol visível e transita para celebração/saída sem corte incoerente.
+
+[ ] CAM-025  Enquadramento de impedimento
+    > cenário: Jogada é interrompida.
+    > aceite:  Mostra contexto da linha sem congelar ou reposicionar abruptamente.
+
+[ ] CAM-026  Câmera em velocidade turbo
+    > cenário: Executar 3.6x.
+    > aceite:  Sem tremor frenético; suavização adapta-se ao multiplicador.
+
+[ ] CAM-029  Câmera em gol distante
+    > cenário: Ataque no terço mais distante.
+    > aceite:  Gol, bola e atletas mantêm tamanho mínimo legível.
+
+[ ] CAM-030  Simetria entre lados
+    > cenário: Repetir cenário espelhado.
+    > aceite:  Comportamento visual equivalente nos dois sentidos.
+
+[ ] CAM-031  Falta direta usa câmera 2.5D
+    > cenário: Cobrança frontal.
+    > aceite:  Sem perspectiva legada ou mudança abrupta de escala.
+
+[ ] CAM-032  Falta lateral usa câmera 2.5D
+    > cenário: Cobrança para a área.
+    > aceite:  Cobrador, barreira e área aparecem no mesmo palco.
+
+[ ] CAM-033  Pênalti usa câmera 2.5D
+    > cenário: Cobrança em tempo normal.
+    > aceite:  Batedor, goleiro e gol legíveis; identidade visual preservada.
+
+[ ] CAM-034  Disputa por pênaltis usa câmera 2.5D
+    > cenário: Série completa.
+    > aceite:  Transições entre cobradores sem voltar à perspectiva antiga.
+
+[ ] CAM-035  Escanteio próximo
+    > cenário: Cobrança no lado da câmera.
+    > aceite:  Quadrante, área e goleiro no enquadramento.
+
+[ ] CAM-036  Escanteio distante
+    > cenário: Cobrança no lado oposto.
+    > aceite:  Trajetória não invade arquibancada e disputa permanece legível.
+
+[ ] CAM-037  Lateral próximo
+    > cenário: Cobrança na lateral inferior.
+    > aceite:  Cobrador e receptor visíveis; nomes não saem da tela.
+
+[ ] CAM-038  Lateral distante
+    > cenário: Cobrança na lateral superior.
+    > aceite:  Arco e receptor legíveis; escala correta.
+
+[ ] CAM-039  Tiro de meta
+    > cenário: Saída curta e longa.
+    > aceite:  Goleiro e opções iniciais visíveis.
+
+[ ] CAM-040  Saída após gol
+    > cenário: Reinício central.
+    > aceite:  Transição de câmera estável e sem corte legado.
+
+[ ] CAM-041  Nomes sem colisão horizontal
+    > cenário: Dois atletas próximos.
+    > aceite:  Algoritmo evita sobreposição crítica ou reduz labels por prioridade.
+
+[ ] CAM-042  Nomes sem colisão vertical
+    > cenário: Atletas alinhados em profundidade.
+    > aceite:  Labels não cobrem bola nem placar; deslocamento é estável.
+
+[ ] CAM-043  Prioridade do portador
+    > cenário: Aglomerado com bola.
+    > aceite:  Nome do portador permanece identificável e os demais podem ser suprimidos.
+
+[ ] CAM-044  Número legível no fundo
+    > cenário: Atleta distante.
+    > aceite:  Número ainda reconhecível sem escala fixa excessiva.
+
+[ ] CAM-045  VFX não oculta a bola
+    > cenário: Desarme, chute e defesa.
+    > aceite:  Bola permanece visível durante a ação crítica.
+
+[ ] CAM-046  Placar não cobre o campo
+    > cenário: Diferentes proporções de tela.
+    > aceite:  HUD respeita área segura e não invade zona ativa.
+
+[ ] CAM-047  Painéis laterais não deformam palco
+    > cenário: Abrir estatísticas/eventos.
+    > aceite:  Campo redimensiona ou sobrepõe de modo definido sem distorção.
+
+[ ] CAM-048  Tooltips respeitam profundidade
+    > cenário: Abrir informação de atleta próximo à borda.
+    > aceite:  Tooltip fica dentro da viewport e não acompanha escala do atleta.
+
+[ ] CAM-049  Indicador de seleção
+    > cenário: Selecionar atleta em diferentes profundidades.
+    > aceite:  Indicador acompanha posição e escala sem esconder pés/bola.
+
+[ ] ATL-001  Pose ociosa
+    > cenário: Atleta parado aguardando reinício.
+    > aceite:  Postura estável e orientada; não desliza sem passada.
+
+[ ] ATL-002  Caminhada
+    > cenário: Reorganização em baixa velocidade.
+    > aceite:  Passos acompanham deslocamento e não patinam.
+
+[ ] ATL-003  Corrida moderada
+    > cenário: Progressão sem sprint.
+    > aceite:  Cadência de passada proporcional à velocidade.
+
+[ ] ATL-004  Sprint
+    > cenário: Transição rápida.
+    > aceite:  Pose e passada distinguem sprint de corrida comum.
+
+[ ] ATL-005  Aceleração
+    > cenário: Atleta parte do repouso.
+    > aceite:  Corpo inclina e velocidade cresce gradualmente.
+
+[ ] ATL-006  Desaceleração
+    > cenário: Atleta reduz antes de receber.
+    > aceite:  Passos/lean mostram frenagem; não para instantaneamente.
+
+[ ] ATL-007  Mudança de direção
+    > cenário: Corte de 90° e 180°.
+    > aceite:  Rotação precede novo vetor e não espelha de modo abrupto.
+
+[ ] ATL-008  Corrida para trás/lateral
+    > cenário: Defensor ajusta posição.
+    > aceite:  Movimento defensivo tem orientação adequada, sem correr de costas para a bola sempre.
+
+[ ] ATL-009  Recomposição
+    > cenário: Atacante retorna após perda.
+    > aceite:  Pose e velocidade variam com urgência; sem deslize contínuo.
+
+[ ] ATL-010  Aproximação da bola
+    > cenário: Atleta chega para dominar.
+    > aceite:  Reduz passada e alinha pé ao ponto de contato.
+
+[ ] ATL-011  Proteção de bola
+    > cenário: Portador sob pressão lateral.
+    > aceite:  Corpo se coloca entre bola e defensor.
+
+[ ] ATL-012  Queda após contato
+    > cenário: Falta ou choque forte.
+    > aceite:  Queda parte do contato e termina sem teleporte de volta.
+
+[ ] ATL-013  Levantada após queda
+    > cenário: Jogo segue ou reinicia.
+    > aceite:  Atleta retorna de forma contínua e em tempo plausível.
+
+[ ] ATL-014  Comemoração curta
+    > cenário: Gol válido.
+    > aceite:  Não bloqueia reinício e mantém escala/profundidade.
+
+[ ] ATL-015  Frustração após chance
+    > cenário: Chute perdido importante.
+    > aceite:  Reação breve, sem impedir recomposição.
+
+[ ] ATL-016  Passe com perna visível
+    > cenário: Passe curto frontal.
+    > aceite:  Perna/pé executa movimento no instante da saída.
+
+[ ] ATL-017  Passe de lado
+    > cenário: Passe lateral sob pressão.
+    > aceite:  Corpo gira e pé corresponde ao lado do passe.
+
+[ ] ATL-018  Passe de primeira
+    > cenário: Desvio rápido.
+    > aceite:  Animação curta sincronizada ao contato.
+
+[ ] ATL-019  Lançamento longo
+    > cenário: Bola aérea.
+    > aceite:  Amplitude de perna e inclinação diferem do passe curto.
+
+[ ] ATL-020  Chute forte
+    > cenário: Finalização de média distância.
+    > aceite:  Preparação, balanço de perna e contato visíveis.
+
+[ ] ATL-021  Chute colocado
+    > cenário: Finalização de precisão.
+    > aceite:  Pose distinta do chute forte e alinhada ao alvo.
+
+[ ] ATL-022  Cabeceio
+    > cenário: Disputa aérea.
+    > aceite:  Salto e cabeça encontram a bola no mesmo frame.
+
+[ ] ATL-023  Carrinho
+    > cenário: Desarme no chão.
+    > aceite:  Corpo percorre distância física; bola muda no contato.
+
+[ ] ATL-024  Bote em pé
+    > cenário: Defensor alcança a bola.
+    > aceite:  Perna de desarme aparece e não atravessa o atacante.
+
+[ ] ATL-025  Bloqueio de chute
+    > cenário: Defensor se coloca na trajetória.
+    > aceite:  Pose de bloqueio coincide com ponto do desvio.
+
+[ ] ATL-026  Salto defensivo
+    > cenário: Zagueiro disputa cruzamento.
+    > aceite:  Elevação e tempo de salto coerentes com altura da bola.
+
+[ ] ATL-027  Cobrança de lateral
+    > cenário: Cobrador lança com braços.
+    > aceite:  Pose distingue lateral de passe e bola nasce na posição correta.
+
+[ ] ATL-028  Cobrança de falta
+    > cenário: Batedor executa chute.
+    > aceite:  Pose e contato permanecem no palco 2.5D.
+
+[ ] ATL-029  Cobrança de pênalti
+    > cenário: Batedor corre e chuta.
+    > aceite:  Passos e contato sincronizados; sem perspectiva legada.
+
+[ ] ATL-030  Ações específicas do goleiro
+    > cenário: Defesa, mergulho, soco e distribuição.
+    > aceite:  Conjunto próprio, sem reutilizar pose genérica inadequada.
+
+[ ] ATL-031  Orientação para a bola
+    > cenário: Atleta sem posse em diferentes fases.
+    > aceite:  Mantém orientação plausível sem girar instantaneamente a cada tick.
+
+[ ] ATL-032  Orientação para alvo de movimento
+    > cenário: Corrida sem bola.
+    > aceite:  Corpo acompanha vetor com suavização.
+
+[ ] ATL-033  Orientação do receptor
+    > cenário: Passe chega de lado ou por trás.
+    > aceite:  Receptor ajusta corpo antes do domínio quando há tempo.
+
+[ ] ATL-034  Pé de contato coerente
+    > cenário: Passe e chute para ambos os lados.
+    > aceite:  Contato ocorre no lado do corpo compatível; sem bola saindo do pé oposto distante.
+
+[ ] ATL-035  Espelhamento correto
+    > cenário: Mesma ação nos dois sentidos do campo.
+    > aceite:  Animação espelha sem inverter profundidade ou texto.
+
+[ ] ATL-036  Colisão visual atleta-atleta
+    > cenário: Disputa ombro a ombro.
+    > aceite:  Corpos não atravessam profundamente; separação ocorre suavemente.
+
+[ ] ATL-037  Colisão visual atleta-bola
+    > cenário: Domínio, chute e desarme.
+    > aceite:  Ponto de contato coincide com a mudança de trajetória.
+
+[ ] ATL-038  Lean 2D em curva
+    > cenário: Atleta muda direção em velocidade.
+    > aceite:  Inclinação ajuda a leitura sem deformar o avatar.
+
+[ ] ATL-039  Sombra no mergulho
+    > cenário: Goleiro ou atleta no chão.
+    > aceite:  Sombra acompanha corpo projetado, não permanece em pé.
+
+[ ] ATL-040  Sem jitter de rotação
+    > cenário: Atleta alterna pequenos ajustes.
+    > aceite:  Sem oscilação de esquerda/direita superior ao limite definido.
+
+[ ] ATL-041  Nome associado ao atleta correto
+    > cenário: Atletas cruzam posições.
+    > aceite:  Label acompanha o mesmo ID sem troca.
+
+[ ] ATL-044  Goleiro distinguível
+    > cenário: Goleiro entre jogadores na área.
+    > aceite:  Cor/forma permite identificação imediata.
+
+[ ] ATL-045  Avatar não invade UI
+    > cenário: Atleta próximo a bordas e painéis.
+    > aceite:  Corpo e labels são cortados/contidos de forma previsível sem sobrepor controles.
+
+[ ] VFX-001  Arco de lançamento longo
+    > cenário: Passe acima de 30 m.
+    > aceite:  Altura sobe e desce suavemente; pico entre origem e destino.
+
+[ ] VFX-002  Arco de cruzamento
+    > cenário: Cruzamento aberto e fechado.
+    > aceite:  Perfis distintos e coerentes com tipo de cobrança.
+
+[ ] VFX-003  Arco de chute alto
+    > cenário: Finalização alta.
+    > aceite:  Sem progressão linear ou mudança abrupta.
+
+[ ] VFX-004  Curva lateral de chute
+    > cenário: Chute colocado.
+    > aceite:  Curvatura contínua e compatível com velocidade.
+
+[ ] VFX-015  Trajetória na rede
+    > cenário: Gol em várias zonas.
+    > aceite:  Bola desacelera/para na região da rede sem atravessar cenário.
+
+[ ] VFX-016  Trajetória do lateral
+    > cenário: Cobrança curta e longa.
+    > aceite:  Origem/altura coerentes com arremesso.
+
+[ ] VFX-017  Trajetória da reposição do goleiro
+    > cenário: Lançamento com mãos e pés.
+    > aceite:  Perfis são distintos e fisicamente plausíveis.
+
+[ ] VFX-019  Continuidade entre segmentos
+    > cenário: Troca de estado voo→quique→domínio.
+    > aceite:  Sem descontinuidade espacial acima de 0,05 unidade.
+
+[ ] VFX-020  Limites de altura por profundidade
+    > cenário: Bolas altas perto e longe.
+    > aceite:  Teto visual adaptado ao palco sem cortar o arco.
+
+[ ] VFX-021  VFX de chute
+    > cenário: Chute forte e colocado.
+    > aceite:  Efeito sinaliza contato sem esconder bola ou pé.
+
+[ ] VFX-022  VFX de passe
+    > cenário: Passe curto e longo.
+    > aceite:  Mais discreto que chute e coerente com intensidade.
+
+[ ] VFX-023  VFX de desarme
+    > cenário: Contato limpo e falta.
+    > aceite:  Diferencia impacto sem substituir animação física.
+
+[ ] VFX-024  VFX de defesa
+    > cenário: Encaixe, espalmada e soco.
+    > aceite:  Efeito acompanha ponto real de contato.
+
+[ ] VFX-025  VFX de trave
+    > cenário: Poste e travessão.
+    > aceite:  Pulso/feedback nasce no impacto e não antes.
+
+[ ] VFX-026  VFX de gol
+    > cenário: Gol próximo e distante.
+    > aceite:  Escala respeita profundidade e placar atualiza uma vez.
+
+[ ] VFX-027  Rastro de bola em 1.0x
+    > cenário: Passes e chutes.
+    > aceite:  Rastro é sutil, curto e não cria duas bolas aparentes.
+
+[ ] VFX-028  Rastro em TURBO
+    > cenário: Executar 3.6x.
+    > aceite:  Comprimento/intensidade adaptam-se; não vira linha frenética contínua.
+
+[ ] VFX-029  Pulso em TURBO
+    > cenário: Eventos repetidos em 3.6x.
+    > aceite:  Duração escala com velocidade; pulsos não se acumulam.
+
+[ ] VFX-031  VFX de impedimento
+    > cenário: Jogada interrompida.
+    > aceite:  Feedback identifica evento sem cobrir linha e atletas.
+
+[ ] VFX-032  VFX de cartão
+    > cenário: Amarelo e vermelho.
+    > aceite:  Visível e breve; não bloqueia controles essenciais.
+
+[ ] VFX-033  VFX de substituição
+    > cenário: Entrada/saída.
+    > aceite:  Identifica atletas corretos sem congelar o jogo indevidamente.
+
+[ ] VFX-034  VFX de posse/momentum
+    > cenário: Mudanças rápidas de domínio.
+    > aceite:  Indicador suaviza variações e não pisca excessivamente.
+
+[ ] VFX-035  VFX de tempo adicional
+    > cenário: Entrada nos acréscimos.
+    > aceite:  Mensagem legível e não interfere no campo.
+
+[ ] VFX-036  Escala de VFX por profundidade
+    > cenário: Repetir mesmo evento perto e longe.
+    > aceite:  Escala varia de forma monotônica e limitada.
+
+[ ] VFX-037  Opacidade em sobreposição
+    > cenário: Dois efeitos simultâneos.
+    > aceite:  Bola e atletas continuam identificáveis.
+
+[ ] VFX-038  Sem clipping em bordas
+    > cenário: Evento próximo à linha/tela.
+    > aceite:  Efeito é contido ou reposicionado sem corte feio.
+
+[ ] VFX-039  Reduced motion
+    > cenário: Ativar preferência de movimento reduzido.
+    > aceite:  Remove/reduz rastro, pulso e animações não essenciais sem perder informação.
+
+[ ] VFX-044  Gomos/rotação da bola
+    > cenário: Bola gira em passe, chute e quique.
+    > aceite:  Rotação acompanha vetor sem parecer textura fixa ou giro invertido.
+
+[ ] VFX-045  Moldura visual consistente
+    > cenário: Comparar partida, falta e pênalti.
+    > aceite:  Mesma linguagem de campo, câmera e overlays em todas as cenas.
+
+[ ] UX-038  Eventos: ordem cronológica
+    > cenário: Partida com gols, cartões e substituições.
+    > aceite:  Ordem e minuto correspondem ao motor; duplicatas ausentes.
+
+[ ] UX-041  Destaques: não ocultar jogo
+    > cenário: Eventos importantes aparecem.
+    > aceite:  Overlay é breve, legível e não impede acompanhar a bola.
+
+[ ] UX-049  Estado vazio
+    > cenário: Abrir saves/eventos sem conteúdo.
+    > aceite:  Exibe mensagem e próxima ação, não área vazia ambígua.
+
+[ ] UX-050  Consistência visual global
+    > cenário: Comparar todas as telas.
+    > aceite:  Tipografia, espaçamento, cores e componentes seguem sistema único.
+
+[ ] A11Y-003  Indicador de foco visível
+    > cenário: Focar botões, tabs e cards.
+    > aceite:  Foco tem contraste e não depende apenas de cor sutil.
+
+[ ] A11Y-014  Tamanho de texto 200%
+    > cenário: Aplicar zoom 200%.
+    > aceite:  Sem perda de conteúdo ou funcionalidade essencial.
+
+[ ] A11Y-015  Reflow 320 CSS px
+    > cenário: Viewport estreito com zoom.
+    > aceite:  Sem rolagem em duas dimensões no fluxo principal, exceto campo quando justificado.
+
+[ ] A11Y-016  Movimento reduzido
+    > cenário: Ativar prefers-reduced-motion.
+    > aceite:  Reduz câmera, pulso, rastro e transições não essenciais.
+
+[ ] ANM-001  Máquina de estados de animação explícita
+    > cenário: Inspecionar controlador visual por atleta.
+    > aceite:  Estados possuem entrada, fase, contato, saída e recuperação; não há pose solta sem ciclo.
+
+[ ] ANM-002  Idle reconhecível
+    > cenário: Observar atletas parados em diferentes profundidades.
+    > aceite:  Corpo permanece vivo sem deslizar, tremer ou executar passada falsa.
+
+[ ] ANM-003  Caminhada reconhecível
+    > cenário: Forçar deslocamento lento fora da bola.
+    > aceite:  Passos alternam com distância e não com FPS; pés não escorregam excessivamente.
+
+[ ] ANM-004  Corrida leve reconhecível
+    > cenário: Observar apoio e recomposição moderada.
+    > aceite:  Cadência e inclinação diferem de caminhada e sprint.
+
+[ ] ANM-005  Sprint reconhecível
+    > cenário: Forçar arrancadas e perseguições.
+    > aceite:  Amplitude, frequência e inclinação aumentam sem deformação ou teleporte.
+
+[ ] ANM-006  Aceleração possui transição
+    > cenário: Atleta sai do repouso para sprint.
+    > aceite:  Não troca instantaneamente de pose; há progressão visual curta e coerente.
+
+[ ] ANM-007  Desaceleração possui transição
+    > cenário: Atleta reduz velocidade antes de receber ou marcar.
+    > aceite:  Passada reduz e corpo estabiliza sem parada brusca artificial.
+
+[ ] ANM-008  Mudança de direção reconhecível
+    > cenário: Forçar cortes de 45°, 90° e retorno.
+    > aceite:  Corpo orienta antes/durante a curva e os pés não continuam na direção anterior.
+
+[ ] ANM-009  Deslocamento lateral defensivo
+    > cenário: Observar jockey e cobertura.
+    > aceite:  Defensor não corre de frente em todas as direções; postura lateral é distinguível.
+
+[ ] ANM-010  Corrida olhando para a bola
+    > cenário: Atacante faz desmarque e defensor recompõe.
+    > aceite:  Orientação corporal acompanha bola/ameaça sem perder direção de deslocamento.
+
+[ ] ANM-011  Preparação para receber
+    > cenário: Forçar passes curtos, longos e altos.
+    > aceite:  Receptor ajusta base e orientação antes do contato quando há tempo físico.
+
+[ ] ANM-012  Domínio com pé direito
+    > cenário: Forçar receptor destro com passe no lado direito.
+    > aceite:  Contato ocorre no pé correto e a bola desacelera/orienta no frame de domínio.
+
+[ ] ANM-013  Domínio com pé esquerdo
+    > cenário: Forçar receptor canhoto com passe no lado esquerdo.
+    > aceite:  Contato ocorre no pé correto; não atravessa o corpo.
+
+[ ] ANM-014  Domínio com pé fraco
+    > cenário: Forçar passe no pé não dominante sob baixa pressão.
+    > aceite:  Animação usa o lado correto e a qualidade pode refletir o atributo sem quebrar posse.
+
+[ ] ANM-015  Domínio orientado
+    > cenário: Receber com espaço para avançar.
+    > aceite:  Primeiro toque projeta a bola na direção útil e conecta à condução.
+
+[ ] ANM-016  Condução curta
+    > cenário: Portador avança sob pressão moderada.
+    > aceite:  Bola alterna contatos próximos; não permanece colada ao centro do corpo.
+
+[ ] ANM-017  Condução em velocidade
+    > cenário: Forçar contra-ataque e sprint com bola.
+    > aceite:  Toques ficam mais longos e sincronizados à passada sem bola teleportar ao pé.
+
+[ ] ANM-018  Proteção de bola
+    > cenário: Receber de costas com marcador próximo.
+    > aceite:  Corpo intercala adversário e bola; contato visual corresponde à disputa.
+
+[ ] ANM-019  Drible possui início, contato e saída
+    > cenário: Forçar qualquer drible.
+    > aceite:  O drible não é apenas abrir pernas; possui preparação, toque/finta e recuperação.
+
+[ ] ANM-020  Corte para dentro
+    > cenário: Forçar ponta no corredor com opção central.
+    > aceite:  Mudança de direção e toque para o pé interno são reconhecíveis.
+
+[ ] ANM-021  Corte para fora
+    > cenário: Forçar atacante a buscar linha de fundo.
+    > aceite:  Toque externo e aceleração lateral são reconhecíveis.
+
+[ ] ANM-022  Finta corporal
+    > cenário: Forçar drible curto parado ou em baixa velocidade.
+    > aceite:  Peso do corpo engana antes da saída; não altera a bola sem contato.
+
+[ ] ANM-023  Proteção e giro
+    > cenário: Atacante recebe de costas e gira.
+    > aceite:  Pivô, contato e mudança de orientação formam sequência contínua.
+
+[ ] ANM-024  Toque longo e aceleração
+    > cenário: Forçar drible em campo aberto.
+    > aceite:  Bola se distancia e atleta acelera para reencontrá-la; risco é visível.
+
+[ ] ANM-025  Drible vencido possui reação do defensor
+    > cenário: Forçar drible bem-sucedido.
+    > aceite:  Defensor perde equilíbrio/linha ou muda perseguição; não fica indiferente.
+
+[ ] ANM-026  Drible desarmado possui contato legível
+    > cenário: Forçar bote correto durante drible.
+    > aceite:  Pé/corpo do defensor coincide com mudança de posse ou bola solta.
+
+[ ] ANM-027  Passe curto possui ciclo completo
+    > cenário: Forçar passe de apoio.
+    > aceite:  Pé de apoio, contato e continuidade aparecem; bola sai no instante de contato.
+
+[ ] ANM-028  Passe de primeira possui ciclo próprio
+    > cenário: Forçar tabela e devolução rápida.
+    > aceite:  A ação é curta, sem domínio completo artificial, mas mantém contato visível.
+
+[ ] ANM-029  Passe longo possui ciclo próprio
+    > cenário: Forçar inversão e lançamento.
+    > aceite:  Backswing e follow-through diferem do passe curto e combinam com potência.
+
+[ ] ANM-030  Cruzamento possui ciclo próprio
+    > cenário: Forçar cruzamento aberto e fechado.
+    > aceite:  Postura lateral, contato e trajetória são coerentes com o tipo de cruzamento.
+
+[ ] ANM-031  Chute colocado possui ciclo próprio
+    > cenário: Forçar finalização técnica.
+    > aceite:  Preparação menor, contato lateral e follow-through combinam com precisão.
+
+[ ] ANM-032  Chute forte possui ciclo próprio
+    > cenário: Forçar finalização de potência.
+    > aceite:  Backswing amplo, pé de apoio e continuidade comunicam força.
+
+[ ] ANM-033  Chute de primeira possui ciclo próprio
+    > cenário: Forçar finalização sem domínio.
+    > aceite:  O contato acontece na chegada da bola e não depois que ela já partiu.
+
+[ ] ANM-034  Voleio possui ciclo próprio
+    > cenário: Forçar bola aérea na altura adequada.
+    > aceite:  Salto/perna e contato correspondem à altura e ao tempo da bola.
+
+[ ] ANM-035  Cabeceio possui ciclo completo
+    > cenário: Forçar cruzamentos e disputas aéreas.
+    > aceite:  Preparação, salto, contato de cabeça e queda são legíveis.
+
+[ ] ANM-036  Cobrança de falta possui preparação
+    > cenário: Forçar falta direta.
+    > aceite:  Cobrador ajusta distância, corre, contata e recupera; barreira/reação são legíveis.
+
+[ ] ANM-037  Pênalti possui preparação e contato
+    > cenário: Executar disputa e pênalti em jogo.
+    > aceite:  Corrida, pé de apoio, contato, goleiro e resultado permanecem sincronizados.
+
+[ ] ANM-038  Bote defensivo reconhecível
+    > cenário: Forçar tentativa de desarme em pé.
+    > aceite:  Extensão da perna coincide com contato ou erro; não troca posse sem gesto.
+
+[ ] ANM-039  Carrinho reconhecível
+    > cenário: Forçar carrinho ganho, faltoso e perdido.
+    > aceite:  Deslizamento, contato e recuperação diferem entre desfechos.
+
+[ ] ANM-040  Bloqueio de chute reconhecível
+    > cenário: Forçar defensor na linha da bola.
+    > aceite:  Corpo reage e a deflexão nasce do ponto de contato visível.
+
+[ ] ANM-041  Goleiro mergulho baixo
+    > cenário: Forçar chutes rasteiros nos cantos.
+    > aceite:  Impulso, extensão, contato e queda correspondem à direção real.
+
+[ ] ANM-042  Goleiro mergulho alto
+    > cenário: Forçar chutes altos nos cantos.
+    > aceite:  Salto e mãos alcançam a altura projetada sem corpo rotacionado genericamente.
+
+[ ] ANM-043  Goleiro espalma, encaixa e defende com os pés
+    > cenário: Forçar três tipos de defesa.
+    > aceite:  Cada resultado possui pose própria e a bola reage no frame de contato.
+
+[ ] ANM-044  Recuperação após ação
+    > cenário: Observar chute, carrinho, salto e mergulho.
+    > aceite:  Atleta retorna à locomoção de forma contínua; nenhuma pose fica presa.
+
+[ ] SYN-002  Bola sai apenas no contato visual
+    > cenário: Comparar passes e chutes frame a frame.
+    > aceite:  Diferença <=1 frame lógico; nenhuma bola parte antes da preparação terminar.
+
+[ ] SYN-003  Domínio ocorre no contato visual
+    > cenário: Comparar chegada da bola e pé/corpo receptor.
+    > aceite:  Mudança para owner coincide com contato físico visível ou disputa legítima.
+
+[ ] SYN-008  Orientação corporal corresponde ao vetor de ação
+    > cenário: Passes, chutes e dribles em múltiplas direções.
+    > aceite:  Erro no contato dentro do limite; nenhuma ação para trás com corpo apontando ao oposto sem pose específica.
+
+[ ] SYN-023  Replay reproduz o estado original
+    > cenário: Reproduzir 50 lances variados.
+    > aceite:  Replay não inventa trajetória, dono, pose ou resultado diferente.
+
+[ ] SYN-024  Slow motion preserva contato
+    > cenário: Reproduzir ações a 0.5X.
+    > aceite:  O contato permanece único e legível; não aparece dupla batida.
+
+[ ] SYN-035  Galeria determinística cobre ações críticas
+    > cenário: Executar cenários fixos de passe, chute, drible, tackle, cabeceio e goleiro.
+    > aceite:  Resultados repetem e fornecem evidência direta para todos os controles P0 de sincronização.
