@@ -1,0 +1,142 @@
+[
+ {
+  "id": "cam-target-replay",
+  "from": "      const tx = cx(rframe.ball.x), ty = cy(rframe.ball.y);",
+  "to": "      let tx = cx(rframe.ball.x), ty = cy(rframe.ball.y);\n      if (window.CDS_F25D) { const _pj = window.CDS_F25D.project(tx, ty); tx = _pj.x; ty = _pj.y; }"
+ },
+ {
+  "id": "cam-target-live",
+  "from": "      const tx = cx(sb.x), ty = cy(sb.y);",
+  "to": "      let tx = cx(sb.x), ty = cy(sb.y);\n      if (window.CDS_F25D) { const _pj = window.CDS_F25D.project(tx, ty); tx = _pj.x; ty = _pj.y; }"
+ },
+ {
+  "id": "grass",
+  "from": "  /* gramado listrado */\n  const nS = 8, sw = fW/nS;\n  for (let i=0;i<nS;i++) {\n    ctx.fillStyle = i%2===0 ? '#1b7a36' : '#177030';\n    ctx.fillRect(M+i*sw, M, sw, fH);\n  }",
+  "to": "  /* gramado listrado (delegado ao palco 2.5D quando presente) */\n  if (window.CDS_F25D) { window.CDS_F25D.grass(ctx, M, fW, fH); } else {\n  const nS = 8, sw = fW/nS;\n  for (let i=0;i<nS;i++) {\n    ctx.fillStyle = i%2===0 ? '#1b7a36' : '#177030';\n    ctx.fillRect(M+i*sw, M, sw, fH);\n  } }"
+ },
+ {
+  "id": "pitch-markings",
+  "from": "  /* marcações */\n  ctx.strokeStyle = 'rgba(255,255,255,.62)'; ctx.lineWidth = 1.5;\n  ctx.strokeRect(M, M, fW, fH);\n  ctx.beginPath(); ctx.moveTo(CW/2,M); ctx.lineTo(CW/2,CH-M); ctx.stroke();\n  // círculo central\n  ctx.beginPath(); ctx.arc(CW/2, CH/2, (9.15/68)*fH, 0, Math.PI*2); ctx.stroke();\n  ctx.fillStyle='rgba(255,255,255,.7)'; ctx.beginPath(); ctx.arc(CW/2,CH/2,2.5,0,Math.PI*2); ctx.fill();\n  // áreas de penalti\n  const paW=(16.5/105)*fW, paH=(40.32/68)*fH;\n  ctx.strokeRect(M,(CH-paH)/2,paW,paH);\n  ctx.strokeRect(CW-M-paW,(CH-paH)/2,paW,paH);\n  // áreas pequenas\n  const gaW=(5.5/105)*fW, gaH=(18.32/68)*fH;\n  ctx.strokeRect(M,(CH-gaH)/2,gaW,gaH);\n  ctx.strokeRect(CW-M-gaW,(CH-gaH)/2,gaW,gaH);\n  // pênaltis\n  const psW=(11/105)*fW;\n  ctx.fillStyle='rgba(255,255,255,.7)';\n  ctx.beginPath(); ctx.arc(M+psW,CH/2,2.5,0,Math.PI*2); ctx.fill();\n  ctx.beginPath(); ctx.arc(CW-M-psW,CH/2,2.5,0,Math.PI*2); ctx.fill();\n  // arcos de canto\n  const ca=5;\n  ctx.beginPath(); ctx.arc(M,M,ca,0,Math.PI/2); ctx.stroke();\n  ctx.beginPath(); ctx.arc(CW-M,M,ca,Math.PI/2,Math.PI); ctx.stroke();\n  ctx.beginPath(); ctx.arc(M,CH-M,ca,-Math.PI/2,0); ctx.stroke();\n  ctx.beginPath(); ctx.arc(CW-M,CH-M,ca,Math.PI,3*Math.PI/2); ctx.stroke();\n  // goleiras\n  const goalH=(7.32/68)*fH;\n  ctx.fillStyle='rgba(255,255,255,.9)';\n  ctx.fillRect(M-7,(CH-goalH)/2,7,goalH);\n  ctx.fillRect(CW-M,(CH-goalH)/2,7,goalH);\n  ctx.strokeStyle='rgba(255,255,255,.4)'; ctx.lineWidth=.8;\n  ctx.strokeRect(M-7,(CH-goalH)/2,7,goalH);\n  ctx.strokeRect(CW-M,(CH-goalH)/2,7,goalH);",
+  "to": "  if (!window.CDS_F25D) {\n  /* marcações */\n  ctx.strokeStyle = 'rgba(255,255,255,.62)'; ctx.lineWidth = 1.5;\n  ctx.strokeRect(M, M, fW, fH);\n  ctx.beginPath(); ctx.moveTo(CW/2,M); ctx.lineTo(CW/2,CH-M); ctx.stroke();\n  // círculo central\n  ctx.beginPath(); ctx.arc(CW/2, CH/2, (9.15/68)*fH, 0, Math.PI*2); ctx.stroke();\n  ctx.fillStyle='rgba(255,255,255,.7)'; ctx.beginPath(); ctx.arc(CW/2,CH/2,2.5,0,Math.PI*2); ctx.fill();\n  // áreas de penalti\n  const paW=(16.5/105)*fW, paH=(40.32/68)*fH;\n  ctx.strokeRect(M,(CH-paH)/2,paW,paH);\n  ctx.strokeRect(CW-M-paW,(CH-paH)/2,paW,paH);\n  // áreas pequenas\n  const gaW=(5.5/105)*fW, gaH=(18.32/68)*fH;\n  ctx.strokeRect(M,(CH-gaH)/2,gaW,gaH);\n  ctx.strokeRect(CW-M-gaW,(CH-gaH)/2,gaW,gaH);\n  // pênaltis\n  const psW=(11/105)*fW;\n  ctx.fillStyle='rgba(255,255,255,.7)';\n  ctx.beginPath(); ctx.arc(M+psW,CH/2,2.5,0,Math.PI*2); ctx.fill();\n  ctx.beginPath(); ctx.arc(CW-M-psW,CH/2,2.5,0,Math.PI*2); ctx.fill();\n  // arcos de canto\n  const ca=5;\n  ctx.beginPath(); ctx.arc(M,M,ca,0,Math.PI/2); ctx.stroke();\n  ctx.beginPath(); ctx.arc(CW-M,M,ca,Math.PI/2,Math.PI); ctx.stroke();\n  ctx.beginPath(); ctx.arc(M,CH-M,ca,-Math.PI/2,0); ctx.stroke();\n  ctx.beginPath(); ctx.arc(CW-M,CH-M,ca,Math.PI,3*Math.PI/2); ctx.stroke();\n  // goleiras\n  const goalH=(7.32/68)*fH;\n  ctx.fillStyle='rgba(255,255,255,.9)';\n  ctx.fillRect(M-7,(CH-goalH)/2,7,goalH);\n  ctx.fillRect(CW-M,(CH-goalH)/2,7,goalH);\n  ctx.strokeStyle='rgba(255,255,255,.4)'; ctx.lineWidth=.8;\n  ctx.strokeRect(M-7,(CH-goalH)/2,7,goalH);\n  ctx.strokeRect(CW-M,(CH-goalH)/2,7,goalH);\n  }"
+ },
+ {
+  "id": "depth-sort",
+  "from": "  const groups = playersToDraw\n    ? [{ color: null, players: playersToDraw }]\n    : st.teams.map(t => ({ color: t.color, players: t.players }));",
+  "to": "  let groups = playersToDraw\n    ? [{ color: null, players: playersToDraw }]\n    : st.teams.map(t => ({ color: t.color, players: t.players }));\n  if (window.CDS_F25D) {\n    const _all = [];\n    for (const g of groups) for (const pl of g.players) { if (g.color && pl.color == null) pl.color = g.color; _all.push(pl); }\n    _all.sort((a, b) => a.y - b.y);\n    groups = [{ color: null, players: _all }];\n  }"
+ },
+ {
+  "id": "player-project",
+  "from": "      const groundX=_rx, groundY=_ry;\n      let x=groundX, y=groundY, r=13, divePose=false, actionWave=0;",
+  "to": "      let groundX=_rx, groundY=_ry, _ps=1;\n      if (window.CDS_F25D) { const _pj=window.CDS_F25D.project(_rx,_ry); groundX=_pj.x; groundY=_pj.y; _ps=_pj.s; }\n      let x=groundX, y=groundY, r=13*_ps, divePose=false, actionWave=0;"
+ },
+ {
+  "id": "player-shadow",
+  "from": "      ctx.beginPath(); ctx.ellipse(groundX,groundY+5,r*(1+actionWave*.18),r*.72,0,0,Math.PI*2);",
+  "to": "      ctx.beginPath();\n      if (window.CDS_F25D) ctx.ellipse(groundX,groundY+r*.98,r*.82*(1+actionWave*.18),r*.34,0,0,Math.PI*2);\n      else ctx.ellipse(groundX,groundY+5,r*(1+actionWave*.18),r*.72,0,0,Math.PI*2);"
+ },
+ {
+  "id": "player-body",
+  "from": "      // corpo: no mergulho do goleiro vira uma elipse lateral, deixando o pulo\n      // legível sem alterar a posição física usada pelo motor.\n      ctx.beginPath();\n      if (divePose) ctx.ellipse(x,y,r*1.42,r*.72,Math.PI/2,0,Math.PI*2);\n      else ctx.arc(x,y,r,0,Math.PI*2);\n      ctx.fillStyle = p.slot==='GK' ? gkC : pc; ctx.fill();\n\n      // borda\n      ctx.lineWidth = p.hasBall ? 2.5 : 1.5;\n      ctx.strokeStyle = p.hasBall ? '#fff' : 'rgba(255,255,255,.42)';\n      ctx.stroke();",
+  "to": "      // corpo: delegado ao atleta em pé 2.5D quando presente (apresentação)\n      if (window.CDS_F25D) { window.CDS_F25D.body(ctx, { x, y, r, pc, gkC, isGK: p.slot==='GK', divePose, hasBall: !!p.hasBall, key: (p.ref&&p.ref.n)||p.n||('#'+(p.num||0)), act: p._act||'', pose: (motion&&motion.type)||'', wave: actionWave }); } else {\n      // corpo: no mergulho do goleiro vira uma elipse lateral, deixando o pulo\n      // legível sem alterar a posição física usada pelo motor.\n      ctx.beginPath();\n      if (divePose) ctx.ellipse(x,y,r*1.42,r*.72,Math.PI/2,0,Math.PI*2);\n      else ctx.arc(x,y,r,0,Math.PI*2);\n      ctx.fillStyle = p.slot==='GK' ? gkC : pc; ctx.fill();\n\n      // borda\n      ctx.lineWidth = p.hasBall ? 2.5 : 1.5;\n      ctx.strokeStyle = p.hasBall ? '#fff' : 'rgba(255,255,255,.42)';\n      ctx.stroke(); }"
+ },
+ {
+  "id": "pill-dist-project",
+  "from": "      const _bs = st.ball;\n      const _bd = Math.hypot(x - cx(_bs.x), y - cy(_bs.y));",
+  "to": "      const _bs = st.ball;\n      let _bpx = cx(_bs.x), _bpy = cy(_bs.y);\n      if (window.CDS_F25D) { const _bp = window.CDS_F25D.project(_bpx, _bpy); _bpx = _bp.x; _bpy = _bp.y; }\n      const _bd = Math.hypot(x - _bpx, y - _bpy);"
+ },
+ {
+  "id": "traj-project",
+  "from": "    const x1=cx(bT.from.x), y1=cy(bT.from.y), x2=cx(bT.target.x), y2=cy(bT.target.y);\n    ctx.save();\n    if (bT.kind === 'shot') {\n      ctx.strokeStyle='rgba(255,255,255,.75)'; ctx.lineWidth=2; ctx.setLineDash([]);\n    } else {\n      ctx.strokeStyle='rgba(255,220,40,.9)'; ctx.lineWidth=2; ctx.setLineDash([7,6]);\n    }\n    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();\n    // ponta de seta\n    const ang=Math.atan2(y2-y1,x2-x1);\n    ctx.setLineDash([]);\n    ctx.fillStyle = bT.kind==='shot' ? 'rgba(255,255,255,.85)' : 'rgba(255,220,40,.95)';\n    ctx.beginPath();\n    ctx.moveTo(x2,y2);\n    ctx.lineTo(x2-9*Math.cos(ang-0.42), y2-9*Math.sin(ang-0.42));\n    ctx.lineTo(x2-9*Math.cos(ang+0.42), y2-9*Math.sin(ang+0.42));\n    ctx.closePath(); ctx.fill();\n    ctx.restore();",
+  "to": "    if (window.CDS_F25D) {\n      window.CDS_F25D.traj(ctx, { fx: bT.from.x, fy: bT.from.y, tx: bT.target.x, ty: bT.target.y,\n        gx: bT.x, gy: bT.y, z: bT.z || 0, kind: bT.kind, cx, cy });\n    } else {\n    const x1=cx(bT.from.x), y1=cy(bT.from.y), x2=cx(bT.target.x), y2=cy(bT.target.y);\n    ctx.save();\n    if (bT.kind === 'shot') {\n      ctx.strokeStyle='rgba(255,255,255,.75)'; ctx.lineWidth=2; ctx.setLineDash([]);\n    } else {\n      ctx.strokeStyle='rgba(255,220,40,.9)'; ctx.lineWidth=2; ctx.setLineDash([7,6]);\n    }\n    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();\n    // ponta de seta\n    const ang=Math.atan2(y2-y1,x2-x1);\n    ctx.setLineDash([]);\n    ctx.fillStyle = bT.kind==='shot' ? 'rgba(255,255,255,.85)' : 'rgba(255,220,40,.95)';\n    ctx.beginPath();\n    ctx.moveTo(x2,y2);\n    ctx.lineTo(x2-9*Math.cos(ang-0.42), y2-9*Math.sin(ang-0.42));\n    ctx.lineTo(x2-9*Math.cos(ang+0.42), y2-9*Math.sin(ang+0.42));\n    ctx.closePath(); ctx.fill();\n    ctx.restore(); }"
+ },
+ {
+  "id": "vfx-project",
+  "from": "    const x = cx(v.x), y = cy(v.y);",
+  "to": "    let x = cx(v.x), y = cy(v.y);\n    if (window.CDS_F25D) { const _pj = window.CDS_F25D.project(x, y); x = _pj.x; y = _pj.y; }"
+ },
+ {
+  "id": "trail-arc",
+  "from": "  if (!rframe) { ctx.save(); ctx.shadowColor = 'rgba(255,215,50,.9)';\n    trailPts.forEach((tp, i) => {\n      const f = 1 - i / trailPts.length;\n      ctx.shadowBlur = 9 * f;\n      ctx.fillStyle = `rgba(255,226,80,${f * 0.75})`;\n      ctx.beginPath(); ctx.arc(cx(tp.x), cy(tp.y), Math.max(0, 4.6 - i * .5), 0, Math.PI*2); ctx.fill();\n    });\n    ctx.restore();\n  }",
+  "to": "  if (!rframe) { if (window.CDS_F25D) { window.CDS_F25D.trail(ctx, trailPts, cx, cy); } else { ctx.save(); ctx.shadowColor = 'rgba(255,215,50,.9)';\n    trailPts.forEach((tp, i) => {\n      const f = 1 - i / trailPts.length;\n      ctx.shadowBlur = 9 * f;\n      ctx.fillStyle = `rgba(255,226,80,${f * 0.75})`;\n      ctx.beginPath(); ctx.arc(cx(tp.x), cy(tp.y), Math.max(0, 4.6 - i * .5), 0, Math.PI*2); ctx.fill();\n    });\n    ctx.restore();\n  } }"
+ },
+ {
+  "id": "ball-pro",
+  "from": "  // #brilho da bola — halo suave que facilita seguir a jogada\n  ctx.save();\n  const _bhalo = ctx.createRadialGradient(bx, by, 0, bx, by, 15);\n  _bhalo.addColorStop(0, 'rgba(255,238,140,.5)'); _bhalo.addColorStop(1, 'rgba(255,238,140,0)');\n  ctx.fillStyle = _bhalo; ctx.beginPath(); ctx.arc(bx, by, 15, 0, Math.PI*2); ctx.fill();\n  ctx.restore();\n  ctx.save(); ctx.globalAlpha=.28;\n  ctx.beginPath(); ctx.arc(cx(b.x),cy(b.y)+3,5,0,Math.PI*2);\n  ctx.fillStyle='#000'; ctx.fill(); ctx.restore();\n  ctx.beginPath(); ctx.arc(bx,by,7,0,Math.PI*2);\n  const bg=ctx.createRadialGradient(bx-2.5,by-2.5,0,bx,by,7);\n  bg.addColorStop(0,'#ffffff'); bg.addColorStop(1,'#c8c8c8');\n  ctx.fillStyle=bg; ctx.fill();\n  ctx.strokeStyle='#444'; ctx.lineWidth=.8; ctx.stroke();\n  // costura\n  ctx.strokeStyle='rgba(80,80,80,.5)'; ctx.lineWidth=.5;\n  ctx.beginPath(); ctx.arc(bx,by,4,0,Math.PI*2); ctx.stroke();",
+  "to": "  if (window.CDS_F25D) {\n    const _tv = (!rframe && bT && bT.traveling && bT.target) ? { tx: cx(bT.target.x), ty: cy(bT.target.y), kind: bT.kind } : null;\n    window.CDS_F25D.ball(ctx, { gx: cx(b.x), gy: cy(b.y), z: b.z || 0, tv: _tv });\n  } else {\n  // #brilho da bola — halo suave que facilita seguir a jogada\n  ctx.save();\n  const _bhalo = ctx.createRadialGradient(bx, by, 0, bx, by, 15);\n  _bhalo.addColorStop(0, 'rgba(255,238,140,.5)'); _bhalo.addColorStop(1, 'rgba(255,238,140,0)');\n  ctx.fillStyle = _bhalo; ctx.beginPath(); ctx.arc(bx, by, 15, 0, Math.PI*2); ctx.fill();\n  ctx.restore();\n  ctx.save(); ctx.globalAlpha=.28;\n  ctx.beginPath(); ctx.arc(cx(b.x),cy(b.y)+3,5,0,Math.PI*2);\n  ctx.fillStyle='#000'; ctx.fill(); ctx.restore();\n  ctx.beginPath(); ctx.arc(bx,by,7,0,Math.PI*2);\n  const bg=ctx.createRadialGradient(bx-2.5,by-2.5,0,bx,by,7);\n  bg.addColorStop(0,'#ffffff'); bg.addColorStop(1,'#c8c8c8');\n  ctx.fillStyle=bg; ctx.fill();\n  ctx.strokeStyle='#444'; ctx.lineWidth=.8; ctx.stroke();\n  // costura\n  ctx.strokeStyle='rgba(80,80,80,.5)'; ctx.lineWidth=.5;\n  ctx.beginPath(); ctx.arc(bx,by,4,0,Math.PI*2); ctx.stroke(); }"
+ },
+ {
+  "id": "trail-z",
+  "from": "  trailPts.unshift({ x: b.x, y: b.y });",
+  "to": "  trailPts.unshift({ x: b.x, y: b.y, z: b.z || 0 });"
+ },
+ {
+  "id": "num-depth-scale",
+  "from": "      ctx.font = `bold 10px Arial,sans-serif`;\n      ctx.textAlign='center'; ctx.textBaseline='middle';\n      ctx.fillText(p.num||'', x, y);",
+  "to": "      ctx.font = `bold ${Math.max(7, Math.min(12, 10 * r / 13)).toFixed(1)}px Arial,sans-serif`;\n      ctx.textAlign='center'; ctx.textBaseline='middle';\n      ctx.fillText(p.num||'', x, y);"
+ },
+ {
+  "id": "pill-clamp-decl",
+  "from": "      const pw = tw + 8, ph2 = 11, py2 = y + r + 2;",
+  "to": "      const pw = tw + 8, ph2 = 11, py2 = y + r + 2, pxc = Math.max(M + pw/2 + 2, Math.min(CW - M - pw/2 - 2, x));"
+ },
+ {
+  "id": "pill-clamp-rect",
+  "from": "      ctx.roundRect(x - pw/2, py2, pw, ph2, 6);",
+  "to": "      ctx.roundRect(pxc - pw/2, py2, pw, ph2, 6);"
+ },
+ {
+  "id": "pill-clamp-text",
+  "from": "      ctx.fillText(nm, x, py2 + ph2/2 + 0.5);",
+  "to": "      ctx.fillText(nm, pxc, py2 + ph2/2 + 0.5);"
+ },
+ {
+  "id": "score-resync",
+  "from": "  el.textContent=`${ph} ${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;",
+  "to": "  el.textContent=`${ph} ${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;\n  const scEl=$('#score'); const scTxt=`${sim.score[0]}–${sim.score[1]}`;\n  if (scEl && scEl.textContent !== scTxt) scEl.textContent = scTxt;"
+ },
+ {
+  "id": "pose-tackle",
+  "from": "  if (e.type === 'tackle' && e.by) fxAt(e.by, 'star', 0.7);",
+  "to": "  if (e.type === 'tackle' && e.by) { fxAt(e.by, 'star', 0.7); motionAt(e.by, 'tackle', 0.5); }"
+ },
+ {
+  "id": "pose-shot",
+  "from": "  if (e.type === 'shot_taken' && e.by) fxAt(e.by, 'ring', 0.5);   // #impacto: anel de força no chute",
+  "to": "  if (e.type === 'shot_taken' && e.by) { fxAt(e.by, 'ring', 0.5); motionAt(e.by, 'kick', 0.42); }   // #impacto: anel + pose de chute"
+ },
+ {
+  "id": "pose-cross",
+  "from": "  if (e.type === 'cross' && e.by) fxAt(e.by, 'arrow', 0.7);",
+  "to": "  if (e.type === 'cross' && e.by) { fxAt(e.by, 'arrow', 0.7); motionAt(e.by, 'kick', 0.42); }"
+ },
+ {
+  "id": "pose-freekick",
+  "from": "  if (e.type === 'legend' && e.by) fxAt(e.by, 'fire', 1.6);",
+  "to": "  if (e.type === 'legend' && e.by) fxAt(e.by, 'fire', 1.6);\n  if (e.type === 'freekick' && e.by) motionAt(e.by, 'kick', 0.46);   // pose de cobrança de falta no 2.5D"
+ },
+ {
+  "id": "a11y-announce",
+  "from": "    keyEvents.push(physicalDecorate({min:Math.floor(sim.minute),ic,side,txt:(nm?nm+' ':'')+e.type},e));\n    paintTimeline();",
+  "to": "    keyEvents.push(physicalDecorate({min:Math.floor(sim.minute),ic,side,txt:(nm?nm+' ':'')+e.type},e));\n    paintTimeline();\n    if(window.__cdsAnnounce)window.__cdsAnnounce((nm?nm+' ':'')+(e.type==='goal'?('gol, '+sim.score[0]+' a '+sim.score[1]):e.type==='yellow'?'cartão amarelo':e.type==='red'?'cartão vermelho':'substituição'), e.type==='goal');"
+ },
+ {
+  "id": "pose-pass",
+  "from": "  if (e.type === 'pass') {\n    if (passNarrCd <= 0 && vrand() < 0.6) {",
+  "to": "  if (e.type === 'pass') {\n    if (e.by) motionAt(e.by, 'kick', 0.32);\n    if (passNarrCd <= 0 && vrand() < 0.6) {"
+ },
+ {
+  "id": "draft-canprogress",
+  "from": "function canPlay(player, slot){ return player.elig.indexOf(slot) !== -1; }",
+  "to": "function canPlay(player, slot){ return player.elig.indexOf(slot) !== -1; }\nfunction _draftCanProgress(d){\n  if(!d||!d.cur||!d.cur.pl) return true;\n  const taken = pickedIds();\n  const avail = d.cur.pl.filter(p=>!taken.has(p.id));\n  return d.slots.filter(s=>!s.p).every(s=> avail.some(p=>canPlay(p,s.pos)));\n}"
+ },
+ {
+  "id": "draft-emergency",
+  "from": "  const team = d.cur;\n  const nPick = Math.min(filled() + 1, 11);",
+  "to": "  const team = d.cur;\n  // UX-031: nunca trava — sem peça compatível p/ um slot vazio e sem rerolls,\n  // concede reroll de EMERGÊNCIA (roleta enviesada p/ time compatível em rollTeam).\n  if (d.cur && filled() < 11 && d.rerolls <= 0 && !_draftCanProgress(d)) {\n    d.rerolls = 1; toast('Reroll de emergência: elenco sem peça compatível.');\n  }\n  const nPick = Math.min(filled() + 1, 11);"
+ },
+ {
+  "id": "draft-reroll-bias",
+  "from": "  if (!pool.length) { d.used = new Set(); pool = all.slice(); }\n  d.cur = rnd(pool);",
+  "to": "  if (!pool.length) { d.used = new Set(); pool = all.slice(); }\n  // UX-031: havendo slots vazios, prioriza times que TÊM peça compatível (evita travar)\n  const _need = d.slots.filter(s=>!s.p).map(s=>s.pos);\n  if (_need.length) {\n    const _taken = pickedIds();\n    const _good = pool.filter(t => (t.pl||[]).some(p=>!_taken.has(p.id) && _need.some(pos=>canPlay(p,pos))));\n    if (_good.length) pool = _good;\n  }\n  d.cur = rnd(pool);"
+ }
+]
