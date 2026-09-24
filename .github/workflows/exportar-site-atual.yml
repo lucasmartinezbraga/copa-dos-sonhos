@@ -1,0 +1,31 @@
+name: Exportar site atual
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  exportar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+
+      - name: Empacotar HTML atual
+        run: |
+          test -s docs/index.html
+          mkdir -p export
+          cp docs/index.html export/index.html
+          sha256sum export/index.html > export/sha256.txt
+          zip -r site-atual.zip export
+
+      - name: Enviar artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-atual
+          path: site-atual.zip
+          retention-days: 1
