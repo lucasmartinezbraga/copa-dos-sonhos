@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Contrato de ação Motor Vivo 2.5D",
+  "type": "object",
+  "required": ["actor", "action", "start", "contact", "end", "outcome"],
+  "properties": {
+    "actor": {"type": "string"},
+    "action": {"enum": ["receive", "carry", "dribble", "pass", "cross", "shot", "header", "tackle", "block", "save", "restart"]},
+    "target": {"type": ["string", "null"]},
+    "foot": {"enum": ["L", "R", "HEAD", "HANDS", "BODY", "NONE"]},
+    "start": {"type": "number"},
+    "contact": {"type": "number"},
+    "end": {"type": "number"},
+    "contactPoint": {"type": "object"},
+    "outcome": {"type": "string"},
+    "seed": {"type": "integer"}
+  }
+}

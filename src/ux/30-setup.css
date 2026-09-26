@@ -1,0 +1,63 @@
+/* ============================================================================
+ * Copa dos Sonhos · Redesign · Largura de fluxo + SETUP
+ * Corrige o trava-largura no desktop (telas de fluxo ficavam em coluna de
+ * 520px) e eleva a tela de preparação com a identidade HUD. Não toca o motor.
+ * ========================================================================== */
+
+/* ─── CORREÇÃO UNIVERSAL: telas de fluxo usam a largura no desktop ──────────
+ * O #app era travado em 520px, anulando o max-width de .screen (860/1180).
+ * Destravando o #app quando há .screen, todas as telas de fluxo passam a
+ * respeitar a largura desktop já prevista no CSS base. */
+#app:has(.screen) { max-width: none; }
+.top { width: 100%; }
+@media (min-width: 768px) {
+  #app:has(.screen) > .top { max-width: 860px; margin-inline: auto; }
+}
+@media (min-width: 1100px) {
+  #app:has(.screen) > .top { max-width: 1180px; }
+}
+
+/* ─── SETUP: mode cards premium ───────────────────────────────────────── */
+.modecard {
+  background: linear-gradient(160deg, var(--glass), rgba(8,16,30,.86));
+  border: 1px solid var(--glass-brd); border-radius: var(--r-md);
+  transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.modecard:hover { transform: translateY(-2px); border-color: var(--hud-line); box-shadow: 0 12px 30px rgba(0,0,0,.4), 0 0 22px rgba(56,225,255,.1); }
+.modecard.on {
+  border-color: var(--ouro);
+  box-shadow: 0 0 0 1px var(--ouro) inset, 0 12px 30px rgba(255,203,69,.16), 0 0 26px rgba(255,203,69,.14);
+}
+.modecard.on .mc-i { filter: drop-shadow(0 0 10px rgba(255,203,69,.5)); }
+
+/* ─── SETUP: estilo de jogo — grid no desktop + linhas premium ───────────── */
+@media (min-width: 720px) {
+  .screen > div:has(> .stylerow) { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: stretch; }
+  .stylerow + .stylerow { margin-top: 0; }
+}
+@media (min-width: 1100px) {
+  .screen > div:has(> .stylerow) { grid-template-columns: repeat(3, 1fr); }
+}
+.stylerow {
+  background: linear-gradient(160deg, var(--glass), rgba(8,16,30,.82));
+  border: 1px solid var(--glass-brd); border-radius: var(--r-md); padding: 12px 12px;
+  transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.stylerow:hover { transform: translateY(-2px); border-color: var(--hud-line); box-shadow: 0 12px 26px rgba(0,0,0,.4), 0 0 20px rgba(56,225,255,.1); }
+.stylerow .st-i {
+  display: grid; place-items: center; width: 40px; height: 40px; flex: 0 0 40px;
+  border-radius: 12px; background: rgba(56,225,255,.08); border: 1px solid var(--glass-brd); font-size: 20px;
+}
+.stylerow .st-t { font: 800 15px var(--f-cond); letter-spacing: .4px; }
+.stylerow .st-d { font-size: 12px; color: var(--mut); margin-top: 2px; }
+.stylerow.on {
+  border-color: var(--ouro);
+  box-shadow: 0 0 0 1px var(--ouro) inset, 0 0 24px rgba(255,203,69,.14);
+}
+.stylerow.on .st-i { background: rgba(255,203,69,.14); border-color: rgba(255,203,69,.4); }
+
+/* Pills (formação/variação) com estado ligado neon-ouro */
+.pill.on { box-shadow: 0 0 0 1px var(--ouro) inset, 0 0 16px rgba(255,203,69,.16); }
+
+/* Minipitch não deve esticar na largura desktop */
+#minipitch { max-width: 460px; margin-inline: auto; width: 100%; }

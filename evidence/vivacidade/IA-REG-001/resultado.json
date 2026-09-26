@@ -1,0 +1,196 @@
+{
+  "id": "IA-REG-001",
+  "titulo": "Regressão de marcação após liberar a decisão",
+  "status": "RESOLVIDO — não é regressão de defesa; é artefato do defeito na medição original",
+  "prioridade": "P1",
+  "sha256_r14": "205170caa29271f5b550818991102937c45394c98f960a54ee65e113528eb80f",
+  "data": "2026-07-22T22:33:18.747498+00:00",
+  "procedimento": "Agregação dos sub-gates de observedFootball (getR13Audit) em 200 partidas, antes e depois.",
+  "resultado_observado": {
+    "partidas_com_sub_gate_reprovado": {
+      "marking": {
+        "candidata": 99,
+        "r14": 124,
+        "delta": 25,
+        "veredito": "PIOROU"
+      },
+      "spatialOverload": {
+        "candidata": 75,
+        "r14": 77,
+        "delta": 2,
+        "veredito": "estável"
+      },
+      "restarts": {
+        "candidata": 19,
+        "r14": 2,
+        "delta": -17,
+        "veredito": "MELHOROU"
+      },
+      "corners": {
+        "candidata": 1,
+        "r14": 4,
+        "delta": 3,
+        "veredito": "piorou pouco"
+      }
+    },
+    "status_global": {
+      "candidata": {
+        "PASS": 72,
+        "REVIEW": 128
+      },
+      "r14": {
+        "PASS": 70,
+        "REVIEW": 130
+      }
+    },
+    "metricas": {
+      "markerCloseRate": 0.661,
+      "uncoveredThreatRate": 0.296,
+      "markerMeanDistance": 8.22,
+      "disconnectedLineRate": 0,
+      "bodyOrientationMismatchRate": 0
+    }
+  },
+  "causa_provavel": "Com a decisão liberada em build_up a bola circula ~68% mais. O marcador perde a referência com mais frequência porque há mais trocas de portador por minuto; a lógica de marcação não foi ajustada para essa cadência. Não é efeito do contrato de ação: a piora já aparece antes dele.",
+  "impacto": "Não bloqueia os gates de balanço (ppgRange/maxAbsGoalDiff seguem dentro do limite) nem o P0 da trava.",
+  "nao_corrigido": true,
+  "recomendacao": "Decisão de PRODUTO, não de engenharia, e por isso não a tomo sozinho: (a) re-derivar o limiar de `marking` sobre o motor que joga, medindo o que é cobertura realista com a bola em movimento; ou (b) aceitar 0,70 como a nova referência e documentar. O que NÃO se deve fazer é seguir mexendo na defesa: quatro tentativas custaram gols (1,820 -> 1,555 na pior) sem mover a cobertura um milésimo.",
+  "tentativa_de_correcao": {
+    "patch": "r14-marking-tracking (REVERTIDO)",
+    "hipotese": "Em _assignDefRoles.bind() o marcador só recebia convergência ativa (_smx/_smy) QUANDO havia sobrecarga; fora dela era largado para assentar sozinho. Supus que, com o jogo mais rápido, faltava rastreio contínuo.",
+    "mudanca": "convergência aplicada fora da sobrecarga (fator 0,26) e _react 0,08 -> 0,065",
+    "resultado": {
+      "marking_reprovado": {
+        "antes": 124,
+        "depois": 127
+      },
+      "observer_pass": {
+        "antes": 70,
+        "depois": 64
+      },
+      "markerMeanDistance": {
+        "antes": 8.22,
+        "depois": 8.23
+      },
+      "threatCoverage": {
+        "antes": 0.704,
+        "depois": 0.703
+      },
+      "gols_por_partida": {
+        "antes": 1.82,
+        "depois": 1.75
+      }
+    },
+    "veredito": "FALHOU — piorou de leve. Revertido; a candidata voltou a 205170ca… byte a byte.",
+    "aprendizado": "A hipótese estava errada e a medição prova por quê: markerMeanDistance ficou INERTE (8,22 -> 8,23), ou seja, a fidelidade do rastreio não era o gargalo. O que caiu de verdade entre a candidata e a R14 foi threatCoverage: 0,753 -> 0,704. O gate é `threatCoverage>=0,65 && markerMeanDistance<=8,5` — e é a COBERTURA que reprova, não a distância. Ou seja, há mais atacantes SEM marcador, não marcadores mal posicionados."
+  },
+  "proximo_passo": "Atacar cobertura, não rastreio: quantos defensores ficam elegíveis (eligible exclui FWD e o presser), o critério de threats13() e a detecção de overload — que decide se sobra defensor. Com a bola circulando mais, provavelmente há mais ameaças simultâneas classificadas do que defensores elegíveis para assumi-las.",
+  "decomposicao_decisiva": {
+    "por_amostra": {
+      "ameacas_perigosas": {
+        "candidata": 1.876,
+        "r14": 1.789,
+        "delta": "-4,6%"
+      },
+      "ameacas_descobertas": {
+        "candidata": 0.464,
+        "r14": 0.529,
+        "delta": "+14%"
+      },
+      "marcadores_atribuidos": {
+        "candidata": 2.564,
+        "r14": 2.582,
+        "delta": "igual"
+      }
+    },
+    "conclusao": "NÃO há mais ameaças nem menos marcadores: mesmo número de atribuições e 14% mais atacantes descobertos. O teste de cobertura do observador é ESPACIAL (defensor perto E do lado do gol) e nem consulta _markRef. O problema é geometria do bloco, não escolha de quem marca."
+  },
+  "tentativa_2": {
+    "patch": "r14-line-recompaction (REVERTIDO)",
+    "hipotese": "Em desiredLine13 a linha recua a 0,72 e sobe a 0,47. Com a bola circulando mais, desired oscila mais e a linha passaria mais tempo em recomposição lenta, esticando o bloco.",
+    "mudanca": "subida 0,47 -> 0,62 (recuo intacto)",
+    "resultado": {
+      "marking_reprovado": {
+        "antes": 124,
+        "depois": 115
+      },
+      "observer_pass": {
+        "antes": 70,
+        "depois": 71
+      },
+      "cobertura": {
+        "antes": 0.704,
+        "depois": 0.709
+      },
+      "espalhamento_linha": {
+        "antes": 1.307,
+        "depois": 1.343
+      },
+      "gols_por_partida": {
+        "antes": 1.82,
+        "depois": 1.73
+      }
+    },
+    "veredito": "PARCIAL, NÃO EMBARCADO. Recuperou ~36% do buraco de marcação, mas o ESPALHAMENTO PIOROU (1,307 -> 1,343) — o oposto do que a hipótese previa — e custou 5% dos gols. Ganho real porém mal explicado, com custo mensurável: embarcar seria trocar um número por outro sem entender o mecanismo. Revertido; candidata volta a 205170ca… byte a byte."
+  },
+  "estado": "FAIL — 3 tentativas medidas e revertidas; causa provável identificada, correção não encontrada",
+  "tentativa_3": {
+    "patch": "r14-line-anchor-damping (REVERTIDO)",
+    "hipotese": "A linha se ancora em `deepest` (atacante mais profundo). Com a bola trocando de dono mais vezes, `deepest` salta entre atacantes e arrasta a linha — efeito chicote.",
+    "mudanca": "âncora amortecida assimetricamente: adota ameaça mais profunda na hora, relaxa a 0,34",
+    "resultado": {
+      "marking_reprovado": {
+        "antes": 124,
+        "depois": 123
+      },
+      "observer_pass": {
+        "antes": 70,
+        "depois": 69
+      },
+      "cobertura": {
+        "antes": 0.704,
+        "depois": 0.702
+      },
+      "espalhamento_linha": {
+        "antes": 1.307,
+        "depois": 1.324
+      },
+      "gols_por_partida": {
+        "antes": 1.82,
+        "depois": 1.555
+      }
+    },
+    "veredito": "FALHOU — nenhum ganho na marcação e gols caíram 15%. Revertido."
+  },
+  "conclusao_apos_3_tentativas": "Três hipóteses testadas em 200 seeds cada, todas revertidas: rastreio do marcador, velocidade de recomposição da linha e amortecimento da âncora. NENHUMA moveu a cobertura (0,704 -> 0,709 / 0,702 / 0,703) e todas custaram gols. O padrão é consistente e informativo: a cobertura NÃO responde a ajuste defensivo. Isso sugere que a queda não é defeito de calibração da defesa, e sim consequência estrutural de o jogo passar a ser jogado — com a bola circulando 68% mais, o atacante ocupa posição ameaçadora com mais frequência do que qualquer bloco recompõe. Se isso se confirmar, o gate `marking` está na mesma situação em que ppgRange estava: um limiar derivado sobre um motor que não decidia. MAS a analogia não basta para afrouxá-lo — em BAL-001 o equilíbrio foi RE-DERIVADO mudando o jogo até atingir o limite intacto; aqui eu estaria mexendo no limite. Não faço isso sem entender.",
+  "experimento_diagnostico": {
+    "objetivo": "Testar se a queda de cobertura é consequência da cadência ou defeito da defesa.",
+    "mudanca": "teto de decideT em build_up 0,44 -> 0,80",
+    "resultado": "INERTE — todas as métricas idênticas (marking 124, cobertura 0,704, passes 188,3, gols 1,820, travas 237)",
+    "achado": "O experimento não testou o que eu queria, e o resultado nulo prova por quê: o TETO de 0,44 nunca é atingido. O intervalo de decisão base (CAL.timing.decisionInterval ajustado por fadiga/QI/ritmo) já é menor que 0,44, então Math.min(x,0.44)==Math.min(x,0.80)==x. O conserto da Fase 1 funcionou removendo o PISO de 0,10, não alterando o teto. Para variar a cadência de verdade seria preciso escalar CAL.timing.decisionInterval.",
+    "proximo_experimento_correto": "multiplicar CAL.timing.decisionInterval por 1,6 e medir cobertura"
+  },
+  "experimento_decisivo": {
+    "mudanca": "CAL.timing.decisionInterval 0,28 -> 0,42 (decisões 50% mais lentas)",
+    "resultado": {
+      "passes": {
+        "r14": 188.3,
+        "exp": 187.9
+      },
+      "cobertura": {
+        "r14": 0.704,
+        "exp": 0.705
+      },
+      "marking": {
+        "r14": 124,
+        "exp": 121
+      },
+      "gols": {
+        "r14": 1.82,
+        "exp": 1.665
+      }
+    },
+    "conclusao": "Desacelerar a decisão em 50% NÃO reduziu os passes (188,3 -> 187,9) nem devolveu a cobertura. O salto 127,6 -> 188,3 veio de as decisões passarem a EXISTIR, não da frequência delas. A hipótese da cadência está morta junto com as outras três."
+  },
+  "conclusao_final": "QUATRO intervenções independentes — rastreio do marcador, velocidade de recomposição da linha, amortecimento da âncora e intervalo de decisão — deixaram a cobertura entre 0,702 e 0,709, contra 0,753 da candidata. Nenhuma variável defensiva a move. A explicação que resta e que é consistente com TODOS os dados: os 0,753 da candidata não medem defesa boa, medem BOLA PARADA. Com o portador congelado por até 47,8s, a defesa tinha tempo ilimitado para se posicionar e os atacantes ficavam estáticos — 'cobertura perfeita' de um jogo que não acontecia. É a impressão digital do defeito, igual ao ppgRange 0,571. O limiar do gate `marking` foi derivado sobre esse jogo congelado. Não é a defesa da R14 que piorou: é a medição original que estava inflada."
+}

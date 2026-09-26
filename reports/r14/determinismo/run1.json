@@ -1,0 +1,3351 @@
+{
+  "build": "5.9.3-R13.0",
+  "sha256": "205170caa29271f5b550818991102937c45394c98f960a54ee65e113528eb80f",
+  "range": [
+    0,
+    8
+  ],
+  "summary": {
+    "matches": 8,
+    "completed": 8,
+    "canonicalStatuses": {
+      "CONSISTENT": 8
+    },
+    "perMatch": {
+      "goals": 1.75,
+      "shots": 13.125,
+      "passes": 191.25,
+      "corners": 6.625,
+      "offsides": 1.125,
+      "throwIns": 8.75
+    },
+    "setPieces": {
+      "cornerGoals": 0,
+      "cornerGoalShare": 0,
+      "cornerConversion": 0,
+      "goalKicks": 8.125,
+      "touchlineErrors": 7.125,
+      "touchlineDuels": 0.5,
+      "offsideTraps": 1.125
+    },
+    "humanObserver": {
+      "uncoveredThreatRate": 0.3319515565309274,
+      "goalSideCoverageRate": 0.6680484434690726,
+      "markerCloseRate": 0.6408506010994985,
+      "markerGoalSideRate": 0.7768380354014378,
+      "markerMeanDistance": 8.43173951813985,
+      "markerMaxDistance": 61.29235255228799,
+      "defensiveLineMeanRange": 1.291623455325393,
+      "defensiveLineMaxRange": 12.979249781088186,
+      "disconnectedLineRate": 0,
+      "overload424UncoveredRate": 0.3417085427135677,
+      "spatialOverloadUncoveredRate": 0.3259470528009361,
+      "bodyOrientationMismatchRate": 0
+    },
+    "events": {
+      "kickoff": 8,
+      "match_phase": 2342,
+      "action_prepare": 1674,
+      "action_contact": 1664,
+      "pass": 1312,
+      "visual_contact": 1845,
+      "through": 114,
+      "looseControl": 165,
+      "pressure": 654,
+      "containment": 293,
+      "shot_taken": 58,
+      "miss": 71,
+      "goal_kick": 65,
+      "bad_pass": 132,
+      "throw_in": 70,
+      "blocked": 8,
+      "corner": 53,
+      "corner_delivery": 49,
+      "cross": 130,
+      "gk_sweep": 18,
+      "gk_claim": 53,
+      "gk_bad_distribution": 11,
+      "loose_duel": 15,
+      "run_burst": 47,
+      "dribble": 72,
+      "low_cross_shot": 35,
+      "goal": 14,
+      "intercept": 63,
+      "tackle_attempt": 55,
+      "tackle_missed": 9,
+      "tactical_shift": 41,
+      "offside_trap": 9,
+      "foul": 46,
+      "tackle": 25,
+      "save": 12,
+      "header_clear": 5,
+      "halftime": 8,
+      "freekick_routine": 3,
+      "freekick": 2,
+      "action_interrupted": 7,
+      "offside": 9,
+      "intercept_attempt_aborted": 39,
+      "run_break": 78,
+      "header_shot": 10,
+      "gk_punch": 4,
+      "miscontrol_out": 8,
+      "post": 2,
+      "yellow": 6,
+      "touchline_duel": 1,
+      "clearance_out": 3,
+      "gk_claim_miss": 1
+    }
+  },
+  "matrix": null,
+  "results": [
+    {
+      "index": 0,
+      "actionAudit": {
+        "prepared": 199,
+        "contacted": 198,
+        "interrupted": 1,
+        "forced": 0,
+        "byType": {
+          "pass": 178,
+          "shot": 14,
+          "cross": 7
+        }
+      },
+      "actionSample": [
+        {
+          "actionId": "a198",
+          "actor": "Eusebio",
+          "action": "pass",
+          "target": "Hilario",
+          "foot": "R",
+          "start": 400.067,
+          "contact": 400.233,
+          "end": 400.453,
+          "prepareDuration": 0.167,
+          "followThroughDuration": 0.1,
+          "recoveryDuration": 0.12,
+          "contactPoint": {
+            "x": 84.42,
+            "y": 29.38,
+            "z": 0.07
+          },
+          "outcome": "contact",
+          "interrupted": false,
+          "minute": 89.65
+        },
+        {
+          "actionId": "a199",
+          "actor": "Hilario",
+          "action": "pass",
+          "target": "Vicente",
+          "foot": "R",
+          "start": 401.133,
+          "contact": 401.333,
+          "end": 401.553,
+          "prepareDuration": 0.2,
+          "followThroughDuration": 0.1,
+          "recoveryDuration": 0.12,
+          "contactPoint": {
+            "x": 87.04,
+            "y": 19.7,
+            "z": 0.07
+          },
+          "outcome": "contact",
+          "interrupted": false,
+          "minute": 89.91
+        }
+      ],
+      "stallFires": 0,
+      "lockCount": 1,
+      "lockMaxSec": 3.1,
+      "lockTwoPlayer": 0,
+      "worstLocks": [
+        {
+          "startMin": 32.8,
+          "gameSec": 3.1,
+          "ticks": 92,
+          "owners": [
+            "1:Johan Venegas"
+          ],
+          "twoPlayers": false,
+          "x": 93.4,
+          "y": 28.6,
+          "ownerChanges": 4,
+          "maxDwellSec": 1.7,
+          "kind": "dwell"
+        }
+      ],
+      "seed": 870000,
+      "formations": [
+        "4-1-4-1",
+        "4-3-1-2"
+      ],
+      "styles": [
+        "press",
+        "park"
+      ],
+      "completed": true,
+      "score": [
+        4,
+        0
+      ],
+      "stats": [
+        {
+          "goals": 4,
+          "shots": 16,
+          "passes": 89,
+          "passOk": 82,
+          "corners": 6,
+          "offsides": 1,
+          "cornerGoals": 0,
+          "setPieceGoals": 0,
+          "throwIns": 7,
+          "goalKicks": 4,
+          "touchlineErrors": 1,
+          "touchlineDuels": 0,
+          "offsideTraps": 1
+        },
+        {
+          "goals": 0,
+          "shots": 6,
+          "passes": 89,
+          "passOk": 69,
+          "corners": 2,
+          "offsides": 0,
+          "cornerGoals": 0,
+          "setPieceGoals": 0,
+          "throwIns": 2,
+          "goalKicks": 5,
+          "touchlineErrors": 7,
+          "touchlineDuels": 0,
+          "offsideTraps": 0
+        }
+      ],
+      "canonicalStatus": "CONSISTENT",
+      "observedFootball": {
+        "version": "5.9.3-R13.0",
+        "team": [
+          {
+            "throwIns": 7,
+            "goalKicks": 4,
+            "touchlineErrors": 1,
+            "touchlineDuels": 0,
+            "offsideTraps": 1
+          },
+          {
+            "throwIns": 2,
+            "goalKicks": 5,
+            "touchlineErrors": 7,
+            "touchlineDuels": 0,
+            "offsideTraps": 0
+          }
+        ],
+        "events": {
+          "kickoff": 1,
+          "match_phase": 343,
+          "action_prepare": 199,
+          "action_contact": 198,
+          "pass": 150,
+          "visual_contact": 222,
+          "through": 10,
+          "looseControl": 21,
+          "pressure": 80,
+          "containment": 38,
+          "shot_taken": 14,
+          "miss": 11,
+          "goal_kick": 9,
+          "bad_pass": 19,
+          "throw_in": 9,
+          "blocked": 2,
+          "corner": 8,
+          "corner_delivery": 7,
+          "cross": 14,
+          "gk_sweep": 1,
+          "gk_claim": 3,
+          "gk_bad_distribution": 2,
+          "loose_duel": 3,
+          "run_burst": 9,
+          "dribble": 14,
+          "low_cross_shot": 4,
+          "goal": 4,
+          "intercept": 7,
+          "tackle_attempt": 7,
+          "tackle_missed": 1,
+          "tactical_shift": 5,
+          "offside_trap": 1,
+          "foul": 7,
+          "tackle": 3,
+          "save": 4,
+          "header_clear": 1,
+          "halftime": 1,
+          "freekick_routine": 1,
+          "freekick": 1,
+          "action_interrupted": 1,
+          "offside": 1,
+          "intercept_attempt_aborted": 6,
+          "run_break": 1,
+          "header_shot": 3,
+          "gk_punch": 1,
+          "miscontrol_out": 1
+        },
+        "phaseByTeam": [
+          "build_up",
+          "transition_defense"
+        ],
+        "phaseSince": [
+          400.9000000001033,
+          397.30000000010045
+        ],
+        "phaseTime": [
+          {
+            "reorganization": 8.033333333333315,
+            "transition_attack": 71.29999999999852,
+            "progression": 74.69999999999833,
+            "final_third": 39.9000000000003,
+            "restart": 22.666666666666952,
+            "transition_defense": 144.6333333333277,
+            "build_up": 9.699999999999976,
+            "defensive_block": 31.0000000000007
+          },
+          {
+            "reorganization": 22.266666666666932,
+            "transition_defense": 125.83333333332875,
+            "defensive_block": 71.36666666666518,
+            "transition_attack": 64.86666666666555,
+            "build_up": 48.26666666666649,
+            "progression": 40.63333333333359,
+            "final_third": 20.800000000000193,
+            "restart": 7.899999999999982
+          }
+        ],
+        "phaseChanges": 343,
+        "possessionChangedAt": 397.30000000010045,
+        "previousPoss": 0,
+        "cornerChain": null,
+        "nextSample": 402.3333333334374,
+        "metrics": {
+          "samples": 775,
+          "dangerousThreats": 1466,
+          "coveredThreats": 1006,
+          "goalSideThreats": 1006,
+          "markerSamples": 1462,
+          "closeMarkers": 1001,
+          "goalSideMarkers": 1166,
+          "markerDistance": 11038.49921080076,
+          "lineSamples": 201,
+          "lineRange": 917.4560831347081,
+          "lineRangeMax": 12.944631036080743,
+          "disconnectedLines": 0,
+          "spatialOverloadSamples": 286,
+          "spatialOverloadCovered": 204.66666666666666,
+          "controlledBallSamples": 131,
+          "bodyAligned": 131,
+          "markingSwitches": 42
+        },
+        "rates": {
+          "threatCoverage": 0.6862210095497954,
+          "goalSideCoverage": 0.6862210095497954,
+          "markerClose": 0.6846785225718194,
+          "markerGoalSide": 0.7975376196990424,
+          "markerMeanDistance": 7.550273058003255,
+          "defensiveLineMeanRange": 4.564458125048299,
+          "disconnectedLineRate": 0,
+          "spatialOverloadCoverage": 0.7156177156177156,
+          "bodyOrientationMismatch": 0,
+          "cornerGoalShare": 0
+        },
+        "gates": {
+          "structural": true,
+          "cadence": true,
+          "ball": true,
+          "marking": true,
+          "lines": true,
+          "spatialOverload": true,
+          "restarts": true,
+          "corners": true
+        },
+        "phaseVariety": [
+          8,
+          8
+        ],
+        "teamStats": [
+          {
+            "throwIns": 7,
+            "goalKicks": 4,
+            "touchlineErrors": 1,
+            "touchlineDuels": 0,
+            "offsideTraps": 1
+          },
+          {
+            "throwIns": 2,
+            "goalKicks": 5,
+            "touchlineErrors": 7,
+            "touchlineDuels": 0,
+            "offsideTraps": 0
+          }
+        ],
+        "status": "FOOTBALL_OBSERVER_PASS"
+      },
+      "observer": {
+        "samples": 803,
+        "defensiveSamples": 805,
+        "dangerousAttackers": 969,
+        "uncoveredAttackers": 222,
+        "goalSideCovered": 747,
+        "markerAssignments": 1514,
+        "markerActuallyClose": 1038,
+        "markerGoalSide": 1206,
+        "markerDistanceSum": 11308.916458509048,
+        "markerDistanceMax": 61.29235255228799,
+        "defensiveLineRangeSum": 924.9143580313676,
+        "defensiveLineRangeMax": 12.876966395935263,
+        "disconnectedLines": 0,
+        "overload424Samples": 0,
+        "overload424Uncovered": 0,
+        "spatialOverloadSamples": 281,
+        "spatialOverloadUncovered": 70.5,
+        "controlledBallSamples": 144,
+        "bodyOrientationMismatch": 0,
+        "throwIns": 9,
+        "goalKicks": 1,
+        "cornersFromBoundary": 0,
+        "lineWorst": [
+          {
+            "minute": 43.55200000000122,
+            "team": 1,
+            "possession": 0,
+            "ball": {
+              "x": 37.497426733007785,
+              "y": 14.13133643157294,
+              "traveling": false,
+              "kind": "throw"
+            },
+            "phase": [
+              "transition_attack",
+              "defensive_block"
+            ],
+            "presser": {
+              "idx": 7,
+              "pos": "CM"
+            },
+            "defenders": [
+              {
+                "idx": 1,
+                "pos": "LB",
+                "progress": 33.71930290565089,
+                "y": 47.776413883828226,
+                "mark": null,
+                "role": null
+              },
+              {
+                "idx": 2,
+                "pos": "CB",
+                "progress": 34.994692328905145,
+                "y": 37.08585385031545,
+                "mark": 9,
+                "role": null
+              },
+              {
+                "idx": 3,
+                "pos": "CB",
+                "progress": 34.902145259259,
+                "y": 21.377367580030988,
+                "mark": 10,
+                "role": null
+              },
+              {
+                "idx": 4,
+                "pos": "RB",
+                "progress": 46.596269301586155,
+                "y": 8.002566517423066,
+                "mark": null,
+                "role": null
+              }
+            ]
+          }
+        ],
+        "events": {
+          "kickoff": 1,
+          "match_phase": 343,
+          "action_prepare": 199,
+          "action_contact": 198,
+          "pass": 150,
+          "visual_contact": 222,
+          "through": 10,
+          "looseControl": 21,
+          "pressure": 80,
+          "containment": 38,
+          "shot_taken": 14,
+          "miss": 11,
+          "goal_kick": 9,
+          "bad_pass": 19,
+          "throw_in": 9,
+          "blocked": 2,
+          "corner": 8,
+          "corner_delivery": 7,
+          "cross": 14,
+          "gk_sweep": 1,
+          "gk_claim": 3,
+          "gk_bad_distribution": 2,
+          "loose_duel": 3,
+          "run_burst": 9,
+          "dribble": 14,
+          "low_cross_shot": 4,
+          "goal": 4,
+          "intercept": 7,
+          "tackle_attempt": 7,
+          "tackle_missed": 1,
+          "tactical_shift": 5,
+          "offside_trap": 1,
+          "foul": 7,
+          "tackle": 3,
+          "save": 4,
+          "header_clear": 1,
+          "halftime": 1,
+          "freekick_routine": 1,
+          "freekick": 1,
+          "action_interrupted": 1,
+          "offside": 1,
+          "intercept_attempt_aborted": 6,
+          "run_break": 1,
+          "header_shot": 3,
+          "gk_punch": 1,
+          "miscontrol_out": 1
+        }
+      }
+    },
+    {
+      "index": 1,
+      "actionAudit": {
+        "prepared": 188,
+        "contacted": 188,
+        "interrupted": 0,
+        "forced": 0,
+        "byType": {
+          "pass": 171,
+          "cross": 13,
+          "shot": 4
+        }
+      },
+      "actionSample": [
+        {
+          "actionId": "a386",
+          "actor": "Harold Lozano",
+          "action": "pass",
+          "target": "Óscar Córdoba",
+          "foot": "R",
+          "start": 395.933,
+          "contact": 396.133,
+          "end": 396.353,
+          "prepareDuration": 0.2,
+          "followThroughDuration": 0.1,
+          "recoveryDuration": 0.12,
+          "contactPoint": {
+            "x": 62.27,
+            "y": 26.06,
+            "z": 0.22
+          },
+          "outcome": "contact",
+          "interrupted": false,
+          "minute": 88.98
+        },
+        {
+          "actionId": "a387",
+          "actor": "Óscar Córdoba",
+          "action": "pass",
+          "target": "Freddy Rincón",
+          "foot": "L",
+          "start": 398.167,
+          "contact": 398.367,
+          "end": 398.587,
+          "prepareDuration": 0.2,
+          "followThroughDuration": 0.1,
+          "recoveryDuration": 0.12,
+          "contactPoint": {
+            "x": 99.04,
+            "y": 31.53,
+            "z": 0.1
+          },
+          "outcome": "contact",
+          "interrupted": false,
+          "minute": 89.52
+        }
+      ],
+      "stallFires": 0,
+      "lockCount": 1,
+      "lockMaxSec": 3.8,
+      "lockTwoPlayer": 0,
+      "worstLocks": [
+        {
+          "startMin": 14.66,
+          "gameSec": 3.8,
+          "ticks": 114,
+          "owners": [
+            "1:Ronald Koeman"
+          ],
+          "twoPlayers": false,
+          "x": 72.9,
+          "y": 62.4,
+          "ownerChanges": 2,
+          "maxDwellSec": 3.3,
+          "kind": "dwell"
+        }
+      ],
+      "seed": 877919,
+      "formations": [
+        "5-3-2",
+        "5-2-3"
+      ],
+      "styles": [
+        "direct",
+        "wings"
+      ],
+      "completed": true,
+      "score": [
+        0,
+        1
+      ],
+      "stats": [
+        {
+          "goals": 0,
+          "shots": 5,
+          "passes": 97,
+          "passOk": 84,
+          "corners": 4,
+          "offsides": 2,
+          "cornerGoals": 0,
+          "setPieceGoals": 0,
+          "throwIns": 7,
+          "goalKicks": 7,
+          "touchlineErrors": 4,
+          "touchlineDuels": 0,
+          "offsideTraps": 0
+        },
+        {
+          "goals": 1,
+          "shots": 8,
+          "passes": 76,
+          "passOk": 68,
+          "corners": 5,
+          "offsides": 0,
+          "cornerGoals": 0,
+          "setPieceGoals": 0,
+          "throwIns": 4,
+          "goalKicks": 4,
+          "touchlineErrors": 6,
+          "touchlineDuels": 0,
+          "offsideTraps": 0
+        }
+      ],
+      "canonicalStatus": "CONSISTENT",
+      "observedFootball": {
+        "version": "5.9.3-R13.0",
+        "team": [
+          {
+            "throwIns": 7,
+            "goalKicks": 7,
+            "touchlineErrors": 4,
+            "touchlineDuels": 0,
+            "offsideTraps": 0
+          },
+          {
+            "throwIns": 4,
+            "goalKicks": 4,
+            "touchlineErrors": 6,
+            "touchlineDuels": 0,
+            "offsideTraps": 0
+          }
+        ],
+        "events": {
+          "kickoff": 1,
+          "match_phase": 313,
+          "action_prepare": 188,
+          "action_contact": 188,
+          "pass": 150,
+          "visual_contact": 198,
+          "looseControl": 26,
+          "run_break": 12,
+          "pressure": 59,
+          "containment": 29,
+          "cross": 20,
+          "low_cross_shot": 8,
+          "miss": 10,
+          "corner": 9,
+          "corner_delivery": 7,
+          "goal_kick": 11,
+          "bad_pass": 17,
+          "throw_in": 11,
+          "gk_claim": 4,
+          "header_shot": 1,
+          "header_clear": 1,
+          "shot_taken": 4,
+          "through": 17,
+          "intercept_attempt_aborted": 7,
+          "tackle_attempt": 2,
+          "tackle": 2,
+          "foul": 3,
+          "loose_duel": 1,
+          "dribble": 2,
+          "save": 2,
+          "run_burst": 3,
+          "miscontrol_out": 1,
+          "offside": 2,
+          "intercept": 2,
+          "halftime": 1,
+          "tactical_shift": 8,
+          "gk_punch": 1,
+          "gk_bad_distribution": 1,
+          "goal": 1
+        },
+        "phaseByTeam": [
+          "progression",
+          "transition_defense"
+        ],
+        "phaseSince": [
+          399.8333333334358,
+          361.93333333340564
+        ],
+        "phaseTime": [
+          {
+            "reorganization": 11.59999999999997,
+            "transition_defense": 139.6666666666613,
+            "defensive_block": 29.46666666666729,
+            "transition_attack": 54.59999999999946,
+            "build_up": 62.43333333333235,
+            "progression": 57.76666666666595,
+            "restart": 16.56666666666665,
+            "final_third": 28.60000000000058
+          },
+          {
+            "reorganization": 15.633333333333288,
+            "transition_attack": 58.49999999999924,
+            "build_up": 19.800000000000143,
+            "progression": 58.19999999999926,
+            "final_third": 30.500000000000675,
+            "restart": 12.5333333333333,
+            "transition_defense": 174.733333333326,
+            "defensive_block": 30.80000000000069
+          }
+        ],
+        "phaseChanges": 313,
+        "possessionChangedAt": 355.43333333340047,
+        "previousPoss": 0,
+        "cornerChain": null,
+        "nextSample": 400.8333333334362,
+        "metrics": {
+          "samples": 772,
+          "dangerousThreats": 2193,
+          "coveredThreats": 1305,
+          "goalSideThreats": 1305,
+          "markerSamples": 2185,
+          "closeMarkers": 1446,
+          "goalSideMarkers": 1682,
+          "markerDistance": 18883.811896105264,
+          "lineSamples": 118,
+          "lineRange": 858.4575657863027,
+          "lineRangeMax": 12.884301035212651,
+          "disconnectedLines": 0,
+          "spatialOverloadSamples": 219,
+          "spatialOverloadCovered": 119.78333333333345,
+          "controlledBallSamples": 113,
+          "bodyAligned": 113,
+          "markingSwitches": 104
+        },
+        "rates": {
+          "threatCoverage": 0.5950752393980848,
+          "goalSideCoverage": 0.5950752393980848,
+          "markerClose": 0.6617848970251716,
+          "markerGoalSide": 0.7697940503432494,
+          "markerMeanDistance": 8.642476840322775,
+          "defensiveLineMeanRange": 7.275064116833073,
+          "disconnectedLineRate": 0,
+          "spatialOverloadCoverage": 0.5469558599695591,
+          "bodyOrientationMismatch": 0,
+          "cornerGoalShare": 0
+        },
+        "gates": {
+          "structural": true,
+          "cadence": true,
+          "ball": true,
+          "marking": false,
+          "lines": true,
+          "spatialOverload": false,
+          "restarts": true,
+          "corners": true
+        },
+        "phaseVariety": [
+          8,
+          8
+        ],
+        "teamStats": [
+          {
+            "throwIns": 7,
+            "goalKicks": 7,
+            "touchlineErrors": 4,
+            "touchlineDuels": 0,
+            "offsideTraps": 0
+          },
+          {
+            "throwIns": 4,
+            "goalKicks": 4,
+            "touchlineErrors": 6,
+            "touchlineDuels": 0,
+            "offsideTraps": 0
+          }
+        ],
+        "status": "FOOTBALL_OBSERVER_REVIEW"
+      },
+      "observer": {
+        "samples": 801,
+        "defensiveSamples": 803,
+        "dangerousAttackers": 1635,
+        "uncoveredAttackers": 509,
+        "goalSideCovered": 1126,
+        "markerAssignments": 2275,
+        "markerActuallyClose": 1490,
+        "markerGoalSide": 1760,
+        "markerDistanceSum": 19875.05131337556,
+        "markerDistanceMax": 48.61186622375895,
+        "defensiveLineRangeSum": 868.3862004807401,
+        "defensiveLineRangeMax": 12.95847274943366,
+        "disconnectedLines": 0,
+        "overload424Samples": 0,
+        "overload424Uncovered": 0,
+        "spatialOverloadSamples": 228,
+        "spatialOverloadUncovered": 73.16666666666664,
+        "controlledBallSamples": 124,
+        "bodyOrientationMismatch": 0,
+        "throwIns": 11,
+        "goalKicks": 4,
+        "cornersFromBoundary": 0,
+        "lineWorst": [
+          {
+            "minute": 40.88000000000033,
+            "team": 0,
+            "possession": 1,
+            "ball": {
+              "x": 58.99541173377849,
+              "y": 13.895946158435573,
+              "traveling": false,
+              "kind": "pass"
+            },
+            "phase": [
+              "defensive_block",
+              "transition_attack"
+            ],
+            "presser": {
+              "idx": 6,
+              "pos": "CM"
+            },
+            "defenders": [
+              {
+                "idx": 1,
+                "pos": "LWB",
+                "progress": 39.75996030374263,
+                "y": 4.102552393183094,
+                "mark": null,
+                "role": null
+              },
+              {
+                "idx": 2,
+                "pos": "CB",
+                "progress": 43.855284956268555,
+                "y": 19.223741792205644,
+                "mark": 10,
+                "role": null
+              },
+              {
+                "idx": 3,
+                "pos": "CB",
+                "progress": 52.71843305317629,
+                "y": 25.692686162251153,
+                "mark": null,
+                "role": null
+              },
+              {
+                "idx": 4,
+                "pos": "CB",
+                "progress": 39.87395145940041,
+                "y": 35.465825365410595,
+                "mark": null,
+                "role": null
+              },
+              {
+                "idx": 5,
+                "pos": "RWB",
+                "progress": 45.162387065522715,
+                "y": 52.636449486290665,
+                "mark": null,
+                "role": null
+              }
+            ]
+          }
+        ],
+        "events": {
+          "kickoff": 1,
+          "match_phase": 313,
+          "action_prepare": 188,
+          "action_contact": 188,
+          "pass": 150,
+          "visual_contact": 198,
+          "looseControl": 26,
+          "run_break": 12,
+          "pressure": 59,
+          "containment": 29,
+          "cross": 20,
+          "low_cross_shot": 8,
+          "miss": 10,
+          "corner": 9,
+          "corner_delivery": 7,
+          "goal_kick": 11,
+          "bad_pass": 17,
+          "throw_in": 11,
+          "gk_claim": 4,
+          "header_shot": 1,
+          "header_clear": 1,
+          "shot_taken": 4,
+          "through": 17,
+          "intercept_attempt_aborted": 7,
+          "tackle_attempt": 2,
+          "tackle": 2,
+          "foul": 3,
+          "loose_duel": 1,
+          "dribble": 2,
+          "save": 2,
+          "run_burst": 3,
+          "miscontrol_out": 1,
+          "offside": 2,
+          "intercept": 2,
+          "halftime": 1,
+          "tactical_shift": 8,
+          "gk_punch": 1,
+          "gk_bad_distribution": 1,
+          "goal": 1
+        }
+      }
+    },
+    {
+      "index": 2,
+      "actionAudit": {
+        "prepared": 205,
+        "contacted": 205,
+        "interrupted": 0,
+        "forced": 0,
+        "byType": {
+          "pass": 187,
+          "cross": 11,
+          "shot": 7
+        }
+      },
+      "actionSample": [
+        {
+          "actionId": "a591",
+          "actor": "Goicoechea",
+          "action": "pass",
+          "target": "Camacho",
+          "foot": "L",
+          "start": 398.9,
+          "contact": 399.1,
+          "end": 399.32,
+          "prepareDuration": 0.2,
+          "followThroughDuration": 0.1,
+          "recoveryDuration": 0.12,
+          "contactPoint": {
+            "x": 44.69,
+            "y": 14.12,
+            "z": 0.07
+          },
+          "outcome": "contact",
+          "interrupted": false,
+          "minute": 89.34
+        },
+        {
+          "actionId": "a592",
+          "actor": "Camacho",
+          "action": "pass",
+          "target": "Gordillo",
+          "foot": "L",
+          "start": 400.6,
+          "contact": 400.8,
+          "end": 401.02,
+          "prepareDuration": 0.2,
+          "followThroughDuration": 0.1,
+          "recoveryDuration": 0.12,
+          "contactPoint": {
+            "x": 40.77,
+            "y": 33.94,
+            "z": 0.07
+          },
+          "outcome": "contact",
+          "interrupted": false,
+          "minute": 89.75
+        }
+      ],
+      "stallFires": 0,
+      "lockCount": 2,
+      "lockMaxSec": 3.8,
+      "lockTwoPlayer": 1,
+      "worstLocks": [
+        {
+          "startMin": 9.23,
+          "gameSec": 3.8,
+          "ticks": 113,
+          "owners": [
+            "0:Nwankwo Kanu"
+          ],
+          "twoPlayers": false,
+          "x": 77.1,
+          "y": 59.5,
+          "ownerChanges": 2,
+          "maxDwellSec": 2.9,
+          "kind": "dwell"
+        },
+        {
+          "startMin": 14.94,
+          "gameSec": 3.7,
+          "ticks": 112,
+          "owners": [
+            "1:Butragueño",
+            "0:Daniel Amokachi"
+          ],
+          "twoPlayers": true,
+          "x": 38.2,
+          "y": 34,
+          "ownerChanges": 4,
+          "maxDwellSec": 1.7,
+          "kind": "misto"
+        }
+      ],
+      "seed": 885838,
+      "formations": [
+        "3-4-3",
+        "5-2-3"
+      ],
+      "styles": [
+        "press",
+        "tiki"
+      ],
+      "completed": true,
+      "score": [
+        3,
+        0
+      ],
+      "stats": [
+        {
+          "goals": 3,
+          "shots": 8,
+          "passes": 84,
+          "passOk": 74,
+          "corners": 3,
+          "offsides": 1,
+          "cornerGoals": 0,
+          "setPieceGoals": 0,
+          "throwIns": 5,
+          "goalKicks": 2,
+          "touchlineErrors": 7,
+          "touchlineDuels": 0,
+          "offsideTraps": 1
+        },
+        {
+          "goals": 0,
+          "shots": 4,
+          "passes": 103,
+          "passOk": 84,
+          "corners": 3,
+          "offsides": 0,
+          "cornerGoals": 0,
+          "setPieceGoals": 0,
+          "throwIns": 8,
+          "goalKicks": 6,
+          "touchlineErrors": 5,
+          "touchlineDuels": 0,
+          "offsideTraps": 2
+        }
+      ],
+      "canonicalStatus": "CONSISTENT",
+      "observedFootball": {
+        "version": "5.9.3-R13.0",
+        "team": [
+          {
+            "throwIns": 5,
+            "goalKicks": 2,
+            "touchlineErrors": 7,
+            "touchlineDuels": 0,
+            "offsideTraps": 1
+          },
+          {
+            "throwIns": 8,
+            "goalKicks": 6,
+            "touchlineErrors": 5,
+            "touchlineDuels": 0,
+            "offsideTraps": 2
+          }
+        ],
+        "events": {
+          "kickoff": 1,
+          "match_phase": 317,
+          "action_prepare": 205,
+          "action_contact": 205,
+          "pass": 158,
+          "visual_contact": 232,
+          "pressure": 90,
+          "bad_pass": 20,
+          "throw_in": 13,
+          "run_burst": 8,
+          "containment": 33,
+          "dribble": 7,
+          "cross": 17,
+          "low_cross_shot": 3,
+          "goal": 3,
+          "run_break": 19,
+          "intercept": 8,
+          "gk_claim": 9,
+          "tactical_shift": 5,
+          "looseControl": 22,
+          "corner": 6,
+          "corner_delivery": 6,
+          "gk_sweep": 3,
+          "intercept_attempt_aborted": 5,
+          "through": 8,
+          "offside_trap": 3,
+          "tackle_attempt": 9,
+          "tackle": 4,
+          "header_shot": 2,
+          "miss": 8,
+          "goal_kick": 8,
+          "gk_bad_distribution": 2,
+          "shot_taken": 7,
+          "foul": 5,
+          "tackle_missed": 2,
+          "loose_duel": 1,
+          "offside": 1,
+          "post": 1,
+          "halftime": 1,
+          "yellow": 2,
+          "miscontrol_out": 1
+        },
+        "phaseByTeam": [
+          "defensive_block",
+          "progression"
+        ],
+        "phaseSince": [
+          399.20000000010197,
+          399.70000000010236
+        ],
+        "phaseTime": [
+          {
+            "reorganization": 12.966666666666631,
+            "transition_defense": 139.7666666666613,
+            "restart": 15.933333333333287,
+            "transition_attack": 70.76666666666522,
+            "progression": 58.99999999999921,
+            "final_third": 29.86666666666731,
+            "defensive_block": 58.29999999999925,
+            "build_up": 15.533333333333289
+          },
+          {
+            "reorganization": 16.399999999999974,
+            "transition_attack": 69.96666666666526,
+            "build_up": 18.400000000000073,
+            "progression": 79.43333333333139,
+            "transition_defense": 145.66666666666097,
+            "defensive_block": 30.233333333333995,
+            "restart": 13.033333333333298,
+            "final_third": 29.0000000000006
+          }
+        ],
+        "phaseChanges": 317,
+        "possessionChangedAt": 396.1000000000995,
+        "previousPoss": 1,
+        "cornerChain": null,
+        "nextSample": 402.3333333334374,
+        "metrics": {
+          "samples": 775,
+          "dangerousThreats": 2315,
+          "coveredThreats": 1228,
+          "goalSideThreats": 1228,
+          "markerSamples": 2322,
+          "closeMarkers": 1461,
+          "goalSideMarkers": 1707,
+          "markerDistance": 20338.291994814088,
+          "lineSamples": 170,
+          "lineRange": 1296.341138978079,
+          "lineRangeMax": 12.953840697529017,
+          "disconnectedLines": 0,
+          "spatialOverloadSamples": 212,
+          "spatialOverloadCovered": 94.41666666666669,
+          "controlledBallSamples": 135,
+          "bodyAligned": 135,
+          "markingSwitches": 101
+        },
+        "rates": {
+          "threatCoverage": 0.5304535637149028,
+          "goalSideCoverage": 0.5304535637149028,
+          "markerClose": 0.6291989664082688,
+          "markerGoalSide": 0.7351421188630491,
+          "markerMeanDistance": 8.758954347465155,
+          "defensiveLineMeanRange": 7.625536111635759,
+          "disconnectedLineRate": 0,
+          "spatialOverloadCoverage": 0.4453616352201259,
+          "bodyOrientationMismatch": 0,
+          "cornerGoalShare": 0
+        },
+        "gates": {
+          "structural": true,
+          "cadence": true,
+          "ball": true,
+          "marking": false,
+          "lines": true,
+          "spatialOverload": false,
+          "restarts": true,
+          "corners": true
+        },
+        "phaseVariety": [
+          8,
+          8
+        ],
+        "teamStats": [
+          {
+            "throwIns": 5,
+            "goalKicks": 2,
+            "touchlineErrors": 7,
+            "touchlineDuels": 0,
+            "offsideTraps": 1
+          },
+          {
+            "throwIns": 8,
+            "goalKicks": 6,
+            "touchlineErrors": 5,
+            "touchlineDuels": 0,
+            "offsideTraps": 2
+          }
+        ],
+        "status": "FOOTBALL_OBSERVER_REVIEW"
+      },
+      "observer": {
+        "samples": 804,
+        "defensiveSamples": 806,
+        "dangerousAttackers": 1879,
+        "uncoveredAttackers": 775,
+        "goalSideCovered": 1104,
+        "markerAssignments": 2406,
+        "markerActuallyClose": 1523,
+        "markerGoalSide": 1775,
+        "markerDistanceSum": 20954.800874680503,
+        "markerDistanceMax": 45.36648517489311,
+        "defensiveLineRangeSum": 1345.2628689171797,
+        "defensiveLineRangeMax": 12.790275384676121,
+        "disconnectedLines": 0,
+        "overload424Samples": 0,
+        "overload424Uncovered": 0,
+        "spatialOverloadSamples": 218,
+        "spatialOverloadUncovered": 98.49999999999997,
+        "controlledBallSamples": 132,
+        "bodyOrientationMismatch": 0,
+        "throwIns": 13,
+        "goalKicks": 2,
+        "cornersFromBoundary": 0,
+        "lineWorst": [
+          {
+            "minute": 80.4879999999972,
+            "team": 1,
+            "possession": 0,
+            "ball": {
+              "x": 65.66864837767221,
+              "y": 50.30348923584334,
+              "traveling": true,
+              "kind": "pass"
+            },
+            "phase": [
+              "progression",
+              "defensive_block"
+            ],
+            "presser": {
+              "idx": 10,
+              "pos": "RW"
+            },
+            "defenders": [
+              {
+                "idx": 1,
+                "pos": "LWB",
+                "progress": 40.39005431313139,
+                "y": 15.4125083989833,
+                "mark": 10,
+                "role": null
+              },
+              {
+                "idx": 2,
+                "pos": "CB",
+                "progress": 37.85717781479914,
+                "y": 34.36115835582245,
+                "mark": null,
+                "role": null
+              },
+              {
+                "idx": 3,
+                "pos": "CB",
+                "progress": 36.96079596771953,
+                "y": 41.38979873113841,
+                "mark": null,
+                "role": null
+              },
+              {
+                "idx": 4,
+                "pos": "CB",
+                "progress": 49.75107135239565,
+                "y": 54.37004981658321,
+                "mark": null,
+                "role": null
+              },
+              {
+                "idx": 5,
+                "pos": "RWB",
+                "progress": 37.94045739141414,
+                "y": 56.466907312902,
+                "mark": 8,
+                "role": null
+              }
+            ]
+          }
+        ],
+        "events": {
+          "kickoff": 1,
+          "match_phase": 317,
+          "action_prepare": 205,
+          "action_contact": 205,
+          "pass": 158,
+          "visual_contact": 232,
+          "pressure": 90,
+          "bad_pass": 20,
+          "throw_in": 13,
+          "run_burst": 8,
+          "containment": 33,
+          "dribble": 7,
+          "cross": 17,
+          "low_cross_shot": 3,
+          "goal": 3,
+          "run_break": 19,
+          "intercept": 8,
+          "gk_claim": 9,
+          "tactical_shift": 5,
+          "looseControl": 22,
+          "corner": 6,
+          "corner_delivery": 6,
+          "gk_sweep": 3,
+          "intercept_attempt_aborted": 5,
+          "through": 8,
+          "offside_trap": 3,
+          "tackle_attempt": 9,
+          "tackle": 4,
+          "header_shot": 2,
+          "miss": 8,
+          "goal_kick": 8,
+          "gk_bad_distribution": 2,
+          "shot_taken": 7,
+          "foul": 5,
+          "tackle_missed": 2,
+          "loose_duel": 1,
+          "offside": 1,
+          "post": 1,
+          "halftime": 1,
+          "yellow": 2,
+          "miscontrol_out": 1
+        }
+      }
+    },
+    {
+      "index": 3,
+      "actionAudit": {
+        "prepared": 193,
+        "contacted": 192,
+        "interrupted": 0,
+        "forced": 0,
+        "byType": {
+          "pass": 169,
+          "cross": 14,
+          "shot": 9
+        }
+      },
+      "actionSample": [
+        {
+          "actionId": "a783",
+          "actor": "Mauro Silva",
+          "action": "pass",
+          "target": "Cafu",
+          "foot": "R",
+          "start": 400.9,
+          "contact": 401.067,
+          "end": 401.287,
+          "prepareDuration": 0.167,
+          "followThroughDuration": 0.1,
+          "recoveryDuration": 0.12,
+          "contactPoint": {
+            "x": 43.99,
+            "y": 35.88,
+            "z": 0.07
+          },
+          "outcome": "contact",
+          "interrupted": false,
+          "minute": 89.55
+        },
+        {
+          "actionId": "a784",
+          "actor": "Cafu",
+          "action": "pass",
+          "target": "Ronaldão",
+          "foot": "R",
+          "start": 402.033,
+          "contact": 402.2,
+          "end": 402.42,
+          "prepareDuration": 0.167,
+          "followThroughDuration": 0.1,
+          "recoveryDuration": 0.12,
+          "contactPoint": {
+            "x": 35.3,
+            "y": 48.25,
+            "z": 0.07
+          },
+          "outcome": "contact",
+          "interrupted": false,
+          "minute": 89.82
+        }
+      ],
+      "stallFires": 0,
+      "lockCount": 0,
+      "lockMaxSec": 0,
+      "lockTwoPlayer": 0,
+      "worstLocks": [],
+      "seed": 893757,
+      "formations": [
+        "4-2-4",
+        "4-2-3-1"
+      ],
+      "styles": [
+        "park",
+        "balanced"
+      ],
+      "completed": true,
+      "score": [
+        0,
+        1
+      ],
+      "stats": [
+        {
+          "goals": 0,
+          "shots": 7,
+          "passes": 66,
+          "passOk": 55,
+          "corners": 6,
+          "offsides": 0,
+          "cornerGoals": 0,
+          "setPieceGoals": 0,
+          "throwIns": 4,
+          "goalKicks": 8,
+          "touchlineErrors": 6,
+          "touchlineDuels": 2,
+          "offsideTraps": 0
+        },
+        {
+          "goals": 1,
+          "shots": 10,
+          "passes": 103,
+          "passOk": 88,
+          "corners": 5,
+          "offsides": 1,
+          "cornerGoals": 0,
+          "setPieceGoals": 0,
+          "throwIns": 8,
+          "goalKicks": 1,
+          "touchlineErrors": 1,
+          "touchlineDuels": 0,
+          "offsideTraps": 0
+        }
+      ],
+      "canonicalStatus": "CONSISTENT",
+      "observedFootball": {
+        "version": "5.9.3-R13.0",
+        "team": [
+          {
+            "throwIns": 4,
+            "goalKicks": 8,
+            "touchlineErrors": 6,
+            "touchlineDuels": 2,
+            "offsideTraps": 0
+          },
+          {
+            "throwIns": 8,
+            "goalKicks": 1,
+            "touchlineErrors": 1,
+            "touchlineDuels": 0,
+            "offsideTraps": 0
+          }
+        ],
+        "events": {
+          "kickoff": 1,
+          "match_phase": 331,
+          "action_prepare": 193,
+          "action_contact": 192,
+          "pass": 143,
+          "visual_contact": 210,
+          "through": 22,
+          "pressure": 79,
+          "cross": 25,
+          "low_cross_shot": 6,
+          "miss": 14,
+          "goal_kick": 9,
+          "bad_pass": 15,
+          "containment": 32,
+          "throw_in": 12,
+          "tackle_attempt": 9,
+          "foul": 6,
+          "yellow": 2,
+          "looseControl": 11,
+          "miscontrol_out": 2,
+          "corner": 11,
+          "corner_delivery": 11,
+          "gk_sweep": 6,
+          "gk_claim": 12,
+          "run_break": 20,
+          "shot_taken": 9,
+          "intercept_attempt_aborted": 7,
+          "gk_punch": 1,
+          "run_burst": 4,
+          "intercept": 7,
+          "dribble": 3,
+          "loose_duel": 2,
+          "goal": 1,
+          "tactical_shift": 5,
+          "halftime": 1,
+          "touchline_duel": 1,
+          "tackle": 1,
+          "offside": 1,
+          "blocked": 2,
+          "gk_bad_distribution": 1,
+          "tackle_missed": 2,
+          "post": 1,
+          "header_shot": 2,
+          "header_clear": 1,
+          "clearance_out": 1
+        },
+        "phaseByTeam": [
+          "transition_defense",
+          "progression"
+        ],
+        "phaseSince": [
+          400.86666666676996,
+          401.2333333334369
+        ],
+        "phaseTime": [
+          {
+            "reorganization": 20.400000000000173,
+            "transition_defense": 140.56666666666126,
+            "defensive_block": 74.19999999999835,
+            "transition_attack": 58.89999999999922,
+            "build_up": 22.433333333333607,
+            "progression": 42.200000000000166,
+            "final_third": 32.10000000000074,
+            "restart": 12.166666666666634
+          },
+          {
+            "reorganization": 10.899999999999972,
+            "transition_attack": 60.3666666666658,
+            "build_up": 17.90000000000005,
+            "progression": 99.2666666666636,
+            "final_third": 34.766666666667255,
+            "restart": 21.666666666666902,
+            "transition_defense": 117.2999999999959,
+            "defensive_block": 40.800000000000246
+          }
+        ],
+        "phaseChanges": 331,
+        "possessionChangedAt": 376.46666666675054,
+        "previousPoss": 1,
+        "cornerChain": null,
+        "nextSample": 403.3333333334382,
+        "metrics": {
+          "samples": 777,
+          "dangerousThreats": 2544,
+          "coveredThreats": 1418,
+          "goalSideThreats": 1418,
+          "markerSamples": 2542,
+          "closeMarkers": 1451,
+          "goalSideMarkers": 2012,
+          "markerDistance": 24284.751059075646,
+          "lineSamples": 226,
+          "lineRange": 1344.3414177350082,
+          "lineRangeMax": 12.96558936101711,
+          "disconnectedLines": 0,
+          "spatialOverloadSamples": 465,
+          "spatialOverloadCovered": 276.91666666666663,
+          "controlledBallSamples": 125,
+          "bodyAligned": 125,
+          "markingSwitches": 219
+        },
+        "rates": {
+          "threatCoverage": 0.5573899371069182,
+          "goalSideCoverage": 0.5573899371069182,
+          "markerClose": 0.5708103855232101,
+          "markerGoalSide": 0.7915027537372148,
+          "markerMeanDistance": 9.553403249046282,
+          "defensiveLineMeanRange": 5.948413352809771,
+          "disconnectedLineRate": 0,
+          "spatialOverloadCoverage": 0.5955197132616487,
+          "bodyOrientationMismatch": 0,
+          "cornerGoalShare": 0
+        },
+        "gates": {
+          "structural": true,
+          "cadence": true,
+          "ball": true,
+          "marking": false,
+          "lines": true,
+          "spatialOverload": false,
+          "restarts": true,
+          "corners": true
+        },
+        "phaseVariety": [
+          8,
+          8
+        ],
+        "teamStats": [
+          {
+            "throwIns": 4,
+            "goalKicks": 8,
+            "touchlineErrors": 6,
+            "touchlineDuels": 2,
+            "offsideTraps": 0
+          },
+          {
+            "throwIns": 8,
+            "goalKicks": 1,
+            "touchlineErrors": 1,
+            "touchlineDuels": 0,
+            "offsideTraps": 0
+          }
+        ],
+        "status": "FOOTBALL_OBSERVER_REVIEW"
+      },
+      "observer": {
+        "samples": 805,
+        "defensiveSamples": 807,
+        "dangerousAttackers": 2103,
+        "uncoveredAttackers": 918,
+        "goalSideCovered": 1185,
+        "markerAssignments": 2621,
+        "markerActuallyClose": 1489,
+        "markerGoalSide": 2073,
+        "markerDistanceSum": 25247.243312766022,
+        "markerDistanceMax": 59.3478637792628,
+        "defensiveLineRangeSum": 1329.5380856710244,
+        "defensiveLineRangeMax": 12.939526250045574,
+        "disconnectedLines": 0,
+        "overload424Samples": 199,
+        "overload424Uncovered": 67.99999999999997,
+        "spatialOverloadSamples": 475,
+        "spatialOverloadUncovered": 193.50000000000003,
+        "controlledBallSamples": 113,
+        "bodyOrientationMismatch": 0,
+        "throwIns": 12,
+        "goalKicks": 2,
+        "cornersFromBoundary": 0,
+        "lineWorst": [
+          {
+            "minute": 79.02399999999801,
+            "team": 0,
+            "possession": 1,
+            "ball": {
+              "x": 54.129911408701936,
+              "y": 30.143907650570423,
+              "traveling": true,
+              "kind": "pass"
+            },
+            "phase": [
+              "defensive_block",
+              "progression"
+            ],
+            "presser": {
+              "idx": 5,
+              "pos": "CM"
+            },
+            "defenders": [
+              {
+                "idx": 1,
+                "pos": "LB",
+                "progress": 29.898072752613828,
+                "y": 58.74577625744269,
+                "mark": 9,
+                "role": null
+              },
+              {
+                "idx": 2,
+                "pos": "CB",
+                "progress": 29.051248527806635,
+                "y": 30.08301210297166,
+                "mark": 10,
+                "role": null
+              },
+              {
+                "idx": 3,
+                "pos": "CB",
+                "progress": 41.99077477785221,
+                "y": 29.358218162820187,
+                "mark": null,
+                "role": null
+              },
+              {
+                "idx": 4,
+                "pos": "RB",
+                "progress": 29.894970856582404,
+                "y": 16.087328555536985,
+                "mark": 7,
+                "role": null
+              }
+            ]
+          }
+        ],
+        "events": {
+          "kickoff": 1,
+          "match_phase": 331,
+          "action_prepare": 193,
+          "action_contact": 192,
+          "pass": 143,
+          "visual_contact": 210,
+          "through": 22,
+          "pressure": 79,
+          "cross": 25,
+          "low_cross_shot": 6,
+          "miss": 14,
+          "goal_kick": 9,
+          "bad_pass": 15,
+          "containment": 32,
+          "throw_in": 12,
+          "tackle_attempt": 9,
+          "foul": 6,
+          "yellow": 2,
+          "looseControl": 11,
+          "miscontrol_out": 2,
+          "corner": 11,
+          "corner_delivery": 11,
+          "gk_sweep": 6,
+          "gk_claim": 12,
+          "run_break": 20,
+          "shot_taken": 9,
+          "intercept_attempt_aborted": 7,
+          "gk_punch": 1,
+          "run_burst": 4,
+          "intercept": 7,
+          "dribble": 3,
+          "loose_duel": 2,
+          "goal": 1,
+          "tactical_shift": 5,
+          "halftime": 1,
+          "touchline_duel": 1,
+          "tackle": 1,
+          "offside": 1,
+          "blocked": 2,
+          "gk_bad_distribution": 1,
+          "tackle_missed": 2,
+          "post": 1,
+          "header_shot": 2,
+          "header_clear": 1,
+          "clearance_out": 1
+        }
+      }
+    },
+    {
+      "index": 4,
+      "actionAudit": {
+        "prepared": 224,
+        "contacted": 221,
+        "interrupted": 3,
+        "forced": 0,
+        "byType": {
+          "pass": 208,
+          "cross": 11,
+          "shot": 5
+        }
+      },
+      "actionSample": [
+        {
+          "actionId": "a1008",
+          "actor": "Jonathan Tah",
+          "action": "pass",
+          "target": "Pascal Groß",
+          "foot": "R",
+          "start": 389.5,
+          "contact": 389.7,
+          "end": 389.92,
+          "prepareDuration": 0.2,
+          "followThroughDuration": 0.1,
+          "recoveryDuration": 0.12,
+          "contactPoint": {
+            "x": 46.48,
+            "y": 57.25,
+            "z": 0.07
+          },
+          "outcome": "contact",
+          "interrupted": false,
+          "minute": 88.97
+        },
+        {
+          "actionId": "a1009",
+          "actor": "Pascal Groß",
+          "action": "pass",
+          "target": "Jamal Musiala",
+          "foot": "R",
+          "start": 391.267,
+          "contact": 391.467,
+          "end": 391.687,
+          "prepareDuration": 0.2,
+          "followThroughDuration": 0.1,
+          "recoveryDuration": 0.12,
+          "contactPoint": {
+            "x": 62.18,
+            "y": 44.81,
+            "z": 0.07
+          },
+          "outcome": "contact",
+          "interrupted": false,
+          "minute": 89.39
+        }
+      ],
+      "stallFires": 0,
+      "lockCount": 0,
+      "lockMaxSec": 0,
+      "lockTwoPlayer": 0,
+      "worstLocks": [],
+      "seed": 901676,
+      "formations": [
+        "4-2-3-1",
+        "4-3-3"
+      ],
+      "styles": [
+        "wings",
+        "balanced"
+      ],
+      "completed": true,
+      "score": [
+        0,
+        0
+      ],
+      "stats": [
+        {
+          "goals": 0,
+          "shots": 1,
+          "passes": 107,
+          "passOk": 99,
+          "corners": 4,
+          "offsides": 1,
+          "cornerGoals": 0,
+          "setPieceGoals": 0,
+          "throwIns": 8,
+          "goalKicks": 3,
+          "touchlineErrors": 1,
+          "touchlineDuels": 1,
+          "offsideTraps": 1
+        },
+        {
+          "goals": 0,
+          "shots": 6,
+          "passes": 99,
+          "passOk": 85,
+          "corners": 2,
+          "offsides": 0,
+          "cornerGoals": 0,
+          "setPieceGoals": 0,
+          "throwIns": 2,
+          "goalKicks": 3,
+          "touchlineErrors": 7,
+          "touchlineDuels": 0,
+          "offsideTraps": 1
+        }
+      ],
+      "canonicalStatus": "CONSISTENT",
+      "observedFootball": {
+        "version": "5.9.3-R13.0",
+        "team": [
+          {
+            "throwIns": 8,
+            "goalKicks": 3,
+            "touchlineErrors": 1,
+            "touchlineDuels": 1,
+            "offsideTraps": 1
+          },
+          {
+            "throwIns": 2,
+            "goalKicks": 3,
+            "touchlineErrors": 7,
+            "touchlineDuels": 0,
+            "offsideTraps": 1
+          }
+        ],
+        "events": {
+          "kickoff": 1,
+          "match_phase": 273,
+          "action_prepare": 224,
+          "action_contact": 221,
+          "pass": 183,
+          "looseControl": 29,
+          "visual_contact": 247,
+          "bad_pass": 16,
+          "throw_in": 10,
+          "pressure": 77,
+          "intercept": 3,
+          "containment": 32,
+          "tackle_attempt": 8,
+          "tackle": 5,
+          "action_interrupted": 3,
+          "cross": 16,
+          "gk_claim": 9,
+          "run_break": 11,
+          "dribble": 9,
+          "shot_taken": 5,
+          "miss": 6,
+          "goal_kick": 6,
+          "through": 17,
+          "foul": 4,
+          "gk_sweep": 4,
+          "low_cross_shot": 2,
+          "corner": 6,
+          "corner_delivery": 5,
+          "intercept_attempt_aborted": 2,
+          "offside_trap": 2,
+          "halftime": 1,
+          "save": 1,
+          "run_burst": 4,
+          "blocked": 2,
+          "tackle_missed": 1,
+          "header_clear": 1,
+          "clearance_out": 1,
+          "offside": 1,
+          "miscontrol_out": 1
+        },
+        "phaseByTeam": [
+          "transition_attack",
+          "transition_defense"
+        ],
+        "phaseSince": [
+          393.90000000009775,
+          393.90000000009775
+        ],
+        "phaseTime": [
+          {
+            "reorganization": 6.233333333333321,
+            "transition_defense": 111.96666666666287,
+            "defensive_block": 64.13333333333226,
+            "restart": 17.400000000000023,
+            "transition_attack": 45.199999999999996,
+            "progression": 119.99999999999575,
+            "build_up": 12.4333333333333,
+            "final_third": 17.400000000000023
+          },
+          {
+            "reorganization": 16.466666666666644,
+            "transition_attack": 58.46666666666591,
+            "build_up": 13.799999999999962,
+            "transition_defense": 126.69999999999537,
+            "defensive_block": 70.46666666666523,
+            "progression": 76.49999999999822,
+            "restart": 6.099999999999988,
+            "final_third": 26.26666666666713
+          }
+        ],
+        "phaseChanges": 273,
+        "possessionChangedAt": 393.16666666676383,
+        "previousPoss": 0,
+        "cornerChain": null,
+        "nextSample": 394.8333333334314,
+        "metrics": {
+          "samples": 760,
+          "dangerousThreats": 2145,
+          "coveredThreats": 1333,
+          "goalSideThreats": 1333,
+          "markerSamples": 2136,
+          "closeMarkers": 1352,
+          "goalSideMarkers": 1632,
+          "markerDistance": 17120.515763486605,
+          "lineSamples": 262,
+          "lineRange": 1493.6042377777253,
+          "lineRangeMax": 12.931554322219629,
+          "disconnectedLines": 0,
+          "spatialOverloadSamples": 345,
+          "spatialOverloadCovered": 207.16666666666669,
+          "controlledBallSamples": 155,
+          "bodyAligned": 155,
+          "markingSwitches": 247
+        },
+        "rates": {
+          "threatCoverage": 0.6214452214452214,
+          "goalSideCoverage": 0.6214452214452214,
+          "markerClose": 0.6329588014981273,
+          "markerGoalSide": 0.7640449438202247,
+          "markerMeanDistance": 8.015222735714703,
+          "defensiveLineMeanRange": 5.700779533502768,
+          "disconnectedLineRate": 0,
+          "spatialOverloadCoverage": 0.6004830917874396,
+          "bodyOrientationMismatch": 0,
+          "cornerGoalShare": 0
+        },
+        "gates": {
+          "structural": true,
+          "cadence": true,
+          "ball": true,
+          "marking": false,
+          "lines": true,
+          "spatialOverload": false,
+          "restarts": true,
+          "corners": true
+        },
+        "phaseVariety": [
+          8,
+          8
+        ],
+        "teamStats": [
+          {
+            "throwIns": 8,
+            "goalKicks": 3,
+            "touchlineErrors": 1,
+            "touchlineDuels": 1,
+            "offsideTraps": 1
+          },
+          {
+            "throwIns": 2,
+            "goalKicks": 3,
+            "touchlineErrors": 7,
+            "touchlineDuels": 0,
+            "offsideTraps": 1
+          }
+        ],
+        "status": "FOOTBALL_OBSERVER_REVIEW"
+      },
+      "observer": {
+        "samples": 789,
+        "defensiveSamples": 791,
+        "dangerousAttackers": 1255,
+        "uncoveredAttackers": 417,
+        "goalSideCovered": 838,
+        "markerAssignments": 2226,
+        "markerActuallyClose": 1425,
+        "markerGoalSide": 1678,
+        "markerDistanceSum": 17560.092302743247,
+        "markerDistanceMax": 54.63422788983887,
+        "defensiveLineRangeSum": 1539.67125901596,
+        "defensiveLineRangeMax": 12.979249781088186,
+        "disconnectedLines": 0,
+        "overload424Samples": 0,
+        "overload424Uncovered": 0,
+        "spatialOverloadSamples": 356,
+        "spatialOverloadUncovered": 102.49999999999997,
+        "controlledBallSamples": 160,
+        "bodyOrientationMismatch": 0,
+        "throwIns": 10,
+        "goalKicks": 2,
+        "cornersFromBoundary": 0,
+        "lineWorst": [
+          {
+            "minute": 3.976000000000003,
+            "team": 1,
+            "possession": 0,
+            "ball": {
+              "x": 57.52635889955843,
+              "y": 8.774145800192011,
+              "traveling": false,
+              "kind": "pass"
+            },
+            "phase": [
+              "progression",
+              "defensive_block"
+            ],
+            "presser": {
+              "idx": 10,
+              "pos": "RW"
+            },
+            "defenders": [
+              {
+                "idx": 1,
+                "pos": "LB",
+                "progress": 27.79730555936736,
+                "y": 27.284687310506488,
+                "mark": 7,
+                "role": null
+              },
+              {
+                "idx": 2,
+                "pos": "CB",
+                "progress": 20.922617496734688,
+                "y": 30.907928104226187,
+                "mark": 10,
+                "role": null
+              },
+              {
+                "idx": 3,
+                "pos": "CB",
+                "progress": 33.90186727782287,
+                "y": 30.350065823930493,
+                "mark": 8,
+                "role": null
+              },
+              {
+                "idx": 4,
+                "pos": "RB",
+                "progress": 28.22041574773631,
+                "y": 22.222875697637775,
+                "mark": null,
+                "role": null
+              }
+            ]
+          }
+        ],
+        "events": {
+          "kickoff": 1,
+          "match_phase": 273,
+          "action_prepare": 224,
+          "action_contact": 221,
+          "pass": 183,
+          "looseControl": 29,
+          "visual_contact": 247,
+          "bad_pass": 16,
+          "throw_in": 10,
+          "pressure": 77,
+          "intercept": 3,
+          "containment": 32,
+          "tackle_attempt": 8,
+          "tackle": 5,
+          "action_interrupted": 3,
+          "cross": 16,
+          "gk_claim": 9,
+          "run_break": 11,
+          "dribble": 9,
+          "shot_taken": 5,
+          "miss": 6,
+          "goal_kick": 6,
+          "through": 17,
+          "foul": 4,
+          "gk_sweep": 4,
+          "low_cross_shot": 2,
+          "corner": 6,
+          "corner_delivery": 5,
+          "intercept_attempt_aborted": 2,
+          "offside_trap": 2,
+          "halftime": 1,
+          "save": 1,
+          "run_burst": 4,
+          "blocked": 2,
+          "tackle_missed": 1,
+          "header_clear": 1,
+          "clearance_out": 1,
+          "offside": 1,
+          "miscontrol_out": 1
+        }
+      }
+    },
+    {
+      "index": 5,
+      "actionAudit": {
+        "prepared": 238,
+        "contacted": 237,
+        "interrupted": 1,
+        "forced": 0,
+        "byType": {
+          "pass": 223,
+          "shot": 9,
+          "cross": 6
+        }
+      },
+      "actionSample": [
+        {
+          "actionId": "a1246",
+          "actor": "Santiago Arias",
+          "action": "pass",
+          "target": "Juan Fernando Quintero",
+          "foot": "R",
+          "start": 389.033,
+          "contact": 389.2,
+          "end": 389.42,
+          "prepareDuration": 0.167,
+          "followThroughDuration": 0.1,
+          "recoveryDuration": 0.12,
+          "contactPoint": {
+            "x": 52.04,
+            "y": 11.57,
+            "z": 0.07
+          },
+          "outcome": "contact",
+          "interrupted": false,
+          "minute": 89.48
+        },
+        {
+          "actionId": "a1247",
+          "actor": "Juan Fernando Quintero",
+          "action": "pass",
+          "target": "Radamel Falcao García",
+          "foot": "R",
+          "start": 390.867,
+          "contact": 391.033,
+          "end": 391.253,
+          "prepareDuration": 0.167,
+          "followThroughDuration": 0.1,
+          "recoveryDuration": 0.12,
+          "contactPoint": {
+            "x": 32.2,
+            "y": 27.53,
+            "z": 0.07
+          },
+          "outcome": "contact",
+          "interrupted": false,
+          "minute": 89.92
+        }
+      ],
+      "stallFires": 0,
+      "lockCount": 1,
+      "lockMaxSec": 3.7,
+      "lockTwoPlayer": 0,
+      "worstLocks": [
+        {
+          "startMin": 10.12,
+          "gameSec": 3.7,
+          "ticks": 111,
+          "owners": [
+            "1:Gianluca Lapadula"
+          ],
+          "twoPlayers": false,
+          "x": 42.6,
+          "y": 53.5,
+          "ownerChanges": 2,
+          "maxDwellSec": 2.9,
+          "kind": "dwell"
+        }
+      ],
+      "seed": 909595,
+      "formations": [
+        "4-3-2-1",
+        "3-4-3"
+      ],
+      "styles": [
+        "tiki",
+        "counter"
+      ],
+      "completed": true,
+      "score": [
+        0,
+        0
+      ],
+      "stats": [
+        {
+          "goals": 0,
+          "shots": 13,
+          "passes": 127,
+          "passOk": 114,
+          "corners": 3,
+          "offsides": 2,
+          "cornerGoals": 0,
+          "setPieceGoals": 0,
+          "throwIns": 4,
+          "goalKicks": 2,
+          "touchlineErrors": 1,
+          "touchlineDuels": 0,
+          "offsideTraps": 0
+        },
+        {
+          "goals": 0,
+          "shots": 2,
+          "passes": 95,
+          "passOk": 68,
+          "corners": 0,
+          "offsides": 0,
+          "cornerGoals": 0,
+          "setPieceGoals": 0,
+          "throwIns": 1,
+          "goalKicks": 9,
+          "touchlineErrors": 3,
+          "touchlineDuels": 1,
+          "offsideTraps": 0
+        }
+      ],
+      "canonicalStatus": "CONSISTENT",
+      "observedFootball": {
+        "version": "5.9.3-R13.0",
+        "team": [
+          {
+            "throwIns": 4,
+            "goalKicks": 2,
+            "touchlineErrors": 1,
+            "touchlineDuels": 0,
+            "offsideTraps": 0
+          },
+          {
+            "throwIns": 1,
+            "goalKicks": 9,
+            "touchlineErrors": 3,
+            "touchlineDuels": 1,
+            "offsideTraps": 0
+          }
+        ],
+        "events": {
+          "kickoff": 1,
+          "match_phase": 257,
+          "action_prepare": 238,
+          "action_contact": 237,
+          "pass": 182,
+          "visual_contact": 257,
+          "bad_pass": 19,
+          "pressure": 99,
+          "containment": 47,
+          "shot_taken": 9,
+          "miss": 13,
+          "goal_kick": 11,
+          "intercept_attempt_aborted": 1,
+          "through": 8,
+          "run_burst": 12,
+          "dribble": 18,
+          "foul": 8,
+          "tackle_attempt": 5,
+          "looseControl": 16,
+          "cross": 9,
+          "low_cross_shot": 4,
+          "loose_duel": 4,
+          "throw_in": 5,
+          "corner": 3,
+          "corner_delivery": 3,
+          "gk_claim_miss": 1,
+          "header_shot": 1,
+          "save": 1,
+          "intercept": 16,
+          "gk_sweep": 1,
+          "gk_claim": 2,
+          "header_clear": 1,
+          "clearance_out": 1,
+          "tactical_shift": 4,
+          "freekick_routine": 1,
+          "freekick": 1,
+          "blocked": 1,
+          "run_break": 3,
+          "yellow": 1,
+          "halftime": 1,
+          "gk_bad_distribution": 1,
+          "offside": 2,
+          "tackle": 1,
+          "action_interrupted": 1
+        },
+        "phaseByTeam": [
+          "final_third",
+          "transition_defense"
+        ],
+        "phaseSince": [
+          390.3000000000949,
+          378.96666666675253
+        ],
+        "phaseTime": [
+          {
+            "reorganization": 6.6333333333333195,
+            "transition_attack": 65.79999999999883,
+            "progression": 90.86666666666407,
+            "final_third": 49.63333333333308,
+            "restart": 12.766666666666632,
+            "transition_defense": 133.299999999995,
+            "defensive_block": 17.000000000000004,
+            "build_up": 15.933333333333287
+          },
+          {
+            "reorganization": 12.2333333333333,
+            "transition_defense": 183.79999999999214,
+            "defensive_block": 40.16666666666695,
+            "transition_attack": 69.39999999999863,
+            "build_up": 32.50000000000072,
+            "progression": 36.56666666666715,
+            "final_third": 11.833333333333302,
+            "restart": 5.433333333333324
+          }
+        ],
+        "phaseChanges": 257,
+        "possessionChangedAt": 378.96666666675253,
+        "previousPoss": 0,
+        "cornerChain": null,
+        "nextSample": 392.33333333342944,
+        "metrics": {
+          "samples": 755,
+          "dangerousThreats": 2070,
+          "coveredThreats": 1437,
+          "goalSideThreats": 1437,
+          "markerSamples": 2058,
+          "closeMarkers": 1430,
+          "goalSideMarkers": 1632,
+          "markerDistance": 15421.614486545657,
+          "lineSamples": 109,
+          "lineRange": 811.4192901846836,
+          "lineRangeMax": 12.986789088751818,
+          "disconnectedLines": 0,
+          "spatialOverloadSamples": 288,
+          "spatialOverloadCovered": 185.65000000000015,
+          "controlledBallSamples": 151,
+          "bodyAligned": 151,
+          "markingSwitches": 71
+        },
+        "rates": {
+          "threatCoverage": 0.6942028985507246,
+          "goalSideCoverage": 0.6942028985507246,
+          "markerClose": 0.6948493683187561,
+          "markerGoalSide": 0.793002915451895,
+          "markerMeanDistance": 7.4934958632389,
+          "defensiveLineMeanRange": 7.444213671419116,
+          "disconnectedLineRate": 0,
+          "spatialOverloadCoverage": 0.6446180555555561,
+          "bodyOrientationMismatch": 0,
+          "cornerGoalShare": 0
+        },
+        "gates": {
+          "structural": true,
+          "cadence": true,
+          "ball": true,
+          "marking": true,
+          "lines": true,
+          "spatialOverload": true,
+          "restarts": true,
+          "corners": true
+        },
+        "phaseVariety": [
+          8,
+          8
+        ],
+        "teamStats": [
+          {
+            "throwIns": 4,
+            "goalKicks": 2,
+            "touchlineErrors": 1,
+            "touchlineDuels": 0,
+            "offsideTraps": 0
+          },
+          {
+            "throwIns": 1,
+            "goalKicks": 9,
+            "touchlineErrors": 3,
+            "touchlineDuels": 1,
+            "offsideTraps": 0
+          }
+        ],
+        "status": "FOOTBALL_OBSERVER_PASS"
+      },
+      "observer": {
+        "samples": 783,
+        "defensiveSamples": 785,
+        "dangerousAttackers": 1908,
+        "uncoveredAttackers": 484,
+        "goalSideCovered": 1424,
+        "markerAssignments": 2152,
+        "markerActuallyClose": 1477,
+        "markerGoalSide": 1706,
+        "markerDistanceSum": 16039.391881941543,
+        "markerDistanceMax": 46.59811452064945,
+        "defensiveLineRangeSum": 865.2074140876252,
+        "defensiveLineRangeMax": 12.940123640177234,
+        "disconnectedLines": 0,
+        "overload424Samples": 0,
+        "overload424Uncovered": 0,
+        "spatialOverloadSamples": 297,
+        "spatialOverloadUncovered": 87.6666666666667,
+        "controlledBallSamples": 153,
+        "bodyOrientationMismatch": 0,
+        "throwIns": 5,
+        "goalKicks": 0,
+        "cornersFromBoundary": 0,
+        "lineWorst": [
+          {
+            "minute": 73.66400000000098,
+            "team": 1,
+            "possession": 0,
+            "ball": {
+              "x": 21.38648517272198,
+              "y": 29.767173039693514,
+              "traveling": false,
+              "kind": "pass"
+            },
+            "phase": [
+              "final_third",
+              "defensive_block"
+            ],
+            "presser": {
+              "idx": 8,
+              "pos": "CF"
+            },
+            "defenders": [
+              {
+                "idx": 1,
+                "pos": "CB",
+                "progress": 8.314824545491653,
+                "y": 36.6552445091226,
+                "mark": 10,
+                "role": null
+              },
+              {
+                "idx": 2,
+                "pos": "CB",
+                "progress": 16.737774474133193,
+                "y": 33.43305844225359,
+                "mark": null,
+                "role": null
+              },
+              {
+                "idx": 3,
+                "pos": "CB",
+                "progress": 12.803544979599637,
+                "y": 34.46941510079771,
+                "mark": 8,
+                "role": null
+              },
+              {
+                "idx": 4,
+                "pos": "LWB",
+                "progress": 15.546675097229699,
+                "y": 29.124546083287004,
+                "mark": 9,
+                "role": null
+              },
+              {
+                "idx": 7,
+                "pos": "RWB",
+                "progress": 21.254948185668887,
+                "y": 33.94288602080995,
+                "mark": null,
+                "role": null
+              }
+            ]
+          }
+        ],
+        "events": {
+          "kickoff": 1,
+          "match_phase": 257,
+          "action_prepare": 238,
+          "action_contact": 237,
+          "pass": 182,
+          "visual_contact": 257,
+          "bad_pass": 19,
+          "pressure": 99,
+          "containment": 47,
+          "shot_taken": 9,
+          "miss": 13,
+          "goal_kick": 11,
+          "intercept_attempt_aborted": 1,
+          "through": 8,
+          "run_burst": 12,
+          "dribble": 18,
+          "foul": 8,
+          "tackle_attempt": 5,
+          "looseControl": 16,
+          "cross": 9,
+          "low_cross_shot": 4,
+          "loose_duel": 4,
+          "throw_in": 5,
+          "corner": 3,
+          "corner_delivery": 3,
+          "gk_claim_miss": 1,
+          "header_shot": 1,
+          "save": 1,
+          "intercept": 16,
+          "gk_sweep": 1,
+          "gk_claim": 2,
+          "header_clear": 1,
+          "clearance_out": 1,
+          "tactical_shift": 4,
+          "freekick_routine": 1,
+          "freekick": 1,
+          "blocked": 1,
+          "run_break": 3,
+          "yellow": 1,
+          "halftime": 1,
+          "gk_bad_distribution": 1,
+          "offside": 2,
+          "tackle": 1,
+          "action_interrupted": 1
+        }
+      }
+    },
+    {
+      "index": 6,
+      "actionAudit": {
+        "prepared": 233,
+        "contacted": 231,
+        "interrupted": 1,
+        "forced": 0,
+        "byType": {
+          "pass": 219,
+          "shot": 8,
+          "cross": 5
+        }
+      },
+      "actionSample": [
+        {
+          "actionId": "a1478",
+          "actor": "Docherty",
+          "action": "pass",
+          "target": "McKenzie",
+          "foot": "R",
+          "start": 391.2,
+          "contact": 391.4,
+          "end": 391.62,
+          "prepareDuration": 0.2,
+          "followThroughDuration": 0.1,
+          "recoveryDuration": 0.12,
+          "contactPoint": {
+            "x": 57.72,
+            "y": 13.67,
+            "z": 0.07
+          },
+          "outcome": "contact",
+          "interrupted": false,
+          "minute": 89.31
+        },
+        {
+          "actionId": "a1479",
+          "actor": "McKenzie",
+          "action": "pass",
+          "target": "Aird",
+          "foot": "R",
+          "start": 392.167,
+          "contact": 392.367,
+          "end": 392.587,
+          "prepareDuration": 0.2,
+          "followThroughDuration": 0.1,
+          "recoveryDuration": 0.12,
+          "contactPoint": {
+            "x": 51.97,
+            "y": 8.2,
+            "z": 0.07
+          },
+          "outcome": "contact",
+          "interrupted": false,
+          "minute": 89.54
+        }
+      ],
+      "stallFires": 0,
+      "lockCount": 0,
+      "lockMaxSec": 0,
+      "lockTwoPlayer": 0,
+      "worstLocks": [],
+      "seed": 917514,
+      "formations": [
+        "4-5-1",
+        "4-3-1-2"
+      ],
+      "styles": [
+        "tiki",
+        "wings"
+      ],
+      "completed": true,
+      "score": [
+        2,
+        1
+      ],
+      "stats": [
+        {
+          "goals": 2,
+          "shots": 6,
+          "passes": 152,
+          "passOk": 134,
+          "corners": 1,
+          "offsides": 1,
+          "cornerGoals": 0,
+          "setPieceGoals": 0,
+          "throwIns": 2,
+          "goalKicks": 3,
+          "touchlineErrors": 3,
+          "touchlineDuels": 0,
+          "offsideTraps": 0
+        },
+        {
+          "goals": 1,
+          "shots": 6,
+          "passes": 66,
+          "passOk": 57,
+          "corners": 1,
+          "offsides": 0,
+          "cornerGoals": 0,
+          "setPieceGoals": 0,
+          "throwIns": 4,
+          "goalKicks": 3,
+          "touchlineErrors": 1,
+          "touchlineDuels": 0,
+          "offsideTraps": 3
+        }
+      ],
+      "canonicalStatus": "CONSISTENT",
+      "observedFootball": {
+        "version": "5.9.3-R13.0",
+        "team": [
+          {
+            "throwIns": 2,
+            "goalKicks": 3,
+            "touchlineErrors": 3,
+            "touchlineDuels": 0,
+            "offsideTraps": 0
+          },
+          {
+            "throwIns": 4,
+            "goalKicks": 3,
+            "touchlineErrors": 1,
+            "touchlineDuels": 0,
+            "offsideTraps": 3
+          }
+        ],
+        "events": {
+          "kickoff": 1,
+          "match_phase": 253,
+          "action_prepare": 233,
+          "action_contact": 231,
+          "pass": 191,
+          "visual_contact": 257,
+          "looseControl": 25,
+          "miscontrol_out": 2,
+          "throw_in": 6,
+          "pressure": 90,
+          "dribble": 5,
+          "containment": 44,
+          "foul": 7,
+          "tackle_attempt": 7,
+          "tackle": 4,
+          "bad_pass": 13,
+          "through": 13,
+          "shot_taken": 8,
+          "miss": 6,
+          "goal_kick": 6,
+          "offside_trap": 3,
+          "intercept": 12,
+          "run_burst": 5,
+          "run_break": 4,
+          "intercept_attempt_aborted": 2,
+          "loose_duel": 1,
+          "cross": 8,
+          "low_cross_shot": 4,
+          "goal": 3,
+          "tactical_shift": 7,
+          "save": 3,
+          "tackle_missed": 2,
+          "offside": 1,
+          "freekick_routine": 1,
+          "gk_sweep": 2,
+          "gk_claim": 3,
+          "action_interrupted": 1,
+          "corner": 2,
+          "corner_delivery": 2,
+          "halftime": 1
+        },
+        "phaseByTeam": [
+          "progression",
+          "defensive_block"
+        ],
+        "phaseSince": [
+          378.03333333341845,
+          383.6333333334229
+        ],
+        "phaseTime": [
+          {
+            "reorganization": 8.59999999999998,
+            "transition_attack": 54.39999999999947,
+            "build_up": 22.700000000000287,
+            "progression": 146.1333333333276,
+            "transition_defense": 104.89999999999661,
+            "restart": 13.233333333333297,
+            "defensive_block": 20.200000000000163,
+            "final_third": 24.13333333333369
+          },
+          {
+            "reorganization": 14.433333333333293,
+            "transition_defense": 158.49999999999358,
+            "defensive_block": 88.86666666666419,
+            "restart": 7.933333333333315,
+            "transition_attack": 44.66666666666669,
+            "build_up": 13.299999999999963,
+            "progression": 54.06666666666616,
+            "final_third": 12.5333333333333
+          }
+        ],
+        "phaseChanges": 253,
+        "possessionChangedAt": 346.2666666667265,
+        "previousPoss": 0,
+        "cornerChain": null,
+        "nextSample": 394.333333333431,
+        "metrics": {
+          "samples": 759,
+          "dangerousThreats": 1351,
+          "coveredThreats": 926,
+          "goalSideThreats": 926,
+          "markerSamples": 1352,
+          "closeMarkers": 955,
+          "goalSideMarkers": 1079,
+          "markerDistance": 10023.791783346638,
+          "lineSamples": 216,
+          "lineRange": 707.9976893345749,
+          "lineRangeMax": 11.131943790160435,
+          "disconnectedLines": 0,
+          "spatialOverloadSamples": 213,
+          "spatialOverloadCovered": 154.1666666666666,
+          "controlledBallSamples": 118,
+          "bodyAligned": 118,
+          "markingSwitches": 29
+        },
+        "rates": {
+          "threatCoverage": 0.685418208734271,
+          "goalSideCoverage": 0.685418208734271,
+          "markerClose": 0.7063609467455622,
+          "markerGoalSide": 0.7980769230769231,
+          "markerMeanDistance": 7.414047177031537,
+          "defensiveLineMeanRange": 3.2777670802526617,
+          "disconnectedLineRate": 0,
+          "spatialOverloadCoverage": 0.723787167449139,
+          "bodyOrientationMismatch": 0,
+          "cornerGoalShare": 0
+        },
+        "gates": {
+          "structural": true,
+          "cadence": true,
+          "ball": true,
+          "marking": true,
+          "lines": true,
+          "spatialOverload": true,
+          "restarts": true,
+          "corners": true
+        },
+        "phaseVariety": [
+          8,
+          8
+        ],
+        "teamStats": [
+          {
+            "throwIns": 2,
+            "goalKicks": 3,
+            "touchlineErrors": 3,
+            "touchlineDuels": 0,
+            "offsideTraps": 0
+          },
+          {
+            "throwIns": 4,
+            "goalKicks": 3,
+            "touchlineErrors": 1,
+            "touchlineDuels": 0,
+            "offsideTraps": 3
+          }
+        ],
+        "status": "FOOTBALL_OBSERVER_PASS"
+      },
+      "observer": {
+        "samples": 788,
+        "defensiveSamples": 790,
+        "dangerousAttackers": 956,
+        "uncoveredAttackers": 185,
+        "goalSideCovered": 771,
+        "markerAssignments": 1412,
+        "markerActuallyClose": 1000,
+        "markerGoalSide": 1136,
+        "markerDistanceSum": 10426.468043291696,
+        "markerDistanceMax": 37.75444702894463,
+        "defensiveLineRangeSum": 712.716216918852,
+        "defensiveLineRangeMax": 12.54785981356677,
+        "disconnectedLines": 0,
+        "overload424Samples": 0,
+        "overload424Uncovered": 0,
+        "spatialOverloadSamples": 221,
+        "spatialOverloadUncovered": 58.5,
+        "controlledBallSamples": 116,
+        "bodyOrientationMismatch": 0,
+        "throwIns": 6,
+        "goalKicks": 1,
+        "cornersFromBoundary": 0,
+        "lineWorst": [
+          {
+            "minute": 72.64800000000155,
+            "team": 1,
+            "possession": 0,
+            "ball": {
+              "x": 54.92724620778077,
+              "y": 36.54344226636452,
+              "traveling": true,
+              "kind": "pass"
+            },
+            "phase": [
+              "progression",
+              "defensive_block"
+            ],
+            "presser": {
+              "idx": 9,
+              "pos": "ST"
+            },
+            "defenders": [
+              {
+                "idx": 1,
+                "pos": "LB",
+                "progress": 36.75295311978804,
+                "y": 23.874429845745265,
+                "mark": null,
+                "role": null
+              },
+              {
+                "idx": 2,
+                "pos": "CB",
+                "progress": 24.20509330622127,
+                "y": 34.65572127158657,
+                "mark": 10,
+                "role": null
+              },
+              {
+                "idx": 3,
+                "pos": "CB",
+                "progress": 24.50182932410176,
+                "y": 46.98730673260295,
+                "mark": null,
+                "role": null
+              },
+              {
+                "idx": 4,
+                "pos": "RB",
+                "progress": 25.13772290237974,
+                "y": 59.66169902370456,
+                "mark": null,
+                "role": null
+              }
+            ]
+          }
+        ],
+        "events": {
+          "kickoff": 1,
+          "match_phase": 253,
+          "action_prepare": 233,
+          "action_contact": 231,
+          "pass": 191,
+          "visual_contact": 257,
+          "looseControl": 25,
+          "miscontrol_out": 2,
+          "throw_in": 6,
+          "pressure": 90,
+          "dribble": 5,
+          "containment": 44,
+          "foul": 7,
+          "tackle_attempt": 7,
+          "tackle": 4,
+          "bad_pass": 13,
+          "through": 13,
+          "shot_taken": 8,
+          "miss": 6,
+          "goal_kick": 6,
+          "offside_trap": 3,
+          "intercept": 12,
+          "run_burst": 5,
+          "run_break": 4,
+          "intercept_attempt_aborted": 2,
+          "loose_duel": 1,
+          "cross": 8,
+          "low_cross_shot": 4,
+          "goal": 3,
+          "tactical_shift": 7,
+          "save": 3,
+          "tackle_missed": 2,
+          "offside": 1,
+          "freekick_routine": 1,
+          "gk_sweep": 2,
+          "gk_claim": 3,
+          "action_interrupted": 1,
+          "corner": 2,
+          "corner_delivery": 2,
+          "halftime": 1
+        }
+      }
+    },
+    {
+      "index": 7,
+      "actionAudit": {
+        "prepared": 194,
+        "contacted": 192,
+        "interrupted": 1,
+        "forced": 0,
+        "byType": {
+          "pass": 177,
+          "cross": 13,
+          "shot": 3
+        }
+      },
+      "actionSample": [
+        {
+          "actionId": "a1672",
+          "actor": "Vladislav Ternavski",
+          "action": "pass",
+          "target": "Stanislav Cherchesov",
+          "foot": "R",
+          "start": 392.767,
+          "contact": 392.967,
+          "end": 393.187,
+          "prepareDuration": 0.2,
+          "followThroughDuration": 0.1,
+          "recoveryDuration": 0.12,
+          "contactPoint": {
+            "x": 66.7,
+            "y": 41.19,
+            "z": 0.07
+          },
+          "outcome": "contact",
+          "interrupted": false,
+          "minute": 88.88
+        },
+        {
+          "actionId": "a1673",
+          "actor": "Stanislav Cherchesov",
+          "action": "pass",
+          "target": "Dmitri Galiamin",
+          "foot": "L",
+          "start": 395.1,
+          "contact": 395.3,
+          "end": 395.52,
+          "prepareDuration": 0.2,
+          "followThroughDuration": 0.1,
+          "recoveryDuration": 0.12,
+          "contactPoint": {
+            "x": 96.93,
+            "y": 34.38,
+            "z": 0.22
+          },
+          "outcome": "contact",
+          "interrupted": false,
+          "minute": 89.44
+        }
+      ],
+      "stallFires": 0,
+      "lockCount": 0,
+      "lockMaxSec": 0,
+      "lockTwoPlayer": 0,
+      "worstLocks": [],
+      "seed": 925433,
+      "formations": [
+        "5-3-2",
+        "4-3-3"
+      ],
+      "styles": [
+        "park",
+        "counter"
+      ],
+      "completed": true,
+      "score": [
+        1,
+        1
+      ],
+      "stats": [
+        {
+          "goals": 1,
+          "shots": 3,
+          "passes": 104,
+          "passOk": 89,
+          "corners": 4,
+          "offsides": 0,
+          "cornerGoals": 0,
+          "setPieceGoals": 0,
+          "throwIns": 0,
+          "goalKicks": 4,
+          "touchlineErrors": 4,
+          "touchlineDuels": 0,
+          "offsideTraps": 0
+        },
+        {
+          "goals": 1,
+          "shots": 4,
+          "passes": 73,
+          "passOk": 66,
+          "corners": 4,
+          "offsides": 0,
+          "cornerGoals": 0,
+          "setPieceGoals": 0,
+          "throwIns": 4,
+          "goalKicks": 1,
+          "touchlineErrors": 0,
+          "touchlineDuels": 0,
+          "offsideTraps": 0
+        }
+      ],
+      "canonicalStatus": "CONSISTENT",
+      "observedFootball": {
+        "version": "5.9.3-R13.0",
+        "team": [
+          {
+            "throwIns": 0,
+            "goalKicks": 4,
+            "touchlineErrors": 4,
+            "touchlineDuels": 0,
+            "offsideTraps": 0
+          },
+          {
+            "throwIns": 4,
+            "goalKicks": 1,
+            "touchlineErrors": 0,
+            "touchlineDuels": 0,
+            "offsideTraps": 0
+          }
+        ],
+        "events": {
+          "kickoff": 1,
+          "match_phase": 255,
+          "action_prepare": 194,
+          "action_contact": 192,
+          "pass": 155,
+          "visual_contact": 222,
+          "through": 19,
+          "pressure": 80,
+          "dribble": 14,
+          "containment": 38,
+          "foul": 6,
+          "tackle_attempt": 8,
+          "cross": 21,
+          "low_cross_shot": 4,
+          "goal": 2,
+          "tactical_shift": 7,
+          "intercept": 8,
+          "bad_pass": 13,
+          "run_burst": 2,
+          "tackle_missed": 1,
+          "corner": 8,
+          "corner_delivery": 8,
+          "gk_claim": 11,
+          "looseControl": 15,
+          "run_break": 8,
+          "tackle": 5,
+          "intercept_attempt_aborted": 9,
+          "goal_kick": 5,
+          "throw_in": 4,
+          "gk_bad_distribution": 4,
+          "loose_duel": 3,
+          "header_shot": 1,
+          "miss": 3,
+          "shot_taken": 2,
+          "yellow": 1,
+          "blocked": 1,
+          "halftime": 1,
+          "gk_punch": 1,
+          "action_interrupted": 1,
+          "save": 1,
+          "gk_sweep": 1
+        },
+        "phaseByTeam": [
+          "progression",
+          "transition_defense"
+        ],
+        "phaseSince": [
+          396.80000000010006,
+          381.8333333334215
+        ],
+        "phaseTime": [
+          {
+            "reorganization": 12.566666666666633,
+            "transition_attack": 58.69999999999923,
+            "progression": 62.066666666665704,
+            "build_up": 58.0333333333326,
+            "final_third": 36.400000000000496,
+            "restart": 13.533333333333296,
+            "transition_defense": 126.29999999999539,
+            "defensive_block": 30.06666666666732
+          },
+          {
+            "reorganization": 11.933333333333302,
+            "transition_defense": 200.23333333332454,
+            "defensive_block": 17.76666666666671,
+            "transition_attack": 50.46666666666636,
+            "build_up": 15.799999999999955,
+            "progression": 59.533333333332514,
+            "final_third": 29.366666666667285,
+            "restart": 12.566666666666633
+          }
+        ],
+        "phaseChanges": 255,
+        "possessionChangedAt": 381.8333333334215,
+        "previousPoss": 0,
+        "cornerChain": null,
+        "nextSample": 397.8333333334338,
+        "metrics": {
+          "samples": 766,
+          "dangerousThreats": 1881,
+          "coveredThreats": 1125,
+          "goalSideThreats": 1125,
+          "markerSamples": 1873,
+          "closeMarkers": 1130,
+          "goalSideMarkers": 1454,
+          "markerDistance": 17152.414673740266,
+          "lineSamples": 94,
+          "lineRange": 638.5409394986286,
+          "lineRangeMax": 12.914062023608416,
+          "disconnectedLines": 0,
+          "spatialOverloadSamples": 201,
+          "spatialOverloadCovered": 124.66666666666674,
+          "controlledBallSamples": 101,
+          "bodyAligned": 101,
+          "markingSwitches": 80
+        },
+        "rates": {
+          "threatCoverage": 0.5980861244019139,
+          "goalSideCoverage": 0.5980861244019139,
+          "markerClose": 0.603310197544047,
+          "markerGoalSide": 0.7762947143619862,
+          "markerMeanDistance": 9.157722730240398,
+          "defensiveLineMeanRange": 6.792988718070517,
+          "disconnectedLineRate": 0,
+          "spatialOverloadCoverage": 0.6202321724709788,
+          "bodyOrientationMismatch": 0,
+          "cornerGoalShare": 0
+        },
+        "gates": {
+          "structural": true,
+          "cadence": true,
+          "ball": true,
+          "marking": false,
+          "lines": true,
+          "spatialOverload": true,
+          "restarts": true,
+          "corners": true
+        },
+        "phaseVariety": [
+          8,
+          8
+        ],
+        "teamStats": [
+          {
+            "throwIns": 0,
+            "goalKicks": 4,
+            "touchlineErrors": 4,
+            "touchlineDuels": 0,
+            "offsideTraps": 0
+          },
+          {
+            "throwIns": 4,
+            "goalKicks": 1,
+            "touchlineErrors": 0,
+            "touchlineDuels": 0,
+            "offsideTraps": 0
+          }
+        ],
+        "status": "FOOTBALL_OBSERVER_REVIEW"
+      },
+      "observer": {
+        "samples": 795,
+        "defensiveSamples": 797,
+        "dangerousAttackers": 1598,
+        "uncoveredAttackers": 574,
+        "goalSideCovered": 1024,
+        "markerAssignments": 1947,
+        "markerActuallyClose": 1166,
+        "markerGoalSide": 1525,
+        "markerDistanceSum": 18158.620056461343,
+        "markerDistanceMax": 60.08611882598545,
+        "defensiveLineRangeSum": 660.0277356745592,
+        "defensiveLineRangeMax": 12.959474621945219,
+        "disconnectedLines": 0,
+        "overload424Samples": 0,
+        "overload424Uncovered": 0,
+        "spatialOverloadSamples": 203,
+        "spatialOverloadUncovered": 58.5,
+        "controlledBallSamples": 108,
+        "bodyOrientationMismatch": 0,
+        "throwIns": 4,
+        "goalKicks": 5,
+        "cornersFromBoundary": 0,
+        "lineWorst": [
+          {
+            "minute": 21.95199999999847,
+            "team": 0,
+            "possession": 1,
+            "ball": {
+              "x": 29.483875336661008,
+              "y": 55.329763523550454,
+              "traveling": true,
+              "kind": "pass"
+            },
+            "phase": [
+              "defensive_block",
+              "final_third"
+            ],
+            "presser": {
+              "idx": 8,
+              "pos": "CM"
+            },
+            "defenders": [
+              {
+                "idx": 1,
+                "pos": "LWB",
+                "progress": 35.006084244318735,
+                "y": 19.533197223584427,
+                "mark": null,
+                "role": null
+              },
+              {
+                "idx": 2,
+                "pos": "CB",
+                "progress": 28.89801305295159,
+                "y": 29.24417936764677,
+                "mark": null,
+                "role": null
+              },
+              {
+                "idx": 3,
+                "pos": "CB",
+                "progress": 28.552189767119593,
+                "y": 39.60432477660383,
+                "mark": null,
+                "role": null
+              },
+              {
+                "idx": 4,
+                "pos": "CB",
+                "progress": 36.233392906045296,
+                "y": 44.22228213215766,
+                "mark": 8,
+                "role": null
+              },
+              {
+                "idx": 5,
+                "pos": "RWB",
+                "progress": 41.51166438906481,
+                "y": 40.903075327536136,
+                "mark": null,
+                "role": null
+              }
+            ]
+          }
+        ],
+        "events": {
+          "kickoff": 1,
+          "match_phase": 255,
+          "action_prepare": 194,
+          "action_contact": 192,
+          "pass": 155,
+          "visual_contact": 222,
+          "through": 19,
+          "pressure": 80,
+          "dribble": 14,
+          "containment": 38,
+          "foul": 6,
+          "tackle_attempt": 8,
+          "cross": 21,
+          "low_cross_shot": 4,
+          "goal": 2,
+          "tactical_shift": 7,
+          "intercept": 8,
+          "bad_pass": 13,
+          "run_burst": 2,
+          "tackle_missed": 1,
+          "corner": 8,
+          "corner_delivery": 8,
+          "gk_claim": 11,
+          "looseControl": 15,
+          "run_break": 8,
+          "tackle": 5,
+          "intercept_attempt_aborted": 9,
+          "goal_kick": 5,
+          "throw_in": 4,
+          "gk_bad_distribution": 4,
+          "loose_duel": 3,
+          "header_shot": 1,
+          "miss": 3,
+          "shot_taken": 2,
+          "yellow": 1,
+          "blocked": 1,
+          "halftime": 1,
+          "gk_punch": 1,
+          "action_interrupted": 1,
+          "save": 1,
+          "gk_sweep": 1
+        }
+      }
+    }
+  ]
+}
