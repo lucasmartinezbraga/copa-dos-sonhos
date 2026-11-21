@@ -1,0 +1,762 @@
+# 05-execucao-dirigida  (189 controles)
+# Passo a passo dirigido: seguir o cenário e conferir o aceite.
+#
+# Marque:  [x] passou   [!] falhou   [?] não consegui avaliar
+# Deixe [ ] no que não testar — fica PENDENTE, e tudo bem.
+# Build a testar: COPA DOS SONHOS - R14 - MOTOR VIVO.html
+
+[ ] INT-001  Identidade única da candidata
+    > cenário: Registrar versão, branch, commit, nome do HTML, tamanho e SHA-256 antes de qualquer teste.
+    > aceite:  Todos os campos preenchidos e hash reproduzido por duas ferramentas.
+
+[ ] INT-004  Proibição de edição direta em dist
+    > cenário: Verificar histórico e diff para confirmar que alterações vieram de src/.
+    > aceite:  Nenhuma mudança funcional exclusiva em dist/.
+
+[ ] INT-005  HTML autocontido
+    > cenário: Abrir o arquivo sem servidor e sem rede.
+    > aceite:  Jogo inicia e chega ao menu sem requisição externa obrigatória.
+
+[ ] INT-006  Ausência de erro fatal no console
+    > cenário: Percorrer fluxo completo do menu ao pós-jogo.
+    > aceite:  Zero uncaught exception, unhandled rejection ou erro que interrompa fluxo.
+
+[ ] INT-011  Limpeza de estado entre partidas
+    > cenário: Jogar partidas consecutivas sem recarregar a página.
+    > aceite:  Sem herança de placar, eventos, VFX, posições ou temporizadores.
+
+[ ] INT-013  Integridade do torneio
+    > cenário: Completar grupos, mata-mata, prorrogação e final.
+    > aceite:  Classificados, confrontos e campeão correspondem aos resultados.
+
+[ ] INT-014  Integridade do draft
+    > cenário: Completar draft com 10/11 jogadores, reservas e reroll.
+    > aceite:  Não trava, não duplica atleta e sempre permite concluir elenco válido.
+
+[ ] INT-016  Integridade de táticas
+    > cenário: Alternar mentalidade, estilo e instruções durante a partida.
+    > aceite:  Mudanças persistem, afetam somente o esperado e não corrompem o motor.
+
+[ ] INT-017  Integridade de substituições
+    > cenário: Executar substituição normal, múltipla e no intervalo.
+    > aceite:  Jogador sai uma vez, entra uma vez e posição fica válida.
+
+[ ] INT-019  Integridade de prorrogação
+    > cenário: Produzir empate eliminatório.
+    > aceite:  Tempo extra inicia, encerra e atualiza resultado corretamente.
+
+[ ] INT-020  Integridade de disputa por pênaltis
+    > cenário: Levar confronto a pênaltis com alternadas.
+    > aceite:  Ordem, placar e encerramento obedecem regra; sem loop infinito.
+
+[ ] INT-021  Integridade do salvamento
+    > cenário: Salvar em menu, pré-jogo e entre fases.
+    > aceite:  Save é criado, listado e reaberto sem perda de dados.
+
+[ ] INT-022  Compatibilidade de save anterior
+    > cenário: Abrir save suportado da versão anterior.
+    > aceite:  Migra sem corromper; incompatibilidade deve ser explicada e bloqueada com segurança.
+
+[ ] INT-023  Falha segura em save corrompido
+    > cenário: Alterar propositalmente o conteúdo do save.
+    > aceite:  Jogo recusa o arquivo, explica o problema e mantém o estado atual.
+
+[ ] INT-028  Integridade de reinício após gol
+    > cenário: Marcar gol válido e reiniciar.
+    > aceite:  Todos voltam a posições válidas; posse e placar corretos; VFX limpo.
+
+[ ] INT-029  Integridade de reinício após anulação
+    > cenário: Gerar impedimento ou falta que anule gol.
+    > aceite:  Placar não muda; evento de anulação aparece uma vez; jogo reinicia corretamente.
+
+[ ] INT-032  Recuperação após pausa longa
+    > cenário: Pausar por cinco minutos e retomar.
+    > aceite:  Retoma no mesmo estado, sem aceleração acumulada ou perda de input.
+
+[ ] INT-033  Recuperação após troca de aba
+    > cenário: Ocultar a aba durante jogo e retornar.
+    > aceite:  Sem salto de vários segundos, loop duplicado ou dessincronia.
+
+[ ] INT-035  Rastreabilidade de release
+    > cenário: Relacionar cada alteração 2.5D a commit, controle e evidência.
+    > aceite:  100% dos P0 e P1 possuem commit e evidência vinculados.
+
+[ ] DET-018  Empates de decisão resolvidos por regra
+    > cenário: Forçar dois alvos com pontuação igual.
+    > aceite:  Desempate usa regra determinística documentada.
+
+[ ] DET-021  Determinismo de rebotes
+    > cenário: Forçar chute na trave e desvio com seed fixa.
+    > aceite:  Mesmo vetor de rebote em execuções idênticas.
+
+[ ] DET-022  Determinismo de disputa aérea
+    > cenário: Forçar cruzamento com mesmos participantes.
+    > aceite:  Vencedor e trajetória idênticos com mesma seed.
+
+[ ] DET-023  Determinismo de goleiro
+    > cenário: Repetir cenário de defesa, soco e saída.
+    > aceite:  Mesma decisão e ponto de contato.
+
+[ ] DET-024  Determinismo de impedimento
+    > cenário: Repetir corrida e passe na linha.
+    > aceite:  Mesma decisão e mesmo atleta identificado.
+
+[ ] BOL-005  Passe de primeira
+    > cenário: Receptor devolve sem domínio completo.
+    > aceite:  Animação e novo vetor começam no contato; sem teleporte para o pé.
+
+[ ] BOL-006  Domínio orientado
+    > cenário: Recepção com espaço lateral.
+    > aceite:  Primeiro toque prepara a direção escolhida e mantém distância plausível do corpo.
+
+[ ] BOL-007  Domínio sob pressão
+    > cenário: Recepção com defensor a menos de 2 m.
+    > aceite:  Toque pode escapar ou proteger; nunca cola instantaneamente no pé.
+
+[ ] BOL-008  Bola espirrada em dividida
+    > cenário: Dois atletas chegam simultaneamente.
+    > aceite:  Vetor deriva dos movimentos e do ponto de contato; posse não é atribuída antes da resolução.
+
+[ ] BOL-009  Desvio defensivo
+    > cenário: Bloqueio de passe ou chute.
+    > aceite:  Trajetória muda no ponto do defensor e pode sair do campo naturalmente.
+
+[ ] BOL-010  Rebote no gramado
+    > cenário: Bola aérea quica antes da recepção.
+    > aceite:  Quica com perda de energia e segunda altura menor.
+
+[ ] BOL-011  Rebote na trave
+    > cenário: Chute atinge poste.
+    > aceite:  Rebate do ponto visível da trave, sem atravessar ou inverter arbitrariamente.
+
+[ ] BOL-012  Rebote no travessão
+    > cenário: Chute alto atinge travessão.
+    > aceite:  Altura e profundidade respeitam o travessão 2.5D.
+
+[ ] BOL-014  Cruzamento em arco
+    > cenário: Cruzamento de linha de fundo.
+    > aceite:  Altura cresce e cai; não é segmento linear.
+
+[ ] BOL-015  Chute colocado
+    > cenário: Finalização com alvo lateral.
+    > aceite:  Curva/diagonal coerente e desaceleração menor que passe.
+
+[ ] BOL-016  Chute forte rasteiro
+    > cenário: Finalização frontal de média distância.
+    > aceite:  Velocidade superior ao passe; bola mantém contato visual correto.
+
+[ ] BOL-017  Chute alto com arco
+    > cenário: Finalização alta de fora da área.
+    > aceite:  Curva vertical contínua; não sobe em linha reta nem muda de altura abruptamente.
+
+[ ] BOL-018  Cabeceio direcionado
+    > cenário: Cruzamento com atacante em movimento.
+    > aceite:  Vetor muda no contato da cabeça e segue direção corporal plausível.
+
+[ ] BOL-021  Detecção de saída lateral por passe errado
+    > cenário: Passe junto à linha ultrapassa completamente o limite.
+    > aceite:  Lateral marcado no primeiro tick após a bola cruzar integralmente a linha.
+
+[ ] BOL-022  Detecção de saída por domínio ruim
+    > cenário: Primeiro toque leva a bola para fora.
+    > aceite:  Reposição concedida ao adversário do último tocador.
+
+[ ] BOL-023  Detecção de saída por dividida
+    > cenário: Disputa empurra a bola para fora.
+    > aceite:  Último contato define a posse do lateral.
+
+[ ] BOL-024  Detecção de saída por corte
+    > cenário: Defensor corta passe pela lateral.
+    > aceite:  Gera lateral, não tiro de meta ou continuidade artificial.
+
+[ ] BOL-027  Distância de segurança
+    > cenário: Adversário pressiona o cobrador.
+    > aceite:  Oponentes respeitam distância mínima definida até a bola entrar.
+
+[ ] BOL-028  Trajetória do arremesso
+    > cenário: Cobrança curta, média e longa.
+    > aceite:  Bola nasce nas mãos/posição de cobrança, possui arco e cai no receptor ou espaço.
+
+[ ] BOL-029  Continuidade após lateral
+    > cenário: Receptor domina ou disputa.
+    > aceite:  Fluxo retorna ao jogo corrido sem teleporte, pausa longa ou posse automática indevida.
+
+[ ] BOL-031  Concessão correta de escanteio
+    > cenário: Defensor toca por último antes da linha de fundo.
+    > aceite:  Escanteio concedido ao ataque; nenhum tiro de meta simultâneo.
+
+[ ] BOL-035  Decisão do goleiro no cruzamento
+    > cenário: Cobranças fechada e aberta.
+    > aceite:  Sai, soca ou fica conforme trajetória e tráfego; não teleporta.
+
+[ ] BOL-036  Segunda bola de escanteio
+    > cenário: Corte parcial para entrada da área.
+    > aceite:  Bola permanece viva e jogadores reagem; papéis especiais são limpos.
+
+[ ] BOL-038  Transição após corte
+    > cenário: Defesa recupera e contra-ataca.
+    > aceite:  Jogadores de descanso protegem o contra-ataque; sem reset artificial.
+
+[ ] BOL-039  Concessão correta de tiro de meta
+    > cenário: Atacante toca por último antes da linha de fundo.
+    > aceite:  Tiro de meta, nunca escanteio.
+
+[ ] BOL-041  Saída curta do goleiro
+    > cenário: Zagueiro livre próximo.
+    > aceite:  Goleiro pode escolher opção curta e bola percorre fisicamente o trajeto.
+
+[ ] BOL-042  Saída longa do goleiro
+    > cenário: Pressão alta fecha opções curtas.
+    > aceite:  Lançamento tem arco e alvo espacial coerente.
+
+[ ] BOL-046  Concessão e local da falta
+    > cenário: Falta em cinco zonas do campo.
+    > aceite:  Cobrança nasce no ponto da infração dentro de tolerância de 1 m lógico.
+
+[ ] BOL-049  Escolha entre chute e passe
+    > cenário: Distância curta, média e longa.
+    > aceite:  Decisão responde a ângulo, distância, atributo e estado do jogo.
+
+[ ] BOL-050  Trajetória da falta direta
+    > cenário: Cobrança por cima e ao redor da barreira.
+    > aceite:  Arco e curva contínuos; bola não atravessa barreira.
+
+[ ] BOL-052  Segunda bola de falta
+    > cenário: Defesa rebate para a entrada da área.
+    > aceite:  Jogo continua com bola livre e reorganização real.
+
+[ ] BOL-053  Falta ofensiva em bola parada
+    > cenário: Atacante comete infração na disputa.
+    > aceite:  Ataque perde a posse; gol subsequente é anulado se aplicável.
+
+[ ] BOL-057  Mergulho do goleiro
+    > cenário: Cobranças altas e baixas.
+    > aceite:  Goleiro possui ação própria, alcança fisicamente ou é vencido.
+
+[ ] BOL-058  Rebote de pênalti em jogo
+    > cenário: Defesa ou trave em tempo normal.
+    > aceite:  Bola segue viva e jogadores entram somente quando permitido.
+
+[ ] BOL-061  Saída inicial da partida
+    > cenário: Início do primeiro tempo.
+    > aceite:  Equipes em campos corretos; relógio inicia com a bola em jogo.
+
+[ ] BOL-062  Saída do segundo tempo
+    > cenário: Após intervalo.
+    > aceite:  Lados e equipe de saída obedecem regra definida.
+
+[ ] BOL-063  Saída após gol
+    > cenário: Após gol válido.
+    > aceite:  Equipe que sofreu reinicia; placar já atualizado; VFX não interfere.
+
+[ ] BOL-066  Bola exatamente sobre a linha lateral
+    > cenário: Centro da bola tangencia a linha.
+    > aceite:  Permanece em jogo até cruzar integralmente o limite definido.
+
+[ ] BOL-067  Bola exatamente sobre a linha de fundo
+    > cenário: Centro da bola tangencia a linha.
+    > aceite:  Permanece em jogo até cruzar integralmente.
+
+[ ] BOL-068  Saída no encontro lateral/linha de fundo
+    > cenário: Bola cruza próximo à bandeirinha.
+    > aceite:  Classificação usa o primeiro limite cruzado e último toque.
+
+[ ] BOL-069  Desvio múltiplo antes da saída
+    > cenário: Bola toca em três atletas.
+    > aceite:  Último contato válido define a reposição.
+
+[ ] BOL-070  Bola fora durante vantagem
+    > cenário: Falta ocorre e bola sai logo depois.
+    > aceite:  Motor decide falta ou reposição uma vez, sem eventos concorrentes.
+
+[ ] IA-006  Ponta acompanha lateral
+    > cenário: Lateral adversário ultrapassa.
+    > aceite:  Ponta reage conforme estilo/mentalidade; ausência de acompanhamento deve gerar compensação.
+
+[ ] IA-009  Linha de cinco temporária
+    > cenário: Adversário ocupa última linha com quatro atacantes.
+    > aceite:  Volante/lateral recua por ocupação espacial, não por nome da formação.
+
+[ ] IA-010  Retorno à estrutura-base
+    > cenário: Sobrecarga adversária termina.
+    > aceite:  Equipe desfaz linha de cinco gradualmente e sem trocar IDs de forma errada.
+
+[ ] IA-012  Proteção do corredor lateral
+    > cenário: Rival cria 2x1 contra lateral.
+    > aceite:  Cobertura chega por ponta, volante ou zagueiro antes de cruzamento livre recorrente.
+
+[ ] IA-013  Proteção da entrada da área
+    > cenário: Cruzamento é cortado parcialmente.
+    > aceite:  Defesa mantém jogador para segunda bola.
+
+[ ] IA-017  Cobertura do zagueiro que salta
+    > cenário: Zagueiro pressiona entrelinhas.
+    > aceite:  Parceiro e volante fecham profundidade e corredor do passe.
+
+[ ] IA-018  Proteção contra terceiro homem
+    > cenário: Passe apoia e devolve em profundidade.
+    > aceite:  Defesa acompanha a devolução e não persegue somente a bola.
+
+[ ] IA-020  Estrutura após bola parada
+    > cenário: Escanteio ou falta é afastado.
+    > aceite:  Papéis temporários desaparecem e linhas se reorganizam.
+
+[ ] IA-024  Cobertura secundária
+    > cenário: Primeiro marcador é driblado.
+    > aceite:  Segundo defensor entra em condição de intervenção sem abrir corredor central.
+
+[ ] IA-025  Transferência de marcação
+    > cenário: Atacante cruza zonas lateral/central.
+    > aceite:  Referência passa entre setores sem dois defensores perseguirem indefinidamente.
+
+[ ] IA-027  Marcação de dois atacantes centrais
+    > cenário: Dupla ocupa entre zagueiros e volantes.
+    > aceite:  Ambos controlados por referências distintas ou zona compartilhada com sobra.
+
+[ ] IA-028  Marcação de ponta aberto
+    > cenário: Ponta fixa amplitude.
+    > aceite:  Lateral controla distância e orientação sem abrir meio.
+
+[ ] IA-029  Marcação no segundo pau
+    > cenário: Cruzamento vindo do lado oposto.
+    > aceite:  Defensor do lado fraco acompanha atacante ou protege zona de finalização.
+
+[ ] IA-030  Marcação em rebote
+    > cenário: Chute bloqueado volta à área.
+    > aceite:  Defesa atualiza ameaça e não mantém referências antigas.
+
+[ ] IA-033  Ameaça recém-entrada
+    > cenário: Substituto entra e ocupa zona perigosa.
+    > aceite:  IA reconhece e ajusta marcação em até 2 s lógicos.
+
+[ ] IA-034  Troca de posição ofensiva
+    > cenário: Ponta e meia trocam corredores.
+    > aceite:  Defesa reage à posição real, não ao rótulo original.
+
+[ ] IA-036  Gatilho por passe para trás
+    > cenário: Rival recua ao zagueiro.
+    > aceite:  Pressão aumenta conforme estilo e distância, sem todos abandonarem zonas.
+
+[ ] IA-037  Gatilho por domínio ruim
+    > cenário: Receptor perde controle.
+    > aceite:  Jogador próximo acelera e cobertura fecha passe seguinte.
+
+[ ] IA-038  Gatilho por recepção de costas
+    > cenário: Meia recebe voltado para o próprio gol.
+    > aceite:  Pressionador chega pelo lado correto e bloqueia giro/passe perigoso.
+
+[ ] IA-042  Abandono da pressão vencida
+    > cenário: Rival rompe primeira linha.
+    > aceite:  Equipe recua e reorganiza; não persegue em fila.
+
+[ ] IA-045  Pressão após saída de meta
+    > cenário: Rival escolhe passe curto.
+    > aceite:  Atacantes fecham opções proporcionalmente, sem teleporte de estrutura.
+
+[ ] IA-049  Ataque à profundidade
+    > cenário: Passador tem tempo e atacante inicia corrida.
+    > aceite:  Corrida começa antes do passe, podendo gerar condição ou impedimento orgânico.
+
+[ ] IA-050  Terceiro homem ofensivo
+    > cenário: Apoio devolve para corredor livre.
+    > aceite:  Movimento do terceiro jogador cria linha real de progressão.
+
+[ ] IA-051  Inversão de corredor
+    > cenário: Lado da bola está congestionado.
+    > aceite:  IA considera lado oposto e executa passe viável, não giro instantâneo.
+
+[ ] IA-052  Ultrapassagem do lateral
+    > cenário: Ponta recebe por dentro.
+    > aceite:  Lateral ataca corredor externo quando há cobertura.
+
+[ ] IA-053  Diagonal do ponta
+    > cenário: Lateral mantém amplitude.
+    > aceite:  Ponta ocupa meio espaço ou área sem colidir com centroavante.
+
+[ ] IA-055  Escolha entre passe, cruzamento e chute
+    > cenário: Portador no terço final com opções variadas.
+    > aceite:  Escolha reflete ângulo, pressão, companheiros e atributos; sem ação dominante fixa.
+
+[ ] IA-056  Primeiro passe após recuperação
+    > cenário: Bola recuperada no próprio terço.
+    > aceite:  Pode assegurar posse ou acelerar conforme espaço e estilo.
+
+[ ] IA-059  Contra-pressão imediata
+    > cenário: Perda no terço final.
+    > aceite:  Jogadores próximos pressionam e outros protegem saídas.
+
+[ ] IA-060  Abandono da contra-pressão
+    > cenário: Rival supera o primeiro cerco.
+    > aceite:  Equipe recua para bloco; não mantém perseguição caótica.
+
+[ ] IA-062  Decisão do portador no contra-ataque
+    > cenário: Portador com 2x2 e 3x2.
+    > aceite:  Conduz, passa ou finaliza conforme vantagem real.
+
+[ ] IA-063  Temporização defensiva
+    > cenário: Defensor isolado contra dois atacantes.
+    > aceite:  Recua e fecha linha de passe até chegada de cobertura, em vez de bote suicida recorrente.
+
+[ ] IA-065  Transição após defesa do goleiro
+    > cenário: Goleiro encaixa e vê espaço.
+    > aceite:  Pode acelerar com lançamento ou esperar reorganização.
+
+[ ] IA-068  Resposta a expulsão própria
+    > cenário: Equipe fica com dez.
+    > aceite:  Reorganiza funções e preserva zonas essenciais.
+
+[ ] IA-069  Resposta a expulsão adversária
+    > cenário: Rival fica com dez.
+    > aceite:  Explora superioridade sem criar regra de gol artificial.
+
+[ ] IA-070  Resposta a lesão/substituição
+    > cenário: Jogador-chave sai.
+    > aceite:  Novo jogador assume função compatível; equipe não mantém referência inexistente.
+
+[ ] IA-071  Resposta a mudança de formação rival
+    > cenário: Usuário troca 4-3-3 para 4-2-4.
+    > aceite:  IA reage à nova ocupação, não ao nome do esquema.
+
+[ ] IA-072  Resposta a sobrecarga lateral repetida
+    > cenário: Rival ataca o mesmo lado três vezes.
+    > aceite:  IA aumenta proteção local sem abandonar lado oposto por completo.
+
+[ ] IA-073  Resposta a bola longa repetida
+    > cenário: Rival usa lançamentos nas costas.
+    > aceite:  Linha recua ou pressiona origem, reduzindo repetição do mesmo dano.
+
+[ ] IA-074  Resposta a bloco baixo rival
+    > cenário: Rival fecha área.
+    > aceite:  IA amplia, troca corredor e busca entrelinhas; não chuta de qualquer lugar sempre.
+
+[ ] IA-075  Resposta a pressão alta rival
+    > cenário: Saída curta é bloqueada.
+    > aceite:  Alterna apoio, terceiro homem ou jogo direto conforme risco.
+
+[ ] IA-079  Contexto supera rótulo
+    > cenário: Trocar posição nominal mantendo mesma ocupação física.
+    > aceite:  IA responde à geometria, não apenas ao nome da posição/formação.
+
+[ ] FOR-055  Formação estreita protege largura
+    > cenário: Testar 4-1-2-1-2 e 4-3-1-2 contra alas.
+    > aceite:  Laterais/volantes compensam sem abrir corredor central completamente.
+
+[ ] REG-001  Impedimento no instante do passe
+    > cenário: Atacante cruza a linha antes e depois do passe.
+    > aceite:  Decisão usa instante real do passe e parte válida do corpo definida.
+
+[ ] REG-002  Atacante em posição legal por defensor atrasado
+    > cenário: Um lateral mantém condição.
+    > aceite:  Jogada segue; IA não usa linha média abstrata.
+
+[ ] REG-003  Retorno de posição irregular
+    > cenário: Atacante volta para receber.
+    > aceite:  Impedimento marcado se participa após estar irregular.
+
+[ ] REG-004  Jogador passivo em impedimento
+    > cenário: Atacante irregular não interfere.
+    > aceite:  Jogada segue conforme regra adotada.
+
+[ ] REG-005  Impedimento em rebote do goleiro
+    > cenário: Chute defendido volta a atacante irregular.
+    > aceite:  Decisão coerente com a regra implementada e documentada.
+
+[ ] REG-008  Falta por contato real
+    > cenário: Bote alcança corpo/perna antes da bola.
+    > aceite:  Falta nasce do contato; sem apito por proximidade abstrata.
+
+[ ] REG-009  Desarme limpo
+    > cenário: Defensor toca a bola primeiro.
+    > aceite:  Jogo segue ou bola sai; falta não é marcada automaticamente.
+
+[ ] REG-010  Vantagem
+    > cenário: Falta ocorre mas ataque mantém oportunidade clara.
+    > aceite:  Árbitro deixa seguir e volta à falta somente conforme regra definida.
+
+[ ] REG-011  Fim da vantagem
+    > cenário: Ataque perde benefício rapidamente.
+    > aceite:  Jogo retorna à falta uma vez, sem duplicar evento.
+
+[ ] REG-013  Cartão vermelho direto
+    > cenário: Entrada grave ou impedir gol.
+    > aceite:  Jogador expulso, equipe fica com dez e IA reorganiza.
+
+[ ] REG-014  Segundo amarelo
+    > cenário: Jogador já advertido comete nova falta.
+    > aceite:  Mostra segundo amarelo e vermelho uma vez; remove atleta.
+
+[ ] REG-015  Pênalti pela localização
+    > cenário: Falta ocorre dentro/fora da área.
+    > aceite:  Dentro gera pênalti; fora gera falta no ponto correto.
+
+[ ] REG-016  Gol cruza completamente a linha
+    > cenário: Chute entra por pouco.
+    > aceite:  Gol apenas quando bola cruza integralmente.
+
+[ ] REG-017  Bola sobre a linha do gol
+    > cenário: Bola para parcialmente sobre a linha.
+    > aceite:  Não marca gol prematuramente.
+
+[ ] REG-018  Gol anulado por falta ofensiva
+    > cenário: Contato ilegal antes do chute.
+    > aceite:  Placar não muda e reinício correto.
+
+[ ] REG-019  Gol anulado por impedimento
+    > cenário: Passe para atleta irregular que finaliza.
+    > aceite:  Anulação aparece uma vez e estatística de gol não permanece.
+
+[ ] REG-020  Gol contra
+    > cenário: Defensor desvia decisivamente para própria meta.
+    > aceite:  Autoria e placar corretos conforme regra documentada.
+
+[ ] REG-022  Intervalo e troca de lados
+    > cenário: Chegar ao intervalo.
+    > aceite:  Lados/tática são preservados e segundo tempo inicia sem estado residual.
+
+[ ] REG-023  Fim de jogo durante ataque
+    > cenário: Relógio ultrapassa limite com bola viva.
+    > aceite:  Critério é consistente e não permite sequência infinita.
+
+[ ] REG-024  Substituições dentro do limite
+    > cenário: Tentar exceder limite definido.
+    > aceite:  Sistema bloqueia ação inválida e explica o motivo.
+
+[ ] REG-028  Fechamento de ângulo no 1x1
+    > cenário: Atacante entra livre.
+    > aceite:  Avança gradualmente, reduz alvo e não teleporta.
+
+[ ] REG-029  Decisão de ficar no gol
+    > cenário: Atacante ainda distante e coberto.
+    > aceite:  Não sai sem necessidade.
+
+[ ] REG-033  Defesa encaixada
+    > cenário: Chute central controlável.
+    > aceite:  Bola permanece com goleiro e atacantes interrompem disputa.
+
+[ ] REG-034  Espalmada lateral
+    > cenário: Chute forte no canto.
+    > aceite:  Desvia para lado plausível, não para o centro automaticamente.
+
+[ ] REG-035  Soco em cruzamento
+    > cenário: Bola alta com tráfego.
+    > aceite:  Goleiro alcança e soca para zona possível; não atravessa atletas.
+
+[ ] REG-036  Erro de saída
+    > cenário: Cruzamento difícil sob pressão.
+    > aceite:  Pode falhar de forma física; erro não é teleporte ou animação omitida.
+
+[ ] REG-037  Colisão com atacante
+    > cenário: Disputa aérea na pequena área.
+    > aceite:  Resultado respeita trajetórias e pode gerar falta conforme ordem do contato.
+
+[ ] REG-038  Saída em bola nas costas
+    > cenário: Passe atravessa a defesa.
+    > aceite:  Goleiro sai somente se chega antes ou aceita risco coerente.
+
+[ ] REG-039  Desistência da saída
+    > cenário: Atacante chega primeiro.
+    > aceite:  Goleiro freia/recuo de modo contínuo, sem inverter instantaneamente.
+
+[ ] REG-040  Atuação fora da área
+    > cenário: Goleiro corta com os pés/cabeça.
+    > aceite:  Não usa mãos fora da área e ação possui contato real.
+
+[ ] REG-041  Mão fora da área
+    > cenário: Forçar tentativa de defesa manual fora.
+    > aceite:  Ação é impedida ou gera infração conforme implementação.
+
+[ ] REG-042  Distribuição curta com mãos
+    > cenário: Goleiro encaixa e lateral está livre.
+    > aceite:  Bola parte das mãos/posição correta e chega fisicamente.
+
+[ ] REG-043  Distribuição longa com mãos
+    > cenário: Contra-ataque pelo corredor.
+    > aceite:  Lançamento possui arco, alcance e decisão coerentes.
+
+[ ] REG-044  Reposição com os pés
+    > cenário: Pressão alta fecha curto.
+    > aceite:  Pode lançar longo; contato e arco corretos.
+
+[ ] REG-046  Reação a desvio tardio
+    > cenário: Chute muda de direção perto do gol.
+    > aceite:  Goleiro pode reagir tarde ou ser vencido; não conhece vetor futuro.
+
+[ ] REG-047  Visão bloqueada
+    > cenário: Chute atravessa grupo de jogadores.
+    > aceite:  Tempo/qualidade da reação piora com obstrução.
+
+[ ] REG-048  Defesa em dois tempos
+    > cenário: Bola escapa após primeira defesa.
+    > aceite:  Goleiro recupera fisicamente ou adversário disputa; posse não é automática.
+
+[ ] REG-049  Reação após rebote na trave
+    > cenário: Bola volta à pequena área.
+    > aceite:  Goleiro reorienta e tenta nova ação sem reset de pose.
+
+[ ] CAM-027  Câmera após pausa
+    > cenário: Pausar durante movimento.
+    > aceite:  Congela e retoma sem interpolação acumulada.
+
+[ ] CAM-028  Câmera após troca de aba
+    > cenário: Ocultar e voltar.
+    > aceite:  Não salta para posição incorreta.
+
+[ ] CAM-050  Debug visual removível
+    > cenário: Ativar/desativar sobreposições de auditoria.
+    > aceite:  Debug não altera layout/lógica e fica ausente no modo de release.
+
+[ ] VFX-006  Trajetória de passe picado
+    > cenário: Passe sobre defensor.
+    > aceite:  Sobe o suficiente para superar obstáculo e cai antes do receptor.
+
+[ ] VFX-007  Trajetória de cabeceio
+    > cenário: Cabeceio ofensivo e defensivo.
+    > aceite:  Origem na cabeça; velocidade menor que chute forte.
+
+[ ] VFX-008  Trajetória de soco do goleiro
+    > cenário: Cruzamento alto.
+    > aceite:  Sai das mãos e evita centro da área quando possível.
+
+[ ] VFX-009  Trajetória de espalmada
+    > cenário: Chute no canto.
+    > aceite:  Desvio coerente com mão e direção do chute.
+
+[ ] VFX-010  Trajetória após bloqueio
+    > cenário: Chute toca defensor.
+    > aceite:  Ângulo muda no contato, sem snap para alvo predefinido.
+
+[ ] VFX-011  Trajetória após carrinho
+    > cenário: Desarme em movimento.
+    > aceite:  Bola espirra conforme vetor relativo.
+
+[ ] VFX-013  Trajetória no poste
+    > cenário: Impacto lateral.
+    > aceite:  Reflexão usa superfície do poste.
+
+[ ] VFX-014  Trajetória no travessão
+    > cenário: Impacto alto.
+    > aceite:  Reflexão respeita profundidade e gravidade.
+
+[ ] UX-002  Carregamento: conclusão sem bloqueio
+    > cenário: Executar o fluxo principal e um caminho de volta/cancelamento.
+    > aceite:  Fluxo termina sem botão oculto, estado morto, perda silenciosa ou navegação circular.
+
+[ ] UX-004  Tela inicial: conclusão sem bloqueio
+    > cenário: Executar o fluxo principal e um caminho de volta/cancelamento.
+    > aceite:  Fluxo termina sem botão oculto, estado morto, perda silenciosa ou navegação circular.
+
+[ ] UX-006  Seleção de modo: conclusão sem bloqueio
+    > cenário: Executar o fluxo principal e um caminho de volta/cancelamento.
+    > aceite:  Fluxo termina sem botão oculto, estado morto, perda silenciosa ou navegação circular.
+
+[ ] UX-008  Draft: conclusão sem bloqueio
+    > cenário: Executar o fluxo principal e um caminho de volta/cancelamento.
+    > aceite:  Fluxo termina sem botão oculto, estado morto, perda silenciosa ou navegação circular.
+
+[ ] UX-010  Elenco: conclusão sem bloqueio
+    > cenário: Executar o fluxo principal e um caminho de volta/cancelamento.
+    > aceite:  Fluxo termina sem botão oculto, estado morto, perda silenciosa ou navegação circular.
+
+[ ] UX-012  Formação: conclusão sem bloqueio
+    > cenário: Executar o fluxo principal e um caminho de volta/cancelamento.
+    > aceite:  Fluxo termina sem botão oculto, estado morto, perda silenciosa ou navegação circular.
+
+[ ] UX-014  Táticas: conclusão sem bloqueio
+    > cenário: Executar o fluxo principal e um caminho de volta/cancelamento.
+    > aceite:  Fluxo termina sem botão oculto, estado morto, perda silenciosa ou navegação circular.
+
+[ ] UX-016  Adversário: conclusão sem bloqueio
+    > cenário: Executar o fluxo principal e um caminho de volta/cancelamento.
+    > aceite:  Fluxo termina sem botão oculto, estado morto, perda silenciosa ou navegação circular.
+
+[ ] UX-018  Pré-jogo: conclusão sem bloqueio
+    > cenário: Executar o fluxo principal e um caminho de volta/cancelamento.
+    > aceite:  Fluxo termina sem botão oculto, estado morto, perda silenciosa ou navegação circular.
+
+[ ] UX-020  Intervalo: conclusão sem bloqueio
+    > cenário: Executar o fluxo principal e um caminho de volta/cancelamento.
+    > aceite:  Fluxo termina sem botão oculto, estado morto, perda silenciosa ou navegação circular.
+
+[ ] UX-022  Pós-jogo: conclusão sem bloqueio
+    > cenário: Executar o fluxo principal e um caminho de volta/cancelamento.
+    > aceite:  Fluxo termina sem botão oculto, estado morto, perda silenciosa ou navegação circular.
+
+[ ] UX-024  Fase de grupos: conclusão sem bloqueio
+    > cenário: Executar o fluxo principal e um caminho de volta/cancelamento.
+    > aceite:  Fluxo termina sem botão oculto, estado morto, perda silenciosa ou navegação circular.
+
+[ ] UX-026  Chaveamento: conclusão sem bloqueio
+    > cenário: Executar o fluxo principal e um caminho de volta/cancelamento.
+    > aceite:  Fluxo termina sem botão oculto, estado morto, perda silenciosa ou navegação circular.
+
+[ ] UX-028  Configurações: conclusão sem bloqueio
+    > cenário: Executar o fluxo principal e um caminho de volta/cancelamento.
+    > aceite:  Fluxo termina sem botão oculto, estado morto, perda silenciosa ou navegação circular.
+
+[ ] UX-030  Salvar/carregar: conclusão sem bloqueio
+    > cenário: Executar o fluxo principal e um caminho de volta/cancelamento.
+    > aceite:  Fluxo termina sem botão oculto, estado morto, perda silenciosa ou navegação circular.
+
+[ ] UX-032  Ajuda/tutorial: conclusão sem bloqueio
+    > cenário: Executar o fluxo principal e um caminho de volta/cancelamento.
+    > aceite:  Fluxo termina sem botão oculto, estado morto, perda silenciosa ou navegação circular.
+
+[ ] UX-034  Velocidade: estado visível
+    > cenário: Alternar 1.0x, 1.8x e 3.6x.
+    > aceite:  Velocidade ativa é inequívoca e controle é fácil de alcançar.
+
+[ ] UX-035  Pausa: estado e retomada
+    > cenário: Pausar durante lance.
+    > aceite:  Estado pausado é claro; retomar exige uma ação e não gera clique acidental.
+
+[ ] UX-036  Mentalidade: efeito compreensível
+    > cenário: Trocar defensiva/equilibrada/ofensiva.
+    > aceite:  Usuário entende alteração sem sliders ambíguos ou duplicidade de comando.
+
+[ ] UX-037  Tabs Tudo/Adversário/Estatísticas
+    > cenário: Alternar durante jogo.
+    > aceite:  Conteúdo muda sem perder contexto ou cobrir ação crítica permanentemente.
+
+[ ] UX-042  Botão continuar pós-jogo
+    > cenário: Resultado encerrado.
+    > aceite:  Botão é visível, funciona uma vez e avança à tela correta.
+
+[ ] UX-043  Mensagem de erro acionável
+    > cenário: Forçar falha de save/build/dados.
+    > aceite:  Explica o que ocorreu, impacto e ação possível sem stack técnico bruto.
+
+[ ] UX-044  Confirmação de ação destrutiva
+    > cenário: Apagar save ou reiniciar torneio.
+    > aceite:  Exige confirmação clara e oferece cancelar.
+
+[ ] UX-045  Prevenção de escolha duplicada no draft
+    > cenário: Tentar selecionar atleta já escolhido.
+    > aceite:  Ação é bloqueada antes de corromper elenco e motivo é mostrado.
+
+[ ] UX-046  Salvaguarda 10/11 sem reroll
+    > cenário: Chegar ao fim do draft com elenco incompleto.
+    > aceite:  Sistema oferece caminho válido para completar; não prende o usuário.
+
+[ ] UX-047  Persistência de preferências
+    > cenário: Alterar áudio, velocidade e layout.
+    > aceite:  Preferências suportadas permanecem e podem ser resetadas.
+
+[ ] UX-048  Voltar sem perder alterações
+    > cenário: Entrar em subpainel tático e retornar.
+    > aceite:  Mudanças confirmadas permanecem; não confirmadas são tratadas explicitamente.
+
+[ ] PERF-026  Estabilidade após suspensão
+    > cenário: Notebook dorme e retorna.
+    > aceite:  Jogo recupera ou pausa com mensagem; sem crash.
+
+[ ] REL-001  Identidade final única
+    > cenário: Congelar versão, branch, commit, HTML, bytes e SHA-256.
+    > aceite:  Todos os artefatos e relatórios apontam para o mesmo hash final.
+
+[ ] REL-008  Validação móvel física final
+    > cenário: Executar Chrome Android e Safari iOS, retrato/paisagem e três partidas.
+    > aceite:  Fluxos P0 passam; FPS e memória atendem critérios; nenhum botão morto.
+
+[ ] REL-010  Veredito assinado e pacote selado
+    > cenário: Gerar relatório, ZIP, checksum e lista de pendências.
+    > aceite:  A decisão APROVADO/BLOQUEADO é reproduzível e não contradiz a matriz.

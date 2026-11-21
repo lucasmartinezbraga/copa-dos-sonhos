@@ -1,0 +1,146 @@
+# 02-aparelho-fisico  (35 controles)
+# Exige Android ou iPhone REAL. Emulação não vale.
+#
+# Marque:  [x] passou   [!] falhou   [?] não consegui avaliar
+# Deixe [ ] no que não testar — fica PENDENTE, e tudo bem.
+# Build a testar: COPA DOS SONHOS - R14 - MOTOR VIVO.html
+
+[ ] MOB-001  Abertura em celular real
+    > cenário: Abrir build em Android e iOS suportados.
+    > aceite:  Chega ao menu sem loading infinito ou tela branca.
+
+[ ] MOB-002  Retrato: tela inicial
+    > cenário: Viewport 360x800 e 390x844.
+    > aceite:  Conteúdo cabe sem rolagem horizontal; CTA principal visível.
+
+[ ] MOB-003  Paisagem: tela inicial
+    > cenário: Viewport 800x360 e 844x390.
+    > aceite:  Layout reorganiza sem sobreposição.
+
+[ ] MOB-004  Retrato: draft
+    > cenário: Completar uma escolha.
+    > aceite:  Cartas, dados e ações são tocáveis; nenhuma informação essencial cortada.
+
+[ ] MOB-005  Paisagem: draft
+    > cenário: Completar uma escolha.
+    > aceite:  Usa largura adicional e mantém botões discretos.
+
+[ ] MOB-006  Retrato: formação
+    > cenário: Mover jogador e abrir detalhes.
+    > aceite:  Campo e reservas utilizáveis sem zoom involuntário.
+
+[ ] MOB-007  Paisagem: formação
+    > cenário: Mover jogador e ajustar tática.
+    > aceite:  Mais campo visível e painéis não cobrem posições.
+
+[ ] MOB-008  Retrato: partida
+    > cenário: Jogar cinco minutos.
+    > aceite:  Placar, campo e controles essenciais visíveis; sem corte do palco.
+
+[ ] MOB-009  Paisagem: partida
+    > cenário: Jogar cinco minutos.
+    > aceite:  Campo maximizado e HUD compacto.
+
+[ ] MOB-010  Rotação durante partida
+    > cenário: Alternar retrato/paisagem três vezes.
+    > aceite:  Recalcula layout/caches sem reiniciar ou alterar lógica.
+
+[ ] MOB-011  Rotação em telas de menu
+    > cenário: Alternar orientação no draft e formação.
+    > aceite:  Estado e seleção preservados.
+
+[ ] MOB-012  Safe area de notch
+    > cenário: Dispositivo com recorte superior.
+    > aceite:  Placar e botões respeitam safe-area-inset.
+
+[ ] MOB-013  Safe area inferior
+    > cenário: Dispositivo com barra gestual.
+    > aceite:  Ações não ficam sob a barra do sistema.
+
+[ ] MOB-014  Alvos de toque
+    > cenário: Medir botões principais.
+    > aceite:  Alvos essenciais >=44x44 CSS px ou espaçamento equivalente.
+
+[ ] MOB-015  Sem toque duplo acidental
+    > cenário: Tocar rapidamente em continuar/substituir.
+    > aceite:  Ação executa uma vez e desabilita durante processamento.
+
+[ ] MOB-016  Arrastar jogador
+    > cenário: Mover atleta em formação com dedo.
+    > aceite:  Elemento acompanha dedo, possui área de soltura clara e não rola página.
+
+[ ] MOB-017  Rolagem em painéis
+    > cenário: Abrir lista longa de eventos/elenco.
+    > aceite:  Rolagem interna funciona sem mover campo indevidamente.
+
+[ ] MOB-018  Pinch-zoom involuntário
+    > cenário: Tocar rapidamente no campo.
+    > aceite:  Jogo não amplia por acidente; zoom do navegador não é bloqueado onde acessibilidade exigir.
+
+[ ] MOB-019  Teclado virtual
+    > cenário: Editar nome/save quando aplicável.
+    > aceite:  Campo permanece visível e layout retorna após fechar teclado.
+
+[ ] MOB-020  Back do Android
+    > cenário: Navegar entre telas e modal.
+    > aceite:  Fecha modal/volta de forma previsvisível sem sair e perder estado.
+
+[ ] MOB-021  Recarregamento por memória
+    > cenário: Alternar para outro app e voltar.
+    > aceite:  Se página sobreviver, retoma; se recarregar, oferece recuperação segura.
+
+[ ] MOB-022  Modo tela cheia
+    > cenário: Entrar/sair quando suportado.
+    > aceite:  Layout recalcula e controles continuam acessíveis.
+
+[ ] MOB-023  Áudio sob política móvel
+    > cenário: Iniciar jogo sem interação prévia.
+    > aceite:  Não gera erro; áudio inicia somente após gesto quando exigido.
+
+[ ] MOB-024  Toque durante animação
+    > cenário: Tocar em controles enquanto VFX ocorre.
+    > aceite:  Inputs essenciais respondem; ações bloqueadas indicam estado.
+
+[ ] MOB-025  Painel de estatísticas móvel
+    > cenário: Abrir/fechar repetidamente.
+    > aceite:  Não cobre permanentemente placar/campo e possui fechamento claro.
+
+[ ] MOB-026  Painel tático móvel
+    > cenário: Alterar mentalidade e formação.
+    > aceite:  Controles cabem e confirmação é inequívoca.
+
+[ ] MOB-027  Texto a 200% no mobile
+    > cenário: Aumentar tamanho do sistema/navegador.
+    > aceite:  Fluxo principal permanece utilizável sem conteúdo essencial cortado.
+
+[ ] MOB-028  Contraste sob brilho externo
+    > cenário: Avaliar em tela real com brilho alto.
+    > aceite:  Placar, bola e ações continuam distinguíveis.
+
+[ ] MOB-029  FPS móvel em 1.0x
+    > cenário: Partida de 10 min em aparelho intermediário.
+    > aceite:  Mediana >=45 FPS e p95 frame time <=33 ms, sem travadas longas.
+
+[ ] MOB-030  FPS móvel em TURBO
+    > cenário: Partida de 5 min em 3.6x.
+    > aceite:  Mediana >=30 FPS e nenhum travamento superior a 250 ms.
+
+[ ] MOB-031  Memória móvel
+    > cenário: Jogar três partidas seguidas.
+    > aceite:  Crescimento líquido <=15% após coleta e retorno ao menu.
+
+[ ] MOB-032  Temperatura/bateria
+    > cenário: Jogar 20 min em aparelho real.
+    > aceite:  Sem throttling severo que torne partida impraticável.
+
+[ ] MOB-033  Conexão offline
+    > cenário: Abrir arquivo/cache sem rede.
+    > aceite:  Funcionalidade autocontida disponível; falhas online opcionais não bloqueiam.
+
+[ ] MOB-034  Compartilhamento/baixar HTML
+    > cenário: Abrir por arquivo local ou GitHub Pages.
+    > aceite:  Mesma versão e comportamento essencial.
+
+[ ] MOB-035  Compatibilidade de navegadores móveis
+    > cenário: Chrome Android e Safari iOS suportados.
+    > aceite:  Todos os fluxos P0 passam nos dois motores.

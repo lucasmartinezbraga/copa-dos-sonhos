@@ -1,0 +1,112 @@
+{
+  "release": "COPA DOS SONHOS P0-6 R13.0",
+  "version": "5.9.3-R13.0",
+  "status": "PASS_ENGINE_AUDIT",
+  "generatedOn": "2026-07-21",
+  "html": {
+    "file": "COPA DOS SONHOS - V5.9.3-R13.0 - FUTEBOL OBSERVAVEL E CADENCIADO.html",
+    "bytes": 1659000,
+    "sha256": "363d9a915a732ae99a889dab05e7f01485d58b140d64e4778ad8d5825f9818a8"
+  },
+  "coverage": {
+    "completedMatches": 876,
+    "consistentMatches": 876,
+    "directedScenarios": { "passed": 25, "total": 25 },
+    "staticChecks": { "passed": 13, "total": 13 },
+    "formationMatrixMatches": 578,
+    "styleMatrixMatches": 98,
+    "diverseSampleMatches": 200
+  },
+  "gates": {
+    "transactionalConsistency": true,
+    "determinism": true,
+    "all17FormationsCovered": true,
+    "noDominantFormation": true,
+    "all7StylesCovered": true,
+    "noDominantStyle": true,
+    "parkIdentity": true,
+    "tikiIdentity": true,
+    "physicalThrowIn": true,
+    "collectiveSpatialDefense": true,
+    "coordinatedDefensiveLine": true,
+    "organicOffside": true,
+    "cornerBalance": true,
+    "controlledBallBodyAlignment": true,
+    "normalSpeedIsOne": true,
+    "staticSelfContainedHtml": true,
+    "pixelLevelBrowserReview": "NOT_EXECUTED_NO_LOCAL_CHROMIUM"
+  },
+  "formationMatrix": {
+    "matches": 578,
+    "canonicalStatus": { "CONSISTENT": 578 },
+    "ppgRange": 0.5735294117647058,
+    "ppgRangeLimit": 0.65,
+    "maxAbsGoalDiffPerMatch": 0.4264705882352941,
+    "maxAbsGoalDiffLimit": 0.55,
+    "perMatch": {
+      "goals": 2.332179930795848,
+      "shots": 13.866782006920415,
+      "passes": 151.8840830449827,
+      "corners": 5.396193771626297,
+      "offsides": 0.7335640138408305,
+      "throwIns": 6.932525951557094
+    },
+    "humanObserver": {
+      "uncoveredThreatRate": 0.19635709583850364,
+      "goalSideCoverageRate": 0.8036429041614964,
+      "markerCloseRate": 0.717503431724818,
+      "markerGoalSideRate": 0.8485873536433304,
+      "markerMeanDistance": 7.711048574791056,
+      "defensiveLineMeanRange": 0.8457660284669231,
+      "disconnectedLineRate": 0,
+      "overload424UncoveredRate": 0.20931692996791965,
+      "spatialOverloadUncoveredRate": 0.19590100455402773,
+      "bodyOrientationMismatchRate": 0
+    },
+    "setPieces": {
+      "cornerGoalShare": 0.04673590504451038,
+      "cornerConversion": 0.020198781660788714,
+      "offsideTrapsPerMatch": 3.0674740484429064
+    }
+  },
+  "styleMatrix": {
+    "matches": 98,
+    "canonicalStatus": { "CONSISTENT": 98 },
+    "ppgRange": 0.5714285714285714,
+    "ppgRangeLimit": 0.75,
+    "maxAbsGoalDiffPerMatch": 0.4642857142857143,
+    "maxAbsGoalDiffLimit": 0.65,
+    "parkIdentity": true,
+    "tikiIdentity": true
+  },
+  "diverseSample": {
+    "matches": 200,
+    "canonicalStatus": { "CONSISTENT": 200 },
+    "perMatch": {
+      "goals": 1.975,
+      "shots": 12.605,
+      "passes": 127.6,
+      "corners": 5.375,
+      "offsides": 0.805,
+      "throwIns": 7.075,
+      "goalKicks": 7.71,
+      "offsideTraps": 3.01
+    },
+    "setPieces": {
+      "cornerGoals": 11,
+      "cornerGoalShare": 0.027848101265822784,
+      "cornerConversion": 0.010232558139534883
+    },
+    "humanObserver": {
+      "uncoveredThreatRate": 0.24708010695506097,
+      "goalSideCoverageRate": 0.752919893044939,
+      "markerCloseRate": 0.6896279162241716,
+      "markerGoalSideRate": 0.8165694389890261,
+      "markerMeanDistance": 8.173040473464784,
+      "defensiveLineMeanRange": 0.8082300937356875,
+      "disconnectedLineRate": 0,
+      "bodyOrientationMismatchRate": 0
+    }
+  },
+  "releaseNote": "Aprovada nos gates objetivos e reproduzíveis. A inspeção subjetiva de animação em navegador real permanece recomendada; não foi simulada por screenshot sintético."
+}

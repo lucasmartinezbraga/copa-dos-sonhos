@@ -1,0 +1,70 @@
+{
+ "checks": [
+  {
+   "id": "A11Y-001",
+   "nome": "navegação por teclado",
+   "pass": true,
+   "exigido": "toda ação essencial alcançável sem mouse",
+   "observado": "3 ações, 0 fora da ordem de tabulação"
+  },
+  {
+   "id": "A11Y-002",
+   "nome": "ordem de foco",
+   "pass": true,
+   "exigido": "ordem segue a leitura visual (sem tabindex positivo)",
+   "observado": "0 elementos com tabindex > 0"
+  },
+  {
+   "id": "A11Y-003",
+   "nome": "indicador de foco visível",
+   "pass": true,
+   "exigido": "foco tem contorno ou sombra própria",
+   "observado": "0 de 3 sem indicador"
+  },
+  {
+   "id": "A11Y-006",
+   "nome": "rótulos acessíveis",
+   "pass": true,
+   "exigido": "todo controle tem nome acessível",
+   "observado": "0 sem nome; 0 nomes repetidos"
+  },
+  {
+   "id": "A11Y-010",
+   "nome": "semântica de títulos",
+   "pass": true,
+   "exigido": "hierarquia sem saltos arbitrários",
+   "observado": "1 títulos, 0 saltos"
+  },
+  {
+   "id": "A11Y-005",
+   "nome": "Enter ativa controles",
+   "pass": true,
+   "exigido": "Enter equivale ao clique",
+   "observado": "tela após Enter: setup"
+  },
+  {
+   "id": "A11Y-014",
+   "nome": "texto a 200%",
+   "pass": true,
+   "exigido": "sem perda de conteúdo nem rolagem horizontal",
+   "observado": "transbordo horizontal 0px"
+  }
+ ],
+ "erro": null,
+ "contrasteDetalhes": [
+  "\"Simulador histórico · ed\" 1.69:1 (alvo 4.5)",
+  "\"Escolha um craque de cad\" 1.33:1 (alvo 4.5)",
+  "\"369 seleções históricas\" 1.02:1 (alvo 4.5)",
+  "\"1934 → 2026\" 1.02:1 (alvo 4.5)",
+  "\"Momentos decisivos jogáv\" 1.02:1 (alvo 4.5)"
+ ],
+ "contrasteInconclusivo": {
+  "medido": "12 de 18 abaixo do alvo; pior razão 1.02:1",
+  "motivo": "estilos computados não expõem a cor real sob gradiente/camadas",
+  "caminho": "amostragem de pixel renderizado sob cada nó de texto"
+ },
+ "ok": true,
+ "passed": 7,
+ "total": 7,
+ "pass": true
+}

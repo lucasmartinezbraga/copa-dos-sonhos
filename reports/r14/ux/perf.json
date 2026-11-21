@@ -1,0 +1,119 @@
+{
+ "viewports": [
+  {
+   "viewport": "desktop",
+   "erros": [],
+   "telaAposToque": "setup",
+   "aposRolagem": true,
+   "multiToque": true,
+   "aposRotacao": true,
+   "pass": true
+  },
+  {
+   "viewport": "tablet",
+   "erros": [],
+   "telaAposToque": "setup",
+   "aposRolagem": true,
+   "multiToque": true,
+   "aposRotacao": true,
+   "pass": true
+  },
+  {
+   "viewport": "mobile-portrait",
+   "erros": [],
+   "telaAposToque": "setup",
+   "aposRolagem": true,
+   "multiToque": true,
+   "aposRotacao": true,
+   "pass": true
+  },
+  {
+   "viewport": "mobile-landscape",
+   "erros": [],
+   "telaAposToque": "setup",
+   "aposRolagem": true,
+   "multiToque": true,
+   "aposRotacao": true,
+   "pass": true
+  }
+ ],
+ "perf": {
+  "frames": 180,
+  "medianMs": 16.7,
+  "p95Ms": 16.7,
+  "maxMs": 16.8,
+  "longTasks": 0,
+  "fpsMediano": 59.9
+ },
+ "matches": {
+  "partidas": [
+   {
+    "i": 0,
+    "ticks": 11931,
+    "ms": 2513.6,
+    "heapMB": 78.36,
+    "placar": [
+     1,
+     1
+    ]
+   },
+   {
+    "i": 1,
+    "ticks": 11690,
+    "ms": 1874.7,
+    "heapMB": 74.48,
+    "placar": [
+     1,
+     1
+    ]
+   },
+   {
+    "i": 2,
+    "ticks": 12182,
+    "ms": 2114.4,
+    "heapMB": 71.19,
+    "placar": [
+     2,
+     1
+    ]
+   }
+  ],
+  "erro": null
+ },
+ "checks": [
+  {
+   "nome": "navegação por toque em 4 viewports",
+   "pass": true,
+   "detalhe": "desktop:ok, tablet:ok, mobile-portrait:ok, mobile-landscape:ok"
+  },
+  {
+   "nome": "frame time p95 <= 33ms",
+   "pass": true,
+   "detalhe": "p95 16.7ms"
+  },
+  {
+   "nome": "FPS mediano >= 45",
+   "pass": true,
+   "detalhe": "59.9 fps"
+  },
+  {
+   "nome": "sem long tasks (>50ms)",
+   "pass": true,
+   "detalhe": "0 long tasks"
+  },
+  {
+   "nome": "3 partidas consecutivas concluem",
+   "pass": true,
+   "detalhe": "3 partidas, ticks [11931, 11690, 12182]"
+  },
+  {
+   "nome": "crescimento de heap <= 15% em 3 partidas",
+   "pass": true,
+   "detalhe": "78.36MB -> 71.19MB (-9.2%)"
+  }
+ ],
+ "passed": 6,
+ "total": 6,
+ "pass": true,
+ "nota": "Emulação de viewport. PASS TÉCNICO apenas — controles em aparelho físico seguem PENDENTE por definição."
+}

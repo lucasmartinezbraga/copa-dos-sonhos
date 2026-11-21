@@ -1,0 +1,182 @@
+{
+ "version": "1.0.0-R14",
+ "stateCount": 62,
+ "passed": 29,
+ "total": 29,
+ "results": [
+  {
+   "scenario": "locomocao",
+   "check": "0 m/s -> idle",
+   "pass": true,
+   "detail": "obtido idle"
+  },
+  {
+   "scenario": "locomocao",
+   "check": "1 m/s -> walk",
+   "pass": true,
+   "detail": "obtido walk"
+  },
+  {
+   "scenario": "locomocao",
+   "check": "2.5 m/s -> jog",
+   "pass": true,
+   "detail": "obtido jog"
+  },
+  {
+   "scenario": "locomocao",
+   "check": "4.5 m/s -> run",
+   "pass": true,
+   "detail": "obtido run"
+  },
+  {
+   "scenario": "locomocao",
+   "check": "8 m/s -> sprint",
+   "pass": true,
+   "detail": "obtido sprint"
+  },
+  {
+   "scenario": "contrato",
+   "check": "entra em pass_prepare",
+   "pass": true,
+   "detail": "pass_prepare"
+  },
+  {
+   "scenario": "contrato",
+   "check": "duração do preparo = contrato",
+   "pass": true,
+   "detail": "0.2"
+  },
+  {
+   "scenario": "contrato",
+   "check": "não contata antes da hora",
+   "pass": true,
+   "detail": "pass_prepare"
+  },
+  {
+   "scenario": "contrato",
+   "check": "contato após o preparo",
+   "pass": true,
+   "detail": "pass_contact"
+  },
+  {
+   "scenario": "contrato",
+   "check": "sequência completa até recuperar",
+   "pass": true,
+   "detail": "pass_contact -> pass_followthrough -> pass_recover -> idle"
+  },
+  {
+   "scenario": "contrato",
+   "check": "volta para locomoção no fim",
+   "pass": true,
+   "detail": "idle"
+  },
+  {
+   "scenario": "prioridade",
+   "check": "run NÃO interrompe shot_prepare",
+   "pass": true,
+   "detail": "estado shot_prepare"
+  },
+  {
+   "scenario": "prioridade",
+   "check": "segue em shot_prepare",
+   "pass": true,
+   "detail": "shot_prepare"
+  },
+  {
+   "scenario": "prioridade",
+   "check": "tier maior (gk_low_dive) interrompe",
+   "pass": true,
+   "detail": "gk_low_dive"
+  },
+  {
+   "scenario": "interrupcao",
+   "check": "interrupção aceita durante o preparo",
+   "pass": true,
+   "detail": "true"
+  },
+  {
+   "scenario": "interrupcao",
+   "check": "vai para lose_control",
+   "pass": true,
+   "detail": "lose_control"
+  },
+  {
+   "scenario": "interrupcao",
+   "check": "marca interrupted",
+   "pass": true,
+   "detail": "true"
+  },
+  {
+   "scenario": "interrupcao",
+   "check": "não emite contato depois de interrompida",
+   "pass": true,
+   "detail": "contato indevido"
+  },
+  {
+   "scenario": "goleiro",
+   "check": "piso do goleiro = gk_ready",
+   "pass": true,
+   "detail": "gk_ready"
+  },
+  {
+   "scenario": "goleiro",
+   "check": "entra em gk_high_dive",
+   "pass": true,
+   "detail": "gk_high_dive"
+  },
+  {
+   "scenario": "goleiro",
+   "check": "volta para prontidão após o voo",
+   "pass": true,
+   "detail": "gk_ready"
+  },
+  {
+   "scenario": "com_bola",
+   "check": "em movimento com bola -> carry",
+   "pass": true,
+   "detail": "carry"
+  },
+  {
+   "scenario": "com_bola",
+   "check": "parado com bola -> protect",
+   "pass": true,
+   "detail": "protect"
+  },
+  {
+   "scenario": "cobertura",
+   "check": "62 estados exigidos presentes",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "scenario": "cobertura",
+   "check": "sequência de pass tem 4 fases",
+   "pass": true,
+   "detail": "pass_prepare,pass_contact,pass_followthrough,pass_recover"
+  },
+  {
+   "scenario": "cobertura",
+   "check": "sequência de cross tem 4 fases",
+   "pass": true,
+   "detail": "pass_prepare,pass_contact,cross,pass_recover"
+  },
+  {
+   "scenario": "cobertura",
+   "check": "sequência de shot tem 4 fases",
+   "pass": true,
+   "detail": "shot_prepare,shot_contact,shot_followthrough,shot_recover"
+  },
+  {
+   "scenario": "independencia",
+   "check": "22 atletas simultâneos: p0 mantém shot_prepare",
+   "pass": true,
+   "detail": "shot_prepare"
+  },
+  {
+   "scenario": "independencia",
+   "check": "os outros 21 correm normalmente",
+   "pass": true,
+   "detail": "run"
+  }
+ ]
+}
