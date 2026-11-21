@@ -1,0 +1,61 @@
+{
+  "build": "dist/COPA DOS SONHOS - V5.9.3-R13.0 - FUTEBOL OBSERVAVEL E CADENCIADO.html",
+  "tag": "before",
+  "screens": [
+    {
+      "screen": "home",
+      "gKeys": [
+        "db",
+        "modo",
+        "style",
+        "axes",
+        "formKey",
+        "varIdx",
+        "draft",
+        "lineup",
+        "bench",
+        "cup",
+        "speed",
+        "screen"
+      ],
+      "tree": {
+        "tag": "div",
+        "id": "app",
+        "kids": [
+          {
+            "tag": "div",
+            "cls": "home-v2",
+            "kids": [
+              {
+                "tag": "header",
+                "cls": "home-nav-v2"
+              },
+              {
+                "tag": "main",
+                "cls": "home-main-v2"
+              }
+            ]
+          }
+        ]
+      },
+      "buttons": [
+        {
+          "id": "bt-start",
+          "t": "Montar meu time"
+        },
+        {
+          "id": "bt-about",
+          "t": "Como funciona"
+        },
+        {
+          "t": "↗Novo modo de habilidade"
+        }
+      ],
+      "files": {
+        "desktop": "home__desktop.png",
+        "mvert": "home__mvert.png",
+        "mland": "home__mland.png"
+      }
+    }
+  ]
+}

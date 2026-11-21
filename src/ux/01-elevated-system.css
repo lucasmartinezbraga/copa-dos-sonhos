@@ -1,0 +1,57 @@
+/* ============================================================================
+ * Copa dos Sonhos · Redesign · IDENTIDADE ELEVADA (compartilhada)
+ * Linguagem "HUD esportivo techy" aplicável a todas as telas: grid técnico de
+ * fundo, acentos neon, molduras com cantos, brilho/juice em botões e títulos.
+ * Segura por padrão (não altera geometria dos controles) e respeita
+ * prefers-reduced-motion. Não toca o motor.
+ * ========================================================================== */
+
+:root {
+  --neon: #38e1ff;          /* ciano HUD */
+  --neon-2: #4ade80;        /* verde HUD */
+  --neon-dim: rgba(56,225,255,.5);
+  --hud-line: rgba(56,225,255,.32);
+  --glass: rgba(15,26,48,.62);
+  --glass-brd: rgba(120,170,220,.18);
+}
+
+/* Fundo: grid técnico + vinheta, atrás de tudo (coeso em todas as telas) */
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .5;
+  background-image:
+    linear-gradient(rgba(56,225,255,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56,225,255,.05) 1px, transparent 1px);
+  background-size: 44px 44px, 44px 44px;
+  -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 30%, transparent 78%);
+          mask-image: radial-gradient(120% 90% at 50% 0%, #000 30%, transparent 78%);
+}
+#app { position: relative; z-index: 1; }
+
+/* Utilitário de moldura HUD com cantos em L (aplicável a superfícies-herói) */
+.cds-hud { position: relative; }
+.cds-hud::before, .cds-hud::after {
+  content: ''; position: absolute; width: 22px; height: 22px; pointer-events: none;
+  border: 2px solid var(--neon); filter: drop-shadow(0 0 6px var(--neon-dim)); opacity: .85;
+}
+.cds-hud::before { top: 9px; left: 9px; border-right: 0; border-bottom: 0; border-top-left-radius: 6px; }
+.cds-hud::after  { bottom: 9px; right: 9px; border-left: 0; border-top: 0; border-bottom-right-radius: 6px; }
+
+/* Botão-ouro com varredura de brilho (juice) + glow mais forte */
+.btn-gold { position: relative; overflow: hidden; }
+.btn-gold::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.55) 48%, transparent 62%);
+  transform: translateX(-140%); transition: none;
+}
+.btn-gold:hover::after { animation: cdsShine 720ms var(--ease); }
+@keyframes cdsShine { to { transform: translateX(140%); } }
+
+/* Scrollbar coesa (desktop) */
+* { scrollbar-width: thin; scrollbar-color: rgba(120,170,220,.4) transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: rgba(120,170,220,.32); border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
+*::-webkit-scrollbar-thumb:hover { background: rgba(120,170,220,.5); background-clip: content-box; }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-gold:hover::after { animation: none; }
+}

@@ -31,7 +31,23 @@ manifests/        ordem dos blocos e do core
 reports/          medições e laudos
 ```
 
-## Workflow de Desenvolvimento
+## Candidata autoritativa: R13.0 modular (`src/r13/`)
+
+A partir do Gate V-1, a **fonte de verdade** é a R13.0 (`5.9.3-R13.0`),
+reconciliada em `src/r13/` a partir do HTML autoritativo. A build modular
+reproduz o HTML **byte-a-byte** (SHA `363d9a91…9818a8`).
+
+- Para trabalhar na R13.0 e no 2.5D/UX: **edite `src/r13/`** e reconstrua com
+  `python3 tools/build_r13.py`; valide com `python3 tools/verify_r13.py`.
+- A **ordem dos blocos** em `manifests/r13-build-manifest.json` é contrato
+  (as camadas fazem monkey-patch na ordem do documento).
+- `tools/extract_r13.py` regenera `src/r13/` a partir do HTML autoritativo.
+- Regressão comportamental: runners em `tools/r13/` + golden em
+  `reports/r13-baseline/` (ver `reports/GATE-V1-reconciliacao.md`).
+- Os módulos `src/scripts/` + `tools/build.py` (Fase 2, engine 4.0.1) são
+  **legado** e permanecem para referência; não são mais a candidata ativa.
+
+## Workflow de Desenvolvimento (legado Fase 1/2)
 
 ### Para editar o jogo:
 1. Edite **apenas** `src/` (scripts ou styles)

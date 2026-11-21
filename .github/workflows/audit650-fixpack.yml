@@ -1,0 +1,15 @@
+name: Auditoria 650 — fixpack legado
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  legacy-notice:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "Workflow legado desativado para pull requests."
+          echo "Use: Auditoria 650 — correção item por item."

@@ -1,0 +1,36 @@
+{
+  "fixpack": "AUDIT650-RCUX-FIXPACK-2",
+  "generatedOn": "2026-07-22T10:24:45.187018+00:00",
+  "target": "dist/COPA DOS SONHOS - RC-UX.html",
+  "beforeSha256": "a2f62022807a9b322bc64487bba5298c5c9f1b7cbf7255c9e140e9618c58f36c",
+  "afterSha256": "45b3493751b5fdc9df522a2bf5b6ccf760785d0afde68af31ff93fca8c161729",
+  "logicalBaselineChanged": false,
+  "scope": "visual projection, athlete rendering, set-piece stage, UX/mobile/a11y safeguards",
+  "appliedControls": [
+    "CAM-P0-A1-top-band",
+    "CAM-P0-A1-runtime-top-band",
+    "CAM-P0-A1-projector",
+    "TRJ-P0-A1-ball",
+    "TRJ-P0-A1-trail (1)",
+    "TRJ-P0-A1-guide (1)",
+    "TRJ-P1-high-shot-arc",
+    "ATH-P0-B1-articulated-body",
+    "ATH-P0-B1-feed-state",
+    "ATH-P1-depth-number",
+    "ATH-P1-depth-label",
+    "CAM-P0-D1-remove-legacy-name (9)",
+    "CAM-P0-D1-unified-stage",
+    "VFX-P1-turbo-density (already absent)",
+    "INT-P0-export-auditable-api",
+    "ATH-P0-event-poses",
+    "UX-P1-emergency-reroll",
+    "A11Y-MOBILE-UX-runtime",
+    "INT-P0-release-identity"
+  ],
+  "remainingMandatoryEvidence": [
+    "876 matches + 25 directed scenarios + 13 smoke checks on final hash",
+    "physical iOS/Android devices",
+    "blind human perceptual review",
+    "long-session memory/frame-time traces"
+  ]
+}
